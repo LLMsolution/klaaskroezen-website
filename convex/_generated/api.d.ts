@@ -9,8 +9,10 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as checkout from "../checkout.js";
 import type * as contactForm from "../contactForm.js";
 import type * as http from "../http.js";
+import type * as presence from "../presence.js";
 import type * as rateLimits from "../rateLimits.js";
 
 import type {
@@ -21,8 +23,10 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  checkout: typeof checkout;
   contactForm: typeof contactForm;
   http: typeof http;
+  presence: typeof presence;
   rateLimits: typeof rateLimits;
 }>;
 

@@ -45,6 +45,75 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_resource", ["resource"]),
 
+  // ── Pending Orders ──
+  // Created at checkout step 1 (before payment), used for abandoned cart recovery
+  pendingOrders: defineTable({
+    email: v.string(),
+    firstName: v.string(),
+    lastName: v.string(),
+    product: v.string(),
+    country: v.string(),
+    lang: v.union(v.literal("nl"), v.literal("en")),
+    isBusiness: v.boolean(),
+    company: v.optional(v.string()),
+    vatNumber: v.optional(v.string()),
+    bumps: v.array(v.string()),
+    discountCode: v.optional(v.string()),
+    discountAmount: v.optional(v.number()),
+    installments: v.boolean(),
+    userId: v.optional(v.id("users")),
+    molliePaymentId: v.optional(v.string()),
+    remindersSent: v.number(),
+    convertedAt: v.optional(v.number()),
+    abandonedAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_email", ["email"])
+    .index("by_mollie", ["molliePaymentId"])
+    .index("by_converted", ["convertedAt"]),
+
+  // ── Cohorts ──
+  // For coaching/team trainings with start dates and limited spots
+  cohorts: defineTable({
+    training: v.string(),
+    name: v.string(),
+    startDate: v.number(),
+    enrollmentDeadline: v.number(),
+    maxParticipants: v.number(),
+    currentParticipants: v.number(),
+    active: v.boolean(),
+  }).index("by_training", ["training"]),
+
+  // ── Discount Codes ──
+  discountCodes: defineTable({
+    code: v.string(),
+    type: v.union(v.literal("percentage"), v.literal("fixed")),
+    value: v.number(),
+    validUntil: v.optional(v.number()),
+    maxUses: v.optional(v.number()),
+    currentUses: v.number(),
+    products: v.optional(v.array(v.string())),
+  }).index("by_code", ["code"]),
+
+  // ── Page Presence ──
+  // Track live visitors on checkout pages (realtime)
+  pagePresence: defineTable({
+    sessionId: v.string(),
+    page: v.string(),
+    lastSeen: v.number(),
+  })
+    .index("by_page", ["page"])
+    .index("by_session", ["sessionId"]),
+
+  // ── Digital Files ──
+  // E-book and audiobook files for download after purchase
+  digitalFiles: defineTable({
+    product: v.string(),
+    fileName: v.string(),
+    storageId: v.id("_storage"),
+    fileType: v.string(),
+  }).index("by_product", ["product"]),
+
   // ── Contact Form Submissions ──
   contactSubmissions: defineTable({
     name: v.string(),
