@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 import { playfair, dmSans } from "@/lib/fonts";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Navbar } from "@/components/layout/Navbar";
@@ -52,6 +54,8 @@ export default function RootLayout({
             <Navbar />
             <main id="main-content">{children}</main>
             <Footer />
+            <SpeedInsights />
+            <Analytics />
           </ConvexProvider>
         </body>
       </html>

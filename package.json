@@ -12,6 +12,8 @@
     "@auth/core": "^0.37.0",
     "@convex-dev/auth": "^0.0.91",
     "@convex-dev/rate-limiter": "^0.3.2",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "convex": "^1.33.1",
     "next": "^15.3.3",
     "react": "^19.1.0",
