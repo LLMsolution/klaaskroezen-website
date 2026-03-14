@@ -1,22 +1,9 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { authTables } from "@convex-dev/auth/server";
 
 export default defineSchema({
-  // ── Users ──
-  // Created on first purchase (magic link) or manual signup
-  users: defineTable({
-    email: v.string(),
-    name: v.optional(v.string()),
-    phone: v.optional(v.string()),
-    company: v.optional(v.string()),
-    passwordHash: v.optional(v.string()),
-    role: v.union(v.literal("customer"), v.literal("admin")),
-    circleUserId: v.optional(v.string()),
-    createdAt: v.number(),
-    lastLoginAt: v.optional(v.number()),
-  })
-    .index("by_email", ["email"])
-    .index("by_role", ["role"]),
+  ...authTables,
 
   // ── Purchases ──
   // One record per completed payment via Mollie

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { playfair, dmSans } from "@/lib/fonts";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Navbar } from "@/components/layout/Navbar";
@@ -39,19 +40,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="nl" className={`${playfair.variable} ${dmSans.variable}`}>
-      <body>
-        <ConvexProvider>
-          <JsonLd data={organizationJsonLd} />
-          <a href="#main-content" className="skip-link">
-            Ga naar inhoud
-          </a>
-          <AnnouncementBar />
-          <Navbar />
-          <main id="main-content">{children}</main>
-          <Footer />
-        </ConvexProvider>
-      </body>
-    </html>
+    <ConvexAuthNextjsServerProvider>
+      <html lang="nl" className={`${playfair.variable} ${dmSans.variable}`}>
+        <body>
+          <ConvexProvider>
+            <JsonLd data={organizationJsonLd} />
+            <a href="#main-content" className="skip-link">
+              Ga naar inhoud
+            </a>
+            <AnnouncementBar />
+            <Navbar />
+            <main id="main-content">{children}</main>
+            <Footer />
+          </ConvexProvider>
+        </body>
+      </html>
+    </ConvexAuthNextjsServerProvider>
   );
 }

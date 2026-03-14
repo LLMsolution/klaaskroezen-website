@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, internalMutation, internalQuery, internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { rateLimiter } from "./rateLimits";
 
 // Store the contact form submission
 export const submit = mutation({
@@ -14,6 +15,16 @@ export const submit = mutation({
     turnstileVerified: v.boolean(),
   },
   handler: async (ctx, args) => {
+    // Rate limit by email address
+    const { ok, retryAfter } = await rateLimiter.limit(ctx, "contactForm", {
+      key: args.email,
+    });
+    if (!ok) {
+      throw new Error(
+        `Te veel berichten verstuurd. Probeer het over ${Math.ceil((retryAfter ?? 60000) / 60000)} minuten opnieuw.`,
+      );
+    }
+
     const id = await ctx.db.insert("contactSubmissions", {
       ...args,
       emailSent: false,
