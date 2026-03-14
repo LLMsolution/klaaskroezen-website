@@ -1,0 +1,61 @@
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  frontend-linting:
+    name: Frontend Linting (ESLint)
+    uses: ./.github/workflows/frontend-eslint.yml
+    with:
+      node-version: '22'
+
+  security-analysis:
+    name: Security Analysis
+    uses: ./.github/workflows/security-analysis.yml
+
+  frontend-e2e:
+    name: Frontend E2E Tests
+    uses: ./.github/workflows/frontend-playwright.yml
+    with:
+      node-version: '22'
+    needs: [frontend-linting]  # Run E2E after linting passes
+
+  # Check if all tests passed
+  tests-passed:
+    name: All Tests Passed
+    runs-on: ubuntu-latest
+    needs: [frontend-linting, security-analysis, frontend-e2e]
+    steps:
+      - name: Tests Summary
+        run: |
+          echo "✅ All required tests passed successfully!"
+          echo "Frontend linting: ${{ needs.frontend-linting.result }}"
+          echo "Security analysis: ${{ needs.security-analysis.result }}"
+          echo "Frontend E2E: ${{ needs.frontend-e2e.result }}"
+
+  # Auto-merge PR when all checks pass
+  auto-merge:
+    name: Auto-merge PR
+    runs-on: ubuntu-latest
+    needs: [tests-passed]
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Merge PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            console.log(`Auto-merging PR #${pr.number}: ${pr.title}`);
+            await github.rest.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              merge_method: 'squash',
+            });
+            console.log(`✅ PR #${pr.number} merged successfully`);

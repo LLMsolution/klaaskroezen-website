@@ -1,0 +1,64 @@
+name: Frontend ESLint
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version to use'
+        required: false
+        default: '22'
+        type: string
+  workflow_dispatch:
+
+jobs:
+  eslint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Detect frontend directory
+      id: detect
+      run: |
+        # Find package.json with a lint script (exclude node_modules)
+        FRONTEND_DIR=""
+        while IFS= read -r pkg; do
+          if jq -e '.scripts.lint' "$pkg" > /dev/null 2>&1; then
+            FRONTEND_DIR=$(dirname "$pkg")
+            break
+          fi
+        done < <(find . -name "package.json" -not -path "*/node_modules/*" -not -path "*/.next/*" -not -path "*/style-guide-*")
+
+        if [ -z "$FRONTEND_DIR" ]; then
+          echo "found=false" >> $GITHUB_OUTPUT
+          echo "No package.json with lint script found — skipping"
+        else
+          echo "found=true" >> $GITHUB_OUTPUT
+          echo "dir=$FRONTEND_DIR" >> $GITHUB_OUTPUT
+          echo "Frontend detected at: $FRONTEND_DIR"
+        fi
+
+    - name: Set up Node.js ${{ inputs.node-version || '22' }}
+      if: steps.detect.outputs.found == 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version || '22' }}
+        cache: 'npm'
+        cache-dependency-path: '**/package-lock.json'
+
+    - name: Install dependencies
+      if: steps.detect.outputs.found == 'true'
+      run: |
+        cd ${{ steps.detect.outputs.dir }}
+        npm ci
+
+    - name: Run ESLint
+      if: steps.detect.outputs.found == 'true'
+      run: |
+        cd ${{ steps.detect.outputs.dir }}
+        npm run lint
+
+    - name: Skip notice
+      if: steps.detect.outputs.found == 'false'
+      run: echo "No frontend with lint script detected — nothing to lint"

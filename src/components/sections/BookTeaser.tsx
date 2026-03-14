@@ -1,0 +1,75 @@
+import Image from "next/image";
+import { ButtonExternal, ButtonLink, ButtonArrow } from "@/components/ui/Button";
+import { FadeIn } from "@/components/ui/FadeIn";
+
+const badges = ["#1 Managementboek", "2e druk", "9,1 beoordeling"] as const;
+
+export function BookTeaser() {
+  return (
+    <section
+      aria-labelledby="book-heading"
+      className="bg-warm grid grid-cols-1 lg:grid-cols-2 min-h-[320px] border-b border-rule"
+    >
+      {/* Book visual */}
+      <div className="flex items-center justify-center p-10 sm:p-[52px] min-h-[250px] lg:border-r lg:border-rule relative overflow-hidden">
+        <div
+          className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_60%,rgba(181,98,42,0.10),transparent_65%)]"
+          aria-hidden="true"
+        />
+        <div className="relative z-10 w-[min(160px,45%)] sm:w-[min(180px,52%)]">
+          <Image
+            src="/images/book/sales-oprecht-ontspannen-cover.png"
+            alt="Boekcover: Sales, Oprecht & Ontspannen door Klaas Kroezen"
+            width={340}
+            height={480}
+            className="drop-shadow-[_-10px_20px_36px_rgba(0,0,0,0.25)] -rotate-2 hover:rotate-0 hover:scale-105 transition-transform duration-[600ms] ease-out"
+            loading="lazy"
+          />
+        </div>
+      </div>
+
+      {/* Book copy */}
+      <div className="p-7 sm:p-[52px_60px] flex flex-col justify-center">
+        <FadeIn>
+        <span className="block font-body text-[11px] font-medium tracking-[0.22em] uppercase text-ink/45 mb-3">
+          Het boek
+        </span>
+        <h2
+          id="book-heading"
+          className="font-display text-[clamp(22px,2.8vw,38px)] font-black leading-none tracking-[-0.025em] text-ink mb-1"
+        >
+          Sales, Oprecht
+          <em className="block italic font-normal text-copper">
+            &amp;&nbsp;Ontspannen.
+          </em>
+        </h2>
+        <p className="text-[15px] sm:text-[16px] text-ink/75 leading-[1.8] max-w-[360px] mt-4 mb-5">
+          De theorie achter de training. #1&nbsp;Managementboek, nu in
+          2e&nbsp;druk. Hardcopy, e-book of luisterboek.
+        </p>
+        <ul className="flex gap-3 flex-wrap mb-5 list-none" aria-label="Onderscheidingen">
+          {badges.map((badge) => (
+            <li
+              key={badge}
+              className="text-[10px] font-medium tracking-[0.14em] uppercase py-[5px] px-2.5 border border-rule text-ink/50"
+            >
+              {badge}
+            </li>
+          ))}
+        </ul>
+        <div className="flex gap-2.5 flex-wrap">
+          <ButtonExternal
+            href="https://klaaskroezen.plugandpay.com/checkout/oprecht-en-ontspannen-sales"
+            variant="copper"
+          >
+            <ButtonArrow>Hardcopy&nbsp;&mdash; &euro;32,50</ButtonArrow>
+          </ButtonExternal>
+          <ButtonLink href="/boek" variant="ghost">
+            Meer info
+          </ButtonLink>
+        </div>
+        </FadeIn>
+      </div>
+    </section>
+  );
+}

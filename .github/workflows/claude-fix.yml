@@ -1,0 +1,127 @@
+name: Claude Code Fix (Write Access)
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  claude-fix:
+    if: |
+      (
+        github.event_name == 'issue_comment' ||
+        github.event_name == 'pull_request_review_comment'
+      ) &&
+      (contains(github.event.comment.body, '@claude-fix') || contains(github.event.comment.body, '@claude-create')) &&
+      (
+        github.event.comment.author_association == 'OWNER' ||
+        github.event.comment.author_association == 'MEMBER' ||
+        github.event.comment.author_association == 'COLLABORATOR'
+      )
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Load instructions
+        id: load-instructions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "${{ github.event_name }}" == "issue_comment" ]; then
+            NUM="${{ github.event.issue.number }}"
+          else
+            NUM="${{ github.event.pull_request.number }}"
+          fi
+
+          ISSUE_JSON=$(gh issue view $NUM --json labels,title,body)
+          LABELS=$(echo "$ISSUE_JSON" | jq -r '.labels[].name' | tr '\n' ' ')
+          TITLE=$(echo "$ISSUE_JSON" | jq -r '.title')
+          BODY=$(echo "$ISSUE_JSON" | jq -r '.body')
+
+          if echo "$LABELS" | grep -qiE "enhancement|feature|new feature"; then
+            TEMPLATE_FILE=".github/workflows/prompts/end-to-end-feature-github.md"
+          elif echo "$LABELS" | grep -qi "bug"; then
+            TEMPLATE_FILE=".github/workflows/prompts/bug-fix-github.md"
+          else
+            TEMPLATE_FILE=".github/workflows/prompts/bug-fix-github.md"
+          fi
+
+          if [ ! -f "$TEMPLATE_FILE" ]; then
+            echo "Template not found: $TEMPLATE_FILE — using inline prompt"
+            TEMPLATE="Fix issue #$NUM: $TITLE\n\n$BODY"
+          else
+            TEMPLATE=$(cat $TEMPLATE_FILE)
+          fi
+
+          # Safe variable substitution using awk to avoid shell escaping issues
+          # with special characters in TITLE and BODY (backticks, $, quotes, etc.)
+          export REPO="${{ github.repository }}"
+          export ISSUE_NUM="$NUM"
+          export ISSUE_TITLE="$TITLE"
+          export ISSUE_BODY="$BODY"
+          export TRIGGER_USER="${{ github.event.comment.user.login }}"
+          export BRANCH="claude/issue-$NUM-$(date +%Y%m%d-%H%M)"
+
+          TEMPLATE=$(echo "$TEMPLATE" | awk '{
+            gsub(/\$REPOSITORY/, ENVIRON["REPO"])
+            gsub(/\$ISSUE_NUMBER/, ENVIRON["ISSUE_NUM"])
+            gsub(/\$ISSUE_TITLE/, ENVIRON["ISSUE_TITLE"])
+            gsub(/\$ISSUE_BODY/, ENVIRON["ISSUE_BODY"])
+            gsub(/\$TRIGGERED_BY/, ENVIRON["TRIGGER_USER"])
+            gsub(/\$BRANCH_NAME/, ENVIRON["BRANCH"])
+            gsub(/\$CREATE_BRANCH/, "true")
+            gsub(/\$CREATE_PR/, "true")
+            gsub(/\$COMMENT_ON_ISSUE/, "true")
+            gsub(/\$PLAN_PATH/, "")
+            print
+          }')
+
+          DELIMITER="INSTRUCTIONS_$(date +%s)_EOF"
+          echo "CUSTOM_INSTRUCTIONS<<${DELIMITER}" >> $GITHUB_OUTPUT
+          echo "$TEMPLATE" >> $GITHUB_OUTPUT
+          echo "${DELIMITER}" >> $GITHUB_OUTPUT
+
+      - name: Run Claude Code
+        uses: anthropics/claude-code-action@beta
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          custom_instructions: ${{ steps.load-instructions.outputs.CUSTOM_INSTRUCTIONS }}
+          direct_prompt: "true"
+
+  unauthorized:
+    if: |
+      (
+        github.event_name == 'issue_comment' ||
+        github.event_name == 'pull_request_review_comment'
+      ) &&
+      (contains(github.event.comment.body, '@claude-fix') || contains(github.event.comment.body, '@claude-create')) &&
+      github.event.comment.author_association != 'OWNER' &&
+      github.event.comment.author_association != 'MEMBER' &&
+      github.event.comment.author_association != 'COLLABORATOR'
+
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            if (context.eventName === 'issue_comment') {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `❌ @${context.actor} - Not authorized. Only repository owners, members, and collaborators can trigger Claude.`
+              });
+            }

@@ -1,0 +1,110 @@
+name: Frontend E2E Tests (Playwright)
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'Node.js version to use'
+        required: false
+        default: '22'
+        type: string
+  workflow_dispatch:
+
+jobs:
+  playwright-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Detect frontend with Playwright
+      id: detect
+      run: |
+        # Find package.json that has playwright as a dependency or has a playwright config
+        FRONTEND_DIR=""
+        while IFS= read -r pkg; do
+          DIR=$(dirname "$pkg")
+          # Check for playwright config or playwright in dependencies
+          if [ -f "$DIR/playwright.config.ts" ] || [ -f "$DIR/playwright.config.js" ] || \
+             jq -e '.devDependencies["@playwright/test"] // .dependencies["@playwright/test"]' "$pkg" > /dev/null 2>&1; then
+            FRONTEND_DIR="$DIR"
+            break
+          fi
+        done < <(find . -name "package.json" -not -path "*/node_modules/*" -not -path "*/.next/*" -not -path "*/style-guide-*")
+
+        if [ -z "$FRONTEND_DIR" ]; then
+          echo "found=false" >> $GITHUB_OUTPUT
+          echo "No Playwright project detected — skipping"
+        else
+          echo "found=true" >> $GITHUB_OUTPUT
+          echo "dir=$FRONTEND_DIR" >> $GITHUB_OUTPUT
+          echo "Playwright project detected at: $FRONTEND_DIR"
+        fi
+
+    - name: Set up Node.js ${{ inputs.node-version || '22' }}
+      if: steps.detect.outputs.found == 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version || '22' }}
+        cache: 'npm'
+        cache-dependency-path: '**/package-lock.json'
+
+    - name: Install dependencies
+      if: steps.detect.outputs.found == 'true'
+      run: |
+        cd ${{ steps.detect.outputs.dir }}
+        npm ci
+
+    - name: Install Playwright browsers
+      if: steps.detect.outputs.found == 'true'
+      run: |
+        cd ${{ steps.detect.outputs.dir }}
+        npx playwright install --with-deps
+
+    - name: Check for required environment
+      if: steps.detect.outputs.found == 'true'
+      id: env-check
+      run: |
+        if [ -z "$NEXT_PUBLIC_CONVEX_URL" ]; then
+          echo "available=false" >> $GITHUB_OUTPUT
+          echo "⚠️ NEXT_PUBLIC_CONVEX_URL not set — E2E tests require a running Convex backend"
+        else
+          echo "available=true" >> $GITHUB_OUTPUT
+        fi
+      env:
+        NEXT_PUBLIC_CONVEX_URL: ${{ secrets.NEXT_PUBLIC_CONVEX_URL }}
+
+    - name: Run Playwright tests
+      if: steps.detect.outputs.found == 'true' && steps.env-check.outputs.available == 'true'
+      run: |
+        cd ${{ steps.detect.outputs.dir }}
+        npm run test
+      env:
+        NEXT_PUBLIC_CONVEX_URL: ${{ secrets.NEXT_PUBLIC_CONVEX_URL }}
+
+    - name: Skip E2E notice
+      if: steps.detect.outputs.found == 'true' && steps.env-check.outputs.available == 'false'
+      run: echo "⚠️ Skipping E2E tests — no Convex backend configured in CI. Run locally with 'npm test'."
+
+    - name: Upload Playwright report
+      uses: actions/upload-artifact@v4
+      if: steps.detect.outputs.found == 'true' && always()
+      with:
+        name: playwright-report
+        path: ${{ steps.detect.outputs.dir }}/playwright-report/
+        retention-days: 30
+        if-no-files-found: ignore
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: steps.detect.outputs.found == 'true' && always()
+      with:
+        name: playwright-test-results
+        path: ${{ steps.detect.outputs.dir }}/test-results/
+        retention-days: 30
+        if-no-files-found: ignore
+
+    - name: Skip notice
+      if: steps.detect.outputs.found == 'false'
+      run: echo "No Playwright project detected — nothing to test"

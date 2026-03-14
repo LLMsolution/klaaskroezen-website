@@ -1,0 +1,186 @@
+name: Security Analysis
+
+on:
+  workflow_call:
+  schedule:
+    - cron: '0 2 * * 1'  # Weekly on Mondays at 2 AM UTC
+  workflow_dispatch:
+
+jobs:
+  bandit-python-security:
+    name: Python Security (Bandit)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Detect Python directories
+      id: detect
+      run: |
+        # Find directories containing .py files (exclude venvs, caches, node_modules)
+        PYTHON_DIRS=$(find . -name "*.py" \
+          -not -path "*/venv*" \
+          -not -path "*/.venv/*" \
+          -not -path "*/__pycache__/*" \
+          -not -path "*/node_modules/*" \
+          -not -path "*/.next/*" \
+          -not -path "*/site-packages/*" \
+          -not -path "*/style-guide-*" \
+          -exec dirname {} \; | sort -u | head -20)
+
+        if [ -z "$PYTHON_DIRS" ]; then
+          echo "found=false" >> $GITHUB_OUTPUT
+          echo "No Python files detected — skipping Bandit scan"
+        else
+          echo "found=true" >> $GITHUB_OUTPUT
+          echo "Python files found in:"
+          echo "$PYTHON_DIRS"
+        fi
+
+    - name: Set up Python 3.12
+      if: steps.detect.outputs.found == 'true'
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install Bandit
+      if: steps.detect.outputs.found == 'true'
+      run: |
+        python -m pip install --upgrade pip
+        pip install bandit[toml] bandit-sarif-formatter
+
+    - name: Run Bandit security scan
+      if: steps.detect.outputs.found == 'true'
+      run: |
+        # Scan all Python files from repo root, excluding venvs
+        bandit -r . \
+          --exclude=venv,.venv,venv_linux,__pycache__,node_modules,.next,site-packages,style-guide-* \
+          -f json -o bandit-results.json || true
+        bandit -r . \
+          --exclude=venv,.venv,venv_linux,__pycache__,node_modules,.next,site-packages,style-guide-* \
+          -f txt | tee bandit-results.txt || true
+
+    - name: Check for high severity issues
+      if: steps.detect.outputs.found == 'true'
+      run: |
+        if [ -f bandit-results.json ]; then
+          HIGH_ISSUES=$(jq '[.results[] | select(.issue_severity == "HIGH")] | length' bandit-results.json)
+          MEDIUM_ISSUES=$(jq '[.results[] | select(.issue_severity == "MEDIUM")] | length' bandit-results.json)
+
+          echo "High severity issues: $HIGH_ISSUES"
+          echo "Medium severity issues: $MEDIUM_ISSUES"
+
+          if [ "$HIGH_ISSUES" -gt 0 ]; then
+            echo "::error::High severity security issues found!"
+            jq -r '.results[] | select(.issue_severity == "HIGH") | "HIGH: \(.test_id) in \(.filename):\(.line_number) - \(.issue_text)"' bandit-results.json
+            exit 1
+          fi
+        fi
+
+        echo "No high severity Python security issues detected"
+
+    - name: Upload Bandit results
+      uses: actions/upload-artifact@v4
+      if: steps.detect.outputs.found == 'true' && always()
+      with:
+        name: bandit-results
+        path: bandit-results.*
+        retention-days: 30
+        if-no-files-found: ignore
+
+    - name: Skip notice
+      if: steps.detect.outputs.found == 'false'
+      run: echo "No Python files detected — skipping Bandit scan"
+
+  eslint-security:
+    name: Frontend Security (ESLint)
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Detect frontend directory
+      id: detect
+      run: |
+        # Find package.json with eslint config or lint script
+        FRONTEND_DIR=""
+        while IFS= read -r pkg; do
+          DIR=$(dirname "$pkg")
+          if jq -e '.scripts.lint // .devDependencies.eslint // .dependencies.eslint' "$pkg" > /dev/null 2>&1; then
+            FRONTEND_DIR="$DIR"
+            break
+          fi
+        done < <(find . -name "package.json" -not -path "*/node_modules/*" -not -path "*/.next/*" -not -path "*/style-guide-*")
+
+        if [ -z "$FRONTEND_DIR" ]; then
+          echo "found=false" >> $GITHUB_OUTPUT
+          echo "No frontend with ESLint detected — skipping"
+        else
+          echo "found=true" >> $GITHUB_OUTPUT
+          echo "dir=$FRONTEND_DIR" >> $GITHUB_OUTPUT
+          echo "Frontend detected at: $FRONTEND_DIR"
+        fi
+
+    - name: Set up Node.js 22
+      if: steps.detect.outputs.found == 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: '**/package-lock.json'
+
+    - name: Install dependencies and security plugins
+      if: steps.detect.outputs.found == 'true'
+      run: |
+        cd ${{ steps.detect.outputs.dir }}
+        npm ci
+        npm install --save-dev eslint-plugin-security || true
+
+    - name: Run ESLint security scan
+      if: steps.detect.outputs.found == 'true'
+      run: |
+        cd ${{ steps.detect.outputs.dir }}
+        npx eslint . \
+          --ext .js,.jsx,.ts,.tsx \
+          --format json \
+          --output-file eslint-security.json || true
+
+        npx eslint . \
+          --ext .js,.jsx,.ts,.tsx \
+          --format unix | tee eslint-security.txt || true
+
+    - name: Check for security issues
+      if: steps.detect.outputs.found == 'true'
+      run: |
+        cd ${{ steps.detect.outputs.dir }}
+
+        if [ -f eslint-security.json ]; then
+          ERROR_COUNT=$(jq '[.[] | .messages[] | select(.severity == 2)] | length' eslint-security.json)
+          WARNING_COUNT=$(jq '[.[] | .messages[] | select(.severity == 1)] | length' eslint-security.json)
+
+          echo "ESLint errors: $ERROR_COUNT"
+          echo "ESLint warnings: $WARNING_COUNT"
+
+          if [ "$ERROR_COUNT" -gt 0 ]; then
+            echo "::error::ESLint errors found in frontend code!"
+            jq -r '.[] | .messages[] | select(.severity == 2) | "ERROR: \(.ruleId // "unknown") in \(.filePath) line \(.line) - \(.message)"' eslint-security.json
+            exit 1
+          fi
+
+          echo "No critical frontend security issues detected"
+        fi
+
+    - name: Upload ESLint results
+      uses: actions/upload-artifact@v4
+      if: steps.detect.outputs.found == 'true' && always()
+      with:
+        name: eslint-security-results
+        path: ${{ steps.detect.outputs.dir }}/eslint-security.*
+        retention-days: 30
+        if-no-files-found: ignore
+
+    - name: Skip notice
+      if: steps.detect.outputs.found == 'false'
+      run: echo "No frontend with ESLint detected — skipping security scan"
