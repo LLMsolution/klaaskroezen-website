@@ -4,6 +4,7 @@ import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { JsonLd, organizationJsonLd } from "@/components/seo/JsonLd";
+import { ConvexProvider } from "@/components/providers/ConvexProvider";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -40,14 +41,16 @@ export default function RootLayout({
   return (
     <html lang="nl" className={`${playfair.variable} ${dmSans.variable}`}>
       <body>
-        <JsonLd data={organizationJsonLd} />
-        <a href="#main-content" className="skip-link">
-          Ga naar inhoud
-        </a>
-        <AnnouncementBar />
-        <Navbar />
-        <main id="main-content">{children}</main>
-        <Footer />
+        <ConvexProvider>
+          <JsonLd data={organizationJsonLd} />
+          <a href="#main-content" className="skip-link">
+            Ga naar inhoud
+          </a>
+          <AnnouncementBar />
+          <Navbar />
+          <main id="main-content">{children}</main>
+          <Footer />
+        </ConvexProvider>
       </body>
     </html>
   );

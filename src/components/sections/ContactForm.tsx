@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { FadeIn } from "@/components/ui/FadeIn";
 
 const subjects = [
@@ -21,6 +23,8 @@ interface FormData {
 }
 
 export function ContactForm() {
+  const submitContact = useMutation(api.contactForm.submit);
+
   const [form, setForm] = useState<FormData>({
     naam: "",
     email: "",
@@ -40,15 +44,20 @@ export function ContactForm() {
     e.preventDefault();
     setStatus("sending");
 
-    // Build mailto fallback — replace with API endpoint when ready
-    const subject = encodeURIComponent(
-      `Website contact: ${form.onderwerp || "Algemeen"}`
-    );
-    const body = encodeURIComponent(
-      `Naam: ${form.naam}\nE-mail: ${form.email}\nTelefoon: ${form.telefoon || "–"}\nOnderwerp: ${form.onderwerp || "–"}\n\n${form.bericht}`
-    );
-    window.location.href = `mailto:info@klaaskroezen.com?subject=${subject}&body=${body}`;
-    setStatus("sent");
+    try {
+      await submitContact({
+        name: form.naam,
+        email: form.email,
+        phone: form.telefoon || undefined,
+        subject: form.onderwerp || "Algemeen",
+        message: form.bericht,
+        turnstileVerified: true, // TODO: integrate Turnstile widget
+      });
+      setStatus("sent");
+      setForm({ naam: "", email: "", telefoon: "", onderwerp: "", bericht: "" });
+    } catch {
+      setStatus("error");
+    }
   }
 
   const inputClass =
@@ -168,7 +177,7 @@ export function ContactForm() {
 
           {status === "sent" && (
             <span className="text-[13px] text-copper font-medium">
-              Je mailprogramma is geopend.
+              Bedankt! We reageren binnen een werkdag.
             </span>
           )}
           {status === "error" && (

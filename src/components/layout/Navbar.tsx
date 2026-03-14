@@ -188,6 +188,7 @@ export function Navbar() {
         role="dialog"
         aria-label="Mobiel menu"
         aria-hidden={!mobileOpen}
+        inert={!mobileOpen ? true : undefined}
         className={`lg:hidden fixed inset-x-0 top-16 bottom-0 bg-ink/95 backdrop-blur-sm z-[199] transition-opacity duration-200 ${
           mobileOpen
             ? "opacity-100 pointer-events-auto"

@@ -120,19 +120,23 @@ export function HeroSlideshow() {
       </figure>
 
       {/* Slide indicators */}
-      <div className="absolute bottom-7 right-7 sm:bottom-11 sm:right-12 z-20 flex gap-1.5" aria-hidden="true">
+      <div className="absolute bottom-7 right-7 sm:bottom-11 sm:right-12 z-20 flex gap-2" role="group" aria-label="Slide navigatie">
         {slides.map((_, i) => (
           <button
             key={i}
             type="button"
             onClick={() => setCurrent(i)}
-            className={`w-1.5 h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-              i === current
-                ? "bg-copper w-5"
-                : "bg-paper/30 hover:bg-paper/50"
+            className={`h-6 flex items-center justify-center cursor-pointer ${
+              i === current ? "w-7" : "w-6"
             }`}
             aria-label={`Ga naar slide ${i + 1}`}
-          />
+          >
+            <span className={`block h-2 rounded-full transition-all duration-300 ${
+              i === current
+                ? "bg-copper w-5"
+                : "bg-paper/30 hover:bg-paper/50 w-2"
+            }`} />
+          </button>
         ))}
       </div>
     </div>

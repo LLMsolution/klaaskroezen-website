@@ -52,6 +52,7 @@ function Stars() {
   return (
     <div
       className="text-copper text-xs tracking-[2px] mb-[13px]"
+      role="img"
       aria-label="5 van 5 sterren"
     >
       <span aria-hidden="true">★★★★★</span>
