@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import { Label } from "@/components/ui/Label";
 import { FadeIn } from "@/components/ui/FadeIn";
@@ -51,8 +51,11 @@ const content = {
   },
 };
 
+const SWIPE_THRESHOLD = 50;
+
 export function BookPreview({ lang }: { lang: Lang }) {
   const [current, setCurrent] = useState(0);
+  const touchStartX = useRef(0);
   const s = content[lang];
 
   const prev = useCallback(() => {
@@ -63,14 +66,41 @@ export function BookPreview({ lang }: { lang: Lang }) {
     setCurrent((c) => (c === PAGES.length - 1 ? 0 : c + 1));
   }, []);
 
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX;
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    const diff = touchStartX.current - e.changedTouches[0].clientX;
+    if (diff > SWIPE_THRESHOLD) next();
+    else if (diff < -SWIPE_THRESHOLD) prev();
+  }
+
   return (
     <section className="border-b border-rule bg-warm/40">
-      <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
+      {/* Mobile: text first, then preview */}
+      <div className="lg:hidden px-7 pt-12 pb-6 sm:px-10">
+        <FadeIn className="max-w-[440px]">
+          <Label className="mb-3">{s.label}</Label>
+          <h2 className="font-display text-[clamp(28px,3.4vw,44px)] font-black leading-[0.97] tracking-[-0.03em] mb-3">
+            {s.title}{" "}
+            <em className="italic font-normal text-ink/40">{s.titleAccent}</em>
+          </h2>
+          <p className="text-[15px] text-ink/60 leading-[1.8]">
+            {s.description}
+          </p>
+        </FadeIn>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 lg:min-h-screen">
         {/* Left: Book page viewer */}
-        <div className="bg-warm flex items-center justify-center p-8 sm:p-12 lg:p-16">
+        <div
+          className="bg-warm flex items-center justify-center p-6 sm:p-12 lg:p-16"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <div className="flex flex-col items-center">
-            {/* Page — height-driven, width follows aspect ratio */}
-            <div className="relative bg-white shadow-2xl rounded-[2px] overflow-hidden h-[60vh] lg:h-[70vh] aspect-[448/683]">
+            <div className="relative bg-white shadow-2xl rounded-[2px] overflow-hidden h-[55vh] sm:h-[60vh] lg:h-[70vh] aspect-[448/683]">
               <Image
                 src={PAGES[current]}
                 alt={`${s.page} ${current + 1}`}
@@ -110,21 +140,24 @@ export function BookPreview({ lang }: { lang: Lang }) {
           </div>
         </div>
 
-        {/* Right: Copy + CTA */}
-        <div className="flex flex-col justify-center px-7 py-12 sm:px-10 lg:px-16 lg:py-20">
+        {/* Right: Copy + CTA (desktop only — mobile text is above) */}
+        <div className="flex flex-col justify-center px-7 py-8 sm:px-10 lg:px-16 lg:py-20">
           <FadeIn className="max-w-[440px]">
-            <Label className="mb-3">{s.label}</Label>
-            <h2 className="font-display text-[clamp(28px,3.4vw,44px)] font-black leading-[0.97] tracking-[-0.03em] mb-4">
-              {s.title}
-              <br />
-              <em className="italic font-normal text-ink/40">{s.titleAccent}</em>
-            </h2>
-            <p className="text-[15px] sm:text-[16px] text-ink/60 leading-[1.8] mb-8">
-              {s.description}
-            </p>
+            {/* Desktop heading (hidden on mobile since it's shown above) */}
+            <div className="hidden lg:block">
+              <Label className="mb-3">{s.label}</Label>
+              <h2 className="font-display text-[clamp(28px,3.4vw,44px)] font-black leading-[0.97] tracking-[-0.03em] mb-4">
+                {s.title}
+                <br />
+                <em className="italic font-normal text-ink/40">{s.titleAccent}</em>
+              </h2>
+              <p className="text-[15px] sm:text-[16px] text-ink/60 leading-[1.8] mb-8">
+                {s.description}
+              </p>
+            </div>
 
-            {/* Book cover + CTA side by side */}
-            <div className="flex items-end gap-6 mb-8">
+            {/* Book cover + CTA */}
+            <div className="flex items-end gap-6 mb-6 lg:mb-8">
               <div className="shrink-0 hidden sm:block">
                 <Image
                   src="/images/book/sales-oprecht-ontspannen-cover.png"
