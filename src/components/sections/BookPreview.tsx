@@ -79,7 +79,7 @@ export function BookPreview({ lang }: { lang: Lang }) {
   return (
     <section className="border-b border-rule bg-warm/40">
       {/* Mobile: text first, then preview */}
-      <div className="lg:hidden px-7 pt-12 pb-6 sm:px-10">
+      <div className="lg:hidden bg-warm px-7 pt-12 pb-6 sm:px-10">
         <FadeIn className="max-w-[440px]">
           <Label className="mb-3">{s.label}</Label>
           <h2 className="font-display text-[clamp(28px,3.4vw,44px)] font-black leading-[0.97] tracking-[-0.03em] mb-3">
@@ -95,12 +95,12 @@ export function BookPreview({ lang }: { lang: Lang }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 lg:min-h-screen">
         {/* Left: Book page viewer */}
         <div
-          className="bg-warm flex items-center justify-center p-6 sm:p-12 lg:p-16"
+          className="bg-warm flex items-center justify-center px-4 py-6 sm:p-12 lg:p-16"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
           <div className="flex flex-col items-center">
-            <div className="relative bg-white shadow-2xl rounded-[2px] overflow-hidden h-[55vh] sm:h-[60vh] lg:h-[70vh] aspect-[448/683]">
+            <div className="relative bg-white shadow-2xl rounded-[2px] overflow-hidden h-[65vh] sm:h-[60vh] lg:h-[70vh] aspect-[448/683]">
               <Image
                 src={PAGES[current]}
                 alt={`${s.page} ${current + 1}`}
@@ -141,7 +141,7 @@ export function BookPreview({ lang }: { lang: Lang }) {
         </div>
 
         {/* Right: Copy + CTA (desktop only — mobile text is above) */}
-        <div className="flex flex-col justify-center px-7 py-8 sm:px-10 lg:px-16 lg:py-20">
+        <div className="flex flex-col justify-center bg-warm lg:bg-transparent px-7 py-8 sm:px-10 lg:px-16 lg:py-20">
           <FadeIn className="max-w-[440px]">
             {/* Desktop heading (hidden on mobile since it's shown above) */}
             <div className="hidden lg:block">
