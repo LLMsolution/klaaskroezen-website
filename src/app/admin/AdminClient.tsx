@@ -88,7 +88,7 @@ export function AdminClient() {
   ];
 
   return (
-    <div className="mx-auto max-w-[1100px] px-7 py-12 lg:py-20">
+    <div className="mx-auto max-w-[1100px] px-7 py-12 lg:py-20 min-h-[calc(100dvh-64px)]">
       <div className="flex items-start justify-between mb-8">
         <div>
           <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-2">
@@ -108,7 +108,10 @@ export function AdminClient() {
         </div>
       </div>
 
-      <div className="flex gap-1 mb-8 overflow-x-auto border-b border-rule">
+      <div className="relative mb-8">
+        <div
+          className="flex gap-1 overflow-x-auto border-b border-rule scrollbar-none"
+        >
         {tabs.map((tab) => (
           <button
             key={tab.key}
@@ -122,6 +125,9 @@ export function AdminClient() {
             {tab.label}
           </button>
         ))}
+        </div>
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-paper to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-paper to-transparent" />
       </div>
 
       {activeTab === "overview" && <OverviewTab />}

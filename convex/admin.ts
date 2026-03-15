@@ -5,8 +5,8 @@ import { auth } from "./auth";
 
 const ADMIN_EMAILS = [
   "klaas@klaaskroezen.com",
-  "info@klaaskroezen.com",
-  "klaas@cxiagroup.com",
+  "timlind18@icloud.com",
+  "yvon@yvonkruger.nl",
 ];
 
 async function requireAdmin(ctx: any) {
