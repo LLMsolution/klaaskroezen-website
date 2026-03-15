@@ -35,7 +35,7 @@ const translations = {
     installmentsOf: "termijnen van",
 
     // Auth
-    orLoginWith: "of log snel in met",
+    orLoginWith: "Log snel in met",
     loggedInAs: "Ingelogd als",
     continueAsGuest: "Ga verder zonder account",
 
@@ -153,7 +153,7 @@ const translations = {
     payInInstallments: "Pay in installments",
     installmentsOf: "installments of",
 
-    orLoginWith: "or quickly log in with",
+    orLoginWith: "Quickly log in with",
     loggedInAs: "Logged in as",
     continueAsGuest: "Continue without account",
 

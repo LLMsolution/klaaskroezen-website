@@ -6,6 +6,7 @@ import {
   ButtonArrow,
 } from "@/components/ui/Button";
 import { FadeIn } from "@/components/ui/FadeIn";
+import { t, type Lang } from "@/lib/i18n";
 
 interface GlassItem {
   label: string;
@@ -13,6 +14,7 @@ interface GlassItem {
 }
 
 interface TrainingHeroProps {
+  lang: Lang;
   eyebrow: string;
   titleLine1: string;
   titleLine2: string;
@@ -28,6 +30,7 @@ interface TrainingHeroProps {
 }
 
 export function TrainingHero({
+  lang,
   eyebrow,
   titleLine1,
   titleLine2,
@@ -38,8 +41,8 @@ export function TrainingHero({
   glassItems,
   pricingAnchor = "#pricing",
   programAnchor = "#programma",
-  ctaLabel = "Training kopen",
-  secondaryLabel = "Bekijk programma",
+  ctaLabel = t(lang).training.ctaLabel,
+  secondaryLabel = t(lang).training.secondaryLabel,
 }: TrainingHeroProps) {
   return (
     <section className="relative min-h-[90vh] flex items-end bg-ink overflow-hidden">

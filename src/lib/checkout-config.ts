@@ -32,6 +32,8 @@ export interface BumpConfig {
   price: number;
   priceInclBtw: boolean;
   description: { nl: string; en: string };
+  image?: string;
+  mockupType?: "tablet" | "phone" | "audio";
 }
 
 export const CHECKOUT_PRODUCTS: Record<string, CheckoutProduct> = {
@@ -66,8 +68,8 @@ export const CHECKOUT_PRODUCTS: Record<string, CheckoutProduct> = {
         "12 months access",
       ],
     },
-    image: "/images/training/set-cover.jpg",
-    bumps: ["boek-ebook", "boek-hardcopy", "boek-luisterboek"],
+    image: "/images/hero/sales-excellence-group.jpeg",
+    bumps: ["boek-hardcopy", "boek-ebook", "boek-luisterboek"],
     productType: "training",
     installments: { count: 3, amountPerTerm: 75000 },
   },
@@ -104,8 +106,8 @@ export const CHECKOUT_PRODUCTS: Record<string, CheckoutProduct> = {
         "12 months access",
       ],
     },
-    image: "/images/training/set-cover.jpg",
-    bumps: ["boek-ebook", "boek-hardcopy", "boek-luisterboek"],
+    image: "/images/hero/sales-excellence-group.jpeg",
+    bumps: ["boek-hardcopy", "boek-ebook", "boek-luisterboek"],
     productType: "training",
     installments: { count: 3, amountPerTerm: 125000 },
   },
@@ -140,8 +142,8 @@ export const CHECKOUT_PRODUCTS: Record<string, CheckoutProduct> = {
         "12 months access",
       ],
     },
-    image: "/images/training/cst-cover.jpg",
-    bumps: ["boek-ebook", "boek-hardcopy", "boek-luisterboek"],
+    image: "/images/hero/customer-success-group.jpg",
+    bumps: ["boek-hardcopy", "boek-ebook", "boek-luisterboek"],
     productType: "training",
     installments: { count: 3, amountPerTerm: 75000 },
   },
@@ -178,8 +180,8 @@ export const CHECKOUT_PRODUCTS: Record<string, CheckoutProduct> = {
         "12 months access",
       ],
     },
-    image: "/images/training/cst-cover.jpg",
-    bumps: ["boek-ebook", "boek-hardcopy", "boek-luisterboek"],
+    image: "/images/hero/customer-success-group.jpg",
+    bumps: ["boek-hardcopy", "boek-ebook", "boek-luisterboek"],
     productType: "training",
     installments: { count: 3, amountPerTerm: 125000 },
   },
@@ -202,7 +204,7 @@ export const CHECKOUT_PRODUCTS: Record<string, CheckoutProduct> = {
       nl: ["Direct downloaden (PDF)", "Lezen op elk apparaat", "Bestseller — 2.500+ verkocht"],
       en: ["Instant download (PDF)", "Read on any device", "Bestseller — 2,500+ sold"],
     },
-    image: "/images/boek/cover-3d.png",
+    image: "/images/book/sales-oprecht-ontspannen-cover.png",
     bumps: ["boek-hardcopy", "boek-luisterboek"],
     productType: "book",
   },
@@ -225,7 +227,7 @@ export const CHECKOUT_PRODUCTS: Record<string, CheckoutProduct> = {
       nl: ["Gratis verzending (NL)", "Binnen 2 werkdagen bezorgd", "Bestseller — 2.500+ verkocht"],
       en: ["Free shipping (NL)", "Delivered within 2 business days", "Bestseller — 2,500+ sold"],
     },
-    image: "/images/boek/cover-3d.png",
+    image: "/images/book/sales-oprecht-ontspannen-cover.png",
     bumps: ["boek-ebook", "boek-luisterboek"],
     productType: "book",
   },
@@ -248,11 +250,30 @@ export const CHECKOUT_PRODUCTS: Record<string, CheckoutProduct> = {
       nl: ["Direct downloaden (MP3)", "Ingesproken door Klaas", "Bestseller — 2.500+ verkocht"],
       en: ["Instant download (MP3)", "Narrated by Klaas", "Bestseller — 2,500+ sold"],
     },
-    image: "/images/boek/cover-3d.png",
+    image: "/images/book/sales-oprecht-ontspannen-cover.png",
     bumps: ["boek-hardcopy", "boek-ebook"],
     productType: "book",
   },
 };
+
+/** Quantity tiers for products that support bulk pricing */
+export interface QuantityTier {
+  quantity: number;
+  unitPriceCents: number;
+  savingsPercent: number;
+}
+
+export const QUANTITY_TIERS: Record<string, QuantityTier[]> = {
+  "boek-hardcopy": [
+    { quantity: 1, unitPriceCents: 3250, savingsPercent: 0 },
+    { quantity: 3, unitPriceCents: 2950, savingsPercent: 9 },
+    { quantity: 10, unitPriceCents: 2750, savingsPercent: 15 },
+  ],
+};
+
+export function getQuantityTiers(slug: string): QuantityTier[] | undefined {
+  return QUANTITY_TIERS[slug];
+}
 
 /** Gift book bump — shown after buying any book format */
 export const GIFT_BUMP: BumpConfig = {
@@ -297,21 +318,30 @@ export function getProduct(slug: string): CheckoutProduct | undefined {
   return CHECKOUT_PRODUCTS[slug];
 }
 
+/** Mockup type mapping for bump products */
+const BUMP_MOCKUP: Record<string, { mockupType: "tablet" | "phone" | "audio" }> = {
+  "boek-ebook": { mockupType: "tablet" },
+  "boek-luisterboek": { mockupType: "audio" },
+};
+
 /** Get available bumps for a product, excluding the product itself */
 export function getBumpsForProduct(slug: string): BumpConfig[] {
   const product = CHECKOUT_PRODUCTS[slug];
   if (!product) return [];
 
   return product.bumps
-    .map((bumpSlug) => {
+    .map((bumpSlug): BumpConfig | null => {
       const bumpProduct = CHECKOUT_PRODUCTS[bumpSlug];
       if (!bumpProduct) return null;
+      const mockup = BUMP_MOCKUP[bumpSlug];
       return {
         slug: bumpProduct.slug,
         name: bumpProduct.shortName,
         price: bumpProduct.price,
         priceInclBtw: bumpProduct.priceInclBtw,
         description: bumpProduct.description,
+        image: bumpProduct.image,
+        mockupType: mockup?.mockupType,
       };
     })
     .filter((b): b is BumpConfig => b !== null);

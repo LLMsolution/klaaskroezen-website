@@ -1,8 +1,10 @@
 import { Container } from "@/components/ui/Container";
 import { Label } from "@/components/ui/Label";
 import { FadeIn } from "@/components/ui/FadeIn";
+import { t, type Lang } from "@/lib/i18n";
 
 interface PainPointsProps {
+  lang: Lang;
   eyebrow?: string;
   title: string;
   titleAccent: string;
@@ -10,7 +12,8 @@ interface PainPointsProps {
 }
 
 export function PainPoints({
-  eyebrow = "Herken je dit?",
+  lang,
+  eyebrow = t(lang).training.painEyebrow,
   title,
   titleAccent,
   points,

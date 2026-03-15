@@ -8,12 +8,18 @@
  * @module
  */
 
+import type * as admin from "../admin.js";
 import type * as auth from "../auth.js";
 import type * as checkout from "../checkout.js";
 import type * as contactForm from "../contactForm.js";
+import type * as emails from "../emails.js";
 import type * as http from "../http.js";
+import type * as invoices from "../invoices.js";
+import type * as mollie from "../mollie.js";
+import type * as payments from "../payments.js";
 import type * as presence from "../presence.js";
 import type * as rateLimits from "../rateLimits.js";
+import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -22,12 +28,18 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  admin: typeof admin;
   auth: typeof auth;
   checkout: typeof checkout;
   contactForm: typeof contactForm;
+  emails: typeof emails;
   http: typeof http;
+  invoices: typeof invoices;
+  mollie: typeof mollie;
+  payments: typeof payments;
   presence: typeof presence;
   rateLimits: typeof rateLimits;
+  users: typeof users;
 }>;
 
 /**

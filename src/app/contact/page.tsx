@@ -5,14 +5,22 @@ import { Label } from "@/components/ui/Label";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { ContactForm } from "@/components/sections/ContactForm";
 import { JsonLd, contactPageJsonLd } from "@/components/seo/JsonLd";
+import { t } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Contact",
-  description:
-    "Neem contact op met Klaas Kroezen. Voor vragen over trainingen, sprekersopdrachten of samenwerking.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLocale();
+  const s = t(lang).contact;
+  return {
+    title: s.label,
+    description: s.intro,
+  };
+}
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const lang = await getLocale();
+  const s = t(lang).contact;
+
   return (
     <>
       <JsonLd data={contactPageJsonLd} />
@@ -22,7 +30,7 @@ export default function ContactPage() {
           <div className="relative aspect-[4/3] lg:aspect-auto lg:min-h-[480px] overflow-hidden bg-warm">
             <Image
               src="/images/about/klaas-kroezen-portrait-2.jpeg"
-              alt="Klaas Kroezen"
+              alt={s.imageAlt}
               fill
               className="object-cover object-top"
               sizes="(max-width: 1024px) 100vw, 50vw"
@@ -31,17 +39,16 @@ export default function ContactPage() {
           </div>
           <div className="flex flex-col justify-center py-12 sm:py-16 lg:py-20 px-7 sm:px-10 lg:px-16">
             <FadeIn>
-              <Label className="mb-3">Contact</Label>
+              <Label className="mb-3">{s.label}</Label>
               <h1 className="font-display text-[clamp(32px,4.2vw,54px)] font-black leading-[0.97] tracking-[-0.03em] mb-5">
-                Laten we
+                {s.heading1}
                 <br />
                 <em className="italic font-normal text-ink/40">
-                  kennismaken.
+                  {s.heading2}
                 </em>
               </h1>
               <p className="text-[15px] sm:text-[16px] text-ink/80 leading-[1.8] max-w-[440px]">
-                Benieuwd wat we voor jou of je team kunnen betekenen? Vul het
-                formulier in en we reageren binnen één werkdag.
+                {s.intro}
               </p>
             </FadeIn>
           </div>
@@ -53,14 +60,14 @@ export default function ContactPage() {
         <Container>
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-14 lg:gap-20">
             {/* Form */}
-            <ContactForm />
+            <ContactForm lang={lang} />
 
             {/* Sidebar — contact details */}
             <FadeIn className="lg:pt-2">
               <div className="space-y-8">
                 <div>
                   <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper block mb-2">
-                    E-mail
+                    {s.emailLabel}
                   </span>
                   <a
                     href="mailto:info@klaaskroezen.com"
@@ -71,7 +78,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper block mb-2">
-                    Telefoon
+                    {s.phoneLabel}
                   </span>
                   <a
                     href="tel:+31618098906"
@@ -82,20 +89,20 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper block mb-2">
-                    Kantoor
+                    {s.officeLabel}
                   </span>
                   <p className="text-[15px] text-ink/80 leading-[1.7]">
-                    Het Oude Administratiegebouw
+                    {s.officeName}
                     <br />
-                    Oude Parklaan 111, Kamer 0.11
+                    {s.officeAddress1}
                     <br />
-                    Castricum
+                    {s.officeAddress2}
                   </p>
                 </div>
 
                 <div className="pt-4 border-t border-rule">
                   <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper block mb-3">
-                    Direct contact
+                    {s.directContact}
                   </span>
                   <div className="space-y-2.5">
                     <a
@@ -105,7 +112,7 @@ export default function ContactPage() {
                       className="flex items-center gap-2.5 text-[14px] text-ink/65 hover:text-ink transition-colors"
                     >
                       <span className="text-copper text-[11px]">→</span>
-                      Plan een videogesprek
+                      {s.planCall}
                     </a>
                     <a
                       href="https://www.linkedin.com/in/klaaskroezen/"

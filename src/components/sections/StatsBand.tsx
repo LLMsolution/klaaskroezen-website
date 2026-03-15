@@ -1,14 +1,18 @@
-const stats = [
-  { number: "25", suffix: "+", label: "Jaar saleservaring" },
-  { number: "21", suffix: "", label: "Landen" },
-  { number: "9,1", suffix: "", label: "Gemiddelde beoordeling" },
-  { number: "10", suffix: "%", label: "Resultaat of geld terug" },
-] as const;
+import { t, type Lang } from "@/lib/i18n";
 
-export function StatsBand() {
+export function StatsBand({ lang }: { lang: Lang }) {
+  const s = t(lang).stats;
+
+  const stats = [
+    { number: "25", suffix: "+", label: s.experience },
+    { number: "21", suffix: "", label: s.countries },
+    { number: "9,1", suffix: "", label: s.rating },
+    { number: "10", suffix: "%", label: s.guarantee },
+  ];
+
   return (
     <section
-      aria-label="Statistieken"
+      aria-label={s.ariaLabel}
       className="bg-ink border-b border-paper/[0.06] py-12 sm:py-[52px] px-7 sm:px-14 flex items-center justify-center"
     >
       <div className="max-w-[1180px] w-full flex flex-wrap items-center justify-center gap-y-8">

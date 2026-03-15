@@ -8,6 +8,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { JsonLd, organizationJsonLd } from "@/components/seo/JsonLd";
 import { ConvexProvider } from "@/components/providers/ConvexProvider";
+import { getLocale } from "@/lib/i18n/server";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -36,24 +37,26 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const lang = await getLocale();
+
   return (
     <ConvexAuthNextjsServerProvider>
-      <html lang="nl" className={`${playfair.variable} ${dmSans.variable}`}>
+      <html lang={lang} className={`${playfair.variable} ${dmSans.variable}`}>
         <body>
           <ConvexProvider>
             <JsonLd data={organizationJsonLd} />
             <a href="#main-content" className="skip-link">
-              Ga naar inhoud
+              {lang === "nl" ? "Ga naar inhoud" : "Skip to content"}
             </a>
-            <AnnouncementBar />
-            <Navbar />
+            <AnnouncementBar lang={lang} />
+            <Navbar lang={lang} />
             <main id="main-content">{children}</main>
-            <Footer />
+            <Footer lang={lang} />
             <SpeedInsights />
             <Analytics />
           </ConvexProvider>

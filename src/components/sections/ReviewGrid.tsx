@@ -2,6 +2,7 @@ import Image from "next/image";
 import { Label } from "@/components/ui/Label";
 import { Container } from "@/components/ui/Container";
 import { FadeIn } from "@/components/ui/FadeIn";
+import { t, type Lang } from "@/lib/i18n";
 
 const reviews = [
   {
@@ -48,12 +49,12 @@ const reviews = [
   },
 ] as const;
 
-function Stars() {
+function Stars({ ariaLabel }: { ariaLabel: string }) {
   return (
     <div
       className="text-copper text-xs tracking-[2px] mb-[13px]"
       role="img"
-      aria-label="5 van 5 sterren"
+      aria-label={ariaLabel}
     >
       <span aria-hidden="true">★★★★★</span>
     </div>
@@ -77,7 +78,9 @@ function InitialsAvatar({ name, dark }: { name: string; dark: boolean }) {
   );
 }
 
-export function ReviewGrid() {
+export function ReviewGrid({ lang }: { lang: Lang }) {
+  const s = t(lang).reviewGrid;
+
   return (
     <section
       aria-labelledby="reviews-heading"
@@ -85,15 +88,15 @@ export function ReviewGrid() {
     >
       <Container>
         <FadeIn className="mb-10 sm:mb-[60px]">
-          <Label className="mb-3">Wat deelnemers zeggen</Label>
+          <Label className="mb-3">{s.label}</Label>
           <h2
             id="reviews-heading"
             className="font-display text-[clamp(32px,4.2vw,58px)] font-black leading-[0.97] tracking-[-0.03em]"
           >
-            Resultaat dat
+            {s.heading1}
             <br />
             <em className="italic font-normal text-ink/40">
-              voor zich spreekt.
+              {s.heading2}
             </em>
           </h2>
         </FadeIn>
@@ -108,7 +111,7 @@ export function ReviewGrid() {
                   isDark ? "bg-ink" : "bg-paper"
                 }`}
               >
-                <Stars />
+                <Stars ariaLabel={s.starsAria} />
                 <div
                   className={`font-display text-[42px] sm:text-[50px] font-black leading-[0.65] mb-[11px] ${
                     isDark ? "text-copper-light" : "text-copper"

@@ -2,48 +2,42 @@ import { Container } from "@/components/ui/Container";
 import { Label } from "@/components/ui/Label";
 import { ButtonExternal, ButtonArrow } from "@/components/ui/Button";
 import { FadeIn } from "@/components/ui/FadeIn";
+import { t, type Lang } from "@/lib/i18n";
 
-const formats = [
-  {
-    title: "E-book",
-    price: "€ 22,50",
-    priceNote: "Direct toegang",
-    description: "Direct lezen op je computer, tablet of telefoon.",
-    features: ["Begin vandaag nog", "Direct toegang na betaling"],
-    href: "https://klaaskroezen.plugandpay.com/checkout/oprecht-en-ontspannen-sales",
-    cta: "Bestel e-book",
-  },
-  {
-    title: "Hard Copy",
-    price: "€ 32,50",
-    priceNote: "Incl. BTW · gratis verzending",
-    description:
-      "Het fysieke boek, thuis binnen één werkdag. De meest gekozen optie.",
-    features: [
-      "Levering binnen één werkdag",
-      "Gratis verzending",
-      "Inclusief BTW",
-    ],
-    href: "https://klaaskroezen.plugandpay.com/checkout/oprecht-en-ontspannen-sales",
-    cta: "Bestel boek",
-    featured: true,
-  },
-  {
-    title: "Luisterboek",
-    price: "€ 22,50",
-    priceNote: "Voorgelezen door Klaas",
-    description: "Luister onderweg, tijdens het sporten of thuis op de bank.",
-    features: [
-      "Direct luisteren",
-      "Voorgelezen door de auteur",
-      "Ideaal voor onderweg",
-    ],
-    href: "https://klaaskroezen.plugandpay.com/checkout/oprecht-en-ontspannen-sales",
-    cta: "Bestel luisterboek",
-  },
-];
+export function BookPricing({ lang }: { lang: Lang }) {
+  const s = t(lang).bookPricing;
 
-export function BookPricing() {
+  const formats = [
+    {
+      title: "E-book",
+      price: "€ 22,50",
+      priceNote: s.ebookNote,
+      description: s.ebookDesc,
+      features: [s.ebookFeature1, s.ebookFeature2],
+      href: "https://klaaskroezen.plugandpay.com/checkout/oprecht-en-ontspannen-sales-1762786340",
+      cta: s.ebookCta,
+    },
+    {
+      title: "Hard Copy",
+      price: "€ 32,50",
+      priceNote: s.hardcopyNote,
+      description: s.hardcopyDesc,
+      features: [s.hardcopyFeature1, s.hardcopyFeature2, s.hardcopyFeature3],
+      href: "https://klaaskroezen.plugandpay.com/checkout/oprecht-en-ontspannen-sales",
+      cta: s.hardcopyCta,
+      featured: true,
+    },
+    {
+      title: lang === "nl" ? "Luisterboek" : "Audiobook",
+      price: "€ 22,50",
+      priceNote: s.audiobookNote,
+      description: s.audiobookDesc,
+      features: [s.audiobookFeature1, s.audiobookFeature2, s.audiobookFeature3],
+      href: "https://klaaskroezen.plugandpay.com/checkout/oprecht-en-ontspannen-sales-luisterboek",
+      cta: s.audiobookCta,
+    },
+  ];
+
   return (
     <section
       id="bestellen"
@@ -51,9 +45,9 @@ export function BookPricing() {
     >
       <Container>
         <FadeIn className="text-center mb-10 sm:mb-14">
-          <Label className="mb-3">Bestellen</Label>
+          <Label className="mb-3">{s.label}</Label>
           <h2 className="font-display text-[clamp(28px,3.4vw,44px)] font-black leading-[0.97] tracking-[-0.03em]">
-            Kies jouw formaat.
+            {s.heading}
           </h2>
         </FadeIn>
 

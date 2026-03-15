@@ -1,8 +1,10 @@
 import { Container } from "@/components/ui/Container";
 import { Label } from "@/components/ui/Label";
 import { FadeIn } from "@/components/ui/FadeIn";
+import { t, type Lang } from "@/lib/i18n";
 
 interface TrainingMethodProps {
+  lang: Lang;
   eyebrow?: string;
   title?: string;
   titleAccent?: string;
@@ -10,11 +12,28 @@ interface TrainingMethodProps {
 }
 
 export function TrainingMethod({
-  eyebrow = "Zo werkt het",
-  title = "Meer dan theorie.",
-  titleAccent = "Je brengt het in de praktijk.",
-  description = "Bij de training hoort een werkboek met opdrachten die naadloos aansluiten bij elke module. Geen losse theorie — je past het geleerde direct toe in je eigen werk en klantgesprekken.",
+  lang,
+  eyebrow = t(lang).training.methodEyebrow,
+  title = t(lang).training.methodTitle,
+  titleAccent = t(lang).training.methodAccent,
+  description = t(lang).training.methodDesc,
 }: TrainingMethodProps) {
+  const s = t(lang).training;
+  const features = [
+    {
+      title: s.methodFeature1Title,
+      text: s.methodFeature1Text,
+    },
+    {
+      title: s.methodFeature2Title,
+      text: s.methodFeature2Text,
+    },
+    {
+      title: s.methodFeature3Title,
+      text: s.methodFeature3Text,
+    },
+  ];
+
   return (
     <section className="py-16 sm:py-[110px] border-b border-rule">
       <Container>
@@ -35,20 +54,7 @@ export function TrainingMethod({
             </FadeIn>
           </div>
           <div className="bg-paper p-8 sm:p-12 flex flex-col justify-center gap-5">
-            {[
-              {
-                title: "Werkboek met opdrachten",
-                text: "Opdrachten die aansluiten bij elke module, zodat je het geleerde direct toepast.",
-              },
-              {
-                title: "Geen filmpjes kijken",
-                text: "Je oefent met je eigen situaties, klanten en gesprekken.",
-              },
-              {
-                title: "Resultaat dat blijft",
-                text: "Doordat je het in de praktijk brengt, beklijft het. Geen theorie die je na een week vergeet.",
-              },
-            ].map((item) => (
+            {features.map((item) => (
               <div key={item.title} className="flex items-start gap-3">
                 <span className="text-copper text-[14px] mt-0.5 shrink-0">
                   &#10003;

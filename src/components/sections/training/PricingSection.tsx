@@ -9,6 +9,7 @@ import {
   ButtonArrow,
 } from "@/components/ui/Button";
 import { FadeIn } from "@/components/ui/FadeIn";
+import { t, type Lang } from "@/lib/i18n";
 
 interface PricingTier {
   label?: string;
@@ -28,16 +29,19 @@ interface PricingTrack {
 }
 
 interface PricingSectionProps {
+  lang: Lang;
   individual: PricingTrack;
   team: PricingTrack;
   guarantee?: string;
 }
 
 export function PricingSection({
+  lang,
   individual,
   team,
   guarantee,
 }: PricingSectionProps) {
+  const s = t(lang).training;
   const [mode, setMode] = useState<"individual" | "team">("individual");
   const tiers = mode === "individual" ? individual.tiers : team.tiers;
 
@@ -49,12 +53,12 @@ export function PricingSection({
     >
       <Container>
         <FadeIn className="text-center mb-10 sm:mb-14">
-          <Label className="mb-3">Investering</Label>
+          <Label className="mb-3">{s.pricingLabel}</Label>
           <h2
             id="pricing-heading"
             className="font-display text-[clamp(30px,3.8vw,48px)] font-black leading-[0.97] tracking-[-0.03em] mb-6"
           >
-            Kies jouw traject.
+            {s.pricingHeading}
           </h2>
 
           {/* Toggle */}
@@ -68,7 +72,7 @@ export function PricingSection({
                   : "text-ink/50 hover:text-ink"
               }`}
             >
-              Voor mezelf
+              {s.pricingForMe}
             </button>
             <button
               type="button"
@@ -79,7 +83,7 @@ export function PricingSection({
                   : "text-ink/50 hover:text-ink"
               }`}
             >
-              Voor teams
+              {s.pricingForTeams}
             </button>
           </div>
 

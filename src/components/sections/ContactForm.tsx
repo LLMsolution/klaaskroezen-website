@@ -4,15 +4,7 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { FadeIn } from "@/components/ui/FadeIn";
-
-const subjects = [
-  "Sales Excellence Training",
-  "Customer Success Training",
-  "Spreker / keynote boeken",
-  "1-op-1 coaching",
-  "Team coaching",
-  "Overig",
-] as const;
+import { t, type Lang } from "@/lib/i18n";
 
 interface FormData {
   naam: string;
@@ -22,7 +14,12 @@ interface FormData {
   bericht: string;
 }
 
-export function ContactForm() {
+interface Props {
+  lang: Lang;
+}
+
+export function ContactForm({ lang }: Props) {
+  const s = t(lang).contactForm;
   const submitContact = useMutation(api.contactForm.submit);
 
   const [form, setForm] = useState<FormData>({
@@ -49,7 +46,7 @@ export function ContactForm() {
         name: form.naam,
         email: form.email,
         phone: form.telefoon || undefined,
-        subject: form.onderwerp || "Algemeen",
+        subject: form.onderwerp || s.fallbackSubject,
         message: form.bericht,
         turnstileVerified: true, // TODO: integrate Turnstile widget
       });
@@ -73,13 +70,13 @@ export function ContactForm() {
               htmlFor="naam"
               className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2"
             >
-              Naam *
+              {s.nameLabel}
             </label>
             <input
               id="naam"
               type="text"
               required
-              placeholder="Je volledige naam"
+              placeholder={s.namePlaceholder}
               value={form.naam}
               onChange={(e) => update("naam", e.target.value)}
               className={inputClass}
@@ -90,13 +87,13 @@ export function ContactForm() {
               htmlFor="email"
               className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2"
             >
-              E-mail *
+              {s.emailLabel}
             </label>
             <input
               id="email"
               type="email"
               required
-              placeholder="naam@bedrijf.nl"
+              placeholder={s.emailPlaceholder}
               value={form.email}
               onChange={(e) => update("email", e.target.value)}
               className={inputClass}
@@ -111,12 +108,12 @@ export function ContactForm() {
               htmlFor="telefoon"
               className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2"
             >
-              Telefoon
+              {s.phoneLabel}
             </label>
             <input
               id="telefoon"
               type="tel"
-              placeholder="+31 6 ..."
+              placeholder={s.phonePlaceholder}
               value={form.telefoon}
               onChange={(e) => update("telefoon", e.target.value)}
               className={inputClass}
@@ -127,7 +124,7 @@ export function ContactForm() {
               htmlFor="onderwerp"
               className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2"
             >
-              Onderwerp
+              {s.subjectLabel}
             </label>
             <select
               id="onderwerp"
@@ -135,10 +132,10 @@ export function ContactForm() {
               onChange={(e) => update("onderwerp", e.target.value)}
               className={`${inputClass} appearance-none bg-[url('data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%230E0C0A%22%20fill-opacity%3D%220.3%22%20d%3D%22M3%204.5L6%207.5L9%204.5%22%2F%3E%3C%2Fsvg%3E')] bg-[length:12px] bg-[right_16px_center] bg-no-repeat pr-10`}
             >
-              <option value="">Kies een onderwerp</option>
-              {subjects.map((s) => (
-                <option key={s} value={s}>
-                  {s}
+              <option value="">{s.subjectPlaceholder}</option>
+              {s.subjects.map((subject) => (
+                <option key={subject} value={subject}>
+                  {subject}
                 </option>
               ))}
             </select>
@@ -151,13 +148,13 @@ export function ContactForm() {
             htmlFor="bericht"
             className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2"
           >
-            Bericht *
+            {s.messageLabel}
           </label>
           <textarea
             id="bericht"
             required
             rows={6}
-            placeholder="Vertel kort wat we voor je kunnen betekenen..."
+            placeholder={s.messagePlaceholder}
             value={form.bericht}
             onChange={(e) => update("bericht", e.target.value)}
             className={`${inputClass} resize-none`}
@@ -171,25 +168,24 @@ export function ContactForm() {
             disabled={status === "sending"}
             className="inline-flex items-center gap-2.5 bg-copper text-paper px-7 py-3.5 text-[13px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors disabled:opacity-50 rounded-[2px] cursor-pointer"
           >
-            {status === "sending" ? "Versturen..." : "Verstuur bericht"}
+            {status === "sending" ? s.sending : s.submit}
             <span aria-hidden="true">→</span>
           </button>
 
           {status === "sent" && (
             <span className="text-[13px] text-copper font-medium">
-              Bedankt! We reageren binnen een werkdag.
+              {s.success}
             </span>
           )}
           {status === "error" && (
             <span className="text-[13px] text-red-600 font-medium">
-              Er ging iets mis. Probeer het opnieuw.
+              {s.error}
             </span>
           )}
         </div>
 
         <p className="text-[12px] text-ink/35 leading-[1.6]">
-          We reageren altijd binnen één werkdag. Je gegevens worden niet
-          gedeeld met derden.
+          {s.privacy}
         </p>
       </form>
     </FadeIn>

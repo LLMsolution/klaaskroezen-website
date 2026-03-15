@@ -2,10 +2,16 @@
 
 import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
+import { t, type Lang } from "@/lib/i18n";
 
 type Mode = "login" | "signup" | "magic-link" | "forgot";
 
-export function LoginForm() {
+interface Props {
+  lang: Lang;
+}
+
+export function LoginForm({ lang }: Props) {
+  const s = t(lang).login;
   const { signIn } = useAuthActions();
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
@@ -30,7 +36,7 @@ export function LoginForm() {
     try {
       await signIn(provider);
     } catch {
-      setError("Er ging iets mis. Probeer het opnieuw.");
+      setError(s.errorGeneric);
     } finally {
       setLoading(false);
     }
@@ -44,7 +50,7 @@ export function LoginForm() {
       await signIn("resend", { email });
       setMagicLinkSent(true);
     } catch {
-      setError("Kon geen magic link versturen. Controleer je e-mailadres.");
+      setError(s.errorMagicLink);
     } finally {
       setLoading(false);
     }
@@ -66,10 +72,10 @@ export function LoginForm() {
     } catch {
       setError(
         mode === "signup"
-          ? "Account aanmaken mislukt. Mogelijk bestaat dit e-mailadres al."
+          ? s.errorSignup
           : mode === "forgot"
-            ? "Kon geen reset link versturen."
-            : "Onjuist e-mailadres of wachtwoord.",
+            ? s.errorForgot
+            : s.errorLogin,
       );
     } finally {
       setLoading(false);
@@ -83,18 +89,17 @@ export function LoginForm() {
           <span className="text-copper text-[24px]">✓</span>
         </div>
         <h2 className="font-display text-[22px] font-bold">
-          Check je inbox.
+          {s.checkInbox}
         </h2>
         <p className="text-[15px] text-ink/60 leading-[1.7]">
-          We hebben een link gestuurd naar <strong>{email}</strong>.
-          Klik op de link om in te loggen.
+          {s.magicLinkSent1} <strong>{email}</strong>{s.magicLinkSent2}
         </p>
         <button
           type="button"
           onClick={() => { setMagicLinkSent(false); setMode("login"); }}
           className="text-[13px] text-copper hover:text-copper-light transition-colors cursor-pointer"
         >
-          Terug naar inloggen
+          {s.backToLogin}
         </button>
       </div>
     );
@@ -116,7 +121,7 @@ export function LoginForm() {
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
           </svg>
-          Doorgaan met Google
+          {s.googleCta}
         </button>
 
         <button
@@ -128,14 +133,14 @@ export function LoginForm() {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
             <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
           </svg>
-          Doorgaan met Apple
+          {s.appleCta}
         </button>
       </div>
 
       {/* Divider */}
       <div className="flex items-center gap-4">
         <div className="flex-1 h-px bg-rule" />
-        <span className="text-[11px] text-ink/30 tracking-[0.15em] uppercase">of</span>
+        <span className="text-[11px] text-ink/30 tracking-[0.15em] uppercase">{s.divider}</span>
         <div className="flex-1 h-px bg-rule" />
       </div>
 
@@ -144,27 +149,27 @@ export function LoginForm() {
         <form onSubmit={handleMagicLink} className="space-y-4">
           <div>
             <label htmlFor="ml-email" className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2">
-              E-mail
+              {s.emailLabel}
             </label>
             <input
               id="ml-email"
               type="email"
               required
-              placeholder="naam@bedrijf.nl"
+              placeholder={s.emailPlaceholder}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className={inputClass}
             />
           </div>
           <button type="submit" disabled={loading} className={btnPrimary}>
-            {loading ? "Versturen..." : "Stuur magic link"}
+            {loading ? s.magicLinkSending : s.magicLinkCta}
           </button>
           <button
             type="button"
             onClick={() => setMode("login")}
             className="w-full text-[13px] text-ink/50 hover:text-ink transition-colors cursor-pointer"
           >
-            Inloggen met wachtwoord
+            {s.passwordLogin}
           </button>
         </form>
       ) : (
@@ -172,13 +177,13 @@ export function LoginForm() {
           {mode === "signup" && (
             <div>
               <label htmlFor="name" className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2">
-                Naam
+                {s.nameLabel}
               </label>
               <input
                 id="name"
                 type="text"
                 required
-                placeholder="Je volledige naam"
+                placeholder={s.namePlaceholder}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className={inputClass}
@@ -187,13 +192,13 @@ export function LoginForm() {
           )}
           <div>
             <label htmlFor="email" className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2">
-              E-mail
+              {s.emailLabel}
             </label>
             <input
               id="email"
               type="email"
               required
-              placeholder="naam@bedrijf.nl"
+              placeholder={s.emailPlaceholder}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className={inputClass}
@@ -202,7 +207,7 @@ export function LoginForm() {
           {mode !== "forgot" && (
             <div>
               <label htmlFor="password" className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2">
-                Wachtwoord
+                {s.passwordLabel}
               </label>
               <input
                 id="password"
@@ -218,12 +223,12 @@ export function LoginForm() {
           )}
           <button type="submit" disabled={loading} className={btnPrimary}>
             {loading
-              ? "Laden..."
+              ? s.loading
               : mode === "signup"
-                ? "Account aanmaken"
+                ? s.signupCta
                 : mode === "forgot"
-                  ? "Stuur reset link"
-                  : "Inloggen"}
+                  ? s.forgotCta
+                  : s.loginCta}
           </button>
         </form>
       )}
@@ -242,36 +247,36 @@ export function LoginForm() {
               onClick={() => setMode("magic-link")}
               className="block w-full text-[13px] text-ink/50 hover:text-ink transition-colors cursor-pointer"
             >
-              Liever inloggen met een magic link?
+              {s.magicLinkLogin}
             </button>
             <button
               type="button"
               onClick={() => setMode("forgot")}
               className="block w-full text-[13px] text-ink/50 hover:text-ink transition-colors cursor-pointer"
             >
-              Wachtwoord vergeten?
+              {s.forgotPassword}
             </button>
             <div className="pt-2 border-t border-rule mt-4">
-              <span className="text-[13px] text-ink/40">Nog geen account? </span>
+              <span className="text-[13px] text-ink/40">{s.noAccount}</span>
               <button
                 type="button"
                 onClick={() => setMode("signup")}
                 className="text-[13px] text-copper hover:text-copper-light transition-colors cursor-pointer"
               >
-                Maak er een aan
+                {s.createAccount}
               </button>
             </div>
           </>
         )}
         {mode === "signup" && (
           <div className="pt-2 border-t border-rule">
-            <span className="text-[13px] text-ink/40">Al een account? </span>
+            <span className="text-[13px] text-ink/40">{s.hasAccount}</span>
             <button
               type="button"
               onClick={() => setMode("login")}
               className="text-[13px] text-copper hover:text-copper-light transition-colors cursor-pointer"
             >
-              Inloggen
+              {s.loginLink}
             </button>
           </div>
         )}
@@ -281,7 +286,7 @@ export function LoginForm() {
             onClick={() => setMode("login")}
             className="text-[13px] text-ink/50 hover:text-ink transition-colors cursor-pointer"
           >
-            Terug naar inloggen
+            {s.backToLogin}
           </button>
         )}
       </div>

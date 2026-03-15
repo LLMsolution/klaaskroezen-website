@@ -5,6 +5,7 @@ import {
   ButtonArrow,
 } from "@/components/ui/Button";
 import { FadeIn } from "@/components/ui/FadeIn";
+import { t, type Lang } from "@/lib/i18n";
 
 interface Module {
   number: string;
@@ -13,6 +14,7 @@ interface Module {
 }
 
 interface ProgramSectionProps {
+  lang: Lang;
   modules: Module[];
   price: string;
   pricingAnchor?: string;
@@ -20,11 +22,13 @@ interface ProgramSectionProps {
 }
 
 export function ProgramSection({
+  lang,
   modules,
   price,
   pricingAnchor = "#pricing",
-  ctaLabel = "Direct starten",
+  ctaLabel = t(lang).training.programCta,
 }: ProgramSectionProps) {
+  const s = t(lang).training;
   return (
     <section
       id="programma"
@@ -36,15 +40,15 @@ export function ProgramSection({
           {/* Modules */}
           <div>
             <FadeIn className="mb-10 sm:mb-14">
-              <Label className="mb-3">Het programma</Label>
+              <Label className="mb-3">{s.programLabel}</Label>
               <h2
                 id="programma-heading"
                 className="font-display text-[clamp(30px,3.8vw,48px)] font-black leading-[0.97] tracking-[-0.03em]"
               >
-                Zes modules.
+                {s.programHeading1}
                 <br />
                 <em className="italic font-normal text-ink/40">
-                  Eén transformatie.
+                  {s.programHeading2}
                 </em>
               </h2>
             </FadeIn>
@@ -75,13 +79,13 @@ export function ProgramSection({
           <aside className="hidden lg:block">
             <div className="sticky top-28 bg-warm border border-rule rounded-[3px] p-7">
               <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper block mb-3">
-                Vanaf
+                {s.priceFrom}
               </span>
               <div className="font-display text-[36px] font-black leading-none tracking-[-0.02em] mb-1">
                 {price}
               </div>
               <p className="text-[13px] text-ink/50 mb-6">
-                Excl. BTW &middot; Incl. bestseller boek
+                {s.priceNote}
               </p>
               <ButtonLink
                 href={pricingAnchor}
@@ -92,10 +96,10 @@ export function ProgramSection({
               </ButtonLink>
               <ul className="mt-6 space-y-2.5">
                 {[
-                  "6 modules online training",
-                  "Werkboek & templates",
-                  "1 jaar toegang",
-                  "Certificaat na afronding",
+                  s.programFeature1,
+                  s.programFeature2,
+                  s.programFeature3,
+                  s.programFeature4,
                 ].map((item) => (
                   <li
                     key={item}

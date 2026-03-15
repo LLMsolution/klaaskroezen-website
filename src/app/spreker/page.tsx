@@ -7,93 +7,59 @@ import { LogoBar } from "@/components/sections/LogoBar";
 import { TrainingCta } from "@/components/sections/training/TrainingCta";
 import { Faq } from "@/components/sections/Faq";
 import { JsonLd, personJsonLd, speakerServiceJsonLd } from "@/components/seo/JsonLd";
+import { getLocale } from "@/lib/i18n/server";
+import { getSprekerContent } from "./content";
 
-export const metadata: Metadata = {
-  title: "Spreker — Klaas Kroezen",
-  description:
-    "Boek Klaas Kroezen als spreker. Inspirerende keynotes en workshops over sales, klantgerichtheid en commerciële groei — oprecht en ontspannen.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLocale();
+  const c = getSprekerContent(lang);
+  return {
+    title: c.meta.title,
+    description: c.meta.description,
+  };
+}
 
-export default function SprekerPage() {
+export default async function SprekerPage() {
+  const lang = await getLocale();
+  const c = getSprekerContent(lang);
+
   return (
     <>
       <JsonLd data={personJsonLd} />
       <JsonLd data={speakerServiceJsonLd} />
       <TrainingHero
-        eyebrow="Spreker & Keynote"
-        titleLine1="Inspireer"
-        titleLine2="je team."
-        description="Een inspiratiesessie waarin ik teams laat ervaren hoe je met minder spanning meer klanten verandert in fans. Geen theorie, maar energie en inzichten die blijven hangen."
-        image="/images/spreker/klaas-hero.jpeg"
-        imageAlt="Klaas Kroezen als spreker op het podium"
-        imagePosition="center 25%"
-        ctaLabel="Neem contact op"
-        pricingAnchor="/contact"
-        programAnchor="#videos"
-        secondaryLabel="Bekijk fragmenten"
-        glassItems={[
-          {
-            label: "Keynotes & workshops",
-            text: "Van 30 minuten inspiratie tot een volledige dagvullende workshop. Op maat voor jouw event of teamdag.",
-          },
-          {
-            label: "25+ jaar ervaring",
-            text: "Internationaal B2B bij Google, Samsung, Microsoft, ING en Vodafone. Eigen bedrijf verkocht in 2022.",
-          },
-          {
-            label: "Bewezen impact",
-            text: "Teams gaan naar huis met energie, inzichten en een concrete aanpak die ze direct kunnen toepassen.",
-          },
-        ]}
+        lang={lang}
+        eyebrow={c.hero.eyebrow}
+        titleLine1={c.hero.titleLine1}
+        titleLine2={c.hero.titleLine2}
+        description={c.hero.description}
+        image={c.hero.image}
+        imageAlt={c.hero.imageAlt}
+        imagePosition={c.hero.imagePosition}
+        ctaLabel={c.hero.ctaLabel}
+        pricingAnchor={c.hero.pricingAnchor}
+        programAnchor={c.hero.programAnchor}
+        secondaryLabel={c.hero.secondaryLabel}
+        glassItems={c.hero.glassItems}
       />
 
-      <ForWhom
-        audiences={[
-          "Salesteams",
-          "Kick-offs",
-          "Teamdagen",
-          "Conferenties",
-          "Management events",
-          "Klantevents",
-        ]}
-      />
+      <ForWhom lang={lang} audiences={c.audiences} />
 
       <ContentBlock
-        eyebrow="Over de sessie"
-        title="Sales gaat vaak mis door prestatiedruk."
-        titleAccent="Het kan ook anders."
+        eyebrow={c.contentBlock.eyebrow}
+        title={c.contentBlock.title}
+        titleAccent={c.contentBlock.titleAccent}
         image="/images/spreker/klaas-flipchart.jpeg"
-        imageAlt="Klaas Kroezen geeft een workshop bij een flipchart"
+        imageAlt={c.contentBlock.imageAlt}
         objectPosition="center top"
         imagePosition="right"
-        paragraphs={[
-          "Door targets, cijfers en verwachtingen wordt verkoop krampachtig. Mensen raken gespannen, twijfelen, verliezen zichzelf — en het resultaat gaat juist omlaag. Dat kost energie, frustraties, vertrouwen én geld.",
-          "Met 25 jaar ervaring in sales en klantbeleving, van scale-up tot boardroom, help ik teams groeien vanuit oprechte verbinding. Niet vanuit trucjes.",
-          "Ik stond zelf jarenlang aan de frontlinie als CEO en eigenaar van een internationaal marktonderzoeksbureau. Ik weet hoe het voelt als sales voelt als trekken aan een dood paard. En ik weet hoe het wél werkt.",
-        ]}
+        paragraphs={c.contentBlock.paragraphs}
       />
 
       <section className="py-16 sm:py-[110px] border-b border-rule">
         <div className="mx-auto max-w-[1180px] px-14 max-lg:px-7">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-rule border border-rule">
-            {[
-              {
-                icon: "✓",
-                text: "Energie en inspiratie die je meeneemt in je werk",
-              },
-              {
-                icon: "✓",
-                text: "Heldere inzichten voor duurzame commerciële groei",
-              },
-              {
-                icon: "✓",
-                text: "Verhalen en oefeningen die mensen in beweging zetten",
-              },
-              {
-                icon: "✓",
-                text: "Geen trucs. Geen scripts. Oprecht en ontspannen sales.",
-              },
-            ].map((item) => (
+            {c.benefitsGrid.map((item) => (
               <div key={item.text} className="bg-paper p-6 sm:p-8">
                 <span className="text-copper text-[18px] font-bold block mb-3">
                   {item.icon}
@@ -108,60 +74,44 @@ export default function SprekerPage() {
       </section>
 
       <VideoGrid
-        eyebrow="Op het podium"
-        title="Bekijk fragmenten."
-        titleAccent="Oprecht en ontspannen in actie."
-        videos={[
-          {
-            title: "Speech op de boekpresentatie",
-            thumbnail: "/images/spreker/video-thumb-speech.jpg",
-            embedUrl: "https://www.youtube.com/embed/F6io8l_VYww",
-            duration: "3:35",
-          },
-          {
-            title: "Sales- en klantgerichte mindset in je team",
-            thumbnail: "/images/spreker/video-thumb-mindset.jpg",
-            embedUrl: "https://www.youtube.com/embed/placeholder-mindset",
-            duration: "1:46",
-          },
-        ]}
+        eyebrow={c.videos.eyebrow}
+        title={c.videos.title}
+        titleAccent={c.videos.titleAccent}
+        videos={c.videos.items}
       />
 
-      <LogoBar label="Gewerkt met onder andere" />
+      <LogoBar label={c.logoBar.label} />
 
       {/* Coaching cards */}
       <section className="py-16 sm:py-[110px] border-b border-rule">
         <div className="mx-auto max-w-[1180px] px-14 max-lg:px-7">
           <div className="text-center mb-10 sm:mb-14">
             <span className="text-[11px] font-medium tracking-[0.2em] uppercase text-copper block mb-3">
-              Coaching & Begeleiding
+              {c.coaching.sectionEyebrow}
             </span>
             <h2 className="font-display text-[clamp(28px,3.4vw,44px)] font-black leading-[0.97] tracking-[-0.03em]">
-              Persoonlijk of
+              {c.coaching.sectionTitle1}
               <br />
-              <em className="italic font-normal text-ink/40">als team.</em>
+              <em className="italic font-normal text-ink/40">
+                {c.coaching.sectionTitle2}
+              </em>
             </h2>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-px bg-rule border border-rule">
-            {/* 1-op-1 Coaching */}
+            {/* 1-on-1 Coaching */}
             <div className="bg-paper p-8 sm:p-12 flex flex-col">
               <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-4">
-                Individueel
+                {c.coaching.individual.label}
               </span>
               <h3 className="font-display text-[22px] sm:text-[26px] font-bold leading-[1.1] tracking-[-0.02em] mb-3">
-                1-op-1 Coaching
+                {c.coaching.individual.title}
               </h3>
               <p className="text-[15px] text-ink/70 leading-[1.75] mb-6 max-w-[400px]">
-                Persoonlijke begeleiding voor sales professionals en leidinggevenden die willen groeien. Op jouw tempo, afgestemd op jouw uitdagingen.
+                {c.coaching.individual.description}
               </p>
               <ul className="space-y-2.5 mb-8">
-                {[
-                  "Individueel traject op maat",
-                  "Persoonlijke sparring & feedback",
-                  "Focus op jouw specifieke uitdagingen",
-                  "Flexibel in te plannen",
-                ].map((item) => (
+                {c.coaching.individual.features.map((item) => (
                   <li
                     key={item}
                     className="flex items-start gap-2.5 text-[14px] text-ink/65 leading-[1.6]"
@@ -176,14 +126,14 @@ export default function SprekerPage() {
               <div className="mt-auto pt-4 border-t border-rule flex items-center justify-between">
                 <div>
                   <span className="font-display text-[20px] font-bold text-ink">
-                    Op aanvraag
+                    {c.coaching.individual.price}
                   </span>
                 </div>
                 <a
                   href="/contact"
                   className="text-[13px] font-medium tracking-[0.08em] uppercase text-copper hover:text-copper-light transition-colors"
                 >
-                  Neem contact op →
+                  {c.coaching.individual.cta}
                 </a>
               </div>
             </div>
@@ -191,21 +141,16 @@ export default function SprekerPage() {
             {/* Team Coaching */}
             <div className="bg-paper p-8 sm:p-12 flex flex-col">
               <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-4">
-                Teams
+                {c.coaching.team.label}
               </span>
               <h3 className="font-display text-[22px] sm:text-[26px] font-bold leading-[1.1] tracking-[-0.02em] mb-3">
-                Coaching voor Teams
+                {c.coaching.team.title}
               </h3>
               <p className="text-[15px] text-ink/70 leading-[1.75] mb-6 max-w-[400px]">
-                Begeleid je team naar een gezamenlijke commerciële mindset. Van bewustwording tot implementatie — samen groeien in klantgerichtheid.
+                {c.coaching.team.description}
               </p>
               <ul className="space-y-2.5 mb-8">
-                {[
-                  "Gezamenlijke kick-off op locatie",
-                  "Teamgerichte oefeningen & casussen",
-                  "Begeleiding tijdens implementatie",
-                  "Meetbare resultaten per deelnemer",
-                ].map((item) => (
+                {c.coaching.team.features.map((item) => (
                   <li
                     key={item}
                     className="flex items-start gap-2.5 text-[14px] text-ink/65 leading-[1.6]"
@@ -220,14 +165,14 @@ export default function SprekerPage() {
               <div className="mt-auto pt-4 border-t border-rule flex items-center justify-between">
                 <div>
                   <span className="font-display text-[20px] font-bold text-ink">
-                    Op aanvraag
+                    {c.coaching.team.price}
                   </span>
                 </div>
                 <a
                   href="/contact"
                   className="text-[13px] font-medium tracking-[0.08em] uppercase text-copper hover:text-copper-light transition-colors"
                 >
-                  Plan een gesprek →
+                  {c.coaching.team.cta}
                 </a>
               </div>
             </div>
@@ -236,38 +181,17 @@ export default function SprekerPage() {
       </section>
 
       <Faq
-        title="Praktische info."
-        titleAccent="Voor organisatoren."
-        items={[
-          {
-            question: "Hoe lang duurt een keynote of workshop?",
-            answer: "Een keynote duurt 30 tot 60 minuten. Een workshop kan een halve of hele dag beslaan. Alles is op maat samen te stellen, afhankelijk van je programma en doelstelling.",
-          },
-          {
-            question: "Waar geeft Klaas zijn sessies?",
-            answer: "Overal in Nederland en België, op jullie locatie. Internationaal is ook mogelijk — Klaas heeft ervaring in 21 landen en geeft sessies in het Nederlands en Engels.",
-          },
-          {
-            question: "Wat kost een keynote of workshop?",
-            answer: "De investering hangt af van de duur, locatie en het aantal deelnemers. Neem contact op voor een vrijblijvend voorstel op maat.",
-          },
-          {
-            question: "Voor welk publiek is Klaas geschikt?",
-            answer: "Salesteams, management, klantenservice, kick-offs, conferenties en klantevents. Van 10 tot 500 deelnemers. De boodschap is altijd: oprecht en ontspannen commercieel groeien.",
-          },
-          {
-            question: "Kan de sessie gecombineerd worden met coaching?",
-            answer: "Ja, een keynote of workshop kan uitgebreid worden met 1-op-1 coaching of teambegeleiding. Zo blijft de impact niet beperkt tot de dag zelf.",
-          },
-        ]}
+        title={c.faq.title}
+        titleAccent={c.faq.titleAccent}
+        items={c.faq.items}
       />
 
       <TrainingCta
-        title="Boek Klaas."
-        titleAccent="Voor jouw event."
-        description="Een inspirerende sessie die teams in beweging zet. Neem contact op om de mogelijkheden te bespreken."
-        href="/contact"
-        ctaLabel="Neem contact op"
+        title={c.cta.title}
+        titleAccent={c.cta.titleAccent}
+        description={c.cta.description}
+        href={c.cta.href}
+        ctaLabel={c.cta.ctaLabel}
       />
     </>
   );

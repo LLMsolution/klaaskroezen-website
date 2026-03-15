@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback, useId } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useAction } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../../../convex/_generated/api";
+import type { Id } from "../../../convex/_generated/dataModel";
 import {
   getProduct,
   getBumpsForProduct,
+  getQuantityTiers,
   formatPrice,
   calculateBtw,
   isEuCountry,
@@ -14,6 +16,7 @@ import {
 import { t, type Lang } from "@/lib/checkout-i18n";
 import { OrderSummary } from "./OrderSummary";
 import { OrderBump } from "./OrderBump";
+import { QuantitySelector } from "./QuantitySelector";
 import { TrustBadges } from "./TrustBadges";
 import { ExitIntent } from "./ExitIntent";
 import { SocialProof } from "./SocialProof";
@@ -28,11 +31,13 @@ interface Props {
 export function CheckoutClient({ productSlug, lang }: Props) {
   const product = getProduct(productSlug)!;
   const bumps = getBumpsForProduct(productSlug);
+  const quantityTiers = getQuantityTiers(productSlug);
   const i18n = t(lang);
   const formId = useId();
 
   const { signIn } = useAuthActions();
   const createPendingOrder = useMutation(api.checkout.createPendingOrder);
+  const createMolliePayment = useAction(api.mollie.createMolliePayment);
 
   // Form state
   const [step, setStep] = useState<Step>(1);
@@ -48,6 +53,8 @@ export function CheckoutClient({ productSlug, lang }: Props) {
   const [discountCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [orderId, setOrderId] = useState<Id<"pendingOrders"> | null>(null);
+  const [quantity, setQuantity] = useState(1);
 
   // Tab title change on visibility change
   useEffect(() => {
@@ -83,8 +90,12 @@ export function CheckoutClient({ productSlug, lang }: Props) {
       applyBtw = false;
     }
 
+    // Use tier price if quantity tiers exist
+    const unitPrice = quantityTiers
+      ? (quantityTiers.find((t) => t.quantity === quantity)?.unitPriceCents ?? product.price)
+      : product.price;
     const mainCalc = calculateBtw(
-      product.price,
+      unitPrice * quantity,
       applyBtw ? btwRate : 0,
       product.priceInclBtw,
     );
@@ -119,7 +130,7 @@ export function CheckoutClient({ productSlug, lang }: Props) {
       btwReversed: !applyBtw && isEuCountry(country) && isBusiness,
       noBtw: !applyBtw && !isEuCountry(country),
     };
-  }, [product, selectedBumps, isBusiness, vatNumber, country]);
+  }, [product, selectedBumps, isBusiness, vatNumber, country, quantity, quantityTiers]);
 
   const totals = calculateTotals();
 
@@ -130,7 +141,7 @@ export function CheckoutClient({ productSlug, lang }: Props) {
     setLoading(true);
 
     try {
-      await createPendingOrder({
+      const id = await createPendingOrder({
         email,
         firstName,
         lastName,
@@ -144,6 +155,7 @@ export function CheckoutClient({ productSlug, lang }: Props) {
         discountCode: discountCode || undefined,
         installments: useInstallments,
       });
+      setOrderId(id);
       setStep(2);
     } catch (err) {
       setError(
@@ -154,15 +166,19 @@ export function CheckoutClient({ productSlug, lang }: Props) {
     }
   }
 
-  // Step 2 — initiate payment (Mollie integration placeholder)
-  async function handlePayment(_method: string) {
+  // Step 2 — initiate payment via Mollie
+  async function handlePayment(method: string) {
+    if (!orderId) return;
     setError("");
     setLoading(true);
     try {
-      // TODO: Call Convex action to create Mollie payment
-      // The action will return a redirect URL to Mollie's hosted checkout
-      // For now, show placeholder
-      setError("Mollie integratie wordt nog gebouwd.");
+      const result = await createMolliePayment({
+        pendingOrderId: orderId,
+        method,
+      });
+      if (result.checkoutUrl) {
+        window.location.href = result.checkoutUrl;
+      }
     } catch (err) {
       setError(
         err instanceof Error ? err.message : i18n.paymentFailed,
@@ -289,7 +305,7 @@ export function CheckoutClient({ productSlug, lang }: Props) {
                 <div className="flex items-center gap-4 py-1">
                   <div className="flex-1 h-px bg-rule" />
                   <span className="text-[11px] text-ink/30 tracking-[0.15em] uppercase">
-                    {lang === "nl" ? "of" : "or"}
+                    {lang === "nl" ? "of vul je gegevens in" : "or fill in your details"}
                   </span>
                   <div className="flex-1 h-px bg-rule" />
                 </div>
@@ -411,6 +427,16 @@ export function CheckoutClient({ productSlug, lang }: Props) {
                     )}
                   </div>
                 </div>
+              )}
+
+              {/* Quantity tiers */}
+              {quantityTiers && (
+                <QuantitySelector
+                  tiers={quantityTiers}
+                  selected={quantity}
+                  onChange={setQuantity}
+                  lang={lang}
+                />
               )}
 
               {/* Order bumps */}

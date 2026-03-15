@@ -273,12 +273,49 @@ IPinfo API integreren in Next.js → IP van bezoeker → bedrijfsnaam + domein �
 ### Fase 1 — Fundament: Next.js + Vercel + Convex datastructuur
 Next.js website bouwen en live zetten op Vercel. Convex opzetten met de datastructuur voor gebruikers, aankopen en toegangsrechten — nog niet actief in gebruik maar klaar voor fase 2. Homepage, landingspagina's, alles in eigen huisstijl. De "Koop nu" knoppen linken nog door naar Plug&Pay. Kajabi levert nog de trainingen. Bezoekers zien de nieuwe site, de backend verandert nog niks. **Nul risico.**
 
+**Status: ✅ ~95% klaar**
+
+| Onderdeel | Status |
+|---|---|
+| Next.js 15.5 + Tailwind CSS 4 + Turbopack | ✅ Klaar |
+| Convex schema (users, purchases, accessRights, pendingOrders, invoices, etc.) | ✅ Klaar |
+| Convex auth (Google, Apple, magic links, wachtwoord) | ✅ Klaar |
+| Alle pagina's (homepage, SET, CST, spreker, boek, over-ons, contact, login) | ✅ Klaar |
+| SEO: metadata, OG images, structured data, sitemap, robots.txt, llms.txt | ✅ Klaar |
+| Redirects voor oude Kajabi-URLs | ✅ Klaar |
+| Juridisch: privacy, algemene voorwaarden | ✅ Klaar |
+| Contact form backend (Convex + Resend) | ✅ Klaar |
+| Vercel project aanmaken + deployen | ❌ Nog te doen (`vercel login` nodig) |
+| Custom domein `klaaskroezen.nl` + DNS migratie | ❌ Nog te doen |
+| Hogere resolutie foto's | ❌ Nog te doen (bronbestanden fotograaf nodig) |
+| Spreker video URL (placeholder-mindset) | ❌ Nog te doen (content van Klaas nodig) |
+
 ---
 
 ### Fase 2 — Betaling: Mollie erin, Plug&Pay eruit
 Eigen betaalpagina's bouwen in Next.js met Mollie. Convex authenticatie en magic links activeren. Convex ontvangt de Mollie webhook na betaling, registreert de aankoop, stuurt een bevestigingsmail via Resend en geeft de klant nog steeds toegang via Kajabi. Eerst parallel testen naast Plug&Pay. Zodra één volledige aankoop foutloos werkt van begin tot eind: Plug&Pay loskoppelen.
 
 **Besparing: €50/mnd**
+
+**Status: ⚠️ ~60% klaar — code gebouwd, Mollie API key ontbreekt**
+
+| Onderdeel | Status |
+|---|---|
+| Checkout pagina's (`/checkout/[product]`) met order bumps, reviews, social proof, NL/EN | ✅ Klaar |
+| `convex/payments.ts` — volledige betaalflow (aankoop → factuur → access → email) | ✅ Klaar |
+| `convex/checkout.ts` — pending orders, BTW berekening, kortingscode validatie | ✅ Klaar |
+| Webhook route `/api/webhooks/mollie` | ✅ Klaar |
+| Factuursysteem met sequentiële nummering (KK-YYYY-NNNN) | ✅ Klaar |
+| Factuur HTML view + print-to-PDF (`/api/invoice/[id]`) | ✅ Klaar |
+| Klant dashboard (`/dashboard`) met aankopen, downloads, facturen | ✅ Klaar |
+| Bedankt-pagina (`/checkout/bedankt`) NL/EN | ✅ Klaar |
+| Mollie SDK installeren (`@mollie/api-client`) | ❌ Nog te doen |
+| `MOLLIE_API_KEY` instellen als Convex env var | ❌ Nog te doen |
+| `createMolliePayment` activeren (uncomment in payments.ts) | ❌ Nog te doen |
+| `handleMollieWebhook` activeren (uncomment in payments.ts) | ❌ Nog te doen |
+| CTA knoppen omzetten: Plug&Pay URLs → `/checkout/...` | ❌ Nog te doen |
+| `SITE_URL` env var instellen | ❌ Nog te doen |
+| Parallel testen naast Plug&Pay | ❌ Nog te doen |
 
 ---
 
@@ -287,6 +324,18 @@ Circle opzetten in eigen huisstijl. Trainingen één voor één overzetten van K
 
 **Besparing: €300/mnd**
 
+**Status: ❌ 0% — niet begonnen**
+
+| Onderdeel | Status |
+|---|---|
+| Circle Business account aanmaken + huisstijl instellen | ❌ Nog te doen |
+| Circle SDK/API client opzetten (API key, base URL) | ❌ Nog te doen |
+| SSO implementeren (JWT token generatie in Convex → Circle Custom SSO) | ❌ Nog te doen |
+| Space mapping bouwen (product slug → Circle space ID) | ❌ Nog te doen |
+| `grantCircleAccess` functie na betaling (Circle API: user toevoegen aan space) | ❌ Nog te doen |
+| Training content migratie (Kajabi modules → Circle courses) | ❌ Nog te doen (content van Klaas nodig) |
+| Testen bestaande klant login + toegang | ❌ Nog te doen |
+
 ---
 
 ### Fase 4 — E-mail: Resend + admin dashboard erin, ActiveCampaign eruit
@@ -294,20 +343,103 @@ Automatische e-mailflows bouwen in Convex met Resend. Opvolgmails na elke aankoo
 
 **Besparing: €150/mnd**
 
+**Status: ✅ ~90% klaar — code gebouwd, Resend API key ontbreekt**
+
+| Onderdeel | Status |
+|---|---|
+| `convex/emails.ts` — Resend integratie, sendEmail, emailWrapper, templates | ✅ Klaar |
+| Email sequenties (dag 2, 5, 10, 14) voor training en boek, NL/EN | ✅ Klaar |
+| Bewerkbare email templates in admin (NL + EN, preview, aan/uit, delay) | ✅ Klaar |
+| Broadcasts met segment filtering (alle, training, boek, SET, CST) | ✅ Klaar |
+| Abandoned cart reminders | ✅ Klaar |
+| Email tracking: open pixel + click tracking via API routes | ✅ Klaar |
+| `emailEvents` tabel met individuele open/klik events + IP/user agent | ✅ Klaar |
+| Admin dashboard: overzicht, bestellingen, contacten, facturen, winkelmandjes, sequenties, broadcasts, e-mails, kortingscodes | ✅ Klaar |
+| Contacten tab (mailing lijst) met engagement stats per contact | ✅ Klaar |
+| E-mails tab met open rate, click rate, preview | ✅ Klaar |
+| `RESEND_API_KEY` instellen als Convex env var | ❌ Nog te doen |
+| Resend domein verifiëren (SPF/DKIM DNS records) | ❌ Nog te doen |
+| Unsubscribe link in broadcasts (wettelijk verplicht) | ❌ Nog te doen |
+| ActiveCampaign flows vergelijken + 2 weken parallel draaien | ❌ Nog te doen |
+
 ---
 
 ### Fase 5 — Telegram deployment pipeline
 GitHub Actions instellen. Telegram bot koppelen. Klaas kan vanaf zijn telefoon tekstwijzigingen, nieuwe landingspagina's en prijsaanpassingen doorvoeren via een prompt in Telegram. Systeem bouwt een preview, Klaas keurt goed of af, bij goedkeuring gaat het live. Developer werk blijft vereist voor architectuurwijzigingen.
+
+**Status: ❌ ~10% — GitHub Actions aanwezig, geen Telegram integratie**
+
+| Onderdeel | Status |
+|---|---|
+| GitHub Actions (eslint, playwright, security) | ✅ Klaar |
+| Telegram bot aanmaken (BotFather, token) | ❌ Nog te doen |
+| GitHub Action: Claude Code workflow (prompt → branch → PR → preview) | ❌ Nog te doen |
+| Telegram webhook handler (Vercel serverless) | ❌ Nog te doen |
+| Goedkeuringsflow (✅ merge / ❌ branch verwijderen) | ❌ Nog te doen |
+| GitHub Secrets instellen (ANTHROPIC_API_KEY, TELEGRAM_BOT_TOKEN, etc.) | ❌ Nog te doen |
 
 ---
 
 ### Fase 6 — Events: betaalde webinars automatiseren
 Circle event aanmaken → prijs invoeren in admin dashboard → Convex pikt event op via Circle API → event verschijnt automatisch op de homepage met koopknop → klant betaalt via Mollie → Convex verleent toegang tot het specifieke event in Circle → bevestigingsmail via Resend. Volledig automatisch na eenmalige setup.
 
+**Status: ❌ ~5% — alleen cohorts tabel in schema**
+
+| Onderdeel | Status |
+|---|---|
+| `cohorts` tabel in Convex schema (training, startDate, maxParticipants) | ✅ Klaar |
+| Basis cohort queries in `convex/checkout.ts` | ✅ Klaar |
+| Circle event integratie (ophalen via API) | ❌ Nog te doen (vereist Fase 3) |
+| Automatische betaalpagina generatie voor events | ❌ Nog te doen |
+| Event admin (prijs invoeren, beheren) | ❌ Nog te doen |
+| Event op homepage tonen | ❌ Nog te doen |
+
 ---
 
-### Fase 7 — Leadinfo light (optioneel)
+### Fase 7 — Agenda koppeling: Outlook + booking pagina, Calendly eruit
+Eigen bookingpagina bouwen op `/plan-een-gesprek`. Koppeling met Klaas z'n Outlook agenda via Microsoft Graph API. Bezoekers zien beschikbare tijdslots en boeken direct een 30-minuten gesprek. Systeem maakt automatisch een Outlook-afspraak aan met Teams-link, stuurt bevestigingsmail via Resend met .ics bijlage, en herinnering 24 uur van tevoren. Beschikbaarheid en geboekte gesprekken zichtbaar in admin dashboard. Vervangt Calendly.
+
+```
+Bezoeker opent /plan-een-gesprek
+→ Convex haalt beschikbaarheid op via Microsoft Graph API (calendarView)
+→ Bezoeker kiest dag + tijdslot (30 min blokken, ma-vr)
+→ Bezoeker vult naam + e-mail + onderwerp in
+→ Convex maakt Outlook event aan via Graph API (events.create) met Teams meeting link
+→ Convex slaat booking op + stuurt bevestigingsmail via Resend (.ics bijlage)
+→ 24u van tevoren: herinneringsmail via Convex scheduled job
+→ Admin dashboard: overzicht van alle gesprekken, annuleren, beschikbaarheid instellen
+```
+
+**Technisch:** Microsoft Entra app registratie, OAuth2 server-side flow met refresh token in Convex, `Calendars.ReadWrite` permission, timezone-aware slot berekening.
+
+**Besparing: Calendly kosten vervallen**
+
+**Status: ❌ 0% — niet begonnen**
+
+| Onderdeel | Status |
+|---|---|
+| Microsoft Entra app registratie (App ID, client secret, permissions) | ❌ Nog te doen |
+| OAuth2 server-side flow met refresh token in Convex | ❌ Nog te doen |
+| `convex/calendar.ts` — beschikbaarheid ophalen, booking aanmaken | ❌ Nog te doen |
+| `/plan-een-gesprek` pagina (kalender UI, tijdslots, formulier) | ❌ Nog te doen |
+| Bevestigingsmail met .ics bijlage via Resend | ❌ Nog te doen |
+| Herinneringsmail 24u van tevoren (Convex scheduled job) | ❌ Nog te doen |
+| Admin tab: geboekte gesprekken, annuleren, beschikbaarheid | ❌ Nog te doen |
+| Calendly link op contact pagina vervangen | ❌ Nog te doen |
+
+---
+
+### Fase 8 — Quizzes en vragenlijsten via Circle
+Quizzes, assessments en vragenlijsten worden gebouwd in Circle. Circle heeft ingebouwde quiz-functionaliteit binnen cursussen en kan gekoppeld worden aan certificaten en voortgang. Geen custom ontwikkeling nodig — Klaas beheert dit zelfstandig via het Circle dashboard.
+
+**Status: ❌ 0% — vereist Fase 3 (Circle)**
+
+---
+
+### Fase 9 — Leadinfo light (optioneel)
 IPinfo API integreren in Next.js. Bezoekende bedrijven worden herkend via IP en opgeslagen in Convex. Zichtbaar in het admin dashboard: welk bedrijf, welke pagina's, hoe vaak. Op dat moment beslissen of Leadinfo nog meerwaarde heeft of opgezegd kan worden.
+
+**Status: ❌ 0% — niet begonnen**
 
 ---
 
@@ -318,7 +450,8 @@ IPinfo API integreren in Next.js. Bezoekende bedrijven worden herkend via IP en 
 | Plug&Pay | €50/mnd |
 | Kajabi | €300/mnd |
 | ActiveCampaign | €150/mnd |
-| **Totaal** | **€500/mnd = €6.000/jaar** |
+| Calendly | ~€10/mnd |
+| **Totaal** | **~€510/mnd = ~€6.120/jaar** |
 
 ---
 
@@ -329,6 +462,7 @@ IPinfo API integreren in Next.js. Bezoekende bedrijven worden herkend via IP en 
 | Trainingen toevoegen en bewerken | Circle dashboard |
 | Community modereren | Circle dashboard |
 | Live events plannen | Circle dashboard |
+| Quizzes en vragenlijsten maken | Circle dashboard |
 | Leden beheren en toegang aanpassen | Circle dashboard |
 | Tekst en prijzen aanpassen op website | Telegram |
 | Nieuwe landingspagina aanmaken | Telegram |
@@ -336,6 +470,8 @@ IPinfo API integreren in Next.js. Bezoekende bedrijven worden herkend via IP en 
 | Kortingsacties instellen | Telegram |
 | E-mail broadcast sturen | Eigen admin dashboard |
 | Doelgroep kiezen voor broadcast | Eigen admin dashboard |
+| Geboekte gesprekken bekijken | Eigen admin dashboard |
+| Beschikbaarheid instellen voor gesprekken | Eigen admin dashboard |
 | Aankomstige events bekijken | Eigen admin dashboard |
 | Bezoekende bedrijven bekijken (B2B) | Eigen admin dashboard |
 

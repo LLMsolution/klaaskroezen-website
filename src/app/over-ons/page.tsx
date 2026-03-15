@@ -3,65 +3,25 @@ import Image from "next/image";
 import { Container } from "@/components/ui/Container";
 import { Label } from "@/components/ui/Label";
 import { ButtonLink, ButtonArrow } from "@/components/ui/Button";
-import { StatsBand } from "@/components/sections/StatsBand";
 import { TrainingCta } from "@/components/sections/training/TrainingCta";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { JsonLd, personJsonLd } from "@/components/seo/JsonLd";
+import { getLocale } from "@/lib/i18n/server";
+import { getOverOnsContent } from "./content";
 
-export const metadata: Metadata = {
-  title: "Over Ons",
-  description:
-    "Leer Klaas Kroezen en zijn team kennen. 25+ jaar ervaring in sales en customer success, nu volledig gericht op het begeleiden van teams naar meer omzet met minder stress.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await getLocale();
+  const c = getOverOnsContent(lang);
+  return {
+    title: c.meta.title,
+    description: c.meta.description,
+  };
+}
 
-const team = [
-  {
-    name: "Tim Lind",
-    role: "Rechterhand van Klaas",
-    image: "/images/about/tim-lind.png",
-    description:
-      "Samen bouwen we de app, verbeteren we continu de trainingen, werkboeken, presentaties en video's.",
-  },
-  {
-    name: "Joost Wammes",
-    role: "Customer Success Manager",
-    image: "/images/about/joost-wammes.png",
-    description:
-      "Zocht zelf een salestraining en was zó enthousiast dat hij nu deel uitmaakt van het team.",
-  },
-  {
-    name: "Sanne Bakker",
-    role: "Klantenservice & administratie",
-    image: "/images/about/sanne-bakker.png",
-    description:
-      "Al meer dan 20 jaar werkzaam bij Klaas. Verzorgt de klantenservice en administratie.",
-  },
-];
+export default async function OverOnsPage() {
+  const lang = await getLocale();
+  const c = getOverOnsContent(lang);
 
-const journey = [
-  {
-    period: "1997 – 2022",
-    title: "Ondernemer & CEO",
-    text: "25 jaar internationaal B2B. Tientallen miljoenen euro's omzet gerealiseerd in 21 landen. Verkocht aan Google, Samsung, Microsoft, Bol en ING.",
-  },
-  {
-    period: "2022",
-    title: "Bedrijf verkocht",
-    text: "Na de verkoop van WUA besloot ik mijn ervaring in te zetten voor anderen. Niet als consultant, maar als trainer.",
-  },
-  {
-    period: "2025",
-    title: "Bestseller auteur",
-    text: "Sales, Oprecht en Ontspannen werd #1 bij Managementboek. 2.500+ exemplaren verkocht in de eerste maanden.",
-  },
-  {
-    period: "Nu",
-    title: "Trainer & spreker",
-    text: "Volledig gericht op het begeleiden van directies, teams en professionals. Omdat iedereen die klantcontact heeft, het verschil maakt.",
-  },
-];
-
-export default function OverOnsPage() {
   return (
     <>
       <JsonLd data={personJsonLd} />
@@ -71,7 +31,7 @@ export default function OverOnsPage() {
           <div className="relative aspect-[3/4] lg:aspect-auto overflow-hidden bg-warm">
             <Image
               src="/images/about/klaas-over-mij.jpeg"
-              alt="Klaas Kroezen"
+              alt={c.hero.imageAlt}
               fill
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"
@@ -80,36 +40,26 @@ export default function OverOnsPage() {
           </div>
           <div className="flex flex-col justify-center px-7 py-10 sm:px-10 lg:px-16 lg:py-20">
             <FadeIn>
-            <Label className="mb-3">Over Klaas</Label>
+            <Label className="mb-3">{c.hero.label}</Label>
             <h1 className="font-display text-[clamp(32px,4.2vw,54px)] font-black leading-[0.97] tracking-[-0.03em] mb-5">
-              Oprecht en ontspannen
+              {c.hero.title}
               <br />
               <em className="italic font-normal text-ink/40">
-                is geen slogan.
+                {c.hero.titleAccent}
               </em>
             </h1>
             <div className="space-y-4 max-w-[480px] mb-8">
               <p className="text-[16px] sm:text-[17px] text-ink/80 leading-[1.8]">
-                Ik stond 25 jaar aan de frontlinie als ondernemer en CEO. Ik weet
-                hoe het voelt als sales voelt als trekken aan een dood paard. En
-                ik weet hoe het wél werkt.
+                {c.hero.bio[0]}
               </p>
               <p className="text-[15px] sm:text-[16px] text-ink/80 leading-[1.8]">
-                Niet met trucjes of scripts, maar met een aanpak die past bij
-                mensen. Na de verkoop van mijn bedrijf in 2022 richt ik mij
-                volledig op het begeleiden van teams naar meer omzet met minder
-                stress.
+                {c.hero.bio[1]}
               </p>
             </div>
 
             {/* Inline credentials */}
             <dl className="grid grid-cols-2 gap-x-8 gap-y-5 max-w-[400px]">
-              {[
-                { label: "Ervaring", value: "25+ jaar" },
-                { label: "Landen", value: "21" },
-                { label: "Beoordeling", value: "9,1" },
-                { label: "Boek", value: "#1 Bestseller" },
-              ].map((stat) => (
+              {c.hero.stats.map((stat) => (
                 <div key={stat.label}>
                   <dt className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-1">
                     {stat.label}
@@ -129,16 +79,16 @@ export default function OverOnsPage() {
       <section className="py-16 sm:py-[110px] border-b border-rule">
         <Container>
           <FadeIn className="mb-10 sm:mb-14 max-w-[520px]">
-            <Label className="mb-3">Het pad</Label>
+            <Label className="mb-3">{c.journey.label}</Label>
             <h2 className="font-display text-[clamp(28px,3.4vw,44px)] font-black leading-[0.97] tracking-[-0.03em]">
-              Van ondernemer
+              {c.journey.title}
               <br />
-              <em className="italic font-normal text-ink/40">naar trainer.</em>
+              <em className="italic font-normal text-ink/40">{c.journey.titleAccent}</em>
             </h2>
           </FadeIn>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-rule border border-rule">
-            {journey.map((step, i) => (
+            {c.journey.items.map((step, i) => (
               <div key={step.period} className="bg-paper p-6 sm:p-8 flex flex-col">
                 <span className="font-display text-[42px] sm:text-[52px] font-black leading-none tracking-[-0.03em] text-ink/[0.06] mb-4">
                   {String(i + 1).padStart(2, "0")}
@@ -163,32 +113,28 @@ export default function OverOnsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2">
           <div className="flex flex-col justify-center py-16 sm:py-[110px] px-7 sm:px-10 lg:pl-[max(3.5rem,calc((100vw-1180px)/2+3.5rem))] lg:pr-16">
             <FadeIn>
-            <Label className="mb-3 text-copper-light">De missie</Label>
+            <Label className="mb-3 text-copper-light">{c.mission.label}</Label>
             <h2 className="font-display text-[clamp(28px,3.8vw,48px)] font-black leading-[0.97] tracking-[-0.03em] text-paper mb-6">
-              Eén taal.
+              {c.mission.title}
               <br />
               <em className="italic font-normal text-paper/40">
-                Eén aanpak.
+                {c.mission.titleAccent}
               </em>
             </h2>
             <div className="space-y-4 max-w-[480px]">
               <p className="text-[15px] sm:text-[16px] text-paper/70 leading-[1.8]">
-                Wanneer sales achterblijft en klanttevredenheid daalt, is
-                versnippering funest. Daarom werk ik met twee trainingen voor
-                iedereen die contact heeft met klanten.
+                {c.mission.paragraphs[0]}
               </p>
               <p className="text-[15px] sm:text-[16px] text-paper/70 leading-[1.8]">
-                Verkopen hoort niet ongemakkelijk te voelen. Het zou iets
-                moeten zijn dat je met plezier en trots doet. Omdat het helpt.
-                Omdat het klopt.
+                {c.mission.paragraphs[1]}
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
               <ButtonLink href="/sales-excellence-training" variant="copper">
-                <ButtonArrow>Sales Excellence</ButtonArrow>
+                <ButtonArrow>{c.mission.ctaSales}</ButtonArrow>
               </ButtonLink>
               <ButtonLink href="/customer-success-training" variant="paper">
-                <ButtonArrow>Customer Success</ButtonArrow>
+                <ButtonArrow>{c.mission.ctaSuccess}</ButtonArrow>
               </ButtonLink>
             </div>
             </FadeIn>
@@ -196,7 +142,7 @@ export default function OverOnsPage() {
           <div className="relative aspect-[4/3] lg:aspect-auto lg:min-h-[560px] overflow-hidden">
             <Image
               src="/images/about/klaas-kroezen-portrait-2.jpeg"
-              alt="Klaas Kroezen geeft een training"
+              alt={c.mission.imageAlt}
               fill
               className="object-cover object-top"
               sizes="(max-width: 1024px) 100vw, 50vw"
@@ -210,16 +156,16 @@ export default function OverOnsPage() {
       <section className="py-16 sm:py-[110px] border-b border-rule">
         <Container>
           <FadeIn className="mb-10 sm:mb-14">
-            <Label className="mb-3">Het team</Label>
+            <Label className="mb-3">{c.team.label}</Label>
             <h2 className="font-display text-[clamp(28px,3.4vw,44px)] font-black leading-[0.97] tracking-[-0.03em]">
-              Klein team.
+              {c.team.title}
               <br />
-              <em className="italic font-normal text-ink/40">Groot bereik.</em>
+              <em className="italic font-normal text-ink/40">{c.team.titleAccent}</em>
             </h2>
           </FadeIn>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-rule border border-rule">
-            {team.map((member) => (
+            {c.team.members.map((member) => (
               <div key={member.name} className="bg-paper">
                 <div className="relative aspect-square overflow-hidden bg-warm">
                   <Image
@@ -254,7 +200,7 @@ export default function OverOnsPage() {
           <div className="relative aspect-video lg:aspect-auto lg:min-h-[480px] overflow-hidden">
             <Image
               src="/images/about/kantoor-administratie.jpg"
-              alt="Het Oude Administratiegebouw in Castricum"
+              alt={c.office.imageAlt}
               fill
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"
@@ -263,19 +209,17 @@ export default function OverOnsPage() {
           </div>
           <div className="flex flex-col justify-center py-10 sm:py-16 lg:py-20 px-7 sm:px-10 lg:pl-16 lg:pr-[max(3.5rem,calc((100vw-1180px)/2+3.5rem))]">
             <FadeIn className="max-w-[480px]">
-              <Label className="mb-3">Ons kantoor</Label>
+              <Label className="mb-3">{c.office.label}</Label>
               <h2 className="font-display text-[clamp(24px,2.8vw,36px)] font-black leading-[0.97] tracking-[-0.03em] mb-5">
-                Het Oude
+                {c.office.title}
                 <br />
-                Administratiegebouw.
+                {c.office.titleLine2}
               </h2>
               <p className="text-[15px] sm:text-[16px] text-ink/80 leading-[1.8] mb-2">
-                Een karakteristiek monumentaal pand in Castricum, aan de rand van
-                het Noord-Hollands Duinreservaat. De fijne sfeer en de dynamiek
-                van ondernemers om ons heen maken dit de perfecte plek.
+                {c.office.description}
               </p>
               <p className="text-[13px] text-ink/50 leading-[1.7] mt-3">
-                Oude Parklaan 111, Castricum · Kamer 0.11
+                {c.office.address}
               </p>
             </FadeIn>
           </div>
@@ -283,11 +227,11 @@ export default function OverOnsPage() {
       </section>
 
       <TrainingCta
-        title="Klaar om het anders te doen?"
-        titleAccent="Neem contact op."
-        description="Samen brengen we in beeld waar je nu staat, waar kansen liggen, en welke aanpak jou of je team het meeste oplevert."
-        href="/contact"
-        ctaLabel="Neem contact op"
+        title={c.cta.title}
+        titleAccent={c.cta.titleAccent}
+        description={c.cta.description}
+        href={c.cta.href}
+        ctaLabel={c.cta.ctaLabel}
       />
     </>
   );

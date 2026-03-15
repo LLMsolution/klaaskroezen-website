@@ -8,20 +8,23 @@ import { AboutKlaas } from "@/components/sections/AboutKlaas";
 import { BookTeaser } from "@/components/sections/BookTeaser";
 import { FinaleCta } from "@/components/sections/FinaleCta";
 import { JsonLd, websiteJsonLd } from "@/components/seo/JsonLd";
+import { getLocale } from "@/lib/i18n/server";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const lang = await getLocale();
+
   return (
     <>
       <JsonLd data={websiteJsonLd} />
-      <Hero />
+      <Hero lang={lang} />
       <LogoBar />
-      <TrainingCards />
-      <StatsBand />
+      <TrainingCards lang={lang} />
+      <StatsBand lang={lang} />
       <TeamPhotos />
-      <ReviewGrid />
-      <AboutKlaas />
-      <BookTeaser />
-      <FinaleCta />
+      <ReviewGrid lang={lang} />
+      <AboutKlaas lang={lang} />
+      <BookTeaser lang={lang} />
+      <FinaleCta lang={lang} />
     </>
   );
 }

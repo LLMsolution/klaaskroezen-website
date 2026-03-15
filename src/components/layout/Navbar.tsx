@@ -3,8 +3,12 @@
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { t, type Lang } from "@/lib/i18n";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
-function MegaDropdown() {
+function MegaDropdown({ lang }: { lang: Lang }) {
+  const s = t(lang).nav;
+
   return (
     <div
       role="menu"
@@ -17,17 +21,16 @@ function MegaDropdown() {
           className="bg-ink p-[26px] pb-7 flex flex-col gap-1.5 transition-colors duration-150 hover:bg-[#1c1208] outline-none focus-visible:bg-[#1c1208] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-copper"
         >
           <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper">
-            Voor verkopers
+            {s.setLabel}
           </span>
           <span className="font-display text-[16px] font-bold text-paper leading-tight">
-            Sales Excellence Training
+            {s.setTitle}
           </span>
           <span className="text-[13px] text-paper/60 leading-[1.6] mt-0.5">
-            Meer omzet, minder druk. Voor wie actief verkoopt&nbsp;&mdash; van
-            acquisitie tot deal&nbsp;sluiten.
+            {s.setDesc}
           </span>
           <span className="mt-2.5 text-[10px] font-medium tracking-[0.1em] uppercase text-copper">
-            Bekijk training &rarr;
+            {s.setCta}
           </span>
         </Link>
         <Link
@@ -36,17 +39,16 @@ function MegaDropdown() {
           className="bg-ink p-[26px] pb-7 flex flex-col gap-1.5 transition-colors duration-150 hover:bg-[#1c1208] outline-none focus-visible:bg-[#1c1208] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-copper"
         >
           <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper">
-            Voor klantcontact
+            {s.cstLabel}
           </span>
           <span className="font-display text-[16px] font-bold text-paper leading-tight">
-            Customer Success Training
+            {s.cstTitle}
           </span>
           <span className="text-[13px] text-paper/60 leading-[1.6] mt-0.5">
-            Maak van klanten fans. Voor iedereen met klantcontact die de
-            organisatie commercieel sterker maakt.
+            {s.cstDesc}
           </span>
           <span className="mt-2.5 text-[10px] font-medium tracking-[0.1em] uppercase text-copper">
-            Bekijk training &rarr;
+            {s.cstCta}
           </span>
         </Link>
       </div>
@@ -54,7 +56,8 @@ function MegaDropdown() {
   );
 }
 
-export function Navbar() {
+export function Navbar({ lang }: { lang: Lang }) {
+  const s = t(lang).nav;
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
@@ -90,13 +93,13 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-[200]">
       <nav
-        aria-label="Hoofdnavigatie"
+        aria-label={s.mainNav}
         className="bg-ink border-b border-paper/[0.07] px-14 max-lg:px-7 h-16 flex items-center justify-between"
       >
         <Link
           href="/"
           className="font-display text-[17px] font-black tracking-[0.06em] text-paper uppercase shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-copper focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
-          aria-label="Klaas Kroezen — Home"
+          aria-label={s.home}
         >
           Klaas Kroezen
         </Link>
@@ -114,7 +117,7 @@ export function Navbar() {
                   : "text-paper/70"
               }`}
             >
-              Trainingen{" "}
+              {s.trainingen}{" "}
               <span
                 className="text-[8px] opacity-60 transition-transform duration-200 group-hover:rotate-180 group-hover:opacity-90"
                 aria-hidden="true"
@@ -122,19 +125,19 @@ export function Navbar() {
                 &#9662;
               </span>
             </button>
-            <MegaDropdown />
+            <MegaDropdown lang={lang} />
           </div>
           <NavLink href="/spreker" active={pathname === "/spreker"}>
-            Spreker
+            {s.spreker}
           </NavLink>
           <NavLink href="/boek" active={pathname === "/boek"}>
-            Boek
+            {s.boek}
           </NavLink>
           <NavLink href="/over-ons" active={pathname === "/over-ons"}>
-            Over ons
+            {s.overOns}
           </NavLink>
           <NavLink href="/contact" active={pathname === "/contact"}>
-            Contact
+            {s.contact}
           </NavLink>
         </div>
 
@@ -143,22 +146,23 @@ export function Navbar() {
             href="/login"
             className="hidden lg:block text-[12px] font-normal tracking-[0.07em] uppercase text-paper/70 hover:text-paper transition-colors duration-150 px-3 py-2 outline-none focus-visible:text-paper focus-visible:ring-2 focus-visible:ring-copper focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
           >
-            Inloggen
+            {s.inloggen}
           </Link>
+          <LanguageSwitcher lang={lang} />
           <a
             href="https://klaaskroezen.plugandpay.com/checkout/checkout-online-sales-training"
             className="hidden lg:block bg-copper text-paper px-[18px] py-[9px] text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors duration-200 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-paper focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Training kopen
+            {s.trainingKopen}
           </a>
 
           {/* Hamburger */}
           <button
             type="button"
             className="lg:hidden flex flex-col justify-center items-center w-10 h-10 gap-1.5 outline-none focus-visible:ring-2 focus-visible:ring-copper"
-            aria-label={mobileOpen ? "Menu sluiten" : "Menu openen"}
+            aria-label={mobileOpen ? s.menuClose : s.menuOpen}
             aria-expanded={mobileOpen}
             aria-controls="mobile-menu"
             onClick={() => setMobileOpen((prev) => !prev)}
@@ -186,7 +190,7 @@ export function Navbar() {
       <div
         id="mobile-menu"
         role="dialog"
-        aria-label="Mobiel menu"
+        aria-label={s.mobileMenu}
         aria-hidden={!mobileOpen}
         inert={!mobileOpen ? true : undefined}
         className={`lg:hidden fixed inset-x-0 top-16 bottom-0 bg-ink/95 backdrop-blur-sm z-[199] transition-opacity duration-200 ${
@@ -195,24 +199,24 @@ export function Navbar() {
             : "opacity-0 pointer-events-none"
         }`}
       >
-        <nav aria-label="Mobiel menu" className="flex flex-col p-7 gap-1 overflow-y-auto overscroll-contain">
+        <nav aria-label={s.mobileMenu} className="flex flex-col p-7 gap-1 overflow-y-auto overscroll-contain">
           <MobileNavLink href="/sales-excellence-training" onClick={closeMobile}>
-            Sales Excellence Training
+            {s.setTitle}
           </MobileNavLink>
           <MobileNavLink href="/customer-success-training" onClick={closeMobile}>
-            Customer Success Training
+            {s.cstTitle}
           </MobileNavLink>
           <MobileNavLink href="/spreker" onClick={closeMobile}>
-            Spreker
+            {s.spreker}
           </MobileNavLink>
           <MobileNavLink href="/boek" onClick={closeMobile}>
-            Boek
+            {s.boek}
           </MobileNavLink>
           <MobileNavLink href="/over-ons" onClick={closeMobile}>
-            Over ons
+            {s.overOns}
           </MobileNavLink>
           <MobileNavLink href="/contact" onClick={closeMobile}>
-            Contact
+            {s.contact}
           </MobileNavLink>
           <div className="mt-6 flex flex-col gap-3">
             <Link
@@ -220,15 +224,16 @@ export function Navbar() {
               className="text-[13px] font-normal tracking-[0.07em] uppercase text-paper/50 hover:text-paper/80 transition-colors duration-150 py-2 outline-none focus-visible:text-paper"
               onClick={closeMobile}
             >
-              Inloggen
+              {s.inloggen}
             </Link>
+            <LanguageSwitcher lang={lang} />
             <a
               href="https://klaaskroezen.plugandpay.com/checkout/checkout-online-sales-training"
               className="bg-copper text-paper px-[18px] py-3 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors duration-200 text-center outline-none focus-visible:ring-2 focus-visible:ring-paper"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Training kopen
+              {s.trainingKopen}
             </a>
           </div>
         </nav>

@@ -1,20 +1,24 @@
 import Link from "next/link";
+import { t, type Lang } from "@/lib/i18n";
 
-const navLinks = [
-  { href: "/sales-excellence-training", label: "Sales Excellence Training" },
-  { href: "/customer-success-training", label: "Customer Success Training" },
-  { href: "/spreker", label: "Spreker" },
-  { href: "/boek", label: "Boek" },
-  { href: "/over-ons", label: "Over ons" },
-  { href: "/contact", label: "Contact" },
-] as const;
+export function Footer({ lang }: { lang: Lang }) {
+  const s = t(lang).footer;
+  const n = t(lang).nav;
 
-const legalLinks = [
-  { href: "/privacy", label: "Privacybeleid" },
-  { href: "/algemene-voorwaarden", label: "Algemene Voorwaarden" },
-] as const;
+  const navLinks = [
+    { href: "/sales-excellence-training", label: n.setTitle },
+    { href: "/customer-success-training", label: n.cstTitle },
+    { href: "/spreker", label: n.spreker },
+    { href: "/boek", label: n.boek },
+    { href: "/over-ons", label: n.overOns },
+    { href: "/contact", label: n.contact },
+  ];
 
-export function Footer() {
+  const legalLinks = [
+    { href: "/privacy", label: s.privacy },
+    { href: "/algemene-voorwaarden", label: s.terms },
+  ];
+
   return (
     <footer className="bg-ink border-t border-paper/[0.06]" role="contentinfo">
       <div className="max-w-[1180px] mx-auto px-7 sm:px-14 py-12 sm:py-16">
@@ -28,9 +32,7 @@ export function Footer() {
               Klaas Kroezen
             </Link>
             <p className="text-[14px] text-paper/55 leading-[1.75] mt-4 max-w-[320px]">
-              Sales- en Customer Success trainingen.
-              Oprecht en ontspannen&nbsp;&mdash; geen trucjes, geen scripts.
-              25+&nbsp;jaar ervaring in 21&nbsp;landen.
+              {s.description}
             </p>
 
             {/* Social icons */}
@@ -77,9 +79,9 @@ export function Footer() {
           </div>
 
           {/* Navigation */}
-          <nav aria-label="Footer navigatie">
+          <nav aria-label={s.footerNav}>
             <h3 className="text-[11px] font-medium tracking-[0.18em] uppercase text-paper/45 mb-4">
-              Pagina&rsquo;s
+              {s.pages}
             </h3>
             <ul className="flex flex-col gap-2.5 list-none">
               {navLinks.map((link) => (
@@ -98,7 +100,7 @@ export function Footer() {
           {/* Contact */}
           <div>
             <h3 className="text-[11px] font-medium tracking-[0.18em] uppercase text-paper/45 mb-4">
-              Contact
+              {s.contact}
             </h3>
             <ul className="flex flex-col gap-2.5 list-none text-[14px] text-paper/60">
               <li>
@@ -129,8 +131,7 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="mt-10 sm:mt-14 pt-6 border-t border-paper/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <p className="text-[12px] text-paper/40">
-            &copy; {new Date().getFullYear()} Klaas Kroezen. Alle rechten
-            voorbehouden.
+            &copy; {new Date().getFullYear()} Klaas Kroezen. {s.copyright}
           </p>
           <div className="flex gap-4">
             {legalLinks.map((link) => (
