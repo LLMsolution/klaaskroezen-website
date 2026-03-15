@@ -20,11 +20,11 @@ export function FinaleCta({ lang }: { lang: Lang }) {
         </p>
         <h2
           id="cta-heading"
-          className="font-display text-[clamp(38px,6.5vw,90px)] font-black leading-[0.94] tracking-[-0.035em] text-paper mb-1"
+          className="font-display text-[clamp(32px,4.2vw,58px)] font-black leading-[0.95] tracking-[-0.03em] text-paper mb-1"
         >
           {s.heading1}
         </h2>
-        <span className="font-display italic font-normal text-[clamp(32px,5.5vw,76px)] tracking-[-0.03em] text-copper block mb-2">
+        <span className="font-display italic font-normal text-[clamp(28px,3.8vw,52px)] tracking-[-0.03em] text-copper block mb-2">
           {s.heading2}
         </span>
         <p className="text-[16px] sm:text-[17px] text-paper/70 leading-[1.8] mt-6 mb-8 sm:mb-9">

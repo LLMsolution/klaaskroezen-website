@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { mutation, internalMutation, internalQuery, internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { rateLimiter } from "./rateLimits";
+import { contactNotification, contactConfirmationNl } from "./emailTemplates";
 
 // Store the contact form submission
 export const submit = mutation({
@@ -65,19 +66,10 @@ export const sendNotification = internalAction({
         },
         body: JSON.stringify({
           from: "Klaas Kroezen Website <info@llmsolution.nl>",
-          to: ["info@klaaskroezen.com"],
+          to: ["info@llmsolution.nl"],
           reply_to: submission.email,
           subject: `Contactformulier: ${submission.subject}`,
-          html: `
-            <h2>Nieuw contactformulier</h2>
-            <p><strong>Naam:</strong> ${submission.name}</p>
-            <p><strong>E-mail:</strong> ${submission.email}</p>
-            ${submission.phone ? `<p><strong>Telefoon:</strong> ${submission.phone}</p>` : ""}
-            ${submission.company ? `<p><strong>Bedrijf:</strong> ${submission.company}</p>` : ""}
-            <p><strong>Onderwerp:</strong> ${submission.subject}</p>
-            <hr />
-            <p>${submission.message.replace(/\n/g, "<br />")}</p>
-          `,
+          html: contactNotification(submission.name, submission.email, submission.phone, submission.company, submission.subject, submission.message),
         }),
       });
 
@@ -89,6 +81,23 @@ export const sendNotification = internalAction({
         resendId: data.id,
         error: res.ok ? undefined : JSON.stringify(data),
       });
+
+      // Send confirmation to the user
+      if (res.ok) {
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${resendKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: "Klaas Kroezen <info@llmsolution.nl>",
+            to: [submission.email],
+            subject: "Bedankt voor je bericht — Klaas Kroezen",
+            html: contactConfirmationNl(submission.name, submission.subject, submission.message),
+          }),
+        });
+      }
     } catch (error) {
       await ctx.runMutation(internal.contactForm.markEmailSent, {
         submissionId,
@@ -122,7 +131,7 @@ export const markEmailSent = internalMutation({
     const submission = await ctx.db.get(submissionId);
     if (submission) {
       await ctx.db.insert("emailLog", {
-        to: "info@klaaskroezen.com",
+        to: "info@llmsolution.nl",
         subject: `Contactformulier: ${submission.subject}`,
         template: "contact-form",
         status: success ? "sent" : "failed",

@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import { v } from "convex/values";
 import { internalAction, internalMutation, internalQuery, action, mutation } from "./_generated/server";
 import { internal } from "./_generated/api";
+import * as tpl from "./emailTemplates";
 
 const FROM = "Klaas Kroezen <info@llmsolution.nl>";
 const SITE_URL = "https://www.klaaskroezen.com";
@@ -601,54 +602,49 @@ export const getEmailByTrackingId = internalQuery({
 export const initializeTemplates = internalMutation({
   args: {},
   handler: async (ctx) => {
+    // Clear existing templates for a fresh seed
     const existing = await ctx.db.query("emailTemplates").collect();
-    if (existing.length > 0) return; // Already initialized
+    for (const t of existing) {
+      await ctx.db.delete(t._id);
+    }
 
     const now = Date.now();
 
-    const trainingSteps = [
-      { key: "training-welcome", delayDays: 2, subjectNl: "Welkom bij je training — begin hier", subjectEn: "Welcome to your training — start here" },
-      { key: "training-tip", delayDays: 5, subjectNl: "Tip: zo haal je het meeste uit de training", subjectEn: "Tip: how to get the most from your training" },
-      { key: "training-progress", delayDays: 10, subjectNl: "Hoe gaat het met je training?", subjectEn: "How is your training going?" },
-      { key: "training-community", delayDays: 14, subjectNl: "Ken je de community al?", subjectEn: "Have you joined the community?" },
+    const allTemplates = [
+      // ── Transactional ──
+      { key: "contact-confirmation", type: "transactional", step: 0, delay: 0, subNl: "Bedankt voor je bericht — Klaas Kroezen", subEn: "Thank you for your message — Klaas Kroezen", nl: tpl.contactConfirmationNl("{{name}}", "{{subject}}", "{{message}}"), en: tpl.contactConfirmationEn("{{name}}", "{{subject}}", "{{message}}") },
+      { key: "contact-notification", type: "transactional", step: 0, delay: 0, subNl: "Contactformulier: {{subject}}", subEn: "Contact form: {{subject}}", nl: tpl.contactNotification("{{name}}", "{{email}}", undefined, undefined, "{{subject}}", "{{message}}"), en: tpl.contactNotification("{{name}}", "{{email}}", undefined, undefined, "{{subject}}", "{{message}}") },
+      { key: "purchase-confirmation", type: "transactional", step: 0, delay: 0, subNl: "Bedankt voor je bestelling — Klaas Kroezen", subEn: "Thank you for your order — Klaas Kroezen", nl: tpl.purchaseConfirmationNl("{{name}}", "{{product}}", "{{invoiceNumber}}"), en: tpl.purchaseConfirmationEn("{{name}}", "{{product}}", "{{invoiceNumber}}") },
+      { key: "abandoned-cart", type: "transactional", step: 0, delay: 0, subNl: "Je bestelling staat nog klaar", subEn: "Your order is still waiting", nl: tpl.abandonedCartNl("{{firstName}}", "{{product}}"), en: tpl.abandonedCartEn("{{firstName}}", "{{product}}") },
+
+      // ── Training sequence ──
+      { key: "training-welcome", type: "training", step: 0, delay: 0, subNl: "Welkom bij je training — begin hier", subEn: "Welcome to your training — start here", nl: tpl.trainingWelcomeNl("{{name}}", "{{training}}"), en: tpl.trainingWelcomeNl("{{name}}", "{{training}}") },
+      { key: "training-tip-1", type: "training", step: 1, delay: 3, subNl: "De kracht van je eerste indruk", subEn: "The power of your first impression", nl: tpl.trainingTip1Nl("{{name}}"), en: tpl.trainingTip1Nl("{{name}}") },
+      { key: "training-tip-2", type: "training", step: 2, delay: 7, subNl: "Bezwaren zijn geen afwijzing", subEn: "Objections are not rejection", nl: tpl.trainingTip2Nl("{{name}}"), en: tpl.trainingTip2Nl("{{name}}") },
+      { key: "training-completion", type: "training", step: 3, delay: 30, subNl: "Gefeliciteerd — je hebt het gedaan!", subEn: "Congratulations — you did it!", nl: tpl.trainingCompletionNl("{{name}}", "{{training}}"), en: tpl.trainingCompletionNl("{{name}}", "{{training}}") },
+
+      // ── Book sequence ──
+      { key: "book-welcome", type: "book", step: 0, delay: 0, subNl: "Je boek is onderweg!", subEn: "Your book is on its way!", nl: tpl.bookWelcomeNl("{{name}}", "{{format}}"), en: tpl.bookWelcomeNl("{{name}}", "{{format}}") },
+      { key: "book-followup", type: "book", step: 1, delay: 5, subNl: "Hoe bevalt het boek?", subEn: "How are you enjoying the book?", nl: tpl.bookFollowUpNl("{{name}}"), en: tpl.bookFollowUpNl("{{name}}") },
+
+      // ── Marketing ──
+      { key: "marketing-bestseller", type: "marketing", step: 0, delay: 0, subNl: "#1 Bestseller — Sales, Oprecht en Ontspannen", subEn: "#1 Bestseller — Sales, Honest & Relaxed", nl: tpl.marketingBestsellerNl(), en: tpl.marketingBestsellerNl() },
+      { key: "marketing-training-launch", type: "marketing", step: 0, delay: 0, subNl: "Meer omzet, minder stress — Sales Excellence Training", subEn: "More revenue, less stress — Sales Excellence Training", nl: tpl.marketingTrainingLaunchNl(), en: tpl.marketingTrainingLaunchNl() },
+      { key: "marketing-new-year", type: "marketing", step: 0, delay: 0, subNl: "2026 wordt jouw jaar — 3 voornemens die echt werken", subEn: "2026 is your year — 3 resolutions that actually work", nl: tpl.marketingNewYearNl(), en: tpl.marketingNewYearNl() },
+      { key: "marketing-customer-success", type: "marketing", step: 0, delay: 0, subNl: "Jij verkoopt niet. Maar jij maakt het verschil.", subEn: "You don't sell. But you make the difference.", nl: tpl.marketingCustomerSuccessNl(), en: tpl.marketingCustomerSuccessNl() },
+      { key: "marketing-team-training", type: "marketing", step: 0, delay: 0, subNl: "Eén taal voor je hele team — teamtraining op maat", subEn: "One language for your entire team — custom team training", nl: tpl.marketingTeamTrainingNl(), en: tpl.marketingTeamTrainingNl() },
     ];
 
-    const bookSteps = [
-      { key: "book-started", delayDays: 2, subjectNl: "Heb je al een kijkje genomen?", subjectEn: "Have you had a look yet?" },
-      { key: "book-tip", delayDays: 5, subjectNl: "Tip uit het boek: De eerste 3 minuten", subjectEn: "Tip from the book: The first 3 minutes" },
-      { key: "book-training-invite", delayDays: 10, subjectNl: "Klaar voor de volgende stap? Ontdek de training", subjectEn: "Ready for the next step? Discover the training" },
-      { key: "book-reminder", delayDays: 14, subjectNl: "Nog even dit — reserveer je plek", subjectEn: "Just a reminder — reserve your spot" },
-    ];
-
-    for (let i = 0; i < trainingSteps.length; i++) {
-      const s = trainingSteps[i];
-      const content = DEFAULT_CONTENT[s.key];
+    for (const t of allTemplates) {
       await ctx.db.insert("emailTemplates", {
-        templateKey: s.key,
-        sequenceType: "training",
-        stepIndex: i,
-        subjectNl: s.subjectNl,
-        subjectEn: s.subjectEn,
-        htmlNl: content?.nl ?? "",
-        htmlEn: content?.en ?? "",
-        delayDays: s.delayDays,
-        active: true,
-        updatedAt: now,
-      });
-    }
-
-    for (let i = 0; i < bookSteps.length; i++) {
-      const s = bookSteps[i];
-      const content = DEFAULT_CONTENT[s.key];
-      await ctx.db.insert("emailTemplates", {
-        templateKey: s.key,
-        sequenceType: "book",
-        stepIndex: i,
-        subjectNl: s.subjectNl,
-        subjectEn: s.subjectEn,
-        htmlNl: content?.nl ?? "",
-        htmlEn: content?.en ?? "",
-        delayDays: s.delayDays,
+        templateKey: t.key,
+        sequenceType: t.type,
+        stepIndex: t.step,
+        subjectNl: t.subNl,
+        subjectEn: t.subEn,
+        htmlNl: t.nl,
+        htmlEn: t.en,
+        delayDays: t.delay,
         active: true,
         updatedAt: now,
       });
@@ -656,67 +652,6 @@ export const initializeTemplates = internalMutation({
   },
 });
 
-// Default content used during initialization
-const DEFAULT_CONTENT: Record<string, { nl: string; en: string }> = {
-  "training-welcome": {
-    nl: `<p>Welkom bij je training! Je kunt nu inloggen en direct beginnen.</p>
-<p>Ik raad je aan om met Module 1 te starten en deze eerst helemaal af te ronden voordat je verder gaat. Elk onderdeel bouwt voort op het vorige.</p>
-<p>Mijn tip: maak aantekeningen in het werkboek terwijl je de modules doorwerkt. De mensen die dat doen halen het meeste resultaat.</p>`,
-    en: `<p>Welcome to your training! You can log in and start right away.</p>
-<p>I recommend starting with Module 1 and completing it fully before moving on. Each part builds on the previous one.</p>
-<p>My tip: take notes in the workbook as you go through the modules. The people who do this get the best results.</p>`,
-  },
-  "training-tip": {
-    nl: `<p>Een tip die ik bijna iedereen geef na een paar dagen training:</p>
-<p style="border-left:3px solid #A05824;padding-left:16px;margin:16px 0;font-style:italic;">Oefen niet alles tegelijk. Pak één techniek per week en pas die bewust toe in je gesprekken. Pas als het natuurlijk voelt, ga je naar de volgende.</p>
-<p>De deelnemers die dit doen zien gemiddeld 40% meer resultaat dan mensen die alles in één keer proberen.</p>`,
-    en: `<p>A tip I give almost everyone after a few days of training:</p>
-<p style="border-left:3px solid #A05824;padding-left:16px;margin:16px 0;font-style:italic;">Don't practice everything at once. Pick one technique per week and consciously apply it in your conversations. Only move to the next one when it feels natural.</p>
-<p>Participants who do this see an average of 40% better results than those who try everything at once.</p>`,
-  },
-  "training-progress": {
-    nl: `<p>Het is nu zo'n 10 dagen geleden dat je bent begonnen. Hoe gaat het?</p>
-<p>Als je vastloopt of vragen hebt, mail me gerust op info@klaaskroezen.com. Ik beantwoord elke mail persoonlijk.</p>
-<p>En vergeet niet: je hebt 12 maanden toegang. Er is geen haast — neem de tijd die je nodig hebt.</p>`,
-    en: `<p>It's been about 10 days since you started. How's it going?</p>
-<p>If you're stuck or have questions, feel free to email me at info@klaaskroezen.com. I answer every email personally.</p>
-<p>And remember: you have 12 months of access. There's no rush — take the time you need.</p>`,
-  },
-  "training-community": {
-    nl: `<p>Wist je dat er een community is voor deelnemers van de training?</p>
-<p>Hier kun je vragen stellen, ervaringen delen en van andere professionals leren. De meeste vragen worden binnen een dag beantwoord — vaak door mij persoonlijk.</p>`,
-    en: `<p>Did you know there's a community for training participants?</p>
-<p>Here you can ask questions, share experiences, and learn from other professionals. Most questions are answered within a day — often by me personally.</p>`,
-  },
-  "book-started": {
-    nl: `<p>Je hebt het boek nu een paar dagen. Ben je al begonnen met lezen?</p>
-<p>Mijn tip: begin met hoofdstuk 3 — "De eerste drie minuten". Dat is het hoofdstuk waar de meeste lezers een directe aha-ervaring hebben.</p>
-<p>En als je het luisterboek hebt: perfect voor onderweg of tijdens het sporten.</p>`,
-    en: `<p>You've had the book for a few days now. Have you started reading yet?</p>
-<p>My tip: start with chapter 3 — "The first three minutes". That's the chapter where most readers have their first aha moment.</p>
-<p>And if you have the audiobook: perfect for commuting or exercising.</p>`,
-  },
-  "book-tip": {
-    nl: `<p>Een van de krachtigste inzichten uit het boek:</p>
-<p style="border-left:3px solid #A05824;padding-left:16px;margin:16px 0;font-style:italic;">De eerste 3 minuten van een gesprek bepalen 80% van het resultaat. Niet door te pitchen, maar door oprecht geïnteresseerd te zijn in de ander.</p>
-<p>Probeer het vandaag eens: begin je volgende gesprek met een vraag in plaats van een verhaal.</p>`,
-    en: `<p>One of the most powerful insights from the book:</p>
-<p style="border-left:3px solid #A05824;padding-left:16px;margin:16px 0;font-style:italic;">The first 3 minutes of a conversation determine 80% of the outcome. Not by pitching, but by being genuinely interested in the other person.</p>
-<p>Try it today: start your next conversation with a question instead of a story.</p>`,
-  },
-  "book-training-invite": {
-    nl: `<p>Nu je het boek hebt gelezen (of althans een stuk), vraag ik me af: wil je er meer mee doen?</p>
-<p>De Sales Excellence Training gaat dieper in op alles uit het boek — met video's, oefeningen en persoonlijke feedback. En als boeklezer heb je al een voorsprong.</p>`,
-    en: `<p>Now that you've read the book (or at least part of it), I'm wondering: would you like to take it further?</p>
-<p>The Sales Excellence Training goes deeper into everything from the book — with videos, exercises, and personal feedback. And as a book reader, you already have a head start.</p>`,
-  },
-  "book-reminder": {
-    nl: `<p>Nog even dit: ik geef regelmatig trainingen en de plekken zijn beperkt. Als je overweegt om je aan te melden, doe het niet te laat.</p>
-<p>En vergeet niet: je hebt 30 dagen bedenktijd op elke training. Geen risico.</p>`,
-    en: `<p>Just a reminder: I regularly give trainings and spots are limited. If you're considering signing up, don't wait too long.</p>
-<p>And remember: you have a 30-day money-back guarantee on every training. No risk.</p>`,
-  },
-};
 
 /* ═══════════════════════════════════════════
    8. HTML EMAIL TEMPLATES

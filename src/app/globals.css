@@ -16,6 +16,11 @@
 html {
   scroll-behavior: smooth;
   color-scheme: light;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+html::-webkit-scrollbar {
+  display: none;
 }
 
 body {
@@ -27,15 +32,6 @@ body {
   overflow-x: hidden;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-}
-
-/* Hide scrollbar */
-body {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-body::-webkit-scrollbar {
-  display: none;
 }
 
 /* ── Selection ── */

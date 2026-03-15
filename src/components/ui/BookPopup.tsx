@@ -88,13 +88,6 @@ export function BookPopup({ lang }: { lang: Lang }) {
     return () => window.removeEventListener("scroll", checkScroll);
   }, []);
 
-  // Lock body scroll when popup is open
-  useEffect(() => {
-    if (!mounted) return;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
-  }, [mounted]);
-
   useEffect(() => {
     if (!mounted) return;
     function handleKey(e: KeyboardEvent) {

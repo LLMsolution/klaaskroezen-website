@@ -12,6 +12,7 @@ import type * as admin from "../admin.js";
 import type * as auth from "../auth.js";
 import type * as checkout from "../checkout.js";
 import type * as contactForm from "../contactForm.js";
+import type * as emailTemplates from "../emailTemplates.js";
 import type * as emails from "../emails.js";
 import type * as http from "../http.js";
 import type * as invoices from "../invoices.js";
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   checkout: typeof checkout;
   contactForm: typeof contactForm;
+  emailTemplates: typeof emailTemplates;
   emails: typeof emails;
   http: typeof http;
   invoices: typeof invoices;
