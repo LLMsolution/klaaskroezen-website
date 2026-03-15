@@ -86,8 +86,20 @@ export function BookPreview({ lang }: { lang: Lang }) {
             {s.title}{" "}
             <em className="italic font-normal text-ink/40">{s.titleAccent}</em>
           </h2>
-          <p className="text-[15px] text-ink/60 leading-[1.8]">
+          <p className="text-[15px] text-ink/60 leading-[1.8] mb-5">
             {s.description}
+          </p>
+          <a
+            href="#bestellen"
+            className="inline-flex items-center gap-2 bg-copper text-paper px-7 py-3.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px]"
+          >
+            {s.cta}
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M3 7h8M8 4l3 3-3 3" />
+            </svg>
+          </a>
+          <p className="text-[12px] text-ink/35 mt-2">
+            {lang === "nl" ? "Hardcopy vanaf € 32,50" : "Hardcopy from € 32.50"}
           </p>
         </FadeIn>
       </div>
@@ -140,11 +152,10 @@ export function BookPreview({ lang }: { lang: Lang }) {
           </div>
         </div>
 
-        {/* Right: Copy + CTA (desktop only — mobile text is above) */}
-        <div className="flex flex-col justify-center bg-warm lg:bg-transparent px-7 py-8 sm:px-10 lg:px-16 lg:py-20">
+        {/* Right: Copy + CTA (desktop only) */}
+        <div className="hidden lg:flex flex-col justify-center px-16 py-20">
           <FadeIn className="max-w-[440px]">
-            {/* Desktop heading (hidden on mobile since it's shown above) */}
-            <div className="hidden lg:block">
+            <div>
               <Label className="mb-3">{s.label}</Label>
               <h2 className="font-display text-[clamp(28px,3.4vw,44px)] font-black leading-[0.97] tracking-[-0.03em] mb-4">
                 {s.title}
