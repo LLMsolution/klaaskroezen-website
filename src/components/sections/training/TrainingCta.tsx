@@ -20,7 +20,8 @@ export function TrainingCta({
   return (
     <section className="bg-ink py-20 sm:py-[130px] relative overflow-hidden">
       <div
-        className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_60%_70%_at_50%_50%,rgba(181,98,42,0.11),transparent_65%)]"
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse 60% 70% at 50% 50%, rgba(181,98,42,0.18), transparent 65%)" }}
         aria-hidden="true"
       />
       <Container>

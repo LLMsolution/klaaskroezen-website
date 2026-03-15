@@ -16,7 +16,8 @@ export function BookTeaser({ lang }: { lang: Lang }) {
       {/* Book visual */}
       <div className="flex items-center justify-center p-10 sm:p-[52px] min-h-[250px] lg:border-r lg:border-rule relative overflow-hidden">
         <div
-          className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_60%,rgba(181,98,42,0.10),transparent_65%)]"
+          className="absolute inset-0"
+          style={{ background: "radial-gradient(ellipse 70% 60% at 50% 60%, rgba(181,98,42,0.10), transparent 65%)" }}
           aria-hidden="true"
         />
         <div className="relative z-10 w-[min(160px,45%)] sm:w-[min(180px,52%)]">
