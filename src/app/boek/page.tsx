@@ -36,10 +36,10 @@ export default async function BoekPage() {
     <>
       <JsonLd data={bookJsonLd} />
       {/* Book Hero */}
-      <section className="py-16 sm:py-[110px] border-b border-rule">
+      <section className="py-16 sm:py-[110px] border-b border-rule bg-paper">
         <Container>
           <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-10 lg:gap-16 items-center">
-            <div className="flex justify-center lg:justify-start">
+            <div className="flex justify-center lg:justify-start pb-4">
               <div className="relative w-[260px] sm:w-[320px] lg:w-[380px]">
                 <Image
                   src="/images/book/sales-oprecht-ontspannen-cover.png"
