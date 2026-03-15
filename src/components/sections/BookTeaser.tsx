@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ButtonExternal, ButtonLink, ButtonArrow } from "@/components/ui/Button";
+import { ButtonLink, ButtonArrow } from "@/components/ui/Button";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { t, type Lang } from "@/lib/i18n";
 
@@ -60,12 +60,12 @@ export function BookTeaser({ lang }: { lang: Lang }) {
           ))}
         </ul>
         <div className="flex gap-2.5 flex-wrap">
-          <ButtonExternal
-            href="https://klaaskroezen.plugandpay.com/checkout/oprecht-en-ontspannen-sales"
+          <ButtonLink
+            href="/boek#bestellen"
             variant="copper"
           >
             <ButtonArrow>{s.ctaPrimary}</ButtonArrow>
-          </ButtonExternal>
+          </ButtonLink>
           <ButtonLink href="/boek" variant="ghost">
             {s.ctaSecondary}
           </ButtonLink>

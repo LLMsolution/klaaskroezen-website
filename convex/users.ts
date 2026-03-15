@@ -5,8 +5,8 @@ import { auth } from "./auth";
 // Admin email addresses — Klaas and team
 const ADMIN_EMAILS = [
   "klaas@klaaskroezen.com",
-  "info@klaaskroezen.com",
-  "klaas@cxiagroup.com",
+  "timlind18@icloud.com",
+  "yvon@yvonkruger.nl",
 ];
 
 /**

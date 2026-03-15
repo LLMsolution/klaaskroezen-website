@@ -333,6 +333,53 @@ export function getBoekContent(lang: Lang) {
       ],
     },
 
+    interview: {
+      eyebrow: "Managementboek.nl",
+      title: nl ? "Sales is menselijk contact." : "Sales is human contact.",
+      titleAccent: nl ? "Oprechte interesse." : "Genuine interest.",
+      intro: nl
+        ? "In een interview met Managementboek.nl vertelt Klaas over de kern van zijn filosofie."
+        : "In an interview with Managementboek.nl, Klaas shares the core of his philosophy.",
+      quotes: nl
+        ? [
+            {
+              question: "Waarom dit boek?",
+              answer:
+                "Er gaat zoveel energie verloren in sales door constante prestatiedruk. Als gesprekken dat gewicht dragen, verdwijnt de echte verbinding — en mensen voelen dat meteen.",
+            },
+            {
+              question: "Wat gaat er mis in salesgesprekken?",
+              answer:
+                "Gesprekken worden vermomde transacties. De verdeelde aandacht ondermijnt vertrouwen. De ander voelt dat er niet écht geluisterd wordt.",
+            },
+            {
+              question: "Wat was jouw keerpunt?",
+              answer:
+                "Iemand zei tegen mij: 'Je gaat te snel. Je maakt geen echt contact.' Dat veranderde alles — van transactiegericht naar relatiegericht werken.",
+            },
+          ]
+        : [
+            {
+              question: "Why this book?",
+              answer:
+                "So much energy is lost in sales due to constant performance pressure. When conversations carry that weight, genuine connection disappears — and people sense it immediately.",
+            },
+            {
+              question: "What goes wrong in sales conversations?",
+              answer:
+                "Meetings become disguised transactions. Divided attention undermines trust. The other person feels they're not truly being heard.",
+            },
+            {
+              question: "What was your turning point?",
+              answer:
+                "Someone told me: 'You're moving too fast. You're not making real contact.' That changed everything — from transaction-focused to relationship-focused work.",
+            },
+          ],
+      linkText: nl ? "Lees het volledige interview" : "Read the full interview",
+      linkUrl:
+        "https://www.managementboek.nl/magazine/q&a/23083/klaas-kroezen-sales-is-menselijk-contact.-oprechte-interesse",
+    },
+
     crossLink: {
       eyebrow: nl ? "Verder leren" : "Continue learning",
       title: "Sales Excellence Training.",

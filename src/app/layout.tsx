@@ -3,8 +3,8 @@ import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import { playfair, dmSans } from "@/lib/fonts";
-import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Navbar } from "@/components/layout/Navbar";
+import { BookPopup } from "@/components/ui/BookPopup";
 import { Footer } from "@/components/layout/Footer";
 import { JsonLd, organizationJsonLd } from "@/components/seo/JsonLd";
 import { ConvexProvider } from "@/components/providers/ConvexProvider";
@@ -53,8 +53,8 @@ export default async function RootLayout({
             <a href="#main-content" className="skip-link">
               {lang === "nl" ? "Ga naar inhoud" : "Skip to content"}
             </a>
-            <AnnouncementBar lang={lang} />
             <Navbar lang={lang} />
+            <BookPopup lang={lang} />
             <main id="main-content">{children}</main>
             <Footer lang={lang} />
             <SpeedInsights />

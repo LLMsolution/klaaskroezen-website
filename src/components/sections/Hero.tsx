@@ -8,7 +8,7 @@ export function Hero({ lang }: { lang: Lang }) {
   return (
     <section
       aria-label={s.ariaLabel}
-      className="grid grid-cols-1 lg:grid-cols-2 min-h-[calc(100vh-96px)]"
+      className="grid grid-cols-1 lg:grid-cols-2 min-h-[calc(100dvh-64px)]"
     >
       <HeroSlideshow />
 
