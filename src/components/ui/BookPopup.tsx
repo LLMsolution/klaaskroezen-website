@@ -69,6 +69,8 @@ export function BookPopup({ lang }: { lang: Lang }) {
 
     function checkScroll() {
       if (triggered) return;
+      // Re-check path in case of client-side navigation
+      if (EXCLUDED_PATHS.some((p) => window.location.pathname.startsWith(p))) return;
       const scrollRatio = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
       const elapsed = Date.now() - startTime;
       if (scrollRatio >= SCROLL_THRESHOLD && elapsed >= MIN_TIME_MS) {
@@ -165,15 +167,28 @@ export function BookPopup({ lang }: { lang: Lang }) {
               </ul>
 
               {/* CTA */}
-              <a
-                href="/boek#bestellen"
-                className="inline-flex items-center gap-2 bg-copper text-paper px-6 py-3 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px]"
-              >
-                {s.cta}
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M3 7h8M8 4l3 3-3 3" />
-                </svg>
-              </a>
+              <div className="flex flex-col gap-2">
+                <a
+                  href="/boek#bestellen"
+                  className="inline-flex items-center gap-2 bg-copper text-paper px-6 py-3 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px]"
+                >
+                  {lang === "nl" ? "Bestel het boek" : "Order the Dutch book"}
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M3 7h8M8 4l3 3-3 3" />
+                  </svg>
+                </a>
+                {lang === "en" && (
+                  <a
+                    href="/contact"
+                    className="inline-flex items-center gap-2 border border-ink/15 text-ink/60 px-6 py-3 text-[12px] font-medium tracking-[0.1em] uppercase hover:border-ink/25 hover:text-ink transition-colors rounded-[2px]"
+                  >
+                    Pre-order the English version
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M3 7h8M8 4l3 3-3 3" />
+                    </svg>
+                  </a>
+                )}
+              </div>
 
               <button
                 onClick={dismiss}
@@ -237,15 +252,28 @@ export function BookPopup({ lang }: { lang: Lang }) {
             </div>
           </div>
 
-          <a
-            href="/boek#bestellen"
-            className="mt-4 flex items-center justify-center gap-2 w-full bg-copper text-paper py-3.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px]"
-          >
-            {s.cta}
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M3 7h8M8 4l3 3-3 3" />
-            </svg>
-          </a>
+          <div className="mt-4 flex flex-col gap-2">
+            <a
+              href="/boek#bestellen"
+              className="flex items-center justify-center gap-2 w-full bg-copper text-paper py-3.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px]"
+            >
+              {lang === "nl" ? "Bestel het boek" : "Order the Dutch book"}
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M3 7h8M8 4l3 3-3 3" />
+              </svg>
+            </a>
+            {lang === "en" && (
+              <a
+                href="/contact"
+                className="flex items-center justify-center gap-2 w-full border border-ink/15 text-ink/60 py-3.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:border-ink/25 hover:text-ink transition-colors rounded-[2px]"
+              >
+                Pre-order the English version
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M3 7h8M8 4l3 3-3 3" />
+                </svg>
+              </a>
+            )}
+          </div>
         </div>
       </div>
     </div>

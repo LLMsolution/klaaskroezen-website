@@ -261,7 +261,7 @@ export function getBoekContent(lang: Lang) {
                 "De hardcopy wordt binnen één werkdag verzonden met gratis verzending binnen Nederland. Het e-book en luisterboek zijn direct na betaling beschikbaar.",
             },
             {
-              question: "Wie leest het luisterboek in?",
+              question: "Wie spreekt het luisterboek in?",
               answer:
                 "Klaas zelf. Zo hoor je de verhalen en inzichten precies zoals ze bedoeld zijn — met de energie en overtuiging van de auteur.",
             },

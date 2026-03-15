@@ -64,11 +64,18 @@ export function BookTeaser({ lang }: { lang: Lang }) {
             href="/boek#bestellen"
             variant="copper"
           >
-            <ButtonArrow>{s.ctaPrimary}</ButtonArrow>
+            <ButtonArrow>{lang === "nl" ? "Bestel het boek" : "Order the Dutch book"}</ButtonArrow>
           </ButtonLink>
-          <ButtonLink href="/boek" variant="ghost">
-            {s.ctaSecondary}
-          </ButtonLink>
+          {lang === "en" && (
+            <ButtonLink href="/contact" variant="ghost">
+              <ButtonArrow>Pre-order the English version</ButtonArrow>
+            </ButtonLink>
+          )}
+          {lang === "nl" && (
+            <ButtonLink href="/boek" variant="ghost">
+              {s.ctaSecondary}
+            </ButtonLink>
+          )}
         </div>
         </FadeIn>
       </div>

@@ -83,13 +83,24 @@ export default async function BoekPage() {
                   </span>
                 ))}
               </div>
-              <ButtonLink
-                href="#bestellen"
-                variant="copper"
-                size="large"
-              >
-                <ButtonArrow>{c.hero.cta}</ButtonArrow>
-              </ButtonLink>
+              <div className="flex flex-wrap gap-3">
+                <ButtonLink
+                  href="#bestellen"
+                  variant="copper"
+                  size="large"
+                >
+                  <ButtonArrow>{lang === "nl" ? "Bestel het boek" : "Order the Dutch book"}</ButtonArrow>
+                </ButtonLink>
+                {lang === "en" && (
+                  <ButtonLink
+                    href="/contact"
+                    variant="ghost"
+                    size="large"
+                  >
+                    <ButtonArrow>Pre-order the English version</ButtonArrow>
+                  </ButtonLink>
+                )}
+              </div>
             </FadeIn>
           </div>
         </Container>

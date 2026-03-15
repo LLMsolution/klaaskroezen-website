@@ -3,7 +3,7 @@ import { v } from "convex/values";
 import { internalAction, internalMutation, internalQuery, action, mutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 
-const FROM = "Klaas Kroezen <noreply@klaaskroezen.com>";
+const FROM = "Klaas Kroezen <info@llmsolution.nl>";
 const SITE_URL = "https://www.klaaskroezen.com";
 
 function generateTrackingId(): string {

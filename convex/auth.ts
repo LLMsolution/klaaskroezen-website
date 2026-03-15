@@ -20,7 +20,7 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
       },
     }),
     Resend({
-      from: "Klaas Kroezen <noreply@klaaskroezen.com>",
+      from: "Klaas Kroezen <info@llmsolution.nl>",
     }),
     Password({
       profile(params) {

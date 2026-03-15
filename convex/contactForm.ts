@@ -64,7 +64,7 @@ export const sendNotification = internalAction({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: "Klaas Kroezen Website <noreply@klaaskroezen.com>",
+          from: "Klaas Kroezen Website <info@llmsolution.nl>",
           to: ["info@klaaskroezen.com"],
           reply_to: submission.email,
           subject: `Contactformulier: ${submission.subject}`,

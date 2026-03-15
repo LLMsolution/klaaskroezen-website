@@ -89,30 +89,40 @@ export function BookPreview({ lang }: { lang: Lang }) {
           <p className="text-[15px] text-ink/60 leading-[1.8] mb-5">
             {s.description}
           </p>
-          <a
-            href="#bestellen"
-            className="inline-flex items-center gap-2 bg-copper text-paper px-7 py-3.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px]"
-          >
-            {s.cta}
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M3 7h8M8 4l3 3-3 3" />
-            </svg>
-          </a>
-          <p className="text-[12px] text-ink/35 mt-2">
-            {lang === "nl" ? "Hardcopy vanaf € 32,50" : "Hardcopy from € 32.50"}
-          </p>
+          <div className="flex flex-wrap gap-3">
+            <a
+              href="#bestellen"
+              className="inline-flex items-center gap-2 bg-copper text-paper px-6 py-3 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px]"
+            >
+              {lang === "nl" ? "Bestel het boek" : "Order the Dutch book"}
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M3 7h8M8 4l3 3-3 3" />
+              </svg>
+            </a>
+            {lang === "en" && (
+              <a
+                href="/contact"
+                className="inline-flex items-center gap-2 border border-ink/15 text-ink/70 px-6 py-3 text-[12px] font-medium tracking-[0.1em] uppercase hover:border-ink/30 hover:text-ink transition-colors rounded-[2px]"
+              >
+                Pre-order the English version
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M3 7h8M8 4l3 3-3 3" />
+                </svg>
+              </a>
+            )}
+          </div>
         </FadeIn>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 lg:min-h-screen">
         {/* Left: Book page viewer */}
         <div
-          className="bg-warm flex items-center justify-center px-4 py-6 sm:p-12 lg:p-16"
+          className="bg-warm flex items-center justify-center px-7 py-6 sm:p-12 lg:p-16"
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          <div className="flex flex-col items-center">
-            <div className="relative bg-white shadow-2xl rounded-[2px] overflow-hidden h-[65vh] sm:h-[60vh] lg:h-[70vh] aspect-[448/683]">
+          <div className="flex flex-col items-center w-full lg:w-auto">
+            <div className="relative bg-white shadow-2xl rounded-[2px] overflow-hidden w-full lg:w-auto lg:h-[70vh] aspect-[448/683]">
               <Image
                 src={PAGES[current]}
                 alt={`${s.page} ${current + 1}`}
@@ -123,8 +133,8 @@ export function BookPreview({ lang }: { lang: Lang }) {
               />
             </div>
 
-            {/* Controls */}
-            <div className="flex items-center justify-center gap-6 mt-5">
+            {/* Controls — fixed width to prevent jumping */}
+            <div className="flex items-center justify-center gap-6 mt-5 w-full max-w-[200px]">
               <button
                 onClick={prev}
                 className="text-ink/30 hover:text-ink/60 transition-colors cursor-pointer"
@@ -135,7 +145,7 @@ export function BookPreview({ lang }: { lang: Lang }) {
                 </svg>
               </button>
 
-              <span className="text-[12px] text-ink/35 tabular-nums tracking-[0.05em]">
+              <span className="text-[12px] text-ink/35 tabular-nums tracking-[0.05em] w-[50px] text-center">
                 {current + 1} / {PAGES.length}
               </span>
 
@@ -169,7 +179,7 @@ export function BookPreview({ lang }: { lang: Lang }) {
 
             {/* Book cover + CTA */}
             <div className="flex items-end gap-6 mb-6 lg:mb-8">
-              <div className="shrink-0 hidden sm:block">
+              <div className="shrink-0">
                 <Image
                   src="/images/book/sales-oprecht-ontspannen-cover.png"
                   alt={s.label}
@@ -178,19 +188,27 @@ export function BookPreview({ lang }: { lang: Lang }) {
                   className="drop-shadow-lg"
                 />
               </div>
-              <div>
+              <div className="flex flex-col gap-2">
                 <a
                   href="#bestellen"
-                  className="inline-flex items-center gap-2 bg-copper text-paper px-7 py-3.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px]"
+                  className="inline-flex items-center gap-2 bg-copper text-paper px-6 py-3 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px]"
                 >
-                  {s.cta}
+                  {lang === "nl" ? "Bestel het boek" : "Order the Dutch book"}
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d="M3 7h8M8 4l3 3-3 3" />
                   </svg>
                 </a>
-                <p className="text-[12px] text-ink/35 mt-2">
-                  {lang === "nl" ? "Hardcopy vanaf € 32,50" : "Hardcopy from € 32.50"}
-                </p>
+                {lang === "en" && (
+                  <a
+                    href="/contact"
+                    className="inline-flex items-center gap-2 border border-ink/15 text-ink/70 px-6 py-3 text-[12px] font-medium tracking-[0.1em] uppercase hover:border-ink/30 hover:text-ink transition-colors rounded-[2px]"
+                  >
+                    Pre-order the English version
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M3 7h8M8 4l3 3-3 3" />
+                    </svg>
+                  </a>
+                )}
               </div>
             </div>
 
