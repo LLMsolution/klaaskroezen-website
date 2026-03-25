@@ -137,15 +137,18 @@ jobs:
       - name: Install Claude Code CLI
         run: npm install -g @anthropic-ai/claude-code
 
+      - name: Write prompt to file
+        run: |
+          cat > /tmp/plan-prompt.txt << 'PROMPT_HEREDOC_EOF'
+          ${{ steps.load-prompt.outputs.CUSTOM_INSTRUCTIONS }}
+          PROMPT_HEREDOC_EOF
+
       - name: Run Claude Code (plan mode)
         id: claude-plan
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         run: |
-          PROMPT='${{ steps.load-prompt.outputs.CUSTOM_INSTRUCTIONS }}'
-          echo "$PROMPT" | claude --output-format json --max-turns 5 --allowedTools "Write,Read,Bash" -p - > /tmp/claude-raw.json 2>&1 || true
-          # Claude should have written /tmp/plan-output.json via Write tool
-          # If not, try extracting from CLI output
+          claude --output-format json --max-turns 5 --allowedTools "Write,Read,Bash" -p "$(cat /tmp/plan-prompt.txt)" > /tmp/claude-raw.json 2>&1 || true
           if [ ! -f /tmp/plan-output.json ]; then
             jq -r '.result // empty' /tmp/claude-raw.json 2>/dev/null | jq '.' > /tmp/plan-output.json 2>/dev/null || true
           fi
