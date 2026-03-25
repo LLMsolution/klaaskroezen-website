@@ -34,6 +34,8 @@ export default function OgImage() {
         </div>
         <div
           style={{
+            display: "flex",
+            flexDirection: "column",
             fontSize: 64,
             fontWeight: 900,
             lineHeight: 1.05,
@@ -41,8 +43,7 @@ export default function OgImage() {
             marginBottom: 24,
           }}
         >
-          Meer omzet.
-          <br />
+          <span>Meer omzet.</span>
           <span style={{ color: "rgba(247,244,239,0.4)", fontStyle: "italic", fontWeight: 400 }}>
             Minder stress.
           </span>
@@ -55,19 +56,7 @@ export default function OgImage() {
             maxWidth: 600,
           }}
         >
-          Sales- en Customer Success trainingen. Oprecht en ontspannen — geen
-          trucjes, geen scripts. 25+ jaar ervaring.
-        </div>
-        <div
-          style={{
-            position: "absolute",
-            bottom: 60,
-            right: 80,
-            fontSize: 16,
-            color: "rgba(247,244,239,0.35)",
-          }}
-        >
-          klaaskroezen.com
+          Sales- en Customer Success trainingen. Oprecht en ontspannen — geen trucjes, geen scripts. 25+ jaar ervaring.
         </div>
       </div>
     ),

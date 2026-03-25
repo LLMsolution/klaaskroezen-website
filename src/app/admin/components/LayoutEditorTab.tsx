@@ -186,7 +186,6 @@ function ChatPanel({ session, inputText, sending, onInputChange, onSend, onBuild
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const isPlanning = session.status === "planning";
-  const isBuilding = session.status === "building";
   const isPreview = session.status === "preview";
   const canChat = session.status === "chatting";
   const hasPlan = !!session.plan;
