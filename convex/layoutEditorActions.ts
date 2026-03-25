@@ -5,11 +5,79 @@ import { internal, api } from "./_generated/api";
 const GITHUB_OWNER = "timlind";
 const GITHUB_REPO = "website-klaaskroezen";
 
+/** Trigger a plan update via GitHub Actions — Claude reads chat + updates plan */
+export const triggerPlanUpdate = action({
+  args: {
+    sessionId: v.id("layoutSessions"),
+    message: v.string(),
+    targetPage: v.string(),
+  },
+  handler: async (ctx, { sessionId, message, targetPage }) => {
+    await ctx.runMutation(api.layoutEditor.verifyAdmin);
+
+    const githubToken = process.env.GITHUB_PAT;
+    if (!githubToken) throw new Error("GITHUB_PAT niet geconfigureerd.");
+    const callbackSecret = process.env.LAYOUT_CALLBACK_SECRET;
+    if (!callbackSecret) throw new Error("LAYOUT_CALLBACK_SECRET niet geconfigureerd.");
+    const convexUrl = process.env.CONVEX_SITE_URL;
+    if (!convexUrl) throw new Error("CONVEX_SITE_URL niet geconfigureerd.");
+
+    // Get current session for chat history and plan
+    const session = await ctx.runQuery(api.layoutEditor.getSession, { sessionId });
+    if (!session) throw new Error("Sessie niet gevonden.");
+
+    const chatHistory = session.messages
+      .map((m: { role: string; text: string }) => `[${m.role}]: ${m.text}`)
+      .join("\n\n");
+
+    // Update status to planning
+    await ctx.runMutation(internal.layoutEditor.updateSessionStatus, {
+      sessionId,
+      status: "planning",
+    });
+
+    // Dispatch GitHub Action
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/dispatches`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${githubToken}`,
+          Accept: "application/vnd.github.v3+json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          event_type: "layout-plan",
+          client_payload: {
+            sessionId,
+            message,
+            chatHistory,
+            currentPlan: session.plan || "",
+            targetPage,
+            callbackUrl: `${convexUrl}/plan-callback`,
+            callbackSecret,
+          },
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      await ctx.runMutation(internal.layoutEditor.updateSessionStatus, {
+        sessionId,
+        status: "chatting",
+        errorMessage: `GitHub API fout: ${response.status} ${errorText}`,
+      });
+      throw new Error(`GitHub dispatch failed: ${response.status}`);
+    }
+  },
+});
+
 /** Trigger a layout build via GitHub Actions repository_dispatch */
 export const triggerBuild = action({
   args: {
     sessionId: v.id("layoutSessions"),
-    prompt: v.string(),
+    prompt: v.optional(v.string()),
     targetPage: v.string(),
     branchName: v.string(),
   },
@@ -34,11 +102,15 @@ export const triggerBuild = action({
       status: "building",
     });
 
+    // Get plan from session if no prompt provided
+    const session = await ctx.runQuery(api.layoutEditor.getSession, { sessionId });
+    const buildPrompt = prompt || session?.plan || "No plan available";
+
     // Add system message
     await ctx.runMutation(internal.layoutEditor.addMessageInternal, {
       sessionId,
       role: "system",
-      text: "Build gestart... Claude Code is bezig met je wijziging.",
+      text: "Build gestart... Claude Code voert het plan uit.",
     });
 
     // Trigger GitHub Actions
@@ -54,7 +126,7 @@ export const triggerBuild = action({
         body: JSON.stringify({
           event_type: "layout-edit",
           client_payload: {
-            prompt,
+            prompt: buildPrompt,
             targetPage,
             branchName,
             callbackUrl,

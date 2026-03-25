@@ -48,6 +48,14 @@ export const getConfig = query({
 
 // ── Internal queries (no auth — for cron/internal use) ──
 
+/** Internal session query — no auth check, used by callbacks */
+export const getSessionInternal = internalQuery({
+  args: { sessionId: v.id("layoutSessions") },
+  handler: async (ctx, { sessionId }) => {
+    return await ctx.db.get(sessionId);
+  },
+});
+
 /** Internal config query — no auth check, used by cron cleanup */
 export const getConfigInternal = internalQuery({
   args: {},
@@ -129,7 +137,7 @@ export const startSession = mutation({
     const branchName = `ai/layout-${Math.floor(now / 1000)}`;
 
     const sessionId = await ctx.db.insert("layoutSessions", {
-      status: "locked",
+      status: "chatting",
       userId,
       userEmail: email,
       targetPage,
@@ -189,6 +197,8 @@ export const updateSessionStatus = internalMutation({
   args: {
     sessionId: v.id("layoutSessions"),
     status: v.union(
+      v.literal("chatting"),
+      v.literal("planning"),
       v.literal("locked"),
       v.literal("building"),
       v.literal("preview"),
@@ -196,11 +206,15 @@ export const updateSessionStatus = internalMutation({
       v.literal("rejected"),
       v.literal("failed"),
     ),
+    plan: v.optional(v.string()),
+    planVersion: v.optional(v.number()),
     previewUrl: v.optional(v.string()),
     prNumber: v.optional(v.number()),
     errorMessage: v.optional(v.string()),
+    plan: v.optional(v.string()),
+    planVersion: v.optional(v.number()),
   },
-  handler: async (ctx, { sessionId, status, previewUrl, prNumber, errorMessage }) => {
+  handler: async (ctx, { sessionId, status, previewUrl, prNumber, errorMessage, plan, planVersion }) => {
     const session = await ctx.db.get(sessionId);
     if (!session) throw new Error("Sessie niet gevonden.");
 
@@ -211,6 +225,8 @@ export const updateSessionStatus = internalMutation({
     if (previewUrl !== undefined) patch.previewUrl = previewUrl;
     if (prNumber !== undefined) patch.prNumber = prNumber;
     if (errorMessage !== undefined) patch.errorMessage = errorMessage;
+    if (plan !== undefined) patch.plan = plan;
+    if (planVersion !== undefined) patch.planVersion = planVersion;
     if (status === "approved" || status === "rejected" || status === "failed") {
       patch.completedAt = Date.now();
     }

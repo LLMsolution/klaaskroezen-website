@@ -837,6 +837,8 @@ export default defineSchema({
   // Sessions for AI-powered layout editing
   layoutSessions: defineTable({
     status: v.union(
+      v.literal("chatting"),
+      v.literal("planning"),
       v.literal("locked"),
       v.literal("building"),
       v.literal("preview"),
@@ -850,6 +852,8 @@ export default defineSchema({
     branchName: v.string(),
     prNumber: v.optional(v.number()),
     previewUrl: v.optional(v.string()),
+    plan: v.optional(v.string()),
+    planVersion: v.optional(v.number()),
     messages: v.array(
       v.object({
         role: v.union(v.literal("user"), v.literal("assistant"), v.literal("system")),

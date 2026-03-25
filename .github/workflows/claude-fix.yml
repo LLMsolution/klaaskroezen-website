@@ -100,6 +100,74 @@ jobs:
           custom_instructions: ${{ steps.load-instructions.outputs.CUSTOM_INSTRUCTIONS }}
           direct_prompt: "true"
 
+  layout-plan:
+    if: github.event_name == 'repository_dispatch' && github.event.action == 'layout-plan'
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Load plan prompt template
+        id: load-prompt
+        run: |
+          TEMPLATE=$(cat ".github/workflows/prompts/layout-plan-github.md")
+
+          export TARGET_PAGE="${{ github.event.client_payload.targetPage }}"
+          export USER_MESSAGE="${{ github.event.client_payload.message }}"
+          export CHAT_HISTORY="${{ github.event.client_payload.chatHistory }}"
+          export CURRENT_PLAN="${{ github.event.client_payload.currentPlan }}"
+
+          TEMPLATE=$(echo "$TEMPLATE" | awk '{
+            gsub(/\$TARGET_PAGE/, ENVIRON["TARGET_PAGE"])
+            gsub(/\$USER_MESSAGE/, ENVIRON["USER_MESSAGE"])
+            gsub(/\$CHAT_HISTORY/, ENVIRON["CHAT_HISTORY"])
+            gsub(/\$CURRENT_PLAN/, ENVIRON["CURRENT_PLAN"])
+            print
+          }')
+
+          DELIMITER="INSTRUCTIONS_$(date +%s)_EOF"
+          echo "CUSTOM_INSTRUCTIONS<<${DELIMITER}" >> $GITHUB_OUTPUT
+          echo "$TEMPLATE" >> $GITHUB_OUTPUT
+          echo "${DELIMITER}" >> $GITHUB_OUTPUT
+
+      - name: Run Claude Code (plan mode)
+        uses: anthropics/claude-code-action@beta
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          custom_instructions: ${{ steps.load-prompt.outputs.CUSTOM_INSTRUCTIONS }}
+          direct_prompt: "true"
+
+      - name: Send plan callback
+        if: always()
+        env:
+          SESSION_ID: ${{ github.event.client_payload.sessionId }}
+          CALLBACK_URL: ${{ github.event.client_payload.callbackUrl }}
+          CALLBACK_SECRET: ${{ github.event.client_payload.callbackSecret }}
+        run: |
+          if [ -f /tmp/plan-output.json ]; then
+            # Read the plan output and send it
+            PLAN_DATA=$(cat /tmp/plan-output.json)
+            AI_RESPONSE=$(echo "$PLAN_DATA" | jq -r '.aiResponse // "Plan is bijgewerkt."')
+            UPDATED_PLAN=$(echo "$PLAN_DATA" | jq -r '.updatedPlan // ""')
+
+            # Escape for JSON
+            AI_RESPONSE_ESC=$(echo "$AI_RESPONSE" | jq -Rs .)
+            UPDATED_PLAN_ESC=$(echo "$UPDATED_PLAN" | jq -Rs .)
+
+            curl -X POST "$CALLBACK_URL" \
+              -H "Content-Type: application/json" \
+              -H "X-Callback-Secret: $CALLBACK_SECRET" \
+              -d "{\"sessionId\":\"$SESSION_ID\",\"aiResponse\":$AI_RESPONSE_ESC,\"updatedPlan\":$UPDATED_PLAN_ESC}"
+          else
+            curl -X POST "$CALLBACK_URL" \
+              -H "Content-Type: application/json" \
+              -H "X-Callback-Secret: $CALLBACK_SECRET" \
+              -d "{\"sessionId\":\"$SESSION_ID\",\"errorMessage\":\"Plan output niet gevonden. Check workflow logs.\"}"
+          fi
+
   layout-edit:
     if: github.event_name == 'repository_dispatch' && github.event.action == 'layout-edit'
 
