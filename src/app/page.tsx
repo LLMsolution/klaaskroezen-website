@@ -11,8 +11,6 @@ import { FinaleCta } from "@/components/sections/FinaleCta";
 import { BookPopup } from "@/components/ui/BookPopup";
 import { JsonLd, websiteJsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/lib/i18n/server";
-import { loadSiteImages } from "@/lib/site-images";
-import { SLIDE_KEYS } from "@/components/sections/HeroSlideshow";
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLocale();
@@ -32,20 +30,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const lang = await getLocale();
-  const img = await loadSiteImages([
-    ...SLIDE_KEYS,
-    "book/sales-oprecht-ontspannen-cover.png",
-  ]);
-  const slideImages: Record<string, string> = {};
-  for (const key of SLIDE_KEYS) {
-    slideImages[key] = img[key]?.url ?? `/images/${key}`;
-  }
 
   return (
     <>
       <JsonLd data={websiteJsonLd} />
-      <BookPopup lang={lang} coverImage={img["book/sales-oprecht-ontspannen-cover.png"]?.url ?? "/images/book/sales-oprecht-ontspannen-cover.png"} />
-      <Hero lang={lang} slideImages={slideImages} />
+      <BookPopup lang={lang} />
+      <Hero lang={lang} />
       <LogoBar />
       <TrainingCards lang={lang} />
       <StatsBand lang={lang} />
