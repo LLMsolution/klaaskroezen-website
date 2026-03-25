@@ -26,14 +26,26 @@ function EnFlag() {
   );
 }
 
+function DeFlag() {
+  return (
+    <svg width="20" height="14" viewBox="0 0 20 14" className="rounded-[1px]">
+      <rect width="20" height="4.67" fill="#000" />
+      <rect y="4.67" width="20" height="4.67" fill="#DD0000" />
+      <rect y="9.33" width="20" height="4.67" fill="#FFCE00" />
+    </svg>
+  );
+}
+
 const flags: Record<Lang, React.ReactNode> = {
   nl: <NlFlag />,
   en: <EnFlag />,
+  de: <DeFlag />,
 };
 
 const labels: Record<Lang, string> = {
   nl: "Nederlands",
   en: "English",
+  de: "Deutsch",
 };
 
 export function LanguageSwitcher({ lang }: { lang: Lang }) {
@@ -63,7 +75,7 @@ export function LanguageSwitcher({ lang }: { lang: Lang }) {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
 
-  const other: Lang = lang === "nl" ? "en" : "nl";
+  const allLangs: Lang[] = ["nl", "en", "de"];
 
   return (
     <div ref={ref} className="relative">
@@ -90,30 +102,21 @@ export function LanguageSwitcher({ lang }: { lang: Lang }) {
 
       {open && (
         <div className="absolute top-full right-0 mt-1 bg-ink border border-paper/[0.1] rounded-[2px] shadow-xl overflow-hidden min-w-[140px]">
-          <button
-            type="button"
-            onClick={() => switchLang("nl")}
-            className={`flex items-center gap-3 w-full px-4 py-2.5 text-[13px] transition-colors cursor-pointer ${
-              lang === "nl"
-                ? "text-paper bg-paper/[0.06]"
-                : "text-paper/60 hover:text-paper hover:bg-paper/[0.04]"
-            }`}
-          >
-            <NlFlag />
-            Nederlands
-          </button>
-          <button
-            type="button"
-            onClick={() => switchLang("en")}
-            className={`flex items-center gap-3 w-full px-4 py-2.5 text-[13px] transition-colors cursor-pointer ${
-              lang === "en"
-                ? "text-paper bg-paper/[0.06]"
-                : "text-paper/60 hover:text-paper hover:bg-paper/[0.04]"
-            }`}
-          >
-            <EnFlag />
-            English
-          </button>
+          {allLangs.map((l) => (
+            <button
+              key={l}
+              type="button"
+              onClick={() => switchLang(l)}
+              className={`flex items-center gap-3 w-full px-4 py-2.5 text-[13px] transition-colors cursor-pointer ${
+                lang === l
+                  ? "text-paper bg-paper/[0.06]"
+                  : "text-paper/60 hover:text-paper hover:bg-paper/[0.04]"
+              }`}
+            >
+              {flags[l]}
+              {labels[l]}
+            </button>
+          ))}
         </div>
       )}
     </div>

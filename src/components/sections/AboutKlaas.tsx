@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Label } from "@/components/ui/Label";
-import { ButtonLink, ButtonExternal, ButtonArrow } from "@/components/ui/Button";
+import { ButtonLink, ButtonArrow } from "@/components/ui/Button";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { t, type Lang } from "@/lib/i18n";
 
@@ -52,12 +52,12 @@ export function AboutKlaas({ lang }: { lang: Lang }) {
           {s.bio2}
         </p>
         <div className="flex gap-2.5 flex-wrap mb-6">
-          <ButtonExternal
-            href="https://klaaskroezen.plugandpay.com/checkout/checkout-online-sales-training"
+          <ButtonLink
+            href="/checkout/set-online"
             variant="copper"
           >
             <ButtonArrow>{s.ctaPrimary}</ButtonArrow>
-          </ButtonExternal>
+          </ButtonLink>
           <ButtonLink href="/over-ons" variant="ghost">
             {s.ctaSecondary}
           </ButtonLink>

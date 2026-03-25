@@ -14,6 +14,7 @@ import { TrainingMethod } from "@/components/sections/training/TrainingMethod";
 import { Faq } from "@/components/sections/Faq";
 import { JsonLd, courseJsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/lib/i18n/server";
+import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
 import { getCstContent } from "./content";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -27,39 +28,51 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function CustomerSuccessTrainingPage() {
   const lang = await getLocale();
-  const c = getCstContent(lang);
+  const fallback = getCstContent(lang);
+  const db = await loadPageContent("customer-success-training", lang);
+
+  const hero = sectionOr(db, "hero", fallback.hero);
+  const painPoints = sectionOr(db, "pain-points", fallback.painPoints);
+  const transformation = sectionOr(db, "transformation", { items: fallback.transformation });
+  const audiences = sectionOr(db, "audiences", { items: fallback.audiences });
+  const program = sectionOr(db, "program", fallback.program);
+  const reviews = sectionOr(db, "reviews", { items: fallback.reviews });
+  const pricing = sectionOr(db, "pricing", fallback.pricing);
+  const crossLink = sectionOr(db, "cross-link", fallback.crossLink);
+  const faq = sectionOr(db, "faq", fallback.faq);
+  const cta = sectionOr(db, "cta", fallback.cta);
 
   return (
     <>
-      <JsonLd data={courseJsonLd(c.jsonLd)} />
+      <JsonLd data={courseJsonLd(fallback.jsonLd)} />
       <TrainingHero
         lang={lang}
-        eyebrow={c.hero.eyebrow}
-        titleLine1={c.hero.titleLine1}
-        titleLine2={c.hero.titleLine2}
-        description={c.hero.description}
-        image={c.hero.image}
-        imageAlt={c.hero.imageAlt}
-        imagePosition={c.hero.imagePosition}
-        glassItems={c.hero.glassItems}
+        eyebrow={hero.eyebrow}
+        titleLine1={hero.titleLine1}
+        titleLine2={hero.titleLine2}
+        description={hero.description}
+        image={hero.image}
+        imageAlt={hero.imageAlt}
+        imagePosition={hero.imagePosition}
+        glassItems={hero.glassItems}
       />
 
       <PainPoints
         lang={lang}
-        title={c.painPoints.title}
-        titleAccent={c.painPoints.titleAccent}
-        eyebrow={c.painPoints.eyebrow}
-        points={c.painPoints.points}
+        title={painPoints.title}
+        titleAccent={painPoints.titleAccent}
+        eyebrow={painPoints.eyebrow}
+        points={painPoints.points}
       />
 
-      <TransformationSlider items={c.transformation} />
+      <TransformationSlider items={transformation.items} />
 
-      <ForWhom lang={lang} audiences={c.audiences} />
+      <ForWhom lang={lang} audiences={audiences.items} />
 
       <ProgramSection
         lang={lang}
-        price={c.program.price}
-        modules={c.program.modules}
+        price={program.price}
+        modules={program.modules}
       />
 
       <TrainingMethod lang={lang} />
@@ -68,38 +81,38 @@ export default async function CustomerSuccessTrainingPage() {
 
       <RadarModel />
 
-      <TrainingReviews reviews={c.reviews} />
+      <TrainingReviews reviews={reviews.items} />
 
       <PricingSection
         lang={lang}
-        guarantee={c.pricing.guarantee}
-        individual={c.pricing.individual}
-        team={c.pricing.team}
+        guarantee={pricing.guarantee}
+        individual={pricing.individual}
+        team={pricing.team}
       />
 
       <CrossLink
-        eyebrow={c.crossLink.eyebrow}
-        title={c.crossLink.title}
-        titleAccent={c.crossLink.titleAccent}
-        description={c.crossLink.description}
-        image={c.crossLink.image}
-        imageAlt={c.crossLink.imageAlt}
-        href={c.crossLink.href}
-        ctaLabel={c.crossLink.ctaLabel}
-        dark={c.crossLink.dark}
+        eyebrow={crossLink.eyebrow}
+        title={crossLink.title}
+        titleAccent={crossLink.titleAccent}
+        description={crossLink.description}
+        image={crossLink.image}
+        imageAlt={crossLink.imageAlt}
+        href={crossLink.href}
+        ctaLabel={crossLink.ctaLabel}
+        dark={crossLink.dark}
       />
 
       <Faq
-        title={c.faq.title}
-        titleAccent={c.faq.titleAccent}
-        items={c.faq.items}
+        title={faq.title}
+        titleAccent={faq.titleAccent}
+        items={faq.items}
       />
 
       <TrainingCta
-        title={c.cta.title}
-        titleAccent={c.cta.titleAccent}
-        description={c.cta.description}
-        href={c.cta.href}
+        title={cta.title}
+        titleAccent={cta.titleAccent}
+        description={cta.description}
+        href={cta.href}
       />
     </>
   );

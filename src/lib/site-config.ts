@@ -97,6 +97,15 @@ export const PAGES: SitePage[] = [
     llms: true,
   },
   {
+    path: "/nieuws",
+    title: "Nieuws & Blog",
+    description:
+      "Het laatste nieuws, trainingen, boekupdates en inzichten van Klaas Kroezen.",
+    priority: 0.6,
+    changeFrequency: "weekly",
+    llms: true,
+  },
+  {
     path: "/contact",
     title: "Contact",
     description:

@@ -1,0 +1,255 @@
+import { v } from "convex/values";
+import { query, mutation, internalQuery, internalMutation } from "./_generated/server";
+import { requireAdmin } from "./adminAuth";
+
+// ── Public queries ──
+
+/** Get the active session (if any) — admin only */
+export const getActiveSession = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    const active = await ctx.db
+      .query("layoutSessions")
+      .withIndex("by_status")
+      .filter((q) =>
+        q.and(
+          q.neq(q.field("status"), "approved"),
+          q.neq(q.field("status"), "rejected"),
+          q.neq(q.field("status"), "failed"),
+        ),
+      )
+      .first();
+    return active;
+  },
+});
+
+/** Get session by ID — admin only */
+export const getSession = query({
+  args: { sessionId: v.id("layoutSessions") },
+  handler: async (ctx, { sessionId }) => {
+    await requireAdmin(ctx);
+    return await ctx.db.get(sessionId);
+  },
+});
+
+/** Get layout config (admin only) */
+export const getConfig = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    const config = await ctx.db
+      .query("layoutConfig")
+      .withIndex("by_key", (q) => q.eq("key", "config"))
+      .first();
+    return config ?? { allowedEmails: [], sessionTimeoutMinutes: 120 };
+  },
+});
+
+// ── Internal queries (no auth — for cron/internal use) ──
+
+/** Internal config query — no auth check, used by cron cleanup */
+export const getConfigInternal = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const config = await ctx.db
+      .query("layoutConfig")
+      .withIndex("by_key", (q) => q.eq("key", "config"))
+      .first();
+    return config ?? { allowedEmails: [], sessionTimeoutMinutes: 120 };
+  },
+});
+
+/** Verify caller is admin — used by actions that can't call requireAdmin directly */
+export const verifyAdmin = mutation({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    return true;
+  },
+});
+
+/** Internal list of non-terminal sessions — no auth check, used by cron */
+export const listActiveSessions = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const sessions = await ctx.db
+      .query("layoutSessions")
+      .filter((q) =>
+        q.and(
+          q.neq(q.field("status"), "approved"),
+          q.neq(q.field("status"), "rejected"),
+          q.neq(q.field("status"), "failed"),
+        ),
+      )
+      .collect();
+    return sessions;
+  },
+});
+
+// ── Mutations ──
+
+/** Start a new session (checks lock + permissions) */
+export const startSession = mutation({
+  args: { targetPage: v.string() },
+  handler: async (ctx, { targetPage }) => {
+    const { userId, email } = await requireAdmin(ctx);
+
+    // Check config: is this email allowed?
+    const config = await ctx.db
+      .query("layoutConfig")
+      .withIndex("by_key", (q) => q.eq("key", "config"))
+      .first();
+
+    if (config && config.allowedEmails.length > 0) {
+      if (!config.allowedEmails.includes(email.toLowerCase())) {
+        throw new Error("Je hebt geen toegang tot de layout editor.");
+      }
+    }
+
+    // Check lock: is there an active session?
+    const active = await ctx.db
+      .query("layoutSessions")
+      .filter((q) =>
+        q.and(
+          q.neq(q.field("status"), "approved"),
+          q.neq(q.field("status"), "rejected"),
+          q.neq(q.field("status"), "failed"),
+        ),
+      )
+      .first();
+
+    if (active) {
+      throw new Error(
+        `Er is al een actieve sessie van ${active.userEmail}. Wacht tot deze is afgesloten.`,
+      );
+    }
+
+    const now = Date.now();
+    const branchName = `ai/layout-${Math.floor(now / 1000)}`;
+
+    const sessionId = await ctx.db.insert("layoutSessions", {
+      status: "locked",
+      userId,
+      userEmail: email,
+      targetPage,
+      branchName,
+      messages: [],
+      lastActivityAt: now,
+      createdAt: now,
+    });
+
+    return sessionId;
+  },
+});
+
+/** Add a message to the session */
+export const addMessage = mutation({
+  args: {
+    sessionId: v.id("layoutSessions"),
+    role: v.union(v.literal("user"), v.literal("assistant"), v.literal("system")),
+    text: v.string(),
+  },
+  handler: async (ctx, { sessionId, role, text }) => {
+    await requireAdmin(ctx);
+    const session = await ctx.db.get(sessionId);
+    if (!session) throw new Error("Sessie niet gevonden.");
+
+    const message = { role, text, createdAt: Date.now() };
+
+    await ctx.db.patch(sessionId, {
+      messages: [...session.messages, message],
+      lastActivityAt: Date.now(),
+    });
+  },
+});
+
+/** Internal: add a message without auth (for callback/actions) */
+export const addMessageInternal = internalMutation({
+  args: {
+    sessionId: v.id("layoutSessions"),
+    role: v.union(v.literal("user"), v.literal("assistant"), v.literal("system")),
+    text: v.string(),
+  },
+  handler: async (ctx, { sessionId, role, text }) => {
+    const session = await ctx.db.get(sessionId);
+    if (!session) throw new Error("Sessie niet gevonden.");
+
+    const message = { role, text, createdAt: Date.now() };
+
+    await ctx.db.patch(sessionId, {
+      messages: [...session.messages, message],
+      lastActivityAt: Date.now(),
+    });
+  },
+});
+
+/** Internal: update session status (used by callback and actions) */
+export const updateSessionStatus = internalMutation({
+  args: {
+    sessionId: v.id("layoutSessions"),
+    status: v.union(
+      v.literal("locked"),
+      v.literal("building"),
+      v.literal("preview"),
+      v.literal("approved"),
+      v.literal("rejected"),
+      v.literal("failed"),
+    ),
+    previewUrl: v.optional(v.string()),
+    prNumber: v.optional(v.number()),
+    errorMessage: v.optional(v.string()),
+  },
+  handler: async (ctx, { sessionId, status, previewUrl, prNumber, errorMessage }) => {
+    const session = await ctx.db.get(sessionId);
+    if (!session) throw new Error("Sessie niet gevonden.");
+
+    const patch: Record<string, unknown> = {
+      status,
+      lastActivityAt: Date.now(),
+    };
+    if (previewUrl !== undefined) patch.previewUrl = previewUrl;
+    if (prNumber !== undefined) patch.prNumber = prNumber;
+    if (errorMessage !== undefined) patch.errorMessage = errorMessage;
+    if (status === "approved" || status === "rejected" || status === "failed") {
+      patch.completedAt = Date.now();
+    }
+
+    await ctx.db.patch(sessionId, patch);
+  },
+});
+
+/** Close session (approve or reject) */
+export const closeSession = mutation({
+  args: {
+    sessionId: v.id("layoutSessions"),
+    action: v.union(v.literal("approve"), v.literal("reject")),
+  },
+  handler: async (ctx, { sessionId, action }) => {
+    await requireAdmin(ctx);
+    const session = await ctx.db.get(sessionId);
+    if (!session) throw new Error("Sessie niet gevonden.");
+
+    const status = action === "approve" ? "approved" : "rejected";
+
+    await ctx.db.patch(sessionId, {
+      status,
+      completedAt: Date.now(),
+      lastActivityAt: Date.now(),
+    });
+
+    return { status, prNumber: session.prNumber, branchName: session.branchName };
+  },
+});
+
+/** Get recent sessions (history, admin only) */
+export const listSessions = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    return await ctx.db
+      .query("layoutSessions")
+      .order("desc")
+      .take(20);
+  },
+});

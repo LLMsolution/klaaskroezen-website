@@ -5,12 +5,19 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { t, type Lang } from "@/lib/checkout-i18n";
 
+const COUNTRY_REGIONS: Record<string, { nl: string; en: string; de: string }> = {
+  NL: { nl: "Nederland", en: "the Netherlands", de: "den Niederlanden" },
+  BE: { nl: "Belgi\u00EB", en: "Belgium", de: "Belgien" },
+  DE: { nl: "Duitsland", en: "Germany", de: "Deutschland" },
+};
+
 interface Props {
   productSlug: string;
   lang: Lang;
+  country?: string;
 }
 
-export function SocialProof({ productSlug, lang }: Props) {
+export function SocialProof({ productSlug, lang, country }: Props) {
   const i18n = t(lang);
   const sessionRef = useRef<string>("");
 
@@ -89,13 +96,13 @@ export function SocialProof({ productSlug, lang }: Props) {
 
     if (hours > 0) return `${hours} ${i18n.hoursAgo}`;
     if (minutes > 0) return `${minutes} ${i18n.minutesAgo}`;
-    return lang === "nl" ? "zojuist" : "just now";
+    return { nl: "zojuist", en: "just now", de: "gerade eben" }[lang];
   }
 
   return (
     <>
       {/* Live visitors count — bottom of page, subtle */}
-      {activeCount !== undefined && activeCount > 1 && (
+      {activeCount !== undefined && activeCount >= 5 && (
         <div className="fixed bottom-4 left-4 z-40 flex items-center gap-2 bg-paper border border-rule shadow-lg px-4 py-2.5 rounded-[2px]">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-copper opacity-75" />
@@ -127,9 +134,9 @@ export function SocialProof({ productSlug, lang }: Props) {
             </div>
             <div>
               <p className="text-[13px] text-ink/70">
-                {lang === "nl"
-                  ? "Iemand heeft dit gekocht"
-                  : "Someone purchased this"}
+                {country && COUNTRY_REGIONS[country]
+                  ? { nl: `Iemand uit ${COUNTRY_REGIONS[country].nl} heeft dit gekocht`, en: `Someone from ${COUNTRY_REGIONS[country].en} purchased this`, de: `Jemand aus ${COUNTRY_REGIONS[country].de} hat dies gekauft` }[lang]
+                  : { nl: "Iemand heeft dit gekocht", en: "Someone purchased this", de: "Jemand hat dies gekauft" }[lang]}
               </p>
               <p className="text-[11px] text-ink/40 mt-0.5">
                 {timeAgo(currentPurchase.paidAt)}

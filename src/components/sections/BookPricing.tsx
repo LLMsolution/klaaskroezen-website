@@ -1,6 +1,6 @@
 import { Container } from "@/components/ui/Container";
 import { Label } from "@/components/ui/Label";
-import { ButtonExternal, ButtonArrow } from "@/components/ui/Button";
+import { ButtonLink, ButtonArrow } from "@/components/ui/Button";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { t, type Lang } from "@/lib/i18n";
 
@@ -14,7 +14,7 @@ export function BookPricing({ lang }: { lang: Lang }) {
       priceNote: s.ebookNote,
       description: s.ebookDesc,
       features: [s.ebookFeature1, s.ebookFeature2],
-      href: "https://klaaskroezen.plugandpay.com/checkout/oprecht-en-ontspannen-sales-1762786340",
+      href: "/checkout/boek-ebook",
       cta: s.ebookCta,
     },
     {
@@ -23,17 +23,17 @@ export function BookPricing({ lang }: { lang: Lang }) {
       priceNote: s.hardcopyNote,
       description: s.hardcopyDesc,
       features: [s.hardcopyFeature1, s.hardcopyFeature2, s.hardcopyFeature3],
-      href: "https://klaaskroezen.plugandpay.com/checkout/oprecht-en-ontspannen-sales",
+      href: "/checkout/boek-hardcopy",
       cta: s.hardcopyCta,
       featured: true,
     },
     {
-      title: lang === "nl" ? "Luisterboek" : "Audiobook",
+      title: { nl: "Luisterboek", en: "Audiobook", de: "Hörbuch" }[lang],
       price: "€ 22,50",
       priceNote: s.audiobookNote,
       description: s.audiobookDesc,
       features: [s.audiobookFeature1, s.audiobookFeature2, s.audiobookFeature3],
-      href: "https://klaaskroezen.plugandpay.com/checkout/oprecht-en-ontspannen-sales-luisterboek",
+      href: "/checkout/boek-luisterboek",
       cta: s.audiobookCta,
     },
   ];
@@ -97,13 +97,13 @@ export function BookPricing({ lang }: { lang: Lang }) {
                 ))}
               </ul>
               <div className="mt-auto">
-                <ButtonExternal
+                <ButtonLink
                   href={f.href}
                   variant={f.featured ? "copper" : "ghost"}
                   size="large"
                 >
                   <ButtonArrow>{f.cta}</ButtonArrow>
-                </ButtonExternal>
+                </ButtonLink>
               </div>
             </div>
           ))}

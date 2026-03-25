@@ -1,0 +1,230 @@
+import { v } from "convex/values";
+import { action, internalAction } from "./_generated/server";
+import { internal, api } from "./_generated/api";
+
+const GITHUB_OWNER = "timlind";
+const GITHUB_REPO = "website-klaaskroezen";
+
+/** Trigger a layout build via GitHub Actions repository_dispatch */
+export const triggerBuild = action({
+  args: {
+    sessionId: v.id("layoutSessions"),
+    prompt: v.string(),
+    targetPage: v.string(),
+    branchName: v.string(),
+  },
+  handler: async (ctx, { sessionId, prompt, targetPage, branchName }) => {
+    // Verify caller is admin before proceeding
+    await ctx.runMutation(api.layoutEditor.verifyAdmin);
+
+    const githubToken = process.env.GITHUB_PAT;
+    if (!githubToken) throw new Error("GITHUB_PAT niet geconfigureerd.");
+
+    const callbackSecret = process.env.LAYOUT_CALLBACK_SECRET;
+    if (!callbackSecret) throw new Error("LAYOUT_CALLBACK_SECRET niet geconfigureerd.");
+
+    const convexUrl = process.env.CONVEX_SITE_URL;
+    if (!convexUrl) throw new Error("CONVEX_SITE_URL niet geconfigureerd.");
+
+    const callbackUrl = `${convexUrl}/layout-callback`;
+
+    // Update session to building
+    await ctx.runMutation(internal.layoutEditor.updateSessionStatus, {
+      sessionId,
+      status: "building",
+    });
+
+    // Add system message
+    await ctx.runMutation(internal.layoutEditor.addMessageInternal, {
+      sessionId,
+      role: "system",
+      text: "Build gestart... Claude Code is bezig met je wijziging.",
+    });
+
+    // Trigger GitHub Actions
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/dispatches`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${githubToken}`,
+          Accept: "application/vnd.github.v3+json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          event_type: "layout-edit",
+          client_payload: {
+            prompt,
+            targetPage,
+            branchName,
+            callbackUrl,
+            callbackSecret,
+            sessionId,
+          },
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      await ctx.runMutation(internal.layoutEditor.updateSessionStatus, {
+        sessionId,
+        status: "failed",
+        errorMessage: `GitHub API fout: ${response.status} ${errorText}`,
+      });
+      throw new Error(`GitHub dispatch failed: ${response.status}`);
+    }
+  },
+});
+
+/** Approve session: merge PR via GitHub API */
+export const approveSession = action({
+  args: { sessionId: v.id("layoutSessions") },
+  handler: async (ctx, { sessionId }) => {
+    await ctx.runMutation(api.layoutEditor.verifyAdmin);
+    const githubToken = process.env.GITHUB_PAT;
+    if (!githubToken) throw new Error("GITHUB_PAT niet geconfigureerd.");
+
+    // Close session in DB
+    const result = await ctx.runMutation(api.layoutEditor.closeSession, {
+      sessionId,
+      action: "approve",
+    });
+
+    if (!result.prNumber) {
+      throw new Error("Geen PR nummer gevonden.");
+    }
+
+    // Merge PR via GitHub API
+    const mergeResponse = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/pulls/${result.prNumber}/merge`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${githubToken}`,
+          Accept: "application/vnd.github.v3+json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          merge_method: "squash",
+        }),
+      },
+    );
+
+    if (!mergeResponse.ok) {
+      const errorText = await mergeResponse.text();
+      throw new Error(`PR merge failed: ${mergeResponse.status} ${errorText}`);
+    }
+
+    // Delete branch (best-effort)
+    await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/git/refs/heads/${result.branchName}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${githubToken}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      },
+    );
+
+    // Add system message
+    await ctx.runMutation(internal.layoutEditor.addMessageInternal, {
+      sessionId,
+      role: "system",
+      text: "Goedgekeurd! PR is gemerged en de wijziging gaat live na de deploy.",
+    });
+  },
+});
+
+/** Reject session: close PR + delete branch */
+export const rejectSession = action({
+  args: { sessionId: v.id("layoutSessions") },
+  handler: async (ctx, { sessionId }) => {
+    await ctx.runMutation(api.layoutEditor.verifyAdmin);
+    const githubToken = process.env.GITHUB_PAT;
+    if (!githubToken) throw new Error("GITHUB_PAT niet geconfigureerd.");
+
+    const result = await ctx.runMutation(api.layoutEditor.closeSession, {
+      sessionId,
+      action: "reject",
+    });
+
+    // Close PR if exists
+    if (result.prNumber) {
+      await fetch(
+        `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/pulls/${result.prNumber}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${githubToken}`,
+            Accept: "application/vnd.github.v3+json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ state: "closed" }),
+        },
+      );
+    }
+
+    // Delete branch (best-effort)
+    await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/git/refs/heads/${result.branchName}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${githubToken}`,
+          Accept: "application/vnd.github.v3+json",
+        },
+      },
+    );
+
+    // Add system message
+    await ctx.runMutation(internal.layoutEditor.addMessageInternal, {
+      sessionId,
+      role: "system",
+      text: "Afgewezen. De branch en PR zijn verwijderd.",
+    });
+  },
+});
+
+/** Cleanup expired sessions (called by cron) */
+export const cleanupExpiredSessions = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    // Get config for timeout (internal query — no auth needed)
+    const config = await ctx.runQuery(internal.layoutEditor.getConfigInternal);
+    const timeoutMs = (config?.sessionTimeoutMinutes ?? 120) * 60 * 1000;
+    const cutoff = Date.now() - timeoutMs;
+
+    // Get active sessions (internal query — no auth needed)
+    const sessions = await ctx.runQuery(internal.layoutEditor.listActiveSessions);
+
+    for (const session of sessions) {
+      if (session.lastActivityAt < cutoff) {
+        // Expire the session
+        await ctx.runMutation(internal.layoutEditor.updateSessionStatus, {
+          sessionId: session._id,
+          status: "failed",
+          errorMessage: "Sessie verlopen door inactiviteit.",
+        });
+
+        // Try to delete the branch (best-effort)
+        const githubToken = process.env.GITHUB_PAT;
+        if (githubToken) {
+          await fetch(
+            `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/git/refs/heads/${session.branchName}`,
+            {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${githubToken}`,
+                Accept: "application/vnd.github.v3+json",
+              },
+            },
+          ).catch(() => {
+            // Ignore errors — branch might not exist
+          });
+        }
+      }
+    }
+  },
+});

@@ -1,10 +1,11 @@
 import { nl } from "./nl";
 import { en } from "./en";
+import { de } from "./de";
 
-export type Lang = "nl" | "en";
+export type Lang = "nl" | "en" | "de";
 export type Translations = typeof nl;
 
-const translations: Record<Lang, Translations> = { nl, en };
+const translations: Record<Lang, Translations> = { nl, en, de };
 
 export function t(lang: Lang): Translations {
   return translations[lang];

@@ -1,17 +1,15 @@
 import Link from "next/link";
+import { getLocale } from "@/lib/i18n/server";
 
-/**
- * Distraction-free checkout layout.
- * No Navbar, no Footer, no AnnouncementBar — just the logo and the form.
- */
-export default function CheckoutLayout({
+export default async function CheckoutLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const lang = await getLocale();
+
   return (
     <div className="min-h-screen bg-paper">
-      {/* Minimal header — just logo + back link */}
       <header className="border-b border-rule">
         <div className="mx-auto max-w-[1080px] px-7 py-4 flex items-center justify-between">
           <Link
@@ -34,7 +32,7 @@ export default function CheckoutLayout({
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
             <span className="text-[12px] text-ink/40 tracking-[0.05em]">
-              Beveiligde checkout
+              {{ nl: "Beveiligde checkout", en: "Secure checkout", de: "Sichere Kaufabwicklung" }[lang]}
             </span>
           </div>
         </div>

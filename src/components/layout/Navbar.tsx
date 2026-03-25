@@ -3,6 +3,8 @@
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { t, type Lang } from "@/lib/i18n";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
@@ -60,6 +62,7 @@ export function Navbar({ lang }: { lang: Lang }) {
   const s = t(lang).nav;
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const user = useQuery(api.users.getCurrentUser);
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
@@ -136,6 +139,9 @@ export function Navbar({ lang }: { lang: Lang }) {
           <NavLink href="/over-ons" active={pathname === "/over-ons"}>
             {s.overOns}
           </NavLink>
+          <NavLink href="/nieuws" active={pathname.startsWith("/nieuws")}>
+            {{ nl: "Nieuws", en: "News", de: "Neuigkeiten" }[lang]}
+          </NavLink>
           <NavLink href="/contact" active={pathname === "/contact"}>
             {s.contact}
           </NavLink>
@@ -144,19 +150,17 @@ export function Navbar({ lang }: { lang: Lang }) {
         <div className="flex items-center gap-2 shrink-0">
           <LanguageSwitcher lang={lang} />
           <Link
-            href="/login"
+            href={user ? "/dashboard" : "/login"}
             className="hidden lg:block text-[12px] font-normal tracking-[0.07em] uppercase text-paper/70 hover:text-paper transition-colors duration-150 px-3 py-2 outline-none focus-visible:text-paper focus-visible:ring-2 focus-visible:ring-copper focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
           >
-            {s.inloggen}
+            {user ? s.mijnAccount : s.inloggen}
           </Link>
-          <a
-            href="https://klaaskroezen.plugandpay.com/checkout/checkout-online-sales-training"
+          <Link
+            href="/checkout/set-online"
             className="hidden lg:block bg-copper text-paper px-[18px] py-[9px] text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors duration-200 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-paper focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
-            target="_blank"
-            rel="noopener noreferrer"
           >
             {s.trainingKopen}
-          </a>
+          </Link>
 
           {/* Hamburger */}
           <button
@@ -215,25 +219,27 @@ export function Navbar({ lang }: { lang: Lang }) {
           <MobileNavLink href="/over-ons" onClick={closeMobile}>
             {s.overOns}
           </MobileNavLink>
+          <MobileNavLink href="/nieuws" onClick={closeMobile}>
+            {{ nl: "Nieuws", en: "News", de: "Neuigkeiten" }[lang]}
+          </MobileNavLink>
           <MobileNavLink href="/contact" onClick={closeMobile}>
             {s.contact}
           </MobileNavLink>
           <div className="mt-6 flex flex-col gap-3">
             <Link
-              href="/login"
+              href={user ? "/dashboard" : "/login"}
               className="text-[13px] font-normal tracking-[0.07em] uppercase text-paper/50 hover:text-paper/80 transition-colors duration-150 py-2 outline-none focus-visible:text-paper"
               onClick={closeMobile}
             >
-              {s.inloggen}
+              {user ? s.mijnAccount : s.inloggen}
             </Link>
-            <a
-              href="https://klaaskroezen.plugandpay.com/checkout/checkout-online-sales-training"
+            <Link
+              href="/checkout/set-online"
               className="bg-copper text-paper px-[18px] py-3 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors duration-200 text-center outline-none focus-visible:ring-2 focus-visible:ring-paper"
-              target="_blank"
-              rel="noopener noreferrer"
+              onClick={closeMobile}
             >
               {s.trainingKopen}
-            </a>
+            </Link>
           </div>
         </nav>
       </div>

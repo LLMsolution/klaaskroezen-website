@@ -14,7 +14,6 @@ export async function GET(
 ) {
   const { trackingId } = await params;
 
-  // Fire-and-forget: record the open event
   try {
     await fetchMutation(api.emails.trackEvent, {
       trackingId,
@@ -22,8 +21,8 @@ export async function GET(
       ip: request.headers.get("x-forwarded-for") ?? undefined,
       userAgent: request.headers.get("user-agent") ?? undefined,
     });
-  } catch {
-    // Silently fail — tracking should never block the pixel
+  } catch (err) {
+    console.error("[track/open] Failed to record open event:", err);
   }
 
   return new NextResponse(PIXEL, {

@@ -49,6 +49,17 @@ const content = {
     prev: "Previous page",
     next: "Next page",
   },
+  de: {
+    label: "Kostenlose Vorschau",
+    title: "Blättern Sie durch",
+    titleAccent: "das Buch.",
+    description: "Lesen Sie einen Auszug aus Sales, Ehrlich & Entspannt.",
+    cta: "Buch bestellen",
+    page: "Seite",
+    of: "von",
+    prev: "Vorherige Seite",
+    next: "Nächste Seite",
+  },
 };
 
 const SWIPE_THRESHOLD = 50;
@@ -94,17 +105,17 @@ export function BookPreview({ lang }: { lang: Lang }) {
               href="#bestellen"
               className="inline-flex items-center gap-2 bg-copper text-paper px-6 py-3 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px]"
             >
-              {lang === "nl" ? "Bestel het boek" : "Order the Dutch book"}
+              {{ nl: "Bestel het boek", en: "Order the Dutch book", de: "Das niederländische Buch bestellen" }[lang]}
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M3 7h8M8 4l3 3-3 3" />
               </svg>
             </a>
-            {lang === "en" && (
+            {(lang === "en" || lang === "de") && (
               <a
                 href="/contact"
                 className="inline-flex items-center gap-2 border border-ink/15 text-ink/70 px-6 py-3 text-[12px] font-medium tracking-[0.1em] uppercase hover:border-ink/30 hover:text-ink transition-colors rounded-[2px]"
               >
-                Pre-order the English version
+                {{ en: "Pre-order the English version", de: "Englische Version vorbestellen" }[lang === "de" ? "de" : "en"]}
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M3 7h8M8 4l3 3-3 3" />
                 </svg>
@@ -193,17 +204,17 @@ export function BookPreview({ lang }: { lang: Lang }) {
                   href="#bestellen"
                   className="inline-flex items-center gap-2 bg-copper text-paper px-6 py-3 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px]"
                 >
-                  {lang === "nl" ? "Bestel het boek" : "Order the Dutch book"}
+                  {{ nl: "Bestel het boek", en: "Order the Dutch book", de: "Das niederländische Buch bestellen" }[lang]}
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d="M3 7h8M8 4l3 3-3 3" />
                   </svg>
                 </a>
-                {lang === "en" && (
+                {(lang === "en" || lang === "de") && (
                   <a
                     href="/contact"
                     className="inline-flex items-center gap-2 border border-ink/15 text-ink/70 px-6 py-3 text-[12px] font-medium tracking-[0.1em] uppercase hover:border-ink/30 hover:text-ink transition-colors rounded-[2px]"
                   >
-                    Pre-order the English version
+                    {{ en: "Pre-order the English version", de: "Englische Version vorbestellen" }[lang === "de" ? "de" : "en"]}
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <path d="M3 7h8M8 4l3 3-3 3" />
                     </svg>

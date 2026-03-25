@@ -65,11 +65,11 @@ export function BookTeaser({ lang }: { lang: Lang }) {
             href="/boek#bestellen"
             variant="copper"
           >
-            <ButtonArrow>{lang === "nl" ? "Bestel het boek" : "Order the Dutch book"}</ButtonArrow>
+            <ButtonArrow>{{ nl: "Bestel het boek", en: "Order the Dutch book", de: "Das niederländische Buch bestellen" }[lang]}</ButtonArrow>
           </ButtonLink>
-          {lang === "en" && (
+          {(lang === "en" || lang === "de") && (
             <ButtonLink href="/contact" variant="ghost">
-              <ButtonArrow>Pre-order the English version</ButtonArrow>
+              <ButtonArrow>{{ en: "Pre-order the English version", de: "Englische Version vorbestellen" }[lang === "de" ? "de" : "en"]}</ButtonArrow>
             </ButtonLink>
           )}
           {lang === "nl" && (

@@ -8,6 +8,7 @@ import { TrainingCta } from "@/components/sections/training/TrainingCta";
 import { Faq } from "@/components/sections/Faq";
 import { JsonLd, personJsonLd, speakerServiceJsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/lib/i18n/server";
+import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
 import { getSprekerContent } from "./content";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -21,7 +22,18 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function SprekerPage() {
   const lang = await getLocale();
-  const c = getSprekerContent(lang);
+  const fallback = getSprekerContent(lang);
+  const db = await loadPageContent("spreker", lang);
+
+  const hero = sectionOr(db, "hero", fallback.hero);
+  const audiences = sectionOr(db, "audiences", { items: fallback.audiences });
+  const contentBlock = sectionOr(db, "content-block", fallback.contentBlock);
+  const benefitsGrid = sectionOr(db, "benefits-grid", { items: fallback.benefitsGrid });
+  const videos = sectionOr(db, "videos", fallback.videos);
+  const logoBar = sectionOr(db, "logo-bar", fallback.logoBar);
+  const coaching = sectionOr(db, "coaching", fallback.coaching);
+  const faq = sectionOr(db, "faq", fallback.faq);
+  const cta = sectionOr(db, "cta", fallback.cta);
 
   return (
     <>
@@ -29,37 +41,37 @@ export default async function SprekerPage() {
       <JsonLd data={speakerServiceJsonLd} />
       <TrainingHero
         lang={lang}
-        eyebrow={c.hero.eyebrow}
-        titleLine1={c.hero.titleLine1}
-        titleLine2={c.hero.titleLine2}
-        description={c.hero.description}
-        image={c.hero.image}
-        imageAlt={c.hero.imageAlt}
-        imagePosition={c.hero.imagePosition}
-        ctaLabel={c.hero.ctaLabel}
-        pricingAnchor={c.hero.pricingAnchor}
-        programAnchor={c.hero.programAnchor}
-        secondaryLabel={c.hero.secondaryLabel}
-        glassItems={c.hero.glassItems}
+        eyebrow={hero.eyebrow}
+        titleLine1={hero.titleLine1}
+        titleLine2={hero.titleLine2}
+        description={hero.description}
+        image={hero.image}
+        imageAlt={hero.imageAlt}
+        imagePosition={hero.imagePosition}
+        ctaLabel={hero.ctaLabel}
+        pricingAnchor={hero.pricingAnchor}
+        programAnchor={hero.programAnchor}
+        secondaryLabel={hero.secondaryLabel}
+        glassItems={hero.glassItems}
       />
 
-      <ForWhom lang={lang} audiences={c.audiences} />
+      <ForWhom lang={lang} audiences={audiences.items} />
 
       <ContentBlock
-        eyebrow={c.contentBlock.eyebrow}
-        title={c.contentBlock.title}
-        titleAccent={c.contentBlock.titleAccent}
+        eyebrow={contentBlock.eyebrow}
+        title={contentBlock.title}
+        titleAccent={contentBlock.titleAccent}
         image="/images/spreker/klaas-flipchart.jpeg"
-        imageAlt={c.contentBlock.imageAlt}
+        imageAlt={contentBlock.imageAlt}
         objectPosition="center top"
         imagePosition="right"
-        paragraphs={c.contentBlock.paragraphs}
+        paragraphs={contentBlock.paragraphs}
       />
 
       <section className="py-16 sm:py-[110px] border-b border-rule">
         <div className="mx-auto max-w-[1180px] px-14 max-lg:px-7">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-rule border border-rule">
-            {c.benefitsGrid.map((item) => (
+            {(benefitsGrid.items ?? []).map((item: { icon: string; text: string }) => (
               <div key={item.text} className="bg-paper p-6 sm:p-8">
                 <span className="text-copper text-[18px] font-bold block mb-3">
                   {item.icon}
@@ -74,26 +86,26 @@ export default async function SprekerPage() {
       </section>
 
       <VideoGrid
-        eyebrow={c.videos.eyebrow}
-        title={c.videos.title}
-        titleAccent={c.videos.titleAccent}
-        videos={c.videos.items}
+        eyebrow={videos.eyebrow}
+        title={videos.title}
+        titleAccent={videos.titleAccent}
+        videos={videos.items}
       />
 
-      <LogoBar label={c.logoBar.label} />
+      <LogoBar label={logoBar.label} />
 
       {/* Coaching cards */}
       <section className="py-16 sm:py-[110px] border-b border-rule">
         <div className="mx-auto max-w-[1180px] px-14 max-lg:px-7">
           <div className="text-center mb-10 sm:mb-14">
             <span className="text-[11px] font-medium tracking-[0.2em] uppercase text-copper block mb-3">
-              {c.coaching.sectionEyebrow}
+              {coaching.sectionEyebrow}
             </span>
             <h2 className="font-display text-[clamp(28px,3.4vw,44px)] font-black leading-[0.97] tracking-[-0.03em]">
-              {c.coaching.sectionTitle1}
+              {coaching.sectionTitle1}
               <br />
               <em className="italic font-normal text-ink/40">
-                {c.coaching.sectionTitle2}
+                {coaching.sectionTitle2}
               </em>
             </h2>
           </div>
@@ -102,16 +114,16 @@ export default async function SprekerPage() {
             {/* 1-on-1 Coaching */}
             <div className="bg-paper p-8 sm:p-12 flex flex-col">
               <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-4">
-                {c.coaching.individual.label}
+                {coaching.individual.label}
               </span>
               <h3 className="font-display text-[22px] sm:text-[26px] font-bold leading-[1.1] tracking-[-0.02em] mb-3">
-                {c.coaching.individual.title}
+                {coaching.individual.title}
               </h3>
               <p className="text-[15px] text-ink/70 leading-[1.75] mb-6 max-w-[400px]">
-                {c.coaching.individual.description}
+                {coaching.individual.description}
               </p>
               <ul className="space-y-2.5 mb-8">
-                {c.coaching.individual.features.map((item) => (
+                {(coaching.individual.features ?? []).map((item: string) => (
                   <li
                     key={item}
                     className="flex items-start gap-2.5 text-[14px] text-ink/65 leading-[1.6]"
@@ -126,14 +138,14 @@ export default async function SprekerPage() {
               <div className="mt-auto pt-4 border-t border-rule flex items-center justify-between">
                 <div>
                   <span className="font-display text-[20px] font-bold text-ink">
-                    {c.coaching.individual.price}
+                    {coaching.individual.price}
                   </span>
                 </div>
                 <a
                   href="/contact"
                   className="text-[13px] font-medium tracking-[0.08em] uppercase text-copper hover:text-copper-light transition-colors"
                 >
-                  {c.coaching.individual.cta}
+                  {coaching.individual.cta}
                 </a>
               </div>
             </div>
@@ -141,16 +153,16 @@ export default async function SprekerPage() {
             {/* Team Coaching */}
             <div className="bg-paper p-8 sm:p-12 flex flex-col">
               <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-4">
-                {c.coaching.team.label}
+                {coaching.team.label}
               </span>
               <h3 className="font-display text-[22px] sm:text-[26px] font-bold leading-[1.1] tracking-[-0.02em] mb-3">
-                {c.coaching.team.title}
+                {coaching.team.title}
               </h3>
               <p className="text-[15px] text-ink/70 leading-[1.75] mb-6 max-w-[400px]">
-                {c.coaching.team.description}
+                {coaching.team.description}
               </p>
               <ul className="space-y-2.5 mb-8">
-                {c.coaching.team.features.map((item) => (
+                {(coaching.team.features ?? []).map((item: string) => (
                   <li
                     key={item}
                     className="flex items-start gap-2.5 text-[14px] text-ink/65 leading-[1.6]"
@@ -165,14 +177,14 @@ export default async function SprekerPage() {
               <div className="mt-auto pt-4 border-t border-rule flex items-center justify-between">
                 <div>
                   <span className="font-display text-[20px] font-bold text-ink">
-                    {c.coaching.team.price}
+                    {coaching.team.price}
                   </span>
                 </div>
                 <a
                   href="/contact"
                   className="text-[13px] font-medium tracking-[0.08em] uppercase text-copper hover:text-copper-light transition-colors"
                 >
-                  {c.coaching.team.cta}
+                  {coaching.team.cta}
                 </a>
               </div>
             </div>
@@ -181,17 +193,17 @@ export default async function SprekerPage() {
       </section>
 
       <Faq
-        title={c.faq.title}
-        titleAccent={c.faq.titleAccent}
-        items={c.faq.items}
+        title={faq.title}
+        titleAccent={faq.titleAccent}
+        items={faq.items}
       />
 
       <TrainingCta
-        title={c.cta.title}
-        titleAccent={c.cta.titleAccent}
-        description={c.cta.description}
-        href={c.cta.href}
-        ctaLabel={c.cta.ctaLabel}
+        title={cta.title}
+        titleAccent={cta.titleAccent}
+        description={cta.description}
+        href={cta.href}
+        ctaLabel={cta.ctaLabel}
       />
     </>
   );

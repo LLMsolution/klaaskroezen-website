@@ -65,16 +65,16 @@ export function OrderBump({ bump, lang, selected, onToggle }: Props) {
     <button
       type="button"
       onClick={onToggle}
-      className={`w-full text-left border-2 rounded-[2px] p-4 transition-all cursor-pointer ${
+      className={`w-full text-left rounded-[2px] p-4 cursor-pointer transition-all duration-200 ${
         selected
-          ? "border-copper bg-copper/5"
-          : "border-dashed border-rule hover:border-copper/40"
+          ? "border-2 border-copper bg-copper/8 scale-[1.01] shadow-md shadow-copper/10"
+          : "border-2 border-dashed border-copper/25 bg-copper/[0.02] hover:border-copper/50 hover:bg-copper/[0.04]"
       }`}
     >
       <div className="flex items-start gap-3">
         <div
           className={`mt-0.5 w-5 h-5 rounded-[2px] border-2 flex items-center justify-center shrink-0 transition-colors ${
-            selected ? "bg-copper border-copper" : "border-ink/20"
+            selected ? "bg-copper border-copper" : "border-copper/30"
           }`}
         >
           {selected && (
@@ -85,10 +85,10 @@ export function OrderBump({ bump, lang, selected, onToggle }: Props) {
         </div>
         {bump.image && <BumpImage bump={bump} lang={lang} />}
         <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-medium text-ink">
+          <p className="text-[13px] font-medium text-copper">
             {i18n.bumpCta} {formatPrice(bump.price, lang)}
           </p>
-          <p className="text-[14px] font-medium text-ink mt-0.5">
+          <p className="text-[14px] font-bold text-ink mt-0.5">
             {bump.name[lang]}
           </p>
           <p className="text-[12px] text-ink/50 mt-1 leading-[1.5]">

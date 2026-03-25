@@ -4,7 +4,19 @@ import { useQuery, useMutation } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../../../convex/_generated/api";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import type { Lang } from "@/lib/i18n";
+
+type LocalizedStr = { nl: string; en: string; de?: string };
+function loc(obj: LocalizedStr, lang: Lang): string {
+  return obj[lang] ?? obj.en;
+}
+
+function getClientLocale(): Lang {
+  if (typeof document === "undefined") return "nl";
+  const match = document.cookie.match(/(?:^|;\s*)locale=(\w+)/);
+  return match?.[1] === "en" ? "en" : match?.[1] === "de" ? "de" : "nl";
+}
 
 const PRODUCT_NAMES: Record<string, string> = {
   "set-online": "Sales Excellence Training — Online",
@@ -33,11 +45,17 @@ export function DashboardClient() {
   const purchases = useQuery(api.users.getMyPurchases);
   const invoices = useQuery(api.users.getMyInvoices);
   const downloads = useQuery(api.users.getMyDownloads);
+  const myTrainings = useQuery(api.trainingProgress.getMyTrainings);
   const { signOut } = useAuthActions();
 
   const updateProfile = useMutation(api.users.updateProfile);
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
+  const [lang, setLang] = useState<Lang>("nl");
+
+  useEffect(() => {
+    setLang(getClientLocale());
+  }, []);
 
   // Loading state
   if (user === undefined) {
@@ -158,6 +176,48 @@ export function DashboardClient() {
           </div>
         </div>
       </section>
+
+      {/* Mijn trainingen */}
+      {myTrainings && myTrainings.length > 0 && (
+        <section className="mb-12">
+          <h2 className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-4">
+            Mijn trainingen
+          </h2>
+          <div className="space-y-3">
+            {myTrainings.map((t) => (
+              <Link
+                key={t._id}
+                href={t.lastModuleSlug ? `/training/${t.slug}/${t.lastModuleSlug}` : `/training/${t.slug}`}
+                className="block border border-rule rounded-[2px] p-5 hover:border-copper/30 transition-colors group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-[2px] bg-copper/10 flex items-center justify-center shrink-0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-copper">
+                      <polygon points="5 3 19 12 5 21 5 3" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[15px] font-medium text-ink group-hover:text-copper transition-colors">
+                      {loc(t.title, lang)}
+                    </p>
+                    <p className="text-[12px] text-ink/40">
+                      {t.completedModules} van {t.totalModules} modules · {t.overallProgress}% voltooid
+                    </p>
+                  </div>
+                  <div className="shrink-0 w-16">
+                    <div className="h-1.5 bg-warm rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-copper rounded-full transition-all"
+                        style={{ width: `${t.overallProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Downloads */}
       {hasDownloads && (

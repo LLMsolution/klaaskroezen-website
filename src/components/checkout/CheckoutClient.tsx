@@ -1,70 +1,164 @@
 "use client";
 
-import { useState, useEffect, useCallback, useId } from "react";
-import { useMutation, useAction } from "convex/react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useMutation, useAction, useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../../../convex/_generated/api";
-import type { Id } from "../../../convex/_generated/dataModel";
 import {
-  getProduct,
-  getBumpsForProduct,
-  getQuantityTiers,
-  formatPrice,
   calculateBtw,
   isEuCountry,
+  type BumpConfig,
 } from "@/lib/checkout-config";
 import { t, type Lang } from "@/lib/checkout-i18n";
-import { OrderSummary } from "./OrderSummary";
-import { OrderBump } from "./OrderBump";
-import { QuantitySelector } from "./QuantitySelector";
+import { OrderSummary, CheckoutReviews } from "./OrderSummary";
+import { CheckoutForm } from "./CheckoutForm";
+import { CheckoutTotals } from "./CheckoutTotals";
 import { TrustBadges } from "./TrustBadges";
 import { ExitIntent } from "./ExitIntent";
 import { SocialProof } from "./SocialProof";
 
-type Step = 1 | 2;
-
 interface Props {
   productSlug: string;
   lang: Lang;
+  recoveryOrderId?: string;
+  paymentFailed?: boolean;
+  initialCountry?: string;
+  experimentSlug?: string;
+  experimentVariant?: string;
+  /** When true, the experiment cookie hasn't been set yet (DB-driven experiment). */
+  experimentNeedsCookie?: boolean;
 }
 
-export function CheckoutClient({ productSlug, lang }: Props) {
-  const product = getProduct(productSlug)!;
-  const bumps = getBumpsForProduct(productSlug);
-  const quantityTiers = getQuantityTiers(productSlug);
+export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFailed, initialCountry, experimentSlug, experimentVariant, experimentNeedsCookie }: Props) {
+  // Load product and bumps from DB
+  const product = useQuery(api.checkoutProducts.getBySlug, { slug: productSlug });
+  const dbBumps = useQuery(api.checkoutProducts.getBumpsForProduct, { slug: productSlug });
+  const bumps: BumpConfig[] = useMemo(() => dbBumps ?? [], [dbBumps]);
+
   const i18n = t(lang);
-  const formId = useId();
+  const formRef = useRef<HTMLFormElement>(null);
 
   const { signIn } = useAuthActions();
   const createPendingOrder = useMutation(api.checkout.createPendingOrder);
   const createMolliePayment = useAction(api.mollie.createMolliePayment);
 
   // Form state
-  const [step, setStep] = useState<Step>(1);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [country, setCountry] = useState("NL");
+  const [phone, setPhone] = useState("");
+  const [country, setCountry] = useState(initialCountry || "NL");
+  const [recovered, setRecovered] = useState(false);
   const [isBusiness, setIsBusiness] = useState(false);
   const [company, setCompany] = useState("");
   const [vatNumber, setVatNumber] = useState("");
+  const [street, setStreet] = useState("");
+  const [houseNumber, setHouseNumber] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [city, setCity] = useState("");
+
   const [selectedBumps, setSelectedBumps] = useState<string[]>([]);
   const [useInstallments, setUseInstallments] = useState(false);
-  const [discountCode] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [discountCode, setDiscountCode] = useState("");
+  const [discountOpen, setDiscountOpen] = useState(false);
+  const [discountStatus, setDiscountStatus] = useState<"idle" | "valid" | "invalid" | "expired" | "maxed" | "wrong_product">("idle");
+  const [discountValue, setDiscountValue] = useState<{ type: "percentage" | "fixed"; value: number } | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<string>(country === "NL" || country === "BE" ? "ideal" : "creditcard");
+  const [agreedTerms, setAgreedTerms] = useState(false);
+  const [mailingOptIn, setMailingOptIn] = useState(false);
+  const [termsError, setTermsError] = useState(false);
+  const [payingMethod, setPayingMethod] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [orderId, setOrderId] = useState<Id<"pendingOrders"> | null>(null);
   const [quantity, setQuantity] = useState(1);
 
-  // Tab title change on visibility change
+  // Returning visitor recognition via cookie
+  useEffect(() => {
+    const savedEmail = document.cookie.match(/kk_checkout_email=([^;]+)/)?.[1];
+    if (savedEmail && !email && !recoveryOrderId) {
+      setEmail(decodeURIComponent(savedEmail));
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (email && email.includes("@")) {
+      document.cookie = `kk_checkout_email=${encodeURIComponent(email)};path=/;max-age=${60 * 60 * 24 * 30}`;
+    }
+  }, [email]);
+
+  // Persist experiment cookie for DB-driven experiments (not set by middleware)
+  useEffect(() => {
+    if (experimentNeedsCookie && experimentSlug && experimentVariant) {
+      document.cookie = `ab-${experimentSlug}=${experimentVariant};path=/;max-age=${30 * 24 * 60 * 60};samesite=lax`;
+    }
+  }, [experimentNeedsCookie, experimentSlug, experimentVariant]);
+
+  // Pre-fill from pending order (magic link recovery or returning visitor)
+  const recoveryOrder = useQuery(
+    api.checkout.getPendingOrderForRecovery,
+    recoveryOrderId ? { orderId: recoveryOrderId } : "skip",
+  );
+  const returningOrder = useQuery(
+    api.checkout.getPendingOrderByEmail,
+    !recoveryOrderId && email && email.includes("@") ? { email } : "skip",
+  );
+
+  useEffect(() => {
+    const order = recoveryOrder || returningOrder;
+    if (order && !recovered) {
+      setFirstName(order.firstName);
+      setLastName(order.lastName);
+      setEmail(order.email);
+      if (order.phone) setPhone(order.phone);
+      setCountry(order.country);
+      setIsBusiness(order.isBusiness);
+      if (order.company) setCompany(order.company);
+      if (order.vatNumber) setVatNumber(order.vatNumber);
+      if (order.street) setStreet(order.street);
+      if (order.houseNumber) setHouseNumber(order.houseNumber);
+      if (order.postalCode) setPostalCode(order.postalCode);
+      if (order.city) setCity(order.city);
+      if (order.bumps?.length) setSelectedBumps(order.bumps);
+      if (order.quantity && order.quantity > 1) setQuantity(order.quantity);
+      if (order.installments) setUseInstallments(order.installments);
+      if (order.discountCode) {
+        setDiscountCode(order.discountCode);
+        setDiscountOpen(true);
+      }
+      setRecovered(true);
+    }
+  }, [recoveryOrder, returningOrder, recovered]);
+
+  useEffect(() => {
+    if (country === "NL" || country === "BE") {
+      setSelectedMethod("ideal");
+    } else {
+      setSelectedMethod("creditcard");
+    }
+  }, [country]);
+
+  // Discount validation
+  const discountResult = useQuery(
+    api.checkout.validateDiscount,
+    discountCode.length >= 3 ? { code: discountCode, product: productSlug } : "skip",
+  );
+
+  useEffect(() => {
+    if (!discountResult) return;
+    if (discountResult.valid) {
+      setDiscountStatus("valid");
+      setDiscountValue({ type: discountResult.type, value: discountResult.value });
+    } else {
+      setDiscountStatus(discountResult.reason as "invalid" | "expired" | "maxed" | "wrong_product");
+      setDiscountValue(null);
+    }
+  }, [discountResult]);
+
+  // Tab title change on visibility
   useEffect(() => {
     const originalTitle = document.title;
     function handleVisibility() {
       if (document.hidden) {
-        document.title =
-          lang === "nl"
-            ? "⏳ Vergeet je bestelling niet!"
-            : "⏳ Don't forget your order!";
+        document.title = { nl: "Vergeet je bestelling niet!", en: "Don't forget your order!", de: "Vergessen Sie Ihre Bestellung nicht!" }[lang];
       } else {
         document.title = originalTitle;
       }
@@ -78,39 +172,35 @@ export function CheckoutClient({ productSlug, lang }: Props) {
 
   // Calculate totals
   const calculateTotals = useCallback(() => {
+    if (!product) return { productNet: 0, productBtw: 0, productGross: 0, bumpsNet: 0, bumpsBtw: 0, bumpsGross: 0, totalNet: 0, totalBtw: 0, totalGross: 0, btwReversed: false, noBtw: false };
+
     const btwRate = product.btwRate;
     let applyBtw = true;
+    if (isBusiness && vatNumber && isEuCountry(country) && country !== "NL") applyBtw = false;
+    if (!isEuCountry(country)) applyBtw = false;
 
-    // EU business with VAT number: reverse charge
-    if (isBusiness && vatNumber && isEuCountry(country) && country !== "NL") {
-      applyBtw = false;
+    const tiers = product.quantityTiers;
+    const unitPrice = tiers
+      ? (tiers.find((t) => t.quantity === quantity)?.unitPriceCents ?? product.priceCents)
+      : product.priceCents;
+    let productPriceCents = unitPrice * quantity;
+
+    if (discountStatus === "valid" && discountValue) {
+      if (discountValue.type === "percentage") {
+        productPriceCents = Math.round(productPriceCents * (1 - discountValue.value / 100));
+      } else {
+        productPriceCents = Math.max(0, productPriceCents - discountValue.value);
+      }
     }
-    // Outside EU: no BTW
-    if (!isEuCountry(country)) {
-      applyBtw = false;
-    }
 
-    // Use tier price if quantity tiers exist
-    const unitPrice = quantityTiers
-      ? (quantityTiers.find((t) => t.quantity === quantity)?.unitPriceCents ?? product.price)
-      : product.price;
-    const mainCalc = calculateBtw(
-      unitPrice * quantity,
-      applyBtw ? btwRate : 0,
-      product.priceInclBtw,
-    );
-
-    let bumpsNet = 0;
-    let bumpsBtw = 0;
-    let bumpsGross = 0;
+    const mainCalc = calculateBtw(productPriceCents, applyBtw ? btwRate : 0, product.priceInclBtw);
+    let bumpsNet = 0, bumpsBtw = 0, bumpsGross = 0;
+    const bundleDiscount = selectedBumps.length >= 2 ? 0.85 : 1;
     for (const bumpSlug of selectedBumps) {
-      const bumpProduct = getProduct(bumpSlug);
-      if (bumpProduct) {
-        const bc = calculateBtw(
-          bumpProduct.price,
-          applyBtw ? bumpProduct.btwRate : 0,
-          bumpProduct.priceInclBtw,
-        );
+      const bumpConfig = bumps.find((b) => b.slug === bumpSlug);
+      if (bumpConfig) {
+        const discountedPrice = Math.round(bumpConfig.price * bundleDiscount);
+        const bc = calculateBtw(discountedPrice, applyBtw ? bumpConfig.btwRate : 0, bumpConfig.priceInclBtw);
         bumpsNet += bc.net;
         bumpsBtw += bc.btw;
         bumpsGross += bc.gross;
@@ -118,553 +208,256 @@ export function CheckoutClient({ productSlug, lang }: Props) {
     }
 
     return {
-      productNet: mainCalc.net,
-      productBtw: mainCalc.btw,
-      productGross: mainCalc.gross,
-      bumpsNet,
-      bumpsBtw,
-      bumpsGross,
-      totalNet: mainCalc.net + bumpsNet,
-      totalBtw: mainCalc.btw + bumpsBtw,
-      totalGross: mainCalc.gross + bumpsGross,
+      productNet: mainCalc.net, productBtw: mainCalc.btw, productGross: mainCalc.gross,
+      bumpsNet, bumpsBtw, bumpsGross,
+      totalNet: mainCalc.net + bumpsNet, totalBtw: mainCalc.btw + bumpsBtw, totalGross: mainCalc.gross + bumpsGross,
       btwReversed: !applyBtw && isEuCountry(country) && isBusiness,
       noBtw: !applyBtw && !isEuCountry(country),
     };
-  }, [product, selectedBumps, isBusiness, vatNumber, country, quantity, quantityTiers]);
+  }, [product, selectedBumps, bumps, isBusiness, vatNumber, country, quantity, discountStatus, discountValue]);
 
   const totals = calculateTotals();
 
-  // Step 1 submit — save pending order + move to step 2
-  async function handleStep1(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    setTermsError(false);
+
+    if (!agreedTerms) { setTermsError(true); return; }
+
+    setPayingMethod(selectedMethod);
 
     try {
-      const id = await createPendingOrder({
-        email,
-        firstName,
-        lastName,
-        product: productSlug,
-        country,
-        lang,
-        isBusiness,
+      const orderId = await createPendingOrder({
+        email, firstName, lastName,
+        phone: phone || undefined,
+        product: productSlug, country, lang, isBusiness,
         company: isBusiness ? company : undefined,
         vatNumber: isBusiness ? vatNumber : undefined,
+        street: product?.requiresShipping ? street : undefined,
+        houseNumber: product?.requiresShipping ? houseNumber : undefined,
+        postalCode: product?.requiresShipping ? postalCode : undefined,
+        city: product?.requiresShipping ? city : undefined,
+        quantity: quantity > 1 ? quantity : undefined,
+        mailingOptIn: mailingOptIn || undefined,
         bumps: selectedBumps,
-        discountCode: discountCode || undefined,
+        discountCode: discountStatus === "valid" ? discountCode : undefined,
         installments: useInstallments,
+        experimentSlug: experimentSlug || undefined,
+        experimentVariant: experimentVariant || undefined,
       });
-      setOrderId(id);
-      setStep(2);
+
+      const result = await createMolliePayment({ pendingOrderId: orderId, method: selectedMethod });
+      if (result.checkoutUrl) { window.location.href = result.checkoutUrl; }
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : i18n.genericError,
-      );
-    } finally {
-      setLoading(false);
+      setError(err instanceof Error ? err.message : i18n.genericError);
+      setPayingMethod(null);
     }
   }
 
-  // Step 2 — initiate payment via Mollie
-  async function handlePayment(method: string) {
-    if (!orderId) return;
+  async function handleOAuth(provider: "google") {
     setError("");
-    setLoading(true);
-    try {
-      const result = await createMolliePayment({
-        pendingOrderId: orderId,
-        method,
-      });
-      if (result.checkoutUrl) {
-        window.location.href = result.checkoutUrl;
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : i18n.paymentFailed,
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // Social login handler (fills form fields, stays on checkout)
-  async function handleOAuth(provider: "google" | "apple") {
-    setError("");
-    try {
-      await signIn(provider);
-    } catch {
-      setError(i18n.genericError);
-    }
+    try { await signIn(provider); } catch { setError(i18n.genericError); }
   }
 
   const toggleBump = (slug: string) => {
-    setSelectedBumps((prev) =>
-      prev.includes(slug)
-        ? prev.filter((s) => s !== slug)
-        : [...prev, slug],
-    );
+    setSelectedBumps((prev) => prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]);
   };
 
-  const inputClass =
-    "w-full bg-transparent border border-rule px-4 py-3 text-[15px] text-ink placeholder:text-ink/30 focus:border-copper focus:outline-none transition-colors rounded-[2px]";
+  // Loading state while product loads from DB
+  if (!product) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="w-6 h-6 border-2 border-copper/30 border-t-copper rounded-full animate-spin" />
+      </div>
+    );
+  }
 
-  const labelClass =
-    "text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2";
+  const labelClass = "text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2";
 
-  const selectClass =
-    "w-full bg-transparent border border-rule px-4 py-3 text-[15px] text-ink focus:border-copper focus:outline-none transition-colors rounded-[2px] appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%230E0C0A%22%20stroke-width%3D%222%22%3E%3Cpath%20d%3D%22M6%209l6%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_16px_center]";
+  const paymentMethods = [
+    ...(country === "NL" || country === "BE" ? [{ id: "ideal", label: i18n.ideal, icon: <IdealIcon />, recommended: true }] : []),
+    { id: "creditcard", label: i18n.creditCard, icon: <CreditCardIcon /> },
+    { id: "applepay", label: i18n.applePay, icon: <ApplePayIcon /> },
+  ];
 
   return (
     <>
-      <ExitIntent lang={lang} show={step === 1} />
-      <SocialProof productSlug={productSlug} lang={lang} />
+      <ExitIntent lang={lang} show={!payingMethod} />
+      <SocialProof productSlug={productSlug} lang={lang} country={country} />
 
       <div className="grid lg:grid-cols-[1fr_420px] gap-10 lg:gap-14">
-        {/* ─── Left column: Order Summary ─── */}
-        <div className="order-2 lg:order-1">
-          <OrderSummary
-            product={product}
-            lang={lang}
-            selectedBumps={selectedBumps}
-            totals={totals}
-          />
+        <div className="space-y-8">
+          <OrderSummary product={product} lang={lang} />
+          <div className="hidden lg:block">
+            <CheckoutReviews productType={product.type} productSlug={product.slug} lang={lang} />
+          </div>
         </div>
 
-        {/* ─── Right column: Form ─── */}
-        <div className="order-1 lg:order-2">
-          {/* Step indicators */}
-          <div className="flex items-center gap-3 mb-8">
-            <StepIndicator
-              number={1}
-              label={i18n.yourDetails}
-              active={step === 1}
-              completed={step > 1}
-            />
-            <div className="flex-1 h-px bg-rule" />
-            <StepIndicator
-              number={2}
-              label={i18n.payment}
-              active={step === 2}
-              completed={false}
-            />
+        <div>
+          {/* Checkout speed indicator */}
+          <div className="flex items-center gap-3 mb-6 text-[12px] text-ink/40">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+              <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
+            </svg>
+            {{ nl: "Dit duurt nog ~1 minuut", en: "This takes ~1 minute", de: "Das dauert noch ~1 Minute" }[lang]}
+            <div className="flex-1 h-1 bg-rule rounded-full overflow-hidden">
+              <div className="h-full bg-copper/40 rounded-full" style={{ width: "15%" }} />
+            </div>
           </div>
 
-          {/* ─── Step 1: Details ─── */}
-          {step === 1 && (
-            <form id={formId} onSubmit={handleStep1} className="space-y-5">
-              {/* Quick social login */}
-              <div className="space-y-3">
-                <p className="text-[12px] text-ink/40 tracking-[0.05em] uppercase text-center">
-                  {i18n.orLoginWith}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => handleOAuth("google")}
-                  className="flex items-center justify-center gap-2.5 w-full border border-rule py-3 text-[13px] font-medium text-ink/70 hover:border-ink/30 hover:text-ink transition-colors rounded-[2px] cursor-pointer"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24">
-                    <path
-                      fill="#4285F4"
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                    />
-                    <path
-                      fill="#EA4335"
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                    />
-                  </svg>
-                  Google
-                </button>
-
-                {/* Divider */}
-                <div className="flex items-center gap-4 py-1">
-                  <div className="flex-1 h-px bg-rule" />
-                  <span className="text-[11px] text-ink/30 tracking-[0.15em] uppercase">
-                    {lang === "nl" ? "of vul je gegevens in" : "or fill in your details"}
-                  </span>
-                  <div className="flex-1 h-px bg-rule" />
-                </div>
-              </div>
-
-              {/* Name fields — side by side */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="firstName" className={labelClass}>
-                    {i18n.firstName}
-                  </label>
-                  <input
-                    id="firstName"
-                    type="text"
-                    required
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder={i18n.firstNamePlaceholder}
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="lastName" className={labelClass}>
-                    {i18n.lastName}
-                  </label>
-                  <input
-                    id="lastName"
-                    type="text"
-                    required
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    placeholder={i18n.lastNamePlaceholder}
-                    className={inputClass}
-                  />
-                </div>
-              </div>
-
-              {/* Email */}
-              <div>
-                <label htmlFor="email" className={labelClass}>
-                  {i18n.email}
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={i18n.emailPlaceholder}
-                  className={inputClass}
-                />
-              </div>
-
-              {/* Country */}
-              <div>
-                <label htmlFor="country" className={labelClass}>
-                  {i18n.country}
-                </label>
-                <select
-                  id="country"
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  className={selectClass}
-                >
-                  {Object.entries(i18n.countries).map(([code, name]) => (
-                    <option key={code} value={code}>
-                      {name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Business toggle */}
-              <label className="flex items-center gap-3 cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={isBusiness}
-                  onChange={(e) => setIsBusiness(e.target.checked)}
-                  className="w-4 h-4 accent-copper cursor-pointer"
-                />
-                <span className="text-[13px] text-ink/60 group-hover:text-ink transition-colors">
-                  {i18n.businessPurchase}
-                </span>
-              </label>
-
-              {/* Business fields */}
-              {isBusiness && (
-                <div className="space-y-4 pl-7 border-l-2 border-copper/20">
-                  <div>
-                    <label htmlFor="company" className={labelClass}>
-                      {i18n.companyName}
-                    </label>
-                    <input
-                      id="company"
-                      type="text"
-                      required={isBusiness}
-                      value={company}
-                      onChange={(e) => setCompany(e.target.value)}
-                      placeholder={i18n.companyPlaceholder}
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="vatNumber" className={labelClass}>
-                      {i18n.vatNumber}
-                    </label>
-                    <input
-                      id="vatNumber"
-                      type="text"
-                      value={vatNumber}
-                      onChange={(e) => setVatNumber(e.target.value)}
-                      placeholder={i18n.vatPlaceholder}
-                      className={inputClass}
-                    />
-                    {vatNumber && isEuCountry(country) && country !== "NL" && (
-                      <p className="text-[12px] text-copper mt-1">
-                        {i18n.btwReversed}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Quantity tiers */}
-              {quantityTiers && (
-                <QuantitySelector
-                  tiers={quantityTiers}
-                  selected={quantity}
-                  onChange={setQuantity}
-                  lang={lang}
-                />
-              )}
-
-              {/* Order bumps */}
-              {bumps.length > 0 && (
-                <div className="pt-4">
-                  <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-3">
-                    {i18n.addToOrder}
-                  </p>
-                  <div className="space-y-3">
-                    {bumps.map((bump) => (
-                      <OrderBump
-                        key={bump.slug}
-                        bump={bump}
-                        lang={lang}
-                        selected={selectedBumps.includes(bump.slug)}
-                        onToggle={() => toggleBump(bump.slug)}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Installments toggle (trainings only) */}
-              {product.installments && (
-                <label className="flex items-center gap-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={useInstallments}
-                    onChange={(e) => setUseInstallments(e.target.checked)}
-                    className="w-4 h-4 accent-copper cursor-pointer"
-                  />
-                  <span className="text-[13px] text-ink/60 group-hover:text-ink transition-colors">
-                    {i18n.payInInstallments} ({product.installments.count}x{" "}
-                    {formatPrice(product.installments.amountPerTerm, lang)})
-                  </span>
-                </label>
-              )}
-
-              {/* Submit step 1 */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-copper text-paper py-4 text-[13px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer disabled:opacity-50"
-              >
-                {loading ? i18n.processing : i18n.almostThere}
-              </button>
-
-              {error && (
-                <p className="text-[13px] text-red-600 text-center">{error}</p>
-              )}
-            </form>
-          )}
-
-          {/* ─── Step 2: Payment ─── */}
-          {step === 2 && (
-            <div className="space-y-5">
-              {/* Order total */}
-              <div className="bg-warm/50 border border-rule rounded-[2px] p-5">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-[13px] text-ink/60">{i18n.subtotal}</span>
-                  <span className="text-[15px] text-ink">
-                    {formatPrice(totals.totalNet, lang)}
-                  </span>
-                </div>
-                {totals.btwReversed ? (
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-[13px] text-ink/60">{i18n.btw}</span>
-                    <span className="text-[13px] text-copper">{i18n.btwReversed}</span>
-                  </div>
-                ) : totals.noBtw ? (
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-[13px] text-ink/60">{i18n.btw}</span>
-                    <span className="text-[13px] text-ink/40">{i18n.noBtw}</span>
-                  </div>
-                ) : (
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-[13px] text-ink/60">{i18n.btw} (21%)</span>
-                    <span className="text-[15px] text-ink">
-                      {formatPrice(totals.totalBtw, lang)}
-                    </span>
-                  </div>
-                )}
-                <div className="flex justify-between items-center pt-3 border-t border-rule">
-                  <span className="text-[15px] font-medium text-ink">
-                    {i18n.total}
-                  </span>
-                  <span className="font-display text-[22px] font-bold text-ink">
-                    {formatPrice(totals.totalGross, lang)}
-                  </span>
-                </div>
-                {useInstallments && product.installments && (
-                  <p className="text-[12px] text-ink/50 mt-2">
-                    {product.installments.count}x{" "}
-                    {formatPrice(product.installments.amountPerTerm, lang)}/
-                    {lang === "nl" ? "mnd" : "mo"}
-                  </p>
-                )}
-              </div>
-
-              {/* Payment methods */}
-              <div>
-                <p className={labelClass}>{i18n.paymentMethod}</p>
-                <div className="space-y-2">
-                  {/* iDEAL — only for NL/BE */}
-                  {(country === "NL" || country === "BE") && (
-                    <PaymentButton
-                      icon={<IdealIcon />}
-                      label={i18n.ideal}
-                      onClick={() => handlePayment("ideal")}
-                      recommended
-                    />
-                  )}
-                  <PaymentButton
-                    icon={<CreditCardIcon />}
-                    label={i18n.creditCard}
-                    onClick={() => handlePayment("creditcard")}
-                  />
-                  <PaymentButton
-                    icon={<ApplePayIcon />}
-                    label={i18n.applePay}
-                    onClick={() => handlePayment("applepay")}
-                  />
-                </div>
-              </div>
-
-              {/* Back to step 1 */}
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="w-full text-[13px] text-ink/50 hover:text-ink transition-colors cursor-pointer"
-              >
-                ← {lang === "nl" ? "Terug naar gegevens" : "Back to details"}
-              </button>
-
-              {error && (
-                <p className="text-[13px] text-red-600 text-center">{error}</p>
-              )}
+          {/* Payment failure recovery banner */}
+          {paymentFailed && (
+            <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-[2px]">
+              <p className="text-[14px] font-medium text-amber-800 mb-1">
+                {{ nl: "Betaling niet gelukt", en: "Payment was not successful", de: "Zahlung fehlgeschlagen" }[lang]}
+              </p>
+              <p className="text-[13px] text-amber-700">
+                {{ nl: "Geen zorgen — probeer een andere betaalmethode hieronder.", en: "No worries — try a different payment method below.", de: "Keine Sorge — probieren Sie unten eine andere Zahlungsmethode." }[lang]}
+              </p>
             </div>
           )}
 
-          {/* Trust badges — always visible */}
+          {/* Returning visitor welcome */}
+          {recovered && !recoveryOrderId && (
+            <div className="mb-6 p-4 bg-copper/5 border border-copper/20 rounded-[2px]">
+              <p className="text-[14px] font-medium text-ink">
+                {{ nl: `Welkom terug, ${firstName}!`, en: `Welcome back, ${firstName}!`, de: `Willkommen zurück, ${firstName}!` }[lang]}
+              </p>
+              <p className="text-[13px] text-ink/50">
+                {{ nl: "Je gegevens zijn al ingevuld. Kies een betaalmethode en je bent klaar.", en: "Your details are pre-filled. Choose a payment method and you're done.", de: "Ihre Daten sind bereits ausgefüllt. Wählen Sie eine Zahlungsmethode und Sie sind fertig." }[lang]}
+              </p>
+            </div>
+          )}
+
+          {/* Magic link recovery welcome */}
+          {recoveryOrderId && recovered && (
+            <div className="mb-6 p-4 bg-copper/5 border border-copper/20 rounded-[2px]">
+              <p className="text-[14px] font-medium text-ink">
+                {{ nl: `Hoi ${firstName}, je bestelling staat klaar!`, en: `Hi ${firstName}, your order is ready!`, de: `Hallo ${firstName}, Ihre Bestellung steht bereit!` }[lang]}
+              </p>
+              <p className="text-[13px] text-ink/50">
+                {{ nl: "Alles is al ingevuld — kies alleen je betaalmethode.", en: "Everything is pre-filled — just choose your payment method.", de: "Alles ist bereits ausgefüllt — wählen Sie nur Ihre Zahlungsmethode." }[lang]}
+              </p>
+            </div>
+          )}
+
+          <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
+            <CheckoutForm
+              product={product}
+              bumps={bumps}
+              lang={lang}
+              firstName={firstName} setFirstName={setFirstName}
+              lastName={lastName} setLastName={setLastName}
+              email={email} setEmail={setEmail}
+              phone={phone} setPhone={setPhone}
+              country={country} setCountry={setCountry}
+              isBusiness={isBusiness} setIsBusiness={setIsBusiness}
+              company={company} setCompany={setCompany}
+              vatNumber={vatNumber} setVatNumber={setVatNumber}
+              street={street} setStreet={setStreet}
+              houseNumber={houseNumber} setHouseNumber={setHouseNumber}
+              postalCode={postalCode} setPostalCode={setPostalCode}
+              city={city} setCity={setCity}
+              selectedBumps={selectedBumps} onToggleBump={toggleBump}
+              useInstallments={useInstallments} setUseInstallments={setUseInstallments}
+              discountCode={discountCode} setDiscountCode={setDiscountCode}
+              discountOpen={discountOpen} setDiscountOpen={setDiscountOpen}
+              discountStatus={discountStatus} discountValue={discountValue}
+              setDiscountStatus={setDiscountStatus} setDiscountValue={setDiscountValue}
+              quantity={quantity} setQuantity={setQuantity}
+              quantityTiers={product.quantityTiers}
+              onOAuth={handleOAuth}
+            />
+
+            {/* Payment method selection */}
+            <div className="border-t border-rule pt-5">
+              <p className={labelClass}>{i18n.paymentMethod}</p>
+              <div className="space-y-2">
+                {paymentMethods.map((pm) => (
+                  <button
+                    key={pm.id}
+                    type="button"
+                    onClick={() => setSelectedMethod(pm.id)}
+                    className={`flex items-center gap-3 w-full border py-3 px-4 text-[14px] transition-colors rounded-[2px] cursor-pointer ${
+                      selectedMethod === pm.id
+                        ? "border-copper bg-copper/5 text-ink"
+                        : "border-rule text-ink/60 hover:border-ink/30"
+                    }`}
+                  >
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+                      selectedMethod === pm.id ? "border-copper" : "border-ink/20"
+                    }`}>
+                      {selectedMethod === pm.id && <div className="w-2 h-2 rounded-full bg-copper" />}
+                    </div>
+                    {pm.icon}
+                    <span className="flex-1 text-left">{pm.label}</span>
+                    {pm.recommended && (
+                      <span className="text-[10px] text-copper font-medium tracking-[0.1em] uppercase">
+                        {{ nl: "Aanbevolen", en: "Recommended", de: "Empfohlen" }[lang]}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Terms + mailing opt-in */}
+            <div className="space-y-3">
+              <label className={`flex items-start gap-3 cursor-pointer group ${termsError ? "text-red-600" : ""}`}>
+                <input type="checkbox" checked={agreedTerms} onChange={(e) => { setAgreedTerms(e.target.checked); setTermsError(false); }} className={`w-4 h-4 mt-0.5 accent-copper cursor-pointer shrink-0 ${termsError ? "outline outline-2 outline-red-400" : ""}`} />
+                <span className={`text-[13px] leading-[1.5] ${termsError ? "text-red-600" : "text-ink/60 group-hover:text-ink"} transition-colors`}>
+                  {i18n.agreeTerms}{" "}
+                  <a href="/algemene-voorwaarden" target="_blank" className="text-copper underline hover:text-copper-light">{i18n.termsLink}</a>.
+                </span>
+              </label>
+              {termsError && <p className="text-[12px] text-red-500 pl-7">{i18n.agreeTermsRequired}</p>}
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input type="checkbox" checked={mailingOptIn} onChange={(e) => setMailingOptIn(e.target.checked)} className="w-4 h-4 mt-0.5 accent-copper cursor-pointer shrink-0" />
+                <span className="text-[13px] text-ink/40 group-hover:text-ink/60 transition-colors leading-[1.5]">{i18n.mailingOptIn}</span>
+              </label>
+            </div>
+
+            <CheckoutTotals
+              totals={totals}
+              productShortName={product.shortName}
+              selectedBumps={selectedBumps}
+              bumps={bumps}
+              discountStatus={discountStatus}
+              discountValue={discountValue}
+              lang={lang}
+              payingMethod={payingMethod}
+              showDirectAccess={!product.requiresShipping}
+              error={error}
+            />
+          </form>
+
           <TrustBadges lang={lang} />
+        </div>
+
+        {/* Reviews: mobile only */}
+        <div className="lg:hidden">
+          <CheckoutReviews productType={product.type} productSlug={product.slug} lang={lang} />
         </div>
       </div>
     </>
   );
 }
 
-/* ─── Sub-components ─── */
-
-function StepIndicator({
-  number,
-  label,
-  active,
-  completed,
-}: {
-  number: number;
-  label: string;
-  active: boolean;
-  completed: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <div
-        className={`w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-medium transition-colors ${
-          active
-            ? "bg-copper text-paper"
-            : completed
-              ? "bg-copper/20 text-copper"
-              : "bg-rule text-ink/30"
-        }`}
-      >
-        {completed ? "✓" : number}
-      </div>
-      <span
-        className={`text-[13px] font-medium transition-colors ${
-          active ? "text-ink" : "text-ink/30"
-        }`}
-      >
-        {label}
-      </span>
-    </div>
-  );
-}
-
-function PaymentButton({
-  icon,
-  label,
-  onClick,
-  recommended,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-  recommended?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex items-center gap-3 w-full border py-3.5 px-4 text-[14px] text-ink/80 hover:border-ink/30 hover:text-ink transition-colors rounded-[2px] cursor-pointer ${
-        recommended ? "border-copper bg-copper/5" : "border-rule"
-      }`}
-    >
-      {icon}
-      <span className="flex-1 text-left">{label}</span>
-      {recommended && (
-        <span className="text-[10px] text-copper font-medium tracking-[0.1em] uppercase">
-          Aanbevolen
-        </span>
-      )}
-    </button>
-  );
-}
+/* ─── Icons ─── */
 
 function IdealIcon() {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
       <rect width="24" height="24" rx="4" fill="#CC0066" />
-      <text
-        x="12"
-        y="16"
-        textAnchor="middle"
-        fill="white"
-        fontSize="9"
-        fontWeight="bold"
-        fontFamily="sans-serif"
-      >
-        iDEAL
-      </text>
+      <text x="12" y="16" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold" fontFamily="sans-serif">iDEAL</text>
     </svg>
   );
 }
 
 function CreditCardIcon() {
   return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      className="text-ink/50"
-    >
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-ink/50">
       <rect x="2" y="5" width="20" height="14" rx="2" />
       <path d="M2 10h20" />
     </svg>
@@ -673,8 +466,8 @@ function CreditCardIcon() {
 
 function ApplePayIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="text-ink/70">
-      <path d="M17.05 14.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 9.25 3.51 3.59 9.05 3.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09z" />
+    <svg width="18" height="22" viewBox="0 0 814 1000" className="text-ink/50">
+      <path fill="currentColor" d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57.8-155.5-127.4c-58.3-81.6-105.3-208.2-105.3-329 0-193.6 125.8-296.3 249.6-296.3 65.8 0 120.8 43.4 162.1 43.4 39.2 0 100.2-46 175.6-46 28.3 0 130.9 2.6 198.3 98.3zm-271-182.2c31.2-36.9 53.4-88.1 53.4-139.3 0-7.1-.6-14.3-1.9-20.1-50.9 1.9-110.8 33.9-147.1 76.5-27 30.5-55.3 81.4-55.3 133.5 0 7.8.6 15.6 1.3 18.2 2.6.6 6.4 1.3 10.2 1.3 45.7 0 103.2-30.5 139.4-70.1z" />
     </svg>
   );
 }

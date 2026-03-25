@@ -7,7 +7,7 @@ import { t, type Lang } from "@/lib/i18n";
 function getClientLocale(): Lang {
   if (typeof document === "undefined") return "nl";
   const match = document.cookie.match(/(?:^|;\s*)locale=(\w+)/);
-  return match?.[1] === "en" ? "en" : "nl";
+  return match?.[1] === "en" ? "en" : match?.[1] === "de" ? "de" : "nl";
 }
 
 export default function NotFound() {

@@ -7,6 +7,7 @@ import { TrainingCta } from "@/components/sections/training/TrainingCta";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { JsonLd, personJsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/lib/i18n/server";
+import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
 import { getOverOnsContent } from "./content";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -20,7 +21,15 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function OverOnsPage() {
   const lang = await getLocale();
-  const c = getOverOnsContent(lang);
+  const fallback = getOverOnsContent(lang);
+  const db = await loadPageContent("over-ons", lang);
+
+  const hero = sectionOr(db, "hero", fallback.hero);
+  const journey = sectionOr(db, "journey", fallback.journey);
+  const mission = sectionOr(db, "mission", fallback.mission);
+  const team = sectionOr(db, "team", fallback.team);
+  const office = sectionOr(db, "office", fallback.office);
+  const cta = sectionOr(db, "cta", fallback.cta);
 
   return (
     <>
@@ -31,7 +40,7 @@ export default async function OverOnsPage() {
           <div className="relative aspect-[3/4] lg:aspect-auto overflow-hidden bg-warm">
             <Image
               src="/images/about/klaas-over-mij.jpeg"
-              alt={c.hero.imageAlt}
+              alt={hero.imageAlt}
               fill
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"
@@ -40,26 +49,26 @@ export default async function OverOnsPage() {
           </div>
           <div className="flex flex-col justify-center px-7 py-10 sm:px-10 lg:px-16 lg:py-20">
             <FadeIn>
-            <Label className="mb-3">{c.hero.label}</Label>
+            <Label className="mb-3">{hero.label}</Label>
             <h1 className="font-display text-[clamp(32px,4.2vw,54px)] font-black leading-[0.97] tracking-[-0.03em] mb-5">
-              {c.hero.title}
+              {hero.title}
               <br />
               <em className="italic font-normal text-ink/40">
-                {c.hero.titleAccent}
+                {hero.titleAccent}
               </em>
             </h1>
             <div className="space-y-4 max-w-[480px] mb-8">
               <p className="text-[16px] sm:text-[17px] text-ink/80 leading-[1.8]">
-                {c.hero.bio[0]}
+                {hero.bio?.[0]}
               </p>
               <p className="text-[15px] sm:text-[16px] text-ink/80 leading-[1.8]">
-                {c.hero.bio[1]}
+                {hero.bio?.[1]}
               </p>
             </div>
 
             {/* Inline credentials */}
             <dl className="grid grid-cols-2 gap-x-8 gap-y-5 max-w-[400px]">
-              {c.hero.stats.map((stat) => (
+              {(hero.stats ?? []).map((stat: { label: string; value: string }) => (
                 <div key={stat.label}>
                   <dt className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-1">
                     {stat.label}
@@ -79,16 +88,16 @@ export default async function OverOnsPage() {
       <section className="py-16 sm:py-[110px] border-b border-rule">
         <Container>
           <FadeIn className="mb-10 sm:mb-14 max-w-[520px]">
-            <Label className="mb-3">{c.journey.label}</Label>
+            <Label className="mb-3">{journey.label}</Label>
             <h2 className="font-display text-[clamp(28px,3.4vw,44px)] font-black leading-[0.97] tracking-[-0.03em]">
-              {c.journey.title}
+              {journey.title}
               <br />
-              <em className="italic font-normal text-ink/40">{c.journey.titleAccent}</em>
+              <em className="italic font-normal text-ink/40">{journey.titleAccent}</em>
             </h2>
           </FadeIn>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-rule border border-rule">
-            {c.journey.items.map((step, i) => (
+            {(journey.items ?? []).map((step: { period: string; title: string; text: string }, i: number) => (
               <div key={step.period} className="bg-paper p-6 sm:p-8 flex flex-col">
                 <span className="font-display text-[42px] sm:text-[52px] font-black leading-none tracking-[-0.03em] text-ink/[0.06] mb-4">
                   {String(i + 1).padStart(2, "0")}
@@ -113,28 +122,28 @@ export default async function OverOnsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2">
           <div className="flex flex-col justify-center py-16 sm:py-[110px] px-7 sm:px-10 lg:pl-[max(3.5rem,calc((100vw-1180px)/2+3.5rem))] lg:pr-16">
             <FadeIn>
-            <Label className="mb-3 text-copper-light">{c.mission.label}</Label>
+            <Label className="mb-3 text-copper-light">{mission.label}</Label>
             <h2 className="font-display text-[clamp(28px,3.8vw,48px)] font-black leading-[0.97] tracking-[-0.03em] text-paper mb-6">
-              {c.mission.title}
+              {mission.title}
               <br />
               <em className="italic font-normal text-paper/40">
-                {c.mission.titleAccent}
+                {mission.titleAccent}
               </em>
             </h2>
             <div className="space-y-4 max-w-[480px]">
               <p className="text-[15px] sm:text-[16px] text-paper/70 leading-[1.8]">
-                {c.mission.paragraphs[0]}
+                {mission.paragraphs?.[0]}
               </p>
               <p className="text-[15px] sm:text-[16px] text-paper/70 leading-[1.8]">
-                {c.mission.paragraphs[1]}
+                {mission.paragraphs?.[1]}
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 mt-8">
               <ButtonLink href="/sales-excellence-training" variant="copper">
-                <ButtonArrow>{c.mission.ctaSales}</ButtonArrow>
+                <ButtonArrow>{mission.ctaSales}</ButtonArrow>
               </ButtonLink>
               <ButtonLink href="/customer-success-training" variant="paper">
-                <ButtonArrow>{c.mission.ctaSuccess}</ButtonArrow>
+                <ButtonArrow>{mission.ctaSuccess}</ButtonArrow>
               </ButtonLink>
             </div>
             </FadeIn>
@@ -142,7 +151,7 @@ export default async function OverOnsPage() {
           <div className="relative aspect-[4/3] lg:aspect-auto lg:min-h-[560px] overflow-hidden">
             <Image
               src="/images/about/klaas-kroezen-portrait-2.jpeg"
-              alt={c.mission.imageAlt}
+              alt={mission.imageAlt}
               fill
               className="object-cover object-top"
               sizes="(max-width: 1024px) 100vw, 50vw"
@@ -152,20 +161,20 @@ export default async function OverOnsPage() {
         </div>
       </section>
 
-      {/* Team — Klaas is separate, team is supporting */}
+      {/* Team */}
       <section className="py-16 sm:py-[110px] border-b border-rule">
         <Container>
           <FadeIn className="mb-10 sm:mb-14">
-            <Label className="mb-3">{c.team.label}</Label>
+            <Label className="mb-3">{team.label}</Label>
             <h2 className="font-display text-[clamp(28px,3.4vw,44px)] font-black leading-[0.97] tracking-[-0.03em]">
-              {c.team.title}
+              {team.title}
               <br />
-              <em className="italic font-normal text-ink/40">{c.team.titleAccent}</em>
+              <em className="italic font-normal text-ink/40">{team.titleAccent}</em>
             </h2>
           </FadeIn>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-rule border border-rule">
-            {c.team.members.map((member) => (
+            {(team.members ?? []).map((member: { name: string; role: string; image: string; description: string }) => (
               <div key={member.name} className="bg-paper">
                 <div className="relative aspect-square overflow-hidden bg-warm">
                   <Image
@@ -200,7 +209,7 @@ export default async function OverOnsPage() {
           <div className="relative aspect-video lg:aspect-auto lg:min-h-[480px] overflow-hidden">
             <Image
               src="/images/about/kantoor-administratie.jpg"
-              alt={c.office.imageAlt}
+              alt={office.imageAlt}
               fill
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"
@@ -209,17 +218,17 @@ export default async function OverOnsPage() {
           </div>
           <div className="flex flex-col justify-center py-10 sm:py-16 lg:py-20 px-7 sm:px-10 lg:pl-16 lg:pr-[max(3.5rem,calc((100vw-1180px)/2+3.5rem))]">
             <FadeIn className="max-w-[480px]">
-              <Label className="mb-3">{c.office.label}</Label>
+              <Label className="mb-3">{office.label}</Label>
               <h2 className="font-display text-[clamp(24px,2.8vw,36px)] font-black leading-[0.97] tracking-[-0.03em] mb-5">
-                {c.office.title}
+                {office.title}
                 <br />
-                {c.office.titleLine2}
+                {office.titleLine2}
               </h2>
               <p className="text-[15px] sm:text-[16px] text-ink/80 leading-[1.8] mb-2">
-                {c.office.description}
+                {office.description}
               </p>
               <p className="text-[13px] text-ink/50 leading-[1.7] mt-3">
-                {c.office.address}
+                {office.address}
               </p>
             </FadeIn>
           </div>
@@ -227,11 +236,11 @@ export default async function OverOnsPage() {
       </section>
 
       <TrainingCta
-        title={c.cta.title}
-        titleAccent={c.cta.titleAccent}
-        description={c.cta.description}
-        href={c.cta.href}
-        ctaLabel={c.cta.ctaLabel}
+        title={cta.title}
+        titleAccent={cta.titleAccent}
+        description={cta.description}
+        href={cta.href}
+        ctaLabel={cta.ctaLabel}
       />
     </>
   );

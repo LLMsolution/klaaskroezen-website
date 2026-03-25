@@ -2,6 +2,8 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import { authTables } from "@convex-dev/auth/server";
 
+export const langValidator = v.union(v.literal("nl"), v.literal("en"), v.literal("de"));
+
 export default defineSchema({
   ...authTables,
 
@@ -51,12 +53,20 @@ export default defineSchema({
     email: v.string(),
     firstName: v.string(),
     lastName: v.string(),
+    phone: v.optional(v.string()),
     product: v.string(),
     country: v.string(),
-    lang: v.union(v.literal("nl"), v.literal("en")),
+    lang: langValidator,
     isBusiness: v.boolean(),
     company: v.optional(v.string()),
     vatNumber: v.optional(v.string()),
+    // Shipping address (required for physical products)
+    street: v.optional(v.string()),
+    houseNumber: v.optional(v.string()),
+    postalCode: v.optional(v.string()),
+    city: v.optional(v.string()),
+    quantity: v.optional(v.number()),
+    mailingOptIn: v.optional(v.boolean()),
     bumps: v.array(v.string()),
     discountCode: v.optional(v.string()),
     discountAmount: v.optional(v.number()),
@@ -67,6 +77,9 @@ export default defineSchema({
     convertedAt: v.optional(v.number()),
     abandonedAt: v.optional(v.number()),
     createdAt: v.number(),
+    // A/B testing: which experiment and variant this order belongs to
+    experimentSlug: v.optional(v.string()),
+    experimentVariant: v.optional(v.string()),
   })
     .index("by_email", ["email"])
     .index("by_mollie", ["molliePaymentId"])
@@ -152,7 +165,7 @@ export default defineSchema({
     noBtw: v.boolean(), // Non-EU, no BTW
 
     // Metadata
-    lang: v.union(v.literal("nl"), v.literal("en")),
+    lang: langValidator,
     molliePaymentId: v.string(),
     paidAt: v.number(),
     createdAt: v.number(),
@@ -193,7 +206,7 @@ export default defineSchema({
     email: v.string(),
     product: v.string(),
     productType: v.string(),
-    lang: v.union(v.literal("nl"), v.literal("en")),
+    lang: langValidator,
     // Which steps have been sent (0-indexed)
     stepsSent: v.number(),
     totalSteps: v.number(),
@@ -233,6 +246,10 @@ export default defineSchema({
     scheduledFor: v.optional(v.number()), // If scheduled for later
     sentAt: v.optional(v.number()),
     createdAt: v.number(),
+    // A/B testing for broadcasts
+    abTestActive: v.optional(v.boolean()),
+    subjectB: v.optional(v.string()),
+    htmlBodyB: v.optional(v.string()),
   })
     .index("by_status", ["status"]),
 
@@ -252,6 +269,7 @@ export default defineSchema({
     error: v.optional(v.string()),
     trackingId: v.optional(v.string()), // Unique ID for open/click tracking
     htmlBody: v.optional(v.string()), // Stored HTML for preview
+    variant: v.optional(v.string()), // "A" or "B" for A/B testing
     openCount: v.optional(v.number()),
     clickCount: v.optional(v.number()),
     lastOpenedAt: v.optional(v.number()),
@@ -276,6 +294,14 @@ export default defineSchema({
     .index("by_email", ["emailLogId"])
     .index("by_type", ["type"]),
 
+  // ── Admin Emails ──
+  // Manages who has admin access (replaces hardcoded list)
+  adminEmails: defineTable({
+    email: v.string(),
+    name: v.optional(v.string()),
+    addedAt: v.number(),
+  }).index("by_email", ["email"]),
+
   // ── Email Templates ──
   // Editable sequence email templates (admin can override defaults)
   emailTemplates: defineTable({
@@ -289,5 +315,575 @@ export default defineSchema({
     delayDays: v.number(),
     active: v.boolean(),
     updatedAt: v.number(),
-  }).index("by_key", ["templateKey"]),
+    // A/B testing: variant B (variant A = default fields above)
+    abTestActive: v.optional(v.boolean()),
+    subjectNlB: v.optional(v.string()),
+    subjectEnB: v.optional(v.string()),
+    htmlNlB: v.optional(v.string()),
+    htmlEnB: v.optional(v.string()),
+  })
+    .index("by_key", ["templateKey"])
+    .index("by_sequence", ["sequenceType", "stepIndex"]),
+
+  // ── Blog Posts ──
+  blogPosts: defineTable({
+    slug: v.string(),
+    title: v.string(),
+    excerpt: v.string(),
+    body: v.string(), // HTML content
+    imageUrl: v.optional(v.string()), // Legacy — use imageStorageId
+    imageStorageId: v.optional(v.id("_storage")),
+    videoUrl: v.optional(v.string()), // YouTube/Vimeo embed URL
+    ctaText: v.optional(v.string()),
+    ctaUrl: v.optional(v.string()),
+    category: v.string(), // "training", "boek", "persoonlijk", "nieuws"
+    published: v.boolean(),
+    publishedAt: v.number(),
+    likes: v.number(),
+    lang: langValidator,
+    sourcePostId: v.optional(v.id("blogPosts")),
+    autoTranslated: v.optional(v.boolean()),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_published", ["published", "publishedAt"])
+    .index("by_source_lang", ["sourcePostId", "lang"]),
+
+  // ── Blog Likes ──
+  // Track anonymous likes per session to prevent double-liking
+  blogLikes: defineTable({
+    postId: v.id("blogPosts"),
+    sessionId: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_post", ["postId"])
+    .index("by_session_post", ["sessionId", "postId"]),
+
+  // ── Unsubscribes ──
+  // Email addresses that opted out of broadcast emails
+  unsubscribes: defineTable({
+    email: v.string(),
+    createdAt: v.number(),
+  }).index("by_email", ["email"]),
+
+  // ── Site Settings ──
+  // Single-row config for admin-adjustable values
+  siteSettings: defineTable({
+    key: v.string(),
+    // Abandoned cart timing (minutes for first reminder, hours for escalations)
+    abandonedCartDelayMinutes: v.optional(v.number()), // default: 30
+    escalationDelayHours: v.optional(v.array(v.number())), // default: [24, 48, 96]
+  }).index("by_key", ["key"]),
+
+  // ── CRM: Contacts ──
+  // Unified person record for all interactions (replaces virtual mailing list)
+  contacts: defineTable({
+    email: v.string(),
+    firstName: v.string(),
+    lastName: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    company: v.optional(v.string()),
+    jobTitle: v.optional(v.string()),
+    userId: v.optional(v.id("users")),
+    // Scoring
+    engagementScore: v.number(), // email opens, clicks
+    intentScore: v.number(), // form fills, checkout, purchases
+    lastActivityAt: v.number(),
+    lastScoreDecayAt: v.optional(v.number()),
+    // Origin
+    source: v.union(
+      v.literal("contact_form"),
+      v.literal("checkout"),
+      v.literal("purchase"),
+      v.literal("manual"),
+      v.literal("import"),
+      v.literal("referral"),
+    ),
+    sourceDetail: v.optional(v.string()),
+    // Segmentation
+    tags: v.array(v.string()),
+    unsubscribed: v.boolean(),
+    lang: langValidator,
+    createdAt: v.number(),
+  })
+    .index("by_email", ["email"])
+    .index("by_user", ["userId"])
+    .index("by_source", ["source"])
+    .index("by_engagement", ["engagementScore"])
+    .index("by_intent", ["intentScore"]),
+
+  // ── CRM: Leads ──
+  // Sales pipeline deals
+  leads: defineTable({
+    contactId: v.id("contacts"),
+    stageId: v.id("pipelineStages"),
+    title: v.string(),
+    valueCents: v.optional(v.number()),
+    probability: v.number(), // 0-100
+    assignedTo: v.optional(v.string()), // admin email
+    source: v.optional(v.string()),
+    status: v.union(
+      v.literal("open"),
+      v.literal("won"),
+      v.literal("lost"),
+    ),
+    nextAction: v.optional(v.string()),
+    nextActionAt: v.optional(v.number()),
+    purchaseId: v.optional(v.id("purchases")),
+    lostReason: v.optional(v.string()),
+    createdAt: v.number(),
+    closedAt: v.optional(v.number()),
+  })
+    .index("by_contact", ["contactId"])
+    .index("by_stage", ["stageId"])
+    .index("by_assigned", ["assignedTo"])
+    .index("by_status", ["status"])
+    .index("by_next_action", ["nextActionAt"]),
+
+  // ── CRM: Pipeline Stages ──
+  // Configurable pipeline phases
+  pipelineStages: defineTable({
+    name: v.string(),
+    slug: v.string(),
+    order: v.number(),
+    color: v.string(), // hex
+    defaultProbability: v.number(), // 0-100
+    isDefault: v.boolean(), // new leads go here
+    createdAt: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_order", ["order"]),
+
+  // ── CRM: Lead Activities ──
+  // Unified timeline for contacts and leads
+  leadActivities: defineTable({
+    leadId: v.optional(v.id("leads")),
+    contactId: v.id("contacts"),
+    type: v.union(
+      v.literal("note"),
+      v.literal("call"),
+      v.literal("meeting"),
+      v.literal("email_sent"),
+      v.literal("email_opened"),
+      v.literal("email_clicked"),
+      v.literal("stage_change"),
+      v.literal("score_change"),
+      v.literal("contact_form"),
+      v.literal("checkout_started"),
+      v.literal("checkout_abandoned"),
+      v.literal("purchase"),
+      v.literal("lead_created"),
+      v.literal("lead_won"),
+      v.literal("lead_lost"),
+      v.literal("tag_added"),
+      v.literal("tag_removed"),
+    ),
+    title: v.string(),
+    description: v.optional(v.string()),
+    performedBy: v.optional(v.string()), // admin email
+    emailLogId: v.optional(v.id("emailLog")),
+    purchaseId: v.optional(v.id("purchases")),
+    metadata: v.optional(v.string()), // JSON for extra data
+    createdAt: v.number(),
+  })
+    .index("by_lead", ["leadId"])
+    .index("by_contact", ["contactId"])
+    .index("by_type", ["type"]),
+
+  // ── CRM: Automation Rules ──
+  // Configurable trigger → action rules
+  automationRules: defineTable({
+    name: v.string(),
+    active: v.boolean(),
+    trigger: v.union(
+      v.literal("score_threshold"),
+      v.literal("stage_change"),
+      v.literal("inactivity"),
+      v.literal("checkout_abandoned"),
+      v.literal("contact_form"),
+      v.literal("purchase"),
+    ),
+    action: v.union(
+      v.literal("notify_team"),
+      v.literal("send_email"),
+      v.literal("start_sequence"),
+      v.literal("move_stage"),
+      v.literal("assign_lead"),
+      v.literal("create_lead"),
+    ),
+    triggerConfig: v.string(), // JSON
+    actionConfig: v.string(), // JSON
+    executionCount: v.number(),
+    lastExecutedAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_trigger", ["trigger"])
+    .index("by_active", ["active"]),
+
+  // ── CRM: Nurturing Sequences ──
+  // Email sequences for non-customers (lead nurturing)
+  nurturingSequences: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    active: v.boolean(),
+    totalSteps: v.number(),
+    enrolledCount: v.number(),
+    completedCount: v.number(),
+    createdAt: v.number(),
+  }),
+
+  // ── CRM: Nurturing Steps ──
+  nurturingSteps: defineTable({
+    sequenceId: v.id("nurturingSequences"),
+    order: v.number(),
+    templateKey: v.string(), // references emailTemplates
+    delayDays: v.number(), // days after previous step
+    createdAt: v.number(),
+  })
+    .index("by_sequence", ["sequenceId", "order"]),
+
+  // ── CRM: Nurturing Enrollments ──
+  nurturingEnrollments: defineTable({
+    sequenceId: v.id("nurturingSequences"),
+    contactId: v.id("contacts"),
+    currentStep: v.number(), // 0-indexed
+    status: v.union(
+      v.literal("active"),
+      v.literal("completed"),
+      v.literal("cancelled"),
+    ),
+    cancelReason: v.optional(v.string()), // "purchased", "unsubscribed", "manual"
+    lastSentAt: v.optional(v.number()),
+    completedAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_sequence", ["sequenceId"])
+    .index("by_contact", ["contactId"])
+    .index("by_status", ["status"]),
+
+  // ── Checkout Products ──
+  // Single source of truth for all checkout product data
+  checkoutProducts: defineTable({
+    slug: v.string(),
+    active: v.boolean(),
+    sortOrder: v.number(),
+    name: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
+    shortName: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
+    description: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
+    type: v.union(v.literal("training"), v.literal("book")),
+    productType: v.union(
+      v.literal("training"),
+      v.literal("book"),
+      v.literal("event"),
+    ),
+    priceCents: v.number(),
+    priceInclBtw: v.boolean(),
+    btwRate: v.number(), // 9 or 21
+    features: v.object({
+      nl: v.array(v.string()),
+      en: v.array(v.string()),
+      de: v.optional(v.array(v.string())),
+    }),
+    image: v.optional(v.string()),
+    imageStorageId: v.optional(v.id("_storage")),
+    bumps: v.array(v.string()), // slugs of other products
+    bumpPriceOverrides: v.optional(
+      v.array(v.object({ bumpSlug: v.string(), priceCents: v.number() })),
+    ),
+    installments: v.optional(
+      v.object({ count: v.number(), amountPerTermCents: v.number() }),
+    ),
+    quantityTiers: v.optional(
+      v.array(
+        v.object({
+          quantity: v.number(),
+          unitPriceCents: v.number(),
+          savingsPercent: v.number(),
+        }),
+      ),
+    ),
+    requiresShipping: v.boolean(),
+    mockupType: v.optional(
+      v.union(v.literal("tablet"), v.literal("phone"), v.literal("audio")),
+    ),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_active", ["active", "sortOrder"])
+    .index("by_type", ["type"]),
+
+  // ── Checkout Reviews ──
+  // Editable testimonials for checkout pages
+  checkoutReviews: defineTable({
+    productType: v.union(v.literal("training"), v.literal("book")),
+    productSlug: v.optional(v.string()),
+    text: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
+    name: v.string(),
+    role: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
+    avatar: v.optional(v.string()), // Legacy — use avatarStorageId
+    avatarStorageId: v.optional(v.id("_storage")),
+    rating: v.number(), // 1-5
+    active: v.boolean(),
+    sortOrder: v.number(),
+  })
+    .index("by_product_type", ["productType", "sortOrder"])
+    .index("by_product_slug", ["productSlug"]),
+
+  // ── Experiments ──
+  // Checkout page A/B tests with conversion tracking
+  experiments: defineTable({
+    name: v.string(),
+    slug: v.string(),
+    product: v.string(), // product slug or "*" for all
+    status: v.union(
+      v.literal("draft"),
+      v.literal("running"),
+      v.literal("paused"),
+      v.literal("completed"),
+    ),
+    variantALabel: v.string(),
+    variantBLabel: v.string(),
+    weight: v.number(), // percentage for variant B (e.g. 50)
+    impressionsA: v.number(),
+    impressionsB: v.number(),
+    conversionsA: v.number(),
+    conversionsB: v.number(),
+    revenueA: v.number(), // cents
+    revenueB: v.number(), // cents
+    winner: v.optional(v.string()),
+    createdAt: v.number(),
+    startedAt: v.optional(v.number()),
+    completedAt: v.optional(v.number()),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_status", ["status"])
+    .index("by_product_status", ["product", "status"]),
+
+  // ── Training Platform ──
+
+  // Main training record (SET, CST)
+  trainings: defineTable({
+    slug: v.string(),
+    title: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
+    description: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
+    thumbnailStorageId: v.optional(v.id("_storage")),
+    certificateStorageId: v.optional(v.id("_storage")),
+    certificateFileName: v.optional(v.string()),
+    // Werkboek: downloadable PDF with metadata shown on training page
+    workbookStorageId: v.optional(v.id("_storage")),
+    workbookFileName: v.optional(v.string()),
+    workbookTitle: v.optional(v.string()),
+    workbookDescription: v.optional(v.string()),
+    workbookImageStorageId: v.optional(v.id("_storage")),
+    // Which checkout product slugs grant access to this training
+    linkedProducts: v.optional(v.array(v.string())),
+    active: v.boolean(),
+    sortOrder: v.number(),
+    createdAt: v.number(),
+  })
+    .index("by_slug", ["slug"])
+    .index("by_active", ["active", "sortOrder"]),
+
+  // Modules within a training (chapters and lessons)
+  // parentModuleId = undefined → chapter (e.g. "Module 7: Sales Strategy")
+  // parentModuleId = set → lesson/video within that chapter (e.g. "7.1: Introduction")
+  trainingModules: defineTable({
+    trainingId: v.id("trainings"),
+    parentModuleId: v.optional(v.id("trainingModules")),
+    slug: v.string(),
+    title: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
+    description: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
+    vimeoVideoId: v.optional(v.string()),
+    durationSeconds: v.optional(v.number()),
+    sortOrder: v.number(),
+    workbookStorageId: v.optional(v.id("_storage")),
+    workbookFileName: v.optional(v.string()),
+    discussionEnabled: v.boolean(),
+    quizRequired: v.boolean(),
+    active: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_training", ["trainingId", "sortOrder"])
+    .index("by_parent", ["parentModuleId", "sortOrder"])
+    .index("by_slug", ["slug"]),
+
+  // Quiz per module
+  quizzes: defineTable({
+    moduleId: v.id("trainingModules"),
+    passingScore: v.number(), // default 70
+    active: v.boolean(),
+    createdAt: v.number(),
+  }).index("by_module", ["moduleId"]),
+
+  // Questions within a quiz
+  quizQuestions: defineTable({
+    quizId: v.id("quizzes"),
+    sortOrder: v.number(),
+    type: v.union(
+      v.literal("multiple_choice"),
+      v.literal("multiple_select"),
+      v.literal("open"),
+      v.literal("scale"),
+    ),
+    question: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
+    options: v.optional(
+      v.array(
+        v.object({
+          text: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
+          correct: v.boolean(),
+        }),
+      ),
+    ),
+    scaleMin: v.optional(v.number()),
+    scaleMax: v.optional(v.number()),
+    scaleLabels: v.optional(v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) })),
+    createdAt: v.number(),
+  }).index("by_quiz", ["quizId", "sortOrder"]),
+
+  // Submitted quiz attempts
+  quizAttempts: defineTable({
+    userId: v.id("users"),
+    quizId: v.id("quizzes"),
+    moduleId: v.id("trainingModules"),
+    score: v.number(), // percentage 0-100
+    passed: v.boolean(),
+    answers: v.array(
+      v.object({
+        questionId: v.id("quizQuestions"),
+        answer: v.string(), // JSON-encoded answer
+        correct: v.optional(v.boolean()),
+      }),
+    ),
+    createdAt: v.number(),
+  })
+    .index("by_user_module", ["userId", "moduleId"])
+    .index("by_quiz", ["quizId"]),
+
+  // Per-user per-module progress
+  moduleProgress: defineTable({
+    userId: v.id("users"),
+    moduleId: v.id("trainingModules"),
+    trainingId: v.id("trainings"),
+    videoProgress: v.number(), // 0-100 percentage
+    videoPosition: v.number(), // seconds
+    quizPassed: v.boolean(),
+    completedAt: v.optional(v.number()),
+    lastAccessedAt: v.number(),
+  })
+    .index("by_user_training", ["userId", "trainingId"])
+    .index("by_module", ["moduleId"]),
+
+  // Video bookmarks/checkpoints
+  bookmarks: defineTable({
+    userId: v.id("users"),
+    moduleId: v.id("trainingModules"),
+    videoTimestamp: v.number(), // seconds
+    note: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index("by_user_module", ["userId", "moduleId"]),
+
+  // Discussion posts per module
+  discussions: defineTable({
+    moduleId: v.id("trainingModules"),
+    userId: v.id("users"),
+    userName: v.string(),
+    text: v.string(),
+    upvotes: v.number(),
+    isTrainer: v.boolean(),
+    parentId: v.optional(v.id("discussions")),
+    createdAt: v.number(),
+  })
+    .index("by_module", ["moduleId", "createdAt"])
+    .index("by_parent", ["parentId"]),
+
+  // Upvote tracking for discussions
+  discussionVotes: defineTable({
+    discussionId: v.id("discussions"),
+    userId: v.id("users"),
+    createdAt: v.number(),
+  })
+    .index("by_discussion", ["discussionId"])
+    .index("by_user_discussion", ["userId", "discussionId"]),
+
+  // ── Site Pages ──
+  // Page definitions with ordered section list
+  sitePages: defineTable({
+    slug: v.string(),
+    title: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
+    sections: v.array(
+      v.object({
+        id: v.string(),
+        type: v.string(),
+        active: v.boolean(),
+        sortOrder: v.number(),
+      }),
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_slug", ["slug"]),
+
+  // ── Site Content ──
+  // Content per section, editable in admin
+  siteContent: defineTable({
+    pageSlug: v.string(),
+    sectionId: v.string(),
+    schema: v.string(), // JSON schema definition
+    content: v.string(), // JSON content data
+    lang: langValidator,
+    updatedAt: v.number(),
+  })
+    .index("by_page_section", ["pageSlug", "sectionId", "lang"])
+    .index("by_page", ["pageSlug"]),
+
+  // ── Layout Editor ──
+  // Sessions for AI-powered layout editing
+  layoutSessions: defineTable({
+    status: v.union(
+      v.literal("locked"),
+      v.literal("building"),
+      v.literal("preview"),
+      v.literal("approved"),
+      v.literal("rejected"),
+      v.literal("failed"),
+    ),
+    userId: v.id("users"),
+    userEmail: v.string(),
+    targetPage: v.string(),
+    branchName: v.string(),
+    prNumber: v.optional(v.number()),
+    previewUrl: v.optional(v.string()),
+    messages: v.array(
+      v.object({
+        role: v.union(v.literal("user"), v.literal("assistant"), v.literal("system")),
+        text: v.string(),
+        createdAt: v.number(),
+      }),
+    ),
+    errorMessage: v.optional(v.string()),
+    lastActivityAt: v.number(),
+    createdAt: v.number(),
+    completedAt: v.optional(v.number()),
+  })
+    .index("by_status", ["status"])
+    .index("by_user", ["userId"]),
+
+  // Layout editor config (single row)
+  layoutConfig: defineTable({
+    key: v.string(),
+    allowedEmails: v.array(v.string()),
+    sessionTimeoutMinutes: v.number(),
+  })
+    .index("by_key", ["key"]),
+
+  // AI email editor sessions
+  emailEditorSessions: defineTable({
+    status: v.string(), // "pending" | "generating" | "completed" | "failed"
+    mode: v.string(), // "new" | "edit"
+    lang: v.string(), // "nl" | "en"
+    prompt: v.string(),
+    imageUrls: v.array(v.string()),
+    existingHtml: v.optional(v.string()),
+    generatedHtml: v.optional(v.string()),
+    errorMessage: v.optional(v.string()),
+    templateId: v.optional(v.id("emailTemplates")),
+    createdAt: v.number(),
+  }),
 });

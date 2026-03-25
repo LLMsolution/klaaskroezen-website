@@ -1,13 +1,7 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { auth } from "./auth";
-
-// Admin email addresses — Klaas and team
-const ADMIN_EMAILS = [
-  "klaas@klaaskroezen.com",
-  "timlind18@icloud.com",
-  "yvon@yvonkruger.nl",
-];
+import { isAdminEmail } from "./adminAuth";
 
 /**
  * Get the currently authenticated user with their email.
@@ -32,7 +26,7 @@ export const getCurrentUser = query({
     );
 
     const email = emailAccount?.providerAccountId ?? user.email ?? "";
-    const isAdmin = ADMIN_EMAILS.includes(email.toLowerCase());
+    const isAdmin = await isAdminEmail(ctx, email);
 
     return {
       _id: user._id,

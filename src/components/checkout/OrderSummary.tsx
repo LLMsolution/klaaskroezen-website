@@ -1,65 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { formatPrice, getProduct, type CheckoutProduct } from "@/lib/checkout-config";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
+import { formatPrice, type CheckoutProduct } from "@/lib/checkout-config";
 import { t, type Lang } from "@/lib/checkout-i18n";
-
-interface Review {
-  text: { nl: string; en: string };
-  name: string;
-  role: { nl: string; en: string };
-  avatar?: string;
-}
-
-const TRAINING_REVIEWS: Review[] = [
-  {
-    text: {
-      nl: "Direct meer resultaat. Klaas heeft ons salesteam fundamenteel veranderd — niet met trucjes maar met een aanpak die écht werkt en blijft hangen.",
-      en: "Immediate results. Klaas fundamentally changed our sales team — not with tricks but with an approach that truly works and sticks.",
-    },
-    name: "Simon Kornblum",
-    role: { nl: "Directeur Visma YouServe", en: "Director Visma YouServe" },
-    avatar: "/images/reviews/simon-kornblum.jpg",
-  },
-  {
-    text: {
-      nl: "Van 10 leads werden 1 tot 2 klant. Nu zijn dat er 7 tot 8. Niet door harder te pushen, maar door oprecht geïnteresseerd te zijn.",
-      en: "Out of 10 leads, 1 or 2 became clients. Now it's 7 or 8. Not by pushing harder, but by being genuinely interested.",
-    },
-    name: "Max de Weijer",
-    role: { nl: "Ondernemer", en: "Entrepreneur" },
-  },
-  {
-    text: {
-      nl: "Klaas laat zien dat verkopen niet gaat over trucjes maar over écht contact maken. Een aanpak die werkt — ook als je jezelf geen verkoper vindt.",
-      en: "Klaas shows that selling isn't about tricks but about making real connections. An approach that works — even if you don't see yourself as a salesperson.",
-    },
-    name: "Mark Tigchelaar",
-    role: { nl: "Psycholoog · Focus AAN/UIT", en: "Psychologist · Focus ON/OFF" },
-    avatar: "/images/reviews/mark-tigchelaar.jpeg",
-  },
-];
-
-const BOOK_REVIEWS: Review[] = [
-  {
-    text: {
-      nl: "Een verfrissend boek dat laat zien dat je geen typische verkoper hoeft te zijn om succesvol te verkopen.",
-      en: "A refreshing book that shows you don't need to be a typical salesperson to sell successfully.",
-    },
-    name: "Michael Pilarczyk",
-    role: { nl: "Bestsellerauteur · Ondernemer", en: "Bestselling author · Entrepreneur" },
-    avatar: "/images/reviews/michael-pilarczyk.jpeg",
-  },
-  {
-    text: {
-      nl: "Dit boek verandert hoe je naar sales kijkt. Oprecht, praktisch en direct toepasbaar.",
-      en: "This book changes how you look at sales. Honest, practical and immediately applicable.",
-    },
-    name: "Tijn Touber",
-    role: { nl: "Auteur · Spreker", en: "Author · Speaker" },
-    avatar: "/images/reviews/tijn-touber.jpg",
-  },
-];
 
 function InitialsAvatar({ name }: { name: string }) {
   const initials = name
@@ -74,47 +19,49 @@ function InitialsAvatar({ name }: { name: string }) {
   );
 }
 
-interface Props {
+interface SummaryProps {
   product: CheckoutProduct;
   lang: Lang;
-  selectedBumps: string[];
-  totals: {
-    productNet: number;
-    productGross: number;
-    totalGross: number;
-    btwReversed: boolean;
-    noBtw: boolean;
-  };
 }
 
-export function OrderSummary({ product, lang, selectedBumps }: Props) {
+export function OrderSummary({ product, lang }: SummaryProps) {
   const i18n = t(lang);
-  const reviews = product.type === "book" ? BOOK_REVIEWS : TRAINING_REVIEWS;
 
   return (
-    <div className="lg:sticky lg:top-8 space-y-8">
-      {/* Product card */}
+    <div className="space-y-8">
       <div>
         <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-4">
           {i18n.orderSummary}
         </p>
 
         <div className="border border-rule rounded-[2px] overflow-hidden">
-          {/* Product image */}
           {product.image && (
-            <div className="relative aspect-[16/9] bg-warm">
-              <Image
-                src={product.image}
-                alt={product.name[lang]}
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 420px"
-                priority
-              />
-            </div>
+            product.type === "book" ? (
+              <div className="bg-warm p-8 flex items-center justify-center">
+                <Image
+                  src={product.image}
+                  alt={product.name[lang]}
+                  width={200}
+                  height={280}
+                  className="object-contain drop-shadow-xl"
+                  sizes="200px"
+                  priority
+                />
+              </div>
+            ) : (
+              <div className="relative aspect-[16/9] bg-warm">
+                <Image
+                  src={product.image}
+                  alt={product.name[lang]}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 420px"
+                  priority
+                />
+              </div>
+            )
           )}
 
-          {/* Product header */}
           <div className="p-6 border-b border-rule">
             <h2 className="font-display text-[20px] font-bold leading-[1.2] mb-2">
               {product.name[lang]}
@@ -124,7 +71,7 @@ export function OrderSummary({ product, lang, selectedBumps }: Props) {
             </p>
             <div className="mt-4 flex items-baseline gap-2">
               <span className="font-display text-[28px] font-bold text-ink">
-                {formatPrice(product.price, lang)}
+                {formatPrice(product.priceCents, lang)}
               </span>
               <span className="text-[12px] text-ink/40">
                 {product.priceInclBtw ? i18n.inclBtw : i18n.exBtw}
@@ -132,12 +79,11 @@ export function OrderSummary({ product, lang, selectedBumps }: Props) {
             </div>
           </div>
 
-          {/* Features */}
           <div className="p-6">
             <ul className="space-y-2.5">
               {product.features[lang].map((feature) => (
                 <li key={feature} className="flex items-start gap-2.5 text-[14px] text-ink/70">
-                  <span className="text-copper mt-0.5 shrink-0">✓</span>
+                  <span className="text-copper mt-0.5 shrink-0">&#10003;</span>
                   {feature}
                 </li>
               ))}
@@ -145,68 +91,83 @@ export function OrderSummary({ product, lang, selectedBumps }: Props) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Selected bumps */}
-      {selectedBumps.length > 0 && (
-        <div className="space-y-2">
-          {selectedBumps.map((slug) => {
-            const bump = getProduct(slug);
-            if (!bump) return null;
-            return (
-              <div
-                key={slug}
-                className="flex items-center justify-between py-2 text-[13px] text-ink/60"
-              >
-                <span>+ {bump.shortName[lang]}</span>
-                <span>{formatPrice(bump.price, lang)}</span>
+interface ReviewsProps {
+  productType: "training" | "book";
+  productSlug: string;
+  lang: Lang;
+}
+
+export function CheckoutReviews({ productType, productSlug, lang }: ReviewsProps) {
+  const reviews = useQuery(api.checkoutReviews.listForProduct, {
+    productType,
+    productSlug,
+  });
+
+  return (
+    <div className="space-y-8">
+      {/* Video testimonial */}
+      <div className="border border-rule rounded-[2px] overflow-hidden">
+        <div className="relative aspect-video">
+          <iframe
+            src="https://www.youtube.com/embed/F6io8l_VYww"
+            title={{ nl: "Klaas Kroezen — Boeklancering", en: "Klaas Kroezen — Book launch", de: "Klaas Kroezen — Buchvorstellung" }[lang]}
+            className="absolute inset-0 w-full h-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            loading="lazy"
+          />
+        </div>
+        <p className="px-4 py-2.5 text-[11px] text-ink/40">
+          {{ nl: "Klaas over zijn aanpak — 3 min", en: "Klaas on his approach — 3 min", de: "Klaas über seinen Ansatz — 3 Min." }[lang]}
+        </p>
+      </div>
+
+      {reviews && reviews.length > 0 && (
+        <div className="space-y-4">
+          <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper">
+            {{ nl: "Wat anderen zeggen", en: "What others say", de: "Was andere sagen" }[lang]}
+          </p>
+          {reviews.map((review) => (
+            <div key={review._id} className="border border-rule rounded-[2px] p-5">
+              <div className="flex gap-1 text-copper text-[10px] mb-3">
+                {"★".repeat(review.rating).split("").map((star, i) => (
+                  <span key={i}>{star}</span>
+                ))}
               </div>
-            );
-          })}
+              <blockquote className="text-[14px] text-ink/70 leading-[1.7] italic mb-4">
+                &ldquo;{review.text[lang]}&rdquo;
+              </blockquote>
+              <footer className="flex items-center gap-2.5">
+                {review.avatar ? (
+                  <Image
+                    src={review.avatar}
+                    alt=""
+                    width={32}
+                    height={32}
+                    className="w-8 h-8 rounded-full object-cover bg-warm shrink-0"
+                    loading="lazy"
+                  />
+                ) : (
+                  <InitialsAvatar name={review.name} />
+                )}
+                <div>
+                  <cite className="text-[13px] font-medium not-italic text-ink block">
+                    {review.name}
+                  </cite>
+                  <span className="text-[11px] text-ink/40">
+                    {review.role[lang]}
+                  </span>
+                </div>
+              </footer>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Reviews */}
-      <div className="space-y-4">
-        <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper">
-          {lang === "nl" ? "Wat anderen zeggen" : "What others say"}
-        </p>
-        {reviews.map((review) => (
-          <div key={review.name} className="border border-rule rounded-[2px] p-5">
-            <div className="flex gap-1 text-copper text-[10px] mb-3">
-              {"★★★★★".split("").map((star, i) => (
-                <span key={i}>{star}</span>
-              ))}
-            </div>
-            <blockquote className="text-[14px] text-ink/70 leading-[1.7] italic mb-4">
-              &ldquo;{review.text[lang]}&rdquo;
-            </blockquote>
-            <footer className="flex items-center gap-2.5">
-              {review.avatar ? (
-                <Image
-                  src={review.avatar}
-                  alt=""
-                  width={32}
-                  height={32}
-                  className="w-8 h-8 rounded-full object-cover bg-warm shrink-0"
-                  loading="lazy"
-                />
-              ) : (
-                <InitialsAvatar name={review.name} />
-              )}
-              <div>
-                <cite className="text-[13px] font-medium not-italic text-ink block">
-                  {review.name}
-                </cite>
-                <span className="text-[11px] text-ink/40">
-                  {review.role[lang]}
-                </span>
-              </div>
-            </footer>
-          </div>
-        ))}
-      </div>
-
-      {/* Rating badge */}
       <div className="flex items-center justify-center gap-3 py-4 border border-rule rounded-[2px] bg-warm/30">
         <span className="font-display text-[24px] font-bold text-copper">9.1</span>
         <div>
@@ -216,25 +177,19 @@ export function OrderSummary({ product, lang, selectedBumps }: Props) {
             ))}
           </div>
           <p className="text-[11px] text-ink/40 mt-0.5">
-            {lang === "nl"
-              ? "Gemiddelde beoordeling"
-              : "Average rating"}
+            {{ nl: "Gemiddelde beoordeling", en: "Average rating", de: "Durchschnittsbewertung" }[lang]}
           </p>
         </div>
       </div>
 
-      {/* Social proof line */}
       <p className="text-[13px] text-ink/40 text-center">
-        {lang === "nl"
-          ? "340+ sales professionals getraind in 21 landen"
-          : "340+ sales professionals trained across 21 countries"}
+        {{ nl: "340+ sales professionals getraind in 21 landen", en: "340+ sales professionals trained across 21 countries", de: "340+ Vertriebsprofis in 21 Ländern geschult" }[lang]}
       </p>
 
-      {/* Client logos — trust strip */}
-      {product.type === "training" && (
+      {productType === "training" && (
         <div>
           <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/30 text-center mb-4">
-            {lang === "nl" ? "Vertrouwd door" : "Trusted by"}
+            {{ nl: "Vertrouwd door", en: "Trusted by", de: "Vertraut von" }[lang]}
           </p>
           <div className="flex items-center justify-center gap-6 flex-wrap opacity-40 grayscale">
             {[

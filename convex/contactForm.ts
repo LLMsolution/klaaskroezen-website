@@ -2,7 +2,10 @@ import { v } from "convex/values";
 import { mutation, internalMutation, internalQuery, internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { rateLimiter } from "./rateLimits";
-import { contactNotification, contactConfirmationNl } from "./emailTemplates";
+import { contactNotification, contactConfirmationNl, TEMPLATE_OPTIONS } from "./emailTemplates";
+import { layout } from "./emailHelpers";
+
+const FROM = "Klaas Kroezen <info@llmsolution.nl>";
 
 // Store the contact form submission
 export const submit = mutation({
@@ -37,11 +40,16 @@ export const submit = mutation({
       submissionId: id,
     });
 
+    // CRM: create/update contact + log activity + score
+    await ctx.scheduler.runAfter(0, internal.contactForm.crmHook, {
+      submissionId: id,
+    });
+
     return id;
   },
 });
 
-// Send notification email via Resend (internal action)
+// Send notification + confirmation emails via the shared sendEmail pipeline (with tracking)
 export const sendNotification = internalAction({
   args: { submissionId: v.id("contactSubmissions") },
   handler: async (ctx, { submissionId }) => {
@@ -51,53 +59,28 @@ export const sendNotification = internalAction({
     );
     if (!submission) return;
 
-    const resendKey = process.env.RESEND_API_KEY;
-    if (!resendKey) {
-      console.error("RESEND_API_KEY not set");
-      return;
-    }
-
     try {
-      const res = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: "Klaas Kroezen Website <info@llmsolution.nl>",
-          to: ["info@llmsolution.nl"],
-          reply_to: submission.email,
-          subject: `Contactformulier: ${submission.subject}`,
-          html: contactNotification(submission.name, submission.email, submission.phone, submission.company, submission.subject, submission.message),
-        }),
+      // 1. Send admin notification (logged under customer email for tracking)
+      await ctx.runAction(internal.emails.sendEmail, {
+        to: "info@llmsolution.nl",
+        subject: `Contactformulier: ${submission.subject}`,
+        html: layout(contactNotification(submission.name, submission.email, submission.phone, submission.company, submission.subject, submission.message), TEMPLATE_OPTIONS["contact-notification"]),
+        template: "contact-notification",
+        replyTo: submission.email,
       });
-
-      const data = await res.json();
 
       await ctx.runMutation(internal.contactForm.markEmailSent, {
         submissionId,
-        success: res.ok,
-        resendId: data.id,
-        error: res.ok ? undefined : JSON.stringify(data),
+        success: true,
       });
 
-      // Send confirmation to the user
-      if (res.ok) {
-        await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${resendKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            from: "Klaas Kroezen <info@llmsolution.nl>",
-            to: [submission.email],
-            subject: "Bedankt voor je bericht — Klaas Kroezen",
-            html: contactConfirmationNl(submission.name, submission.subject, submission.message),
-          }),
-        });
-      }
+      // 2. Send confirmation to customer (tracked + logged under their email)
+      await ctx.runAction(internal.emails.sendEmail, {
+        to: submission.email,
+        subject: "Bedankt voor je bericht — Klaas Kroezen",
+        html: layout(contactConfirmationNl(submission.name, submission.subject, submission.message), TEMPLATE_OPTIONS["contact-confirmation-nl"]),
+        template: "contact-confirmation",
+      });
     } catch (error) {
       await ctx.runMutation(internal.contactForm.markEmailSent, {
         submissionId,
@@ -116,29 +99,107 @@ export const getSubmission = internalQuery({
   },
 });
 
-// Internal mutation to mark email as sent
+// Internal mutation to mark email as sent on contactSubmissions record
 export const markEmailSent = internalMutation({
   args: {
     submissionId: v.id("contactSubmissions"),
     success: v.boolean(),
-    resendId: v.optional(v.string()),
     error: v.optional(v.string()),
   },
-  handler: async (ctx, { submissionId, success, resendId, error }) => {
+  handler: async (ctx, { submissionId, success }) => {
     await ctx.db.patch(submissionId, { emailSent: success });
+  },
+});
 
-    // Log the email
-    const submission = await ctx.db.get(submissionId);
-    if (submission) {
-      await ctx.db.insert("emailLog", {
-        to: "info@llmsolution.nl",
-        subject: `Contactformulier: ${submission.subject}`,
-        template: "contact-form",
-        status: success ? "sent" : "failed",
-        resendId,
-        error,
-        createdAt: Date.now(),
+// CRM hook: create contact, score, activity, and optionally a lead
+export const crmHook = internalMutation({
+  args: { submissionId: v.id("contactSubmissions") },
+  handler: async (ctx, { submissionId }) => {
+    const sub = await ctx.db.get(submissionId);
+    if (!sub) return;
+
+    const email = sub.email.toLowerCase().trim();
+    const nameParts = sub.name.split(" ");
+    const firstName = nameParts[0] ?? sub.name;
+    const lastName = nameParts.slice(1).join(" ") || undefined;
+    const now = Date.now();
+
+    // Find or create contact
+    let contact = await ctx.db
+      .query("contacts")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+
+    if (contact) {
+      await ctx.db.patch(contact._id, {
+        lastActivityAt: now,
+        intentScore: contact.intentScore + 10,
+        ...(sub.phone && !contact.phone ? { phone: sub.phone } : {}),
+        ...(sub.company && !contact.company ? { company: sub.company } : {}),
+        ...(!contact.lastName && lastName ? { lastName } : {}),
       });
+    } else {
+      const contactId = await ctx.db.insert("contacts", {
+        email,
+        firstName,
+        lastName,
+        phone: sub.phone,
+        company: sub.company,
+        engagementScore: 0,
+        intentScore: 10,
+        lastActivityAt: now,
+        source: "contact_form",
+        sourceDetail: sub.subject,
+        tags: [],
+        unsubscribed: false,
+        lang: "nl",
+        createdAt: now,
+      });
+      contact = await ctx.db.get(contactId);
     }
+
+    if (!contact) return;
+
+    // Log activity
+    await ctx.db.insert("leadActivities", {
+      contactId: contact._id,
+      type: "contact_form",
+      title: `Contactformulier: ${sub.subject}`,
+      description: sub.message.slice(0, 200),
+      createdAt: now,
+    });
+
+    // Auto-create lead if company is provided
+    if (sub.company) {
+      const defaultStage = await ctx.db
+        .query("pipelineStages")
+        .filter((q) => q.eq(q.field("isDefault"), true))
+        .first();
+      if (defaultStage) {
+        const leadId = await ctx.db.insert("leads", {
+          contactId: contact._id,
+          stageId: defaultStage._id,
+          title: `${sub.company} — ${sub.subject}`,
+          probability: defaultStage.defaultProbability,
+          source: "contact_form",
+          status: "open",
+          createdAt: now,
+        });
+        await ctx.db.insert("leadActivities", {
+          leadId,
+          contactId: contact._id,
+          type: "lead_created",
+          title: `Lead automatisch aangemaakt via contactformulier`,
+          createdAt: now,
+        });
+      }
+    }
+
+    // Evaluate automation rules for contact form submission
+    await ctx.scheduler.runAfter(0, internal.crmAutomation.evaluateRules, {
+      trigger: "contact_form",
+      contactId: contact._id,
+      metadata: JSON.stringify({ subject: sub.subject }),
+    });
   },
 });

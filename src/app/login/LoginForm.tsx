@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { t, type Lang } from "@/lib/i18n";
 
-type Mode = "login" | "signup" | "magic-link" | "forgot";
+type Mode = "login" | "signup" | "magic-link" | "forgot" | "reset-verify";
 
 interface Props {
   lang: Lang;
@@ -17,6 +17,8 @@ export function LoginForm({ lang }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [resetCode, setResetCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [magicLinkSent, setMagicLinkSent] = useState(false);
@@ -30,11 +32,11 @@ export function LoginForm({ lang }: Props) {
   const btnOAuth =
     "flex items-center justify-center gap-3 w-full border border-rule py-3.5 text-[13px] font-medium tracking-[0.06em] text-ink/80 hover:border-ink/30 hover:text-ink transition-colors rounded-[2px] cursor-pointer";
 
-  async function handleOAuth(provider: "google" | "apple") {
+  async function handleGoogleLogin() {
     setError("");
     setLoading(true);
     try {
-      await signIn(provider);
+      await signIn("google");
     } catch {
       setError(s.errorGeneric);
     } finally {
@@ -65,7 +67,7 @@ export function LoginForm({ lang }: Props) {
         await signIn("password", { email, password, name, flow: "signUp" });
       } else if (mode === "forgot") {
         await signIn("password", { email, flow: "reset" });
-        setMagicLinkSent(true);
+        setMode("reset-verify");
       } else {
         await signIn("password", { email, password, flow: "signIn" });
       }
@@ -77,6 +79,24 @@ export function LoginForm({ lang }: Props) {
             ? s.errorForgot
             : s.errorLogin,
       );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResetVerify(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      await signIn("password", {
+        email,
+        code: resetCode,
+        newPassword,
+        flow: "reset-verification",
+      });
+    } catch {
+      setError(s.errorResetVerify);
     } finally {
       setLoading(false);
     }
@@ -105,13 +125,77 @@ export function LoginForm({ lang }: Props) {
     );
   }
 
+  // Reset verification: enter code + new password
+  if (mode === "reset-verify") {
+    return (
+      <div className="space-y-6">
+        <div className="text-center space-y-2">
+          <h2 className="font-display text-[22px] font-bold">
+            {s.checkInbox}
+          </h2>
+          <p className="text-[15px] text-ink/60 leading-[1.7]">
+            {s.resetCodeSent} <strong>{email}</strong>
+          </p>
+        </div>
+
+        <form onSubmit={handleResetVerify} className="space-y-4">
+          <div>
+            <label htmlFor="reset-code" className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2">
+              {s.resetCodeLabel}
+            </label>
+            <input
+              id="reset-code"
+              type="text"
+              required
+              placeholder={s.resetCodePlaceholder}
+              value={resetCode}
+              onChange={(e) => setResetCode(e.target.value)}
+              className={inputClass}
+              autoFocus
+            />
+          </div>
+          <div>
+            <label htmlFor="new-password" className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2">
+              {s.newPasswordLabel}
+            </label>
+            <input
+              id="new-password"
+              type="password"
+              required
+              placeholder="••••••••"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className={inputClass}
+              minLength={8}
+            />
+          </div>
+          <button type="submit" disabled={loading} className={btnPrimary}>
+            {loading ? s.loading : s.resetPasswordCta}
+          </button>
+        </form>
+
+        {error && (
+          <p className="text-[13px] text-red-600 text-center">{error}</p>
+        )}
+
+        <button
+          type="button"
+          onClick={() => { setMode("login"); setResetCode(""); setNewPassword(""); setError(""); }}
+          className="block w-full text-[13px] text-ink/50 hover:text-ink transition-colors cursor-pointer text-center"
+        >
+          {s.backToLogin}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* OAuth buttons */}
       <div className="space-y-3">
         <button
           type="button"
-          onClick={() => handleOAuth("google")}
+          onClick={handleGoogleLogin}
           disabled={loading}
           className={btnOAuth}
         >

@@ -5,6 +5,7 @@ import {
   query,
 } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { langValidator } from "./schema";
 
 /**
  * Create an invoice after successful payment.
@@ -44,7 +45,7 @@ export const createInvoice = internalMutation({
 
     btwReversed: v.boolean(),
     noBtw: v.boolean(),
-    lang: v.union(v.literal("nl"), v.literal("en")),
+    lang: langValidator,
   },
   handler: async (ctx, args) => {
     // Generate sequential invoice number

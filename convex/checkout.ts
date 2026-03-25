@@ -3,10 +3,11 @@ import {
   mutation,
   query,
   internalMutation,
-  internalQuery,
 } from "./_generated/server";
 import { internal } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
 import { rateLimiter } from "./rateLimits";
+import { langValidator } from "./schema";
 
 /** Create a pending order when the user completes step 1 of checkout */
 export const createPendingOrder = mutation({
@@ -14,15 +15,24 @@ export const createPendingOrder = mutation({
     email: v.string(),
     firstName: v.string(),
     lastName: v.string(),
+    phone: v.optional(v.string()),
     product: v.string(),
     country: v.string(),
-    lang: v.union(v.literal("nl"), v.literal("en")),
+    lang: langValidator,
     isBusiness: v.boolean(),
     company: v.optional(v.string()),
     vatNumber: v.optional(v.string()),
+    street: v.optional(v.string()),
+    houseNumber: v.optional(v.string()),
+    postalCode: v.optional(v.string()),
+    city: v.optional(v.string()),
+    quantity: v.optional(v.number()),
+    mailingOptIn: v.optional(v.boolean()),
     bumps: v.array(v.string()),
     discountCode: v.optional(v.string()),
     installments: v.boolean(),
+    experimentSlug: v.optional(v.string()),
+    experimentVariant: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     // Rate limit by email
@@ -50,14 +60,23 @@ export const createPendingOrder = mutation({
       await ctx.db.patch(existing._id, {
         firstName: args.firstName,
         lastName: args.lastName,
+        phone: args.phone,
         country: args.country,
         lang: args.lang,
         isBusiness: args.isBusiness,
         company: args.company,
         vatNumber: args.vatNumber,
+        street: args.street,
+        houseNumber: args.houseNumber,
+        postalCode: args.postalCode,
+        city: args.city,
+        quantity: args.quantity,
+        mailingOptIn: args.mailingOptIn,
         bumps: args.bumps,
         discountCode: args.discountCode,
         installments: args.installments,
+        experimentSlug: args.experimentSlug,
+        experimentVariant: args.experimentVariant,
       });
       return existing._id;
     }
@@ -74,12 +93,30 @@ export const createPendingOrder = mutation({
       createdAt: Date.now(),
     });
 
-    // Schedule abandoned cart reminder after 30 minutes
+    // Track A/B test impression
+    if (args.experimentSlug && args.experimentVariant) {
+      await ctx.scheduler.runAfter(0, internal.abtest.recordImpression, {
+        slug: args.experimentSlug,
+        variant: args.experimentVariant,
+      });
+    }
+
+    // Schedule abandoned cart reminder (timing from admin settings)
+    const settings = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+    const firstDelayMs = (settings?.abandonedCartDelayMinutes ?? 30) * 60 * 1000;
     await ctx.scheduler.runAfter(
-      30 * 60 * 1000,
+      firstDelayMs,
       internal.checkout.checkAbandoned,
       { orderId: id },
     );
+
+    // CRM: create/update contact + log checkout started + score
+    await ctx.scheduler.runAfter(0, internal.crmHooks.checkoutStarted, {
+      orderId: id,
+    });
 
     return id;
   },
@@ -101,63 +138,142 @@ export const markConverted = internalMutation({
   },
 });
 
-/** Check if a pending order was abandoned and send reminder */
+/** Check if a pending order was abandoned and send escalating reminder */
 export const checkAbandoned = internalMutation({
   args: { orderId: v.id("pendingOrders") },
   handler: async (ctx, { orderId }) => {
     const order = await ctx.db.get(orderId);
     if (!order || order.convertedAt) return;
 
-    if (order.remindersSent >= 3) {
-      // Max reminders reached, mark as abandoned
+    const step = order.remindersSent;
+
+    // Escalation steps: 0=30min, 1=24h, 2=72h, 3=7d
+    if (step >= 4) {
       await ctx.db.patch(orderId, { abandonedAt: Date.now() });
       return;
     }
 
-    // Schedule email sending
-    await ctx.scheduler.runAfter(
-      0,
-      internal.checkout.sendAbandonedCartEmail,
-      { orderId },
-    );
+    // Step 3: auto-generate 10% discount code for final push
+    let autoDiscountCode: string | undefined;
+    if (step === 3) {
+      const code = `COMEBACK-${orderId.slice(-6).toUpperCase()}`;
+      const existing = await ctx.db
+        .query("discountCodes")
+        .withIndex("by_code", (q) => q.eq("code", code))
+        .first();
+      if (!existing) {
+        await ctx.db.insert("discountCodes", {
+          code,
+          type: "percentage",
+          value: 10,
+          validUntil: Date.now() + 14 * 24 * 60 * 60 * 1000, // 14 days
+          maxUses: 1,
+          currentUses: 0,
+          products: [order.product],
+        });
+      }
+      autoDiscountCode = code;
+    }
 
-    // Update reminder count
-    await ctx.db.patch(orderId, {
-      remindersSent: order.remindersSent + 1,
+    // Actually send email via Resend (fixes the bug where emails were only queued)
+    await ctx.scheduler.runAfter(0, internal.emails.sendAbandonedCartReminder, {
+      orderId,
+      step,
+      discountCode: autoDiscountCode,
     });
 
-    // Schedule next check based on reminder number
-    const delays = [
-      24 * 60 * 60 * 1000, // 24 hours after first
-      48 * 60 * 60 * 1000, // 48 hours after second
-    ];
-    const nextDelay = delays[order.remindersSent];
+    // CRM: log abandoned cart activity (only on first reminder)
+    if (step === 0) {
+      await ctx.scheduler.runAfter(0, internal.crmHooks.checkoutAbandoned, { orderId });
+    }
+
+    // Update reminder count
+    await ctx.db.patch(orderId, { remindersSent: step + 1 });
+
+    // Schedule next escalation (timing from admin settings)
+    const settings = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+    const escalationHours = settings?.escalationDelayHours ?? [24, 48, 96];
+    const nextDelay = step < escalationHours.length
+      ? escalationHours[step] * 60 * 60 * 1000
+      : undefined;
     if (nextDelay) {
-      await ctx.scheduler.runAfter(nextDelay, internal.checkout.checkAbandoned, {
-        orderId,
-      });
+      await ctx.scheduler.runAfter(nextDelay, internal.checkout.checkAbandoned, { orderId });
     }
   },
 });
 
-/** Internal: send abandoned cart email (placeholder — needs Resend integration) */
-export const sendAbandonedCartEmail = internalMutation({
-  args: { orderId: v.id("pendingOrders") },
+/** Get pending order by ID for magic link recovery */
+export const getPendingOrderForRecovery = query({
+  args: { orderId: v.string() },
   handler: async (ctx, { orderId }) => {
-    const order = await ctx.db.get(orderId);
-    if (!order) return;
+    try {
+      const order = await ctx.db.get(orderId as Id<"pendingOrders">);
+      if (!order || order.convertedAt) return null;
+      return {
+        firstName: order.firstName,
+        lastName: order.lastName,
+        email: order.email,
+        phone: order.phone,
+        product: order.product,
+        country: order.country,
+        isBusiness: order.isBusiness,
+        company: order.company,
+        vatNumber: order.vatNumber,
+        street: order.street,
+        houseNumber: order.houseNumber,
+        postalCode: order.postalCode,
+        city: order.city,
+        bumps: order.bumps,
+        quantity: order.quantity,
+        discountCode: order.discountCode,
+        installments: order.installments,
+        lang: order.lang,
+      };
+    } catch {
+      return null;
+    }
+  },
+});
 
-    // Log the email attempt (actual sending via Resend action)
-    await ctx.db.insert("emailLog", {
-      to: order.email,
-      subject:
-        order.lang === "nl"
-          ? "Je was bijna klaar — rond je bestelling af"
-          : "You were almost done — complete your order",
-      template: "abandoned-cart",
-      status: "queued",
-      createdAt: Date.now(),
-    });
+/** Look up latest pending order by email for returning visitor recognition */
+export const getPendingOrderByEmail = query({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const orders = await ctx.db
+      .query("pendingOrders")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .collect();
+
+    const unconverted = orders
+      .filter((o) => !o.convertedAt)
+      .sort((a, b) => b.createdAt - a.createdAt);
+
+    if (unconverted.length === 0) return null;
+    const order = unconverted[0];
+
+    return {
+      firstName: order.firstName,
+      lastName: order.lastName,
+      email: order.email,
+      phone: order.phone,
+      product: order.product,
+      country: order.country,
+      isBusiness: order.isBusiness,
+      company: order.company,
+      vatNumber: order.vatNumber,
+      street: order.street,
+      houseNumber: order.houseNumber,
+      postalCode: order.postalCode,
+      city: order.city,
+      bumps: order.bumps,
+      quantity: order.quantity,
+      discountCode: order.discountCode,
+      installments: order.installments,
+      lang: order.lang,
+    };
   },
 });
 
@@ -256,3 +372,50 @@ export const getPurchaseCount = query({
     return purchases.filter((p) => p.productType === productType).length;
   },
 });
+
+/** Create an upsell order using stored customer data from previous purchase */
+export const createUpsellOrder = mutation({
+  args: {
+    email: v.string(),
+    product: v.string(),
+    lang: langValidator,
+  },
+  handler: async (ctx, { email, product, lang }) => {
+    // Find most recent converted order for this email
+    const orders = await ctx.db
+      .query("pendingOrders")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .collect();
+
+    const lastOrder = orders
+      .filter((o) => o.convertedAt !== undefined)
+      .sort((a, b) => (b.convertedAt ?? 0) - (a.convertedAt ?? 0))[0];
+
+    if (!lastOrder) throw new Error("Geen eerdere bestelling gevonden.");
+
+    // Create new pending order with same customer data
+    const id = await ctx.db.insert("pendingOrders", {
+      email: lastOrder.email,
+      firstName: lastOrder.firstName,
+      lastName: lastOrder.lastName,
+      phone: lastOrder.phone,
+      product,
+      country: lastOrder.country,
+      lang,
+      isBusiness: lastOrder.isBusiness,
+      company: lastOrder.company,
+      vatNumber: lastOrder.vatNumber,
+      street: lastOrder.street,
+      houseNumber: lastOrder.houseNumber,
+      postalCode: lastOrder.postalCode,
+      city: lastOrder.city,
+      bumps: [],
+      installments: false,
+      remindersSent: 0,
+      createdAt: Date.now(),
+    });
+
+    return id;
+  },
+});
+

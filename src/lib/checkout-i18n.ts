@@ -1,4 +1,4 @@
-export type Lang = "nl" | "en";
+export type Lang = "nl" | "en" | "de";
 
 const translations = {
   nl: {
@@ -7,7 +7,7 @@ const translations = {
     step2: "Stap 2",
     yourDetails: "Jouw gegevens",
     payment: "Betaling",
-    almostThere: "Je bent er bijna",
+    almostThere: "Verder naar betaling",
 
     // Form fields
     firstName: "Voornaam",
@@ -27,7 +27,17 @@ const translations = {
     vatPlaceholder: "NL123456789B01",
     kvkPlaceholder: "12345678",
     phonePlaceholder: "+31 6 12345678",
+    phoneOptional: "Optioneel",
     selectCountry: "Selecteer een land",
+    street: "Straat",
+    streetPlaceholder: "Straatnaam",
+    houseNumber: "Huisnr.",
+    houseNumberPlaceholder: "Nr.",
+    postalCode: "Postcode",
+    postalCodePlaceholder: "1234 AB",
+    city: "Plaats",
+    cityPlaceholder: "Amsterdam",
+    shippingAddress: "Bezorgadres",
 
     // Toggles
     businessPurchase: "Zakelijke aankoop",
@@ -93,6 +103,26 @@ const translations = {
     thankYouSub: "We hebben een bevestigingsmail gestuurd naar",
     checkInbox: "Check je inbox voor de details.",
 
+    // Discount
+    discountToggle: "Ik heb een kortingscode",
+    discountPlaceholder: "Voer code in",
+    discountApply: "Toepassen",
+    discountApplied: "Korting toegepast",
+    discountInvalid: "Ongeldige code",
+    discountExpired: "Code verlopen",
+    discountMaxed: "Code is maximaal gebruikt",
+    discountWrongProduct: "Code geldt niet voor dit product",
+
+    // Urgency
+    directAccess: "Direct toegang na betaling",
+    secureCheckout: "Beveiligde checkout",
+
+    // Legal
+    agreeTerms: "Ik ga akkoord met de",
+    termsLink: "algemene voorwaarden",
+    agreeTermsRequired: "Je moet akkoord gaan met de algemene voorwaarden",
+    mailingOptIn: "Ja, houd me op de hoogte van tips en aanbiedingen",
+
     // Errors
     required: "Dit veld is verplicht",
     invalidEmail: "Voer een geldig e-mailadres in",
@@ -129,7 +159,7 @@ const translations = {
     step2: "Step 2",
     yourDetails: "Your details",
     payment: "Payment",
-    almostThere: "You're almost there",
+    almostThere: "Proceed to payment",
 
     firstName: "First name",
     lastName: "Last name",
@@ -147,7 +177,17 @@ const translations = {
     vatPlaceholder: "NL123456789B01",
     kvkPlaceholder: "12345678",
     phonePlaceholder: "+31 6 12345678",
+    phoneOptional: "Optional",
     selectCountry: "Select a country",
+    street: "Street",
+    streetPlaceholder: "Street name",
+    houseNumber: "No.",
+    houseNumberPlaceholder: "No.",
+    postalCode: "Postal code",
+    postalCodePlaceholder: "1234 AB",
+    city: "City",
+    cityPlaceholder: "Amsterdam",
+    shippingAddress: "Shipping address",
 
     businessPurchase: "Business purchase",
     payInInstallments: "Pay in installments",
@@ -203,6 +243,23 @@ const translations = {
     thankYouSub: "We've sent a confirmation email to",
     checkInbox: "Check your inbox for the details.",
 
+    discountToggle: "I have a discount code",
+    discountPlaceholder: "Enter code",
+    discountApply: "Apply",
+    discountApplied: "Discount applied",
+    discountInvalid: "Invalid code",
+    discountExpired: "Code expired",
+    discountMaxed: "Code has reached its maximum uses",
+    discountWrongProduct: "Code is not valid for this product",
+
+    directAccess: "Instant access after payment",
+    secureCheckout: "Secure checkout",
+
+    agreeTerms: "I agree to the",
+    termsLink: "terms and conditions",
+    agreeTermsRequired: "You must agree to the terms and conditions",
+    mailingOptIn: "Yes, keep me updated with tips and offers",
+
     required: "This field is required",
     invalidEmail: "Please enter a valid email address",
     invalidVat: "Please enter a valid VAT number",
@@ -232,6 +289,141 @@ const translations = {
       OTHER: "Other country",
     },
   },
+  de: {
+    step1: "Schritt 1",
+    step2: "Schritt 2",
+    yourDetails: "Ihre Daten",
+    payment: "Zahlung",
+    almostThere: "Weiter zur Zahlung",
+
+    firstName: "Vorname",
+    lastName: "Nachname",
+    email: "E-Mail-Adresse",
+    country: "Land",
+    companyName: "Firmenname",
+    vatNumber: "USt-IdNr.",
+    kvkNumber: "Handelsregisternr.",
+    phone: "Telefonnummer",
+
+    firstNamePlaceholder: "Ihr Vorname",
+    lastNamePlaceholder: "Ihr Nachname",
+    emailPlaceholder: "name@unternehmen.de",
+    companyPlaceholder: "Firmenname",
+    vatPlaceholder: "DE123456789",
+    kvkPlaceholder: "HRB 12345",
+    phonePlaceholder: "+49 170 1234567",
+    phoneOptional: "Optional",
+    selectCountry: "Land ausw\u00e4hlen",
+    street: "Stra\u00dfe",
+    streetPlaceholder: "Stra\u00dfenname",
+    houseNumber: "Nr.",
+    houseNumberPlaceholder: "Nr.",
+    postalCode: "Postleitzahl",
+    postalCodePlaceholder: "12345",
+    city: "Ort",
+    cityPlaceholder: "Berlin",
+    shippingAddress: "Lieferadresse",
+
+    businessPurchase: "Gesch\u00e4ftlicher Kauf",
+    payInInstallments: "In Raten zahlen",
+    installmentsOf: "Raten von",
+
+    orLoginWith: "Schnell anmelden mit",
+    loggedInAs: "Angemeldet als",
+    continueAsGuest: "Ohne Konto fortfahren",
+
+    orderSummary: "Zusammenfassung",
+    subtotal: "Zwischensumme",
+    btw: "MwSt.",
+    btwReversed: "MwSt. verlagert",
+    noBtw: "Keine MwSt.",
+    total: "Gesamt",
+    exBtw: "Zzgl. MwSt.",
+    inclBtw: "Inkl. MwSt.",
+
+    addToOrder: "Zu Ihrer Bestellung hinzuf\u00fcgen",
+    bumpCta: "JA! Hinzuf\u00fcgen f\u00fcr nur",
+    normalPrice: "Normalerweise",
+    onlyHere: "Nur auf dieser Seite verf\u00fcgbar",
+
+    paymentMethod: "Zahlungsmethode",
+    ideal: "iDEAL",
+    creditCard: "Kreditkarte",
+    applePay: "Apple Pay",
+    moreOptions: "Weitere Zahlungsoptionen",
+
+    payNow: "Jetzt bezahlen",
+    enrollNow: "Jetzt anmelden",
+    orderNow: "Jetzt bestellen",
+    processing: "Wird verarbeitet...",
+
+    guarantee: "30-Tage-Geld-zur\u00fcck-Garantie",
+    guaranteeSub: "Nicht zufrieden? Innerhalb von 30 Tagen Ihr Geld zur\u00fcck \u2014 ohne Wenn und Aber.",
+    securePayment: "Sichere Zahlung \u00fcber Mollie",
+    secureSsl: "256-Bit-SSL-gesichert",
+
+    peopleViewing: "Personen sehen sich diese Seite gerade an",
+    recentPurchase: "hat dies gekauft",
+    minutesAgo: "Minuten her",
+    hoursAgo: "Stunden her",
+    totalTrained: "Vertriebsprofis geschult",
+    totalSold: "Exemplare verkauft",
+
+    exitTitle: "Warten \u2014 gehen Sie schon?",
+    exitBody: "Wussten Sie, dass Sie eine 30-Tage-Geld-zur\u00fcck-Garantie haben? Null Risiko.",
+    exitCta: "Bestellung abschlie\u00dfen",
+    exitDismiss: "Nein danke",
+
+    thankYouTitle: "Vielen Dank f\u00fcr Ihre Bestellung!",
+    thankYouSub: "Wir haben eine Best\u00e4tigungs-E-Mail gesendet an",
+    checkInbox: "Pr\u00fcfen Sie Ihren Posteingang f\u00fcr die Details.",
+
+    discountToggle: "Ich habe einen Rabattcode",
+    discountPlaceholder: "Code eingeben",
+    discountApply: "Anwenden",
+    discountApplied: "Rabatt angewendet",
+    discountInvalid: "Ung\u00fcltiger Code",
+    discountExpired: "Code abgelaufen",
+    discountMaxed: "Code wurde bereits maximal verwendet",
+    discountWrongProduct: "Code gilt nicht f\u00fcr dieses Produkt",
+
+    directAccess: "Sofortiger Zugang nach Zahlung",
+    secureCheckout: "Sichere Kaufabwicklung",
+
+    agreeTerms: "Ich stimme den",
+    termsLink: "Allgemeinen Gesch\u00e4ftsbedingungen zu",
+    agreeTermsRequired: "Sie m\u00fcssen den Allgemeinen Gesch\u00e4ftsbedingungen zustimmen",
+    mailingOptIn: "Ja, halten Sie mich mit Tipps und Angeboten auf dem Laufenden",
+
+    required: "Dieses Feld ist erforderlich",
+    invalidEmail: "Bitte geben Sie eine g\u00fcltige E-Mail-Adresse ein",
+    invalidVat: "Bitte geben Sie eine g\u00fcltige USt-IdNr. ein",
+    paymentFailed: "Zahlung fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    genericError: "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut.",
+
+    countries: {
+      NL: "Niederlande",
+      BE: "Belgien",
+      DE: "Deutschland",
+      FR: "Frankreich",
+      GB: "Vereinigtes K\u00f6nigreich",
+      US: "Vereinigte Staaten",
+      AT: "\u00d6sterreich",
+      CH: "Schweiz",
+      ES: "Spanien",
+      IT: "Italien",
+      SE: "Schweden",
+      DK: "D\u00e4nemark",
+      NO: "Norwegen",
+      FI: "Finnland",
+      PL: "Polen",
+      CZ: "Tschechien",
+      IE: "Irland",
+      PT: "Portugal",
+      LU: "Luxemburg",
+      OTHER: "Anderes Land",
+    },
+  },
 } as const;
 
 export type TranslationKey = keyof (typeof translations)["nl"];
@@ -242,5 +434,6 @@ export function t(lang: Lang) {
 
 export function detectLang(searchParams: { lang?: string }): Lang {
   if (searchParams.lang === "en") return "en";
+  if (searchParams.lang === "de") return "de";
   return "nl";
 }

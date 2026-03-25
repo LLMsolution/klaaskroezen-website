@@ -41,6 +41,21 @@ const content = {
     dismiss: "No thanks",
     imageAlt: "Book: Sales, Honest & Relaxed",
   },
+  de: {
+    label: "#1 Managementbuch",
+    title: "Sales, Ehrlich",
+    titleAccent: "& Entspannt.",
+    description:
+      "Der praktische Leitfaden für alle, die die traditionellen, aufdringlichen Verkaufsmethoden satt haben.",
+    features: [
+      "Sofort anwendbarer Ansatz",
+      "2.500+ verkauft — 2. Auflage",
+      "Kostenloser Versand innerhalb NL",
+    ],
+    cta: "Jetzt bestellen",
+    dismiss: "Nein danke",
+    imageAlt: "Buch: Sales, Ehrlich & Entspannt",
+  },
 };
 
 export function BookPopup({ lang }: { lang: Lang }) {
@@ -172,17 +187,17 @@ export function BookPopup({ lang }: { lang: Lang }) {
                   href="/boek#bestellen"
                   className="inline-flex items-center gap-2 bg-copper text-paper px-6 py-3 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px]"
                 >
-                  {lang === "nl" ? "Bestel het boek" : "Order the Dutch book"}
+                  {{ nl: "Bestel het boek", en: "Order the Dutch book", de: "Das niederländische Buch bestellen" }[lang]}
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d="M3 7h8M8 4l3 3-3 3" />
                   </svg>
                 </a>
-                {lang === "en" && (
+                {(lang === "en" || lang === "de") && (
                   <a
                     href="/contact"
                     className="inline-flex items-center gap-2 border border-ink/15 text-ink/60 px-6 py-3 text-[12px] font-medium tracking-[0.1em] uppercase hover:border-ink/25 hover:text-ink transition-colors rounded-[2px]"
                   >
-                    Pre-order the English version
+                    {{ en: "Pre-order the English version", de: "Englische Version vorbestellen" }[lang === "de" ? "de" : "en"]}
                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <path d="M3 7h8M8 4l3 3-3 3" />
                     </svg>
@@ -257,17 +272,17 @@ export function BookPopup({ lang }: { lang: Lang }) {
               href="/boek#bestellen"
               className="flex items-center justify-center gap-2 w-full bg-copper text-paper py-3.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px]"
             >
-              {lang === "nl" ? "Bestel het boek" : "Order the Dutch book"}
+              {{ nl: "Bestel het boek", en: "Order the Dutch book", de: "Das niederländische Buch bestellen" }[lang]}
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M3 7h8M8 4l3 3-3 3" />
               </svg>
             </a>
-            {lang === "en" && (
+            {(lang === "en" || lang === "de") && (
               <a
                 href="/contact"
                 className="flex items-center justify-center gap-2 w-full border border-ink/15 text-ink/60 py-3.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:border-ink/25 hover:text-ink transition-colors rounded-[2px]"
               >
-                Pre-order the English version
+                {{ en: "Pre-order the English version", de: "Englische Version vorbestellen" }[lang === "de" ? "de" : "en"]}
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M3 7h8M8 4l3 3-3 3" />
                 </svg>

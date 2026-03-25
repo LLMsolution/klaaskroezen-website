@@ -17,6 +17,7 @@ import { Faq } from "@/components/sections/Faq";
 import { BookPreview } from "@/components/sections/BookPreview";
 import { JsonLd, bookJsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/lib/i18n/server";
+import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
 import { getBoekContent } from "./content";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -30,7 +31,23 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function BoekPage() {
   const lang = await getLocale();
-  const c = getBoekContent(lang);
+  const fallback = getBoekContent(lang);
+  const db = await loadPageContent("boek", lang);
+
+  const hero = sectionOr(db, "hero", fallback.hero);
+  const program = sectionOr(db, "program", fallback.program);
+  const dbReviews = db["reviews"] as Record<string, unknown> | undefined;
+  const reviews = {
+    eyebrow: (dbReviews?.eyebrow as string) ?? fallback.testimonials.eyebrow,
+    title: (dbReviews?.title as string) ?? fallback.testimonials.title,
+    titleAccent: (dbReviews?.titleAccent as string) ?? fallback.testimonials.titleAccent,
+    reviews: (dbReviews?.items as typeof fallback.testimonials.reviews) ?? fallback.testimonials.reviews,
+  };
+  const videos = sectionOr(db, "videos", fallback.videos);
+  const interview = sectionOr(db, "interview", fallback.interview);
+  const crossLink = sectionOr(db, "cross-link", fallback.crossLink);
+  const faq = sectionOr(db, "faq", fallback.faq);
+  const cta = sectionOr(db, "cta", fallback.cta);
 
   return (
     <>
@@ -43,7 +60,7 @@ export default async function BoekPage() {
               <div className="relative w-[260px] sm:w-[320px] lg:w-[380px]">
                 <Image
                   src="/images/book/sales-oprecht-ontspannen-cover.png"
-                  alt={c.hero.imageAlt}
+                  alt={hero.imageAlt}
                   width={380}
                   height={570}
                   className="w-full h-auto drop-shadow-2xl"
@@ -53,28 +70,28 @@ export default async function BoekPage() {
             </div>
 
             <FadeIn>
-              <Label className="mb-3">{c.hero.label}</Label>
+              <Label className="mb-3">{hero.label}</Label>
               <h1 className="font-display text-[clamp(32px,4.2vw,54px)] font-black leading-[0.97] tracking-[-0.03em] mb-5">
-                {c.hero.titleLine1}
+                {hero.titleLine1}
                 <br />
                 <em className="italic font-normal text-copper">
-                  {c.hero.titleAccent}
+                  {hero.titleAccent}
                 </em>
               </h1>
               <div className="space-y-4 mb-8 max-w-[520px]">
                 <p className="text-[15px] sm:text-[16px] text-ink/80 leading-[1.8]">
-                  {c.hero.paragraphs[0]}
+                  {hero.paragraphs?.[0]}
                 </p>
                 <p className="text-[15px] sm:text-[16px] text-ink/80 leading-[1.8]">
-                  {c.hero.paragraphs[1]}{" "}
+                  {hero.paragraphs?.[1]}{" "}
                   <strong className="font-semibold text-ink">
-                    {c.hero.boldText}
+                    {hero.boldText}
                   </strong>
-                  {c.hero.afterBold}
+                  {hero.afterBold}
                 </p>
               </div>
               <div className="flex flex-wrap gap-3 mb-8">
-                {c.hero.badges.map((badge) => (
+                {(hero.badges ?? []).map((badge: string) => (
                   <span
                     key={badge}
                     className="text-[12px] font-medium text-ink/70 px-3.5 py-1.5 border border-rule rounded-[2px]"
@@ -89,15 +106,15 @@ export default async function BoekPage() {
                   variant="copper"
                   size="large"
                 >
-                  <ButtonArrow>{lang === "nl" ? "Bestel het boek" : "Order the Dutch book"}</ButtonArrow>
+                  <ButtonArrow>{{ nl: "Bestel het boek", en: "Order the Dutch book", de: "Das niederländische Buch bestellen" }[lang]}</ButtonArrow>
                 </ButtonLink>
-                {lang === "en" && (
+                {(lang === "en" || lang === "de") && (
                   <ButtonLink
                     href="/contact"
                     variant="ghost"
                     size="large"
                   >
-                    <ButtonArrow>Pre-order the English version</ButtonArrow>
+                    <ButtonArrow>{{ en: "Pre-order the English version", de: "Englische Version vorbestellen" }[lang === "de" ? "de" : "en"]}</ButtonArrow>
                   </ButtonLink>
                 )}
               </div>
@@ -109,10 +126,10 @@ export default async function BoekPage() {
       {/* What's inside */}
       <ProgramSection
         lang={lang}
-        price={c.program.price}
-        pricingAnchor={c.program.pricingAnchor}
-        ctaLabel={c.program.ctaLabel}
-        modules={c.program.modules}
+        price={program.price}
+        pricingAnchor={program.pricingAnchor}
+        ctaLabel={program.ctaLabel}
+        modules={program.modules}
       />
 
       <BookPreview lang={lang} />
@@ -120,32 +137,61 @@ export default async function BoekPage() {
       <BookPricing lang={lang} />
 
       <Testimonials3D
-        eyebrow={c.testimonials.eyebrow}
-        title={c.testimonials.title}
-        titleAccent={c.testimonials.titleAccent}
-        reviews={c.testimonials.reviews}
+        eyebrow={reviews.eyebrow}
+        title={reviews.title}
+        titleAccent={reviews.titleAccent}
+        reviews={reviews.reviews}
       />
 
       {/* Interview — Managementboek.nl */}
       <section className="py-16 sm:py-[110px] border-b border-rule">
         <Container>
-          <FadeIn className="mb-10 sm:mb-14 max-w-[520px]">
-            <Label className="mb-3">{c.interview.eyebrow}</Label>
-            <h2 className="font-display text-[clamp(28px,3.4vw,44px)] font-black leading-[0.97] tracking-[-0.03em]">
-              {c.interview.title}
-              <br />
-              <em className="italic font-normal text-ink/40">
-                {c.interview.titleAccent}
-              </em>
-            </h2>
-            <p className="text-[15px] text-ink/60 leading-[1.8] mt-4">
-              {c.interview.intro}
-            </p>
+          {/* Hero: image + text overlay style */}
+          <FadeIn className="mb-10 sm:mb-14">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-0 border border-rule rounded-[2px] overflow-hidden">
+              {/* Photo — 2 cols on desktop */}
+              <div className="lg:col-span-2 relative aspect-square lg:aspect-auto">
+                <Image
+                  src={interview.image}
+                  alt={interview.imageAlt}
+                  width={600}
+                  height={600}
+                  className="object-cover w-full h-full"
+                  sizes="(max-width: 1024px) 100vw, 40vw"
+                />
+              </div>
+              {/* Text — 3 cols on desktop */}
+              <div className="lg:col-span-3 bg-warm/40 p-8 sm:p-12 lg:p-14 flex flex-col justify-center">
+                <Label className="mb-4">{interview.eyebrow}</Label>
+                <h2 className="font-display text-[clamp(26px,3vw,40px)] font-black leading-[0.97] tracking-[-0.03em] mb-4">
+                  {interview.title}
+                  <br />
+                  <em className="italic font-normal text-ink/40">
+                    {interview.titleAccent}
+                  </em>
+                </h2>
+                <p className="text-[15px] text-ink/60 leading-[1.8] mb-6">
+                  {interview.intro}
+                </p>
+                <a
+                  href={interview.linkUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-[13px] font-medium tracking-[0.08em] uppercase text-copper hover:text-copper-light transition-colors"
+                >
+                  {interview.linkText}
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M3 7h8M8 4l3 3-3 3" />
+                  </svg>
+                </a>
+              </div>
+            </div>
           </FadeIn>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-px bg-rule border border-rule">
-            {c.interview.quotes.map((q) => (
-              <div key={q.question} className="bg-paper/80 backdrop-blur-sm p-6 sm:p-8">
+          {/* Quotes grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-px bg-rule border border-rule rounded-[2px] overflow-hidden">
+            {(interview.quotes ?? []).map((q: { question: string; answer: string }) => (
+              <div key={q.question} className="bg-paper p-6 sm:p-8">
                 <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper block mb-3">
                   {q.question}
                 </span>
@@ -155,53 +201,39 @@ export default async function BoekPage() {
               </div>
             ))}
           </div>
-
-          <FadeIn className="mt-6">
-            <a
-              href={c.interview.linkUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-[13px] font-medium tracking-[0.08em] uppercase text-copper hover:text-copper-light transition-colors"
-            >
-              {c.interview.linkText}
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M3 7h8M8 4l3 3-3 3" />
-              </svg>
-            </a>
-          </FadeIn>
         </Container>
       </section>
 
       <Faq
-        title={c.faq.title}
-        titleAccent={c.faq.titleAccent}
-        items={c.faq.items}
+        title={faq.title}
+        titleAccent={faq.titleAccent}
+        items={faq.items}
       />
 
       <VideoGrid
-        eyebrow={c.videos.eyebrow}
-        title={c.videos.title}
-        description={c.videos.description}
-        videos={c.videos.items}
+        eyebrow={videos.eyebrow}
+        title={videos.title}
+        description={videos.description}
+        videos={videos.items}
       />
 
       <CrossLink
-        eyebrow={c.crossLink.eyebrow}
-        title={c.crossLink.title}
-        titleAccent={c.crossLink.titleAccent}
-        description={c.crossLink.description}
-        image={c.crossLink.image}
-        imageAlt={c.crossLink.imageAlt}
-        href={c.crossLink.href}
-        ctaLabel={c.crossLink.ctaLabel}
+        eyebrow={crossLink.eyebrow}
+        title={crossLink.title}
+        titleAccent={crossLink.titleAccent}
+        description={crossLink.description}
+        image={crossLink.image}
+        imageAlt={crossLink.imageAlt}
+        href={crossLink.href}
+        ctaLabel={crossLink.ctaLabel}
       />
 
       <TrainingCta
-        title={c.cta.title}
-        titleAccent={c.cta.titleAccent}
-        description={c.cta.description}
-        href={c.cta.href}
-        ctaLabel={c.cta.ctaLabel}
+        title={cta.title}
+        titleAccent={cta.titleAccent}
+        description={cta.description}
+        href={cta.href}
+        ctaLabel={cta.ctaLabel}
       />
     </>
   );

@@ -44,13 +44,20 @@ export const processSuccessfulPayment = internalMutation({
     if (!order) throw new Error("Pending order not found");
     if (order.convertedAt) return; // Already processed
 
+    // Look up product type from DB
+    const productData = await ctx.db
+      .query("checkoutProducts")
+      .withIndex("by_slug", (q) => q.eq("slug", order.product))
+      .first();
+    const productType = productData?.productType ?? getProductTypeFallback(order.product);
+
     const now = Date.now();
 
     // 1. Create purchase record
     const purchaseId = await ctx.db.insert("purchases", {
       userId: order.userId!,
       product: order.product,
-      productType: getProductType(order.product),
+      productType,
       amount: amountCents,
       currency: "EUR",
       molliePaymentId,
@@ -65,8 +72,8 @@ export const processSuccessfulPayment = internalMutation({
       molliePaymentId,
     });
 
-    // 3. Build invoice line items
-    const lineItems = buildLineItems(order);
+    // 3. Build invoice line items (from DB)
+    const lineItems = await buildLineItems(ctx, order);
 
     // 4. Calculate totals
     const subtotalCents = lineItems.reduce((sum, item) => sum + item.unitPriceCents * item.quantity, 0);
@@ -125,10 +132,26 @@ export const processSuccessfulPayment = internalMutation({
         userId: order.userId,
         email: order.email,
         product: order.product,
-        productType: getProductType(order.product),
+        productType,
         lang: order.lang,
       });
     }
+
+    // 8. Track A/B test conversion
+    if (order.experimentSlug && order.experimentVariant) {
+      await ctx.scheduler.runAfter(0, internal.abtest.recordConversion, {
+        slug: order.experimentSlug,
+        variant: order.experimentVariant,
+        revenueCents: amountCents,
+      });
+    }
+
+    // 9. CRM: update contact score + log purchase + mark lead as won
+    await ctx.scheduler.runAfter(0, internal.crmHooks.purchaseCompleted, {
+      pendingOrderId,
+      purchaseId,
+      amountCents,
+    });
 
     return { purchaseId };
   },
@@ -136,7 +159,7 @@ export const processSuccessfulPayment = internalMutation({
 
 /* ─── Helpers ─── */
 
-function getProductType(slug: string): "training" | "book" | "event" {
+function getProductTypeFallback(slug: string): "training" | "book" | "event" {
   if (slug.startsWith("boek-")) return "book";
   return "training";
 }
@@ -155,27 +178,16 @@ function isEuNotNl(code: string): boolean {
   return isEuCountry(code) && code !== "NL";
 }
 
-// Product prices in cents (same as checkout-config but server-side)
-const PRODUCT_PRICES: Record<string, { price: number; btwRate: number; inclBtw: boolean; name: { nl: string; en: string } }> = {
-  "set-online": { price: 225000, btwRate: 21, inclBtw: false, name: { nl: "Sales Excellence Training — Online", en: "Sales Excellence Training — Online" } },
-  "set-coaching": { price: 375000, btwRate: 21, inclBtw: false, name: { nl: "Sales Excellence Training — Training + Coaching", en: "Sales Excellence Training — Training + Coaching" } },
-  "cst-online": { price: 225000, btwRate: 21, inclBtw: false, name: { nl: "Customer Success Training — Online", en: "Customer Success Training — Online" } },
-  "cst-coaching": { price: 375000, btwRate: 21, inclBtw: false, name: { nl: "Customer Success Training — Training + Coaching", en: "Customer Success Training — Training + Coaching" } },
-  "boek-ebook": { price: 2250, btwRate: 9, inclBtw: true, name: { nl: "Sales, Oprecht & Ontspannen — E-book", en: "Sales, Honest & Relaxed — E-book" } },
-  "boek-hardcopy": { price: 3250, btwRate: 9, inclBtw: true, name: { nl: "Sales, Oprecht & Ontspannen — Hard Copy", en: "Sales, Honest & Relaxed — Hard Copy" } },
-  "boek-luisterboek": { price: 2250, btwRate: 9, inclBtw: true, name: { nl: "Sales, Oprecht & Ontspannen — Luisterboek", en: "Sales, Honest & Relaxed — Audiobook" } },
-};
-
 interface PendingOrder {
   product: string;
   bumps: string[];
   isBusiness: boolean;
   vatNumber?: string;
   country: string;
-  lang: "nl" | "en";
+  lang: "nl" | "en" | "de";
 }
 
-function buildLineItems(order: PendingOrder) {
+async function buildLineItems(ctx: { db: any }, order: PendingOrder) {
   const items: Array<{
     description: string;
     quantity: number;
@@ -187,33 +199,55 @@ function buildLineItems(order: PendingOrder) {
 
   const applyBtw = shouldApplyBtw(order);
 
-  // Main product
-  const main = PRODUCT_PRICES[order.product];
-  if (main) {
-    const calculated = calcBtw(main.price, applyBtw ? main.btwRate : 0, main.inclBtw);
+  // Main product from DB
+  const mainProduct = await ctx.db
+    .query("checkoutProducts")
+    .withIndex("by_slug", (q: any) => q.eq("slug", order.product))
+    .first();
+
+  if (mainProduct) {
+    const calculated = calcBtw(
+      mainProduct.priceCents,
+      applyBtw ? mainProduct.btwRate : 0,
+      mainProduct.priceInclBtw,
+    );
     items.push({
-      description: main.name[order.lang],
+      description: mainProduct.name[order.lang],
       quantity: 1,
       unitPriceCents: calculated.net,
-      btwRate: applyBtw ? main.btwRate : 0,
+      btwRate: applyBtw ? mainProduct.btwRate : 0,
       btwCents: calculated.btw,
       totalCents: calculated.gross,
     });
-  }
 
-  // Bump products
-  for (const bumpSlug of order.bumps) {
-    const bump = PRODUCT_PRICES[bumpSlug];
-    if (bump) {
-      const calculated = calcBtw(bump.price, applyBtw ? bump.btwRate : 0, bump.inclBtw);
-      items.push({
-        description: bump.name[order.lang],
-        quantity: 1,
-        unitPriceCents: calculated.net,
-        btwRate: applyBtw ? bump.btwRate : 0,
-        btwCents: calculated.btw,
-        totalCents: calculated.gross,
-      });
+    // Bump products (with price overrides from DB)
+    const overridesMap = new Map(
+      (mainProduct.bumpPriceOverrides ?? []).map(
+        (o: { bumpSlug: string; priceCents: number }) => [o.bumpSlug, o.priceCents],
+      ),
+    );
+
+    for (const bumpSlug of order.bumps) {
+      const bumpProduct = await ctx.db
+        .query("checkoutProducts")
+        .withIndex("by_slug", (q: any) => q.eq("slug", bumpSlug))
+        .first();
+      if (bumpProduct) {
+        const bumpPrice = overridesMap.get(bumpSlug) ?? bumpProduct.priceCents;
+        const calculated = calcBtw(
+          bumpPrice,
+          applyBtw ? bumpProduct.btwRate : 0,
+          bumpProduct.priceInclBtw,
+        );
+        items.push({
+          description: bumpProduct.name[order.lang],
+          quantity: 1,
+          unitPriceCents: calculated.net,
+          btwRate: applyBtw ? bumpProduct.btwRate : 0,
+          btwCents: calculated.btw,
+          totalCents: calculated.gross,
+        });
+      }
     }
   }
 
@@ -221,11 +255,8 @@ function buildLineItems(order: PendingOrder) {
 }
 
 function shouldApplyBtw(order: PendingOrder): boolean {
-  // Non-EU: no BTW
   if (!isEuCountry(order.country)) return false;
-  // EU business with VAT number (not NL): reverse charge
   if (order.isBusiness && order.vatNumber && order.country !== "NL") return false;
-  // NL or EU consumer: apply BTW
   return true;
 }
 
@@ -242,3 +273,4 @@ function calcBtw(
   const btw = Math.round(priceCents * (btwRate / 100));
   return { net: priceCents, btw, gross: priceCents + btw };
 }
+

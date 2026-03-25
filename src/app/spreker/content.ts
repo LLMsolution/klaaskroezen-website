@@ -1,157 +1,256 @@
 import type { Lang } from "@/lib/i18n";
 
 export function getSprekerContent(lang: Lang) {
-  const nl = lang === "nl";
+  const text = {
+    nl: {
+      metaTitle: "Spreker \u2014 Klaas Kroezen",
+      metaDescription: "Boek Klaas Kroezen als spreker. Inspirerende keynotes en workshops over sales, klantgerichtheid en commerci\u00eble groei \u2014 oprecht en ontspannen.",
+      heroEyebrow: "Spreker & Keynote",
+      heroTitleLine1: "Inspireer",
+      heroTitleLine2: "je team.",
+      heroDescription: "Een inspiratiesessie waarin ik teams laat ervaren hoe je met minder spanning meer klanten verandert in fans. Geen theorie, maar energie en inzichten die blijven hangen.",
+      heroImageAlt: "Klaas Kroezen als spreker op het podium",
+      heroCtaLabel: "Neem contact op",
+      heroSecondaryLabel: "Bekijk fragmenten",
+      glassItems: [
+        { label: "Keynotes & workshops", text: "Van 30 minuten inspiratie tot een volledige dagvullende workshop. Op maat voor jouw event of teamdag." },
+        { label: "25+ jaar ervaring", text: "Internationaal B2B bij Google, Samsung, Microsoft, ING en Vodafone. Eigen bedrijf verkocht in 2022." },
+        { label: "Bewezen impact", text: "Teams gaan naar huis met energie, inzichten en een concrete aanpak die ze direct kunnen toepassen." },
+      ],
+      audiences: ["Salesteams", "Kick-offs", "Teamdagen", "Conferenties", "Management events", "Klantevents"],
+      contentEyebrow: "Over de sessie",
+      contentTitle: "Sales gaat vaak mis door prestatiedruk.",
+      contentTitleAccent: "Het kan ook anders.",
+      contentImageAlt: "Klaas Kroezen geeft een workshop bij een flipchart",
+      contentParagraphs: [
+        "Door targets, cijfers en verwachtingen wordt verkoop krampachtig. Mensen raken gespannen, twijfelen, verliezen zichzelf \u2014 en het resultaat gaat juist omlaag. Dat kost energie, frustraties, vertrouwen \u00e9n geld.",
+        "Met 25 jaar ervaring in sales en klantbeleving, van scale-up tot boardroom, help ik teams groeien vanuit oprechte verbinding. Niet vanuit trucjes.",
+        "Ik stond zelf jarenlang aan de frontlinie als CEO en eigenaar van een internationaal marktonderzoeksbureau. Ik weet hoe het voelt als sales voelt als trekken aan een dood paard. En ik weet hoe het w\u00e9l werkt.",
+      ],
+      benefits: [
+        "Energie en inspiratie die je meeneemt in je werk",
+        "Heldere inzichten voor duurzame commerci\u00eble groei",
+        "Verhalen en oefeningen die mensen in beweging zetten",
+        "Geen trucs. Geen scripts. Oprecht en ontspannen sales.",
+      ],
+      videosEyebrow: "Op het podium",
+      videosTitle: "Bekijk fragmenten.",
+      videosTitleAccent: "Oprecht en ontspannen in actie.",
+      videoItems: [
+        "Speech op de boekpresentatie",
+        "Sales- en klantgerichte mindset in je team",
+      ],
+      logoBarLabel: "Gewerkt met onder andere",
+      coachingEyebrow: "Coaching & Begeleiding",
+      coachingTitle1: "Persoonlijk of",
+      coachingTitle2: "als team.",
+      individualLabel: "Individueel",
+      individualTitle: "1-op-1 Coaching",
+      individualDescription: "Persoonlijke begeleiding voor sales professionals en leidinggevenden die willen groeien. Op jouw tempo, afgestemd op jouw uitdagingen.",
+      individualFeatures: ["Individueel traject op maat", "Persoonlijke sparring & feedback", "Focus op jouw specifieke uitdagingen", "Flexibel in te plannen"],
+      individualPrice: "Op aanvraag",
+      individualCta: "Neem contact op \u2192",
+      teamLabel: "Teams",
+      teamTitle: "Coaching voor Teams",
+      teamDescription: "Begeleid je team naar een gezamenlijke commerci\u00eble mindset. Van bewustwording tot implementatie \u2014 samen groeien in klantgerichtheid.",
+      teamFeatures: ["Gezamenlijke kick-off op locatie", "Teamgerichte oefeningen & casussen", "Begeleiding tijdens implementatie", "Meetbare resultaten per deelnemer"],
+      teamPrice: "Op aanvraag",
+      teamCta: "Plan een gesprek \u2192",
+      faqTitle: "Praktische info.",
+      faqTitleAccent: "Voor organisatoren.",
+      faqItems: [
+        { question: "Hoe lang duurt een keynote of workshop?", answer: "Een keynote duurt 30 tot 60 minuten. Een workshop kan een halve of hele dag beslaan. Alles is op maat samen te stellen, afhankelijk van je programma en doelstelling." },
+        { question: "Waar geeft Klaas zijn sessies?", answer: "Overal in Nederland en Belgi\u00eb, op jullie locatie. Internationaal is ook mogelijk \u2014 Klaas heeft ervaring in 21 landen en geeft sessies in het Nederlands en Engels." },
+        { question: "Wat kost een keynote of workshop?", answer: "De investering hangt af van de duur, locatie en het aantal deelnemers. Neem contact op voor een vrijblijvend voorstel op maat." },
+        { question: "Voor welk publiek is Klaas geschikt?", answer: "Salesteams, management, klantenservice, kick-offs, conferenties en klantevents. Van 10 tot 500 deelnemers. De boodschap is altijd: oprecht en ontspannen commercieel groeien." },
+        { question: "Kan de sessie gecombineerd worden met coaching?", answer: "Ja, een keynote of workshop kan uitgebreid worden met 1-op-1 coaching of teambegeleiding. Zo blijft de impact niet beperkt tot de dag zelf." },
+      ],
+      ctaTitle: "Boek Klaas.",
+      ctaTitleAccent: "Voor jouw event.",
+      ctaDescription: "Een inspirerende sessie die teams in beweging zet. Neem contact op om de mogelijkheden te bespreken.",
+      ctaLabel: "Neem contact op",
+    },
+    en: {
+      metaTitle: "Speaker \u2014 Klaas Kroezen",
+      metaDescription: "Book Klaas Kroezen as a speaker. Inspiring keynotes and workshops on sales, customer focus and commercial growth \u2014 genuine and relaxed.",
+      heroEyebrow: "Speaker & Keynote",
+      heroTitleLine1: "Inspire",
+      heroTitleLine2: "your team.",
+      heroDescription: "An inspiration session where I show teams how to turn more customers into fans with less tension. Not theory, but energy and insights that stick.",
+      heroImageAlt: "Klaas Kroezen as a speaker on stage",
+      heroCtaLabel: "Get in touch",
+      heroSecondaryLabel: "Watch clips",
+      glassItems: [
+        { label: "Keynotes & workshops", text: "From 30 minutes of inspiration to a full-day workshop. Tailored to your event or team day." },
+        { label: "25+ years of experience", text: "International B2B at Google, Samsung, Microsoft, ING and Vodafone. Company sold in 2022." },
+        { label: "Proven impact", text: "Teams go home with energy, insights and a concrete approach they can apply immediately." },
+      ],
+      audiences: ["Sales teams", "Kick-offs", "Team days", "Conferences", "Management events", "Client events"],
+      contentEyebrow: "About the session",
+      contentTitle: "Sales often fails due to performance pressure.",
+      contentTitleAccent: "There is another way.",
+      contentImageAlt: "Klaas Kroezen leading a workshop at a flipchart",
+      contentParagraphs: [
+        "Due to targets, numbers and expectations, selling becomes forced. People get tense, doubt themselves, lose their authenticity \u2014 and results actually go down. That costs energy, frustration, trust and money.",
+        "With 25 years of experience in sales and customer experience, from scale-up to boardroom, I help teams grow through genuine connection. Not through tricks.",
+        "I stood on the front lines for years as CEO and owner of an international market research agency. I know what it feels like when sales feels like a dead end. And I know what actually works.",
+      ],
+      benefits: [
+        "Energy and inspiration you take with you into your work",
+        "Clear insights for sustainable commercial growth",
+        "Stories and exercises that set people in motion",
+        "No tricks. No scripts. Genuine and relaxed sales.",
+      ],
+      videosEyebrow: "On stage",
+      videosTitle: "Watch clips.",
+      videosTitleAccent: "Genuine and relaxed in action.",
+      videoItems: [
+        "Speech at the book launch",
+        "Sales and customer-focused mindset in your team",
+      ],
+      logoBarLabel: "Worked with",
+      coachingEyebrow: "Coaching & Guidance",
+      coachingTitle1: "Personal or",
+      coachingTitle2: "as a team.",
+      individualLabel: "Individual",
+      individualTitle: "1-on-1 Coaching",
+      individualDescription: "Personal guidance for sales professionals and leaders who want to grow. At your pace, tailored to your challenges.",
+      individualFeatures: ["Customised individual programme", "Personal sparring & feedback", "Focus on your specific challenges", "Flexible scheduling"],
+      individualPrice: "On request",
+      individualCta: "Get in touch \u2192",
+      teamLabel: "Teams",
+      teamTitle: "Team Coaching",
+      teamDescription: "Guide your team towards a shared commercial mindset. From awareness to implementation \u2014 growing together in customer focus.",
+      teamFeatures: ["Joint kick-off on location", "Team-focused exercises & cases", "Guidance during implementation", "Measurable results per participant"],
+      teamPrice: "On request",
+      teamCta: "Schedule a call \u2192",
+      faqTitle: "Practical info.",
+      faqTitleAccent: "For organisers.",
+      faqItems: [
+        { question: "How long does a keynote or workshop last?", answer: "A keynote lasts 30 to 60 minutes. A workshop can span half a day or a full day. Everything can be tailored, depending on your programme and objectives." },
+        { question: "Where does Klaas deliver his sessions?", answer: "Anywhere in the Netherlands and Belgium, at your location. International is also possible \u2014 Klaas has experience in 21 countries and delivers sessions in Dutch and English." },
+        { question: "What does a keynote or workshop cost?", answer: "The investment depends on the duration, location and number of participants. Get in touch for a no-obligation custom proposal." },
+        { question: "What audience is Klaas suited for?", answer: "Sales teams, management, customer service, kick-offs, conferences and client events. From 10 to 500 participants. The message is always: genuine and relaxed commercial growth." },
+        { question: "Can the session be combined with coaching?", answer: "Yes, a keynote or workshop can be extended with 1-on-1 coaching or team guidance. That way the impact is not limited to the day itself." },
+      ],
+      ctaTitle: "Book Klaas.",
+      ctaTitleAccent: "For your event.",
+      ctaDescription: "An inspiring session that sets teams in motion. Get in touch to discuss the possibilities.",
+      ctaLabel: "Get in touch",
+    },
+    de: {
+      metaTitle: "Redner \u2014 Klaas Kroezen",
+      metaDescription: "Buchen Sie Klaas Kroezen als Redner. Inspirierende Keynotes und Workshops zu Vertrieb, Kundenorientierung und kommerziellem Wachstum \u2014 aufrichtig und entspannt.",
+      heroEyebrow: "Redner & Keynote",
+      heroTitleLine1: "Inspirieren Sie",
+      heroTitleLine2: "Ihr Team.",
+      heroDescription: "Eine Inspirationssitzung, in der ich Teams zeige, wie sie mit weniger Anspannung mehr Kunden in Fans verwandeln. Keine Theorie, sondern Energie und Erkenntnisse, die h\u00e4ngen bleiben.",
+      heroImageAlt: "Klaas Kroezen als Redner auf der B\u00fchne",
+      heroCtaLabel: "Kontakt aufnehmen",
+      heroSecondaryLabel: "Ausschnitte ansehen",
+      glassItems: [
+        { label: "Keynotes & Workshops", text: "Von 30 Minuten Inspiration bis zu einem ganzt\u00e4gigen Workshop. Ma\u00dfgeschneidert f\u00fcr Ihr Event oder Ihren Teamtag." },
+        { label: "\u00dcber 25 Jahre Erfahrung", text: "Internationales B2B bei Google, Samsung, Microsoft, ING und Vodafone. Unternehmen 2022 verkauft." },
+        { label: "Bewiesene Wirkung", text: "Teams gehen mit Energie, Erkenntnissen und einem konkreten Ansatz nach Hause, den sie sofort anwenden k\u00f6nnen." },
+      ],
+      audiences: ["Vertriebsteams", "Kick-offs", "Teamtage", "Konferenzen", "Management-Events", "Kundenveranstaltungen"],
+      contentEyebrow: "\u00dcber die Sitzung",
+      contentTitle: "Vertrieb scheitert oft am Leistungsdruck.",
+      contentTitleAccent: "Es geht auch anders.",
+      contentImageAlt: "Klaas Kroezen leitet einen Workshop am Flipchart",
+      contentParagraphs: [
+        "Durch Ziele, Kennzahlen und Erwartungen wird der Vertrieb verkrampft. Menschen werden angespannt, zweifeln, verlieren sich selbst \u2014 und die Ergebnisse sinken sogar. Das kostet Energie, Frustration, Vertrauen und Geld.",
+        "Mit 25 Jahren Erfahrung in Vertrieb und Kundenerlebnis, vom Scale-up bis zum Vorstand, helfe ich Teams, durch aufrichtige Verbindung zu wachsen. Nicht durch Tricks.",
+        "Ich stand selbst jahrelang an vorderster Front als CEO und Inhaber einer internationalen Marktforschungsagentur. Ich wei\u00df, wie es sich anf\u00fchlt, wenn Vertrieb aussichtslos erscheint. Und ich wei\u00df, wie es tats\u00e4chlich funktioniert.",
+      ],
+      benefits: [
+        "Energie und Inspiration, die Sie in Ihre Arbeit mitnehmen",
+        "Klare Erkenntnisse f\u00fcr nachhaltiges kommerzielles Wachstum",
+        "Geschichten und \u00dcbungen, die Menschen in Bewegung setzen",
+        "Keine Tricks. Keine Skripte. Aufrichtiger und entspannter Vertrieb.",
+      ],
+      videosEyebrow: "Auf der B\u00fchne",
+      videosTitle: "Ausschnitte ansehen.",
+      videosTitleAccent: "Aufrichtig und entspannt in Aktion.",
+      videoItems: [
+        "Rede bei der Buchpr\u00e4sentation",
+        "Vertriebs- und kundenorientiertes Mindset in Ihrem Team",
+      ],
+      logoBarLabel: "Zusammengearbeitet mit",
+      coachingEyebrow: "Coaching & Begleitung",
+      coachingTitle1: "Pers\u00f6nlich oder",
+      coachingTitle2: "als Team.",
+      individualLabel: "Individuell",
+      individualTitle: "1-zu-1 Coaching",
+      individualDescription: "Pers\u00f6nliche Begleitung f\u00fcr Vertriebsprofis und F\u00fchrungskr\u00e4fte, die wachsen wollen. In Ihrem Tempo, abgestimmt auf Ihre Herausforderungen.",
+      individualFeatures: ["Ma\u00dfgeschneidertes individuelles Programm", "Pers\u00f6nliches Sparring & Feedback", "Fokus auf Ihre spezifischen Herausforderungen", "Flexible Terminplanung"],
+      individualPrice: "Auf Anfrage",
+      individualCta: "Kontakt aufnehmen \u2192",
+      teamLabel: "Teams",
+      teamTitle: "Team-Coaching",
+      teamDescription: "F\u00fchren Sie Ihr Team zu einem gemeinsamen kommerziellen Mindset. Von der Bewusstwerdung bis zur Umsetzung \u2014 gemeinsam in Kundenorientierung wachsen.",
+      teamFeatures: ["Gemeinsamer Kick-off vor Ort", "Teamorientierte \u00dcbungen & F\u00e4lle", "Begleitung w\u00e4hrend der Umsetzung", "Messbare Ergebnisse pro Teilnehmer"],
+      teamPrice: "Auf Anfrage",
+      teamCta: "Gespr\u00e4ch vereinbaren \u2192",
+      faqTitle: "Praktische Informationen.",
+      faqTitleAccent: "F\u00fcr Veranstalter.",
+      faqItems: [
+        { question: "Wie lange dauert eine Keynote oder ein Workshop?", answer: "Eine Keynote dauert 30 bis 60 Minuten. Ein Workshop kann einen halben oder ganzen Tag umfassen. Alles kann ma\u00dfgeschneidert werden, abh\u00e4ngig von Ihrem Programm und Ihren Zielen." },
+        { question: "Wo h\u00e4lt Klaas seine Sitzungen ab?", answer: "\u00dcberall in den Niederlanden und Belgien, an Ihrem Standort. International ist ebenfalls m\u00f6glich \u2014 Klaas hat Erfahrung in 21 L\u00e4ndern und h\u00e4lt Sitzungen auf Niederl\u00e4ndisch und Englisch." },
+        { question: "Was kostet eine Keynote oder ein Workshop?", answer: "Die Investition h\u00e4ngt von der Dauer, dem Standort und der Teilnehmerzahl ab. Nehmen Sie Kontakt auf f\u00fcr ein unverbindliches, ma\u00dfgeschneidertes Angebot." },
+        { question: "F\u00fcr welches Publikum ist Klaas geeignet?", answer: "Vertriebsteams, Management, Kundenservice, Kick-offs, Konferenzen und Kundenveranstaltungen. Von 10 bis 500 Teilnehmern. Die Botschaft ist immer: aufrichtiges und entspanntes kommerzielles Wachstum." },
+        { question: "Kann die Sitzung mit Coaching kombiniert werden?", answer: "Ja, eine Keynote oder ein Workshop kann mit 1-zu-1-Coaching oder Teambegleitung erweitert werden. So bleibt die Wirkung nicht auf den Tag selbst beschr\u00e4nkt." },
+      ],
+      ctaTitle: "Buchen Sie Klaas.",
+      ctaTitleAccent: "F\u00fcr Ihr Event.",
+      ctaDescription: "Eine inspirierende Sitzung, die Teams in Bewegung setzt. Nehmen Sie Kontakt auf, um die M\u00f6glichkeiten zu besprechen.",
+      ctaLabel: "Kontakt aufnehmen",
+    },
+  }[lang];
 
   return {
-    meta: {
-      title: nl ? "Spreker — Klaas Kroezen" : "Speaker — Klaas Kroezen",
-      description: nl
-        ? "Boek Klaas Kroezen als spreker. Inspirerende keynotes en workshops over sales, klantgerichtheid en commerciële groei — oprecht en ontspannen."
-        : "Book Klaas Kroezen as a speaker. Inspiring keynotes and workshops on sales, customer focus and commercial growth — genuine and relaxed.",
-    },
+    meta: { title: text.metaTitle, description: text.metaDescription },
 
     hero: {
-      eyebrow: nl ? "Spreker & Keynote" : "Speaker & Keynote",
-      titleLine1: nl ? "Inspireer" : "Inspire",
-      titleLine2: nl ? "je team." : "your team.",
-      description: nl
-        ? "Een inspiratiesessie waarin ik teams laat ervaren hoe je met minder spanning meer klanten verandert in fans. Geen theorie, maar energie en inzichten die blijven hangen."
-        : "An inspiration session where I show teams how to turn more customers into fans with less tension. Not theory, but energy and insights that stick.",
+      eyebrow: text.heroEyebrow,
+      titleLine1: text.heroTitleLine1,
+      titleLine2: text.heroTitleLine2,
+      description: text.heroDescription,
       image: "/images/spreker/klaas-hero.jpeg",
-      imageAlt: nl
-        ? "Klaas Kroezen als spreker op het podium"
-        : "Klaas Kroezen as a speaker on stage",
+      imageAlt: text.heroImageAlt,
       imagePosition: "center 25%",
-      ctaLabel: nl ? "Neem contact op" : "Get in touch",
+      ctaLabel: text.heroCtaLabel,
       pricingAnchor: "/contact",
       programAnchor: "#videos",
-      secondaryLabel: nl ? "Bekijk fragmenten" : "Watch clips",
-      glassItems: nl
-        ? [
-            {
-              label: "Keynotes & workshops",
-              text: "Van 30 minuten inspiratie tot een volledige dagvullende workshop. Op maat voor jouw event of teamdag.",
-            },
-            {
-              label: "25+ jaar ervaring",
-              text: "Internationaal B2B bij Google, Samsung, Microsoft, ING en Vodafone. Eigen bedrijf verkocht in 2022.",
-            },
-            {
-              label: "Bewezen impact",
-              text: "Teams gaan naar huis met energie, inzichten en een concrete aanpak die ze direct kunnen toepassen.",
-            },
-          ]
-        : [
-            {
-              label: "Keynotes & workshops",
-              text: "From 30 minutes of inspiration to a full-day workshop. Tailored to your event or team day.",
-            },
-            {
-              label: "25+ years of experience",
-              text: "International B2B at Google, Samsung, Microsoft, ING and Vodafone. Company sold in 2022.",
-            },
-            {
-              label: "Proven impact",
-              text: "Teams go home with energy, insights and a concrete approach they can apply immediately.",
-            },
-          ],
+      secondaryLabel: text.heroSecondaryLabel,
+      glassItems: text.glassItems,
     },
 
-    audiences: nl
-      ? [
-          "Salesteams",
-          "Kick-offs",
-          "Teamdagen",
-          "Conferenties",
-          "Management events",
-          "Klantevents",
-        ]
-      : [
-          "Sales teams",
-          "Kick-offs",
-          "Team days",
-          "Conferences",
-          "Management events",
-          "Client events",
-        ],
+    audiences: text.audiences,
 
     contentBlock: {
-      eyebrow: nl ? "Over de sessie" : "About the session",
-      title: nl
-        ? "Sales gaat vaak mis door prestatiedruk."
-        : "Sales often fails due to performance pressure.",
-      titleAccent: nl ? "Het kan ook anders." : "There is another way.",
-      imageAlt: nl
-        ? "Klaas Kroezen geeft een workshop bij een flipchart"
-        : "Klaas Kroezen leading a workshop at a flipchart",
-      paragraphs: nl
-        ? [
-            "Door targets, cijfers en verwachtingen wordt verkoop krampachtig. Mensen raken gespannen, twijfelen, verliezen zichzelf — en het resultaat gaat juist omlaag. Dat kost energie, frustraties, vertrouwen én geld.",
-            "Met 25 jaar ervaring in sales en klantbeleving, van scale-up tot boardroom, help ik teams groeien vanuit oprechte verbinding. Niet vanuit trucjes.",
-            "Ik stond zelf jarenlang aan de frontlinie als CEO en eigenaar van een internationaal marktonderzoeksbureau. Ik weet hoe het voelt als sales voelt als trekken aan een dood paard. En ik weet hoe het wél werkt.",
-          ]
-        : [
-            "Due to targets, numbers and expectations, selling becomes forced. People get tense, doubt themselves, lose their authenticity — and results actually go down. That costs energy, frustration, trust and money.",
-            "With 25 years of experience in sales and customer experience, from scale-up to boardroom, I help teams grow through genuine connection. Not through tricks.",
-            "I stood on the front lines for years as CEO and owner of an international market research agency. I know what it feels like when sales feels like a dead end. And I know what actually works.",
-          ],
+      eyebrow: text.contentEyebrow,
+      title: text.contentTitle,
+      titleAccent: text.contentTitleAccent,
+      imageAlt: text.contentImageAlt,
+      paragraphs: text.contentParagraphs,
     },
 
-    benefitsGrid: nl
-      ? [
-          { icon: "✓", text: "Energie en inspiratie die je meeneemt in je werk" },
-          {
-            icon: "✓",
-            text: "Heldere inzichten voor duurzame commerciële groei",
-          },
-          {
-            icon: "✓",
-            text: "Verhalen en oefeningen die mensen in beweging zetten",
-          },
-          {
-            icon: "✓",
-            text: "Geen trucs. Geen scripts. Oprecht en ontspannen sales.",
-          },
-        ]
-      : [
-          {
-            icon: "✓",
-            text: "Energy and inspiration you take with you into your work",
-          },
-          {
-            icon: "✓",
-            text: "Clear insights for sustainable commercial growth",
-          },
-          {
-            icon: "✓",
-            text: "Stories and exercises that set people in motion",
-          },
-          {
-            icon: "✓",
-            text: "No tricks. No scripts. Genuine and relaxed sales.",
-          },
-        ],
+    benefitsGrid: text.benefits.map((b) => ({ icon: "\u2713", text: b })),
 
     videos: {
-      eyebrow: nl ? "Op het podium" : "On stage",
-      title: nl ? "Bekijk fragmenten." : "Watch clips.",
-      titleAccent: nl
-        ? "Oprecht en ontspannen in actie."
-        : "Genuine and relaxed in action.",
+      eyebrow: text.videosEyebrow,
+      title: text.videosTitle,
+      titleAccent: text.videosTitleAccent,
       items: [
         {
-          title: nl
-            ? "Speech op de boekpresentatie"
-            : "Speech at the book launch",
+          title: text.videoItems[0],
           thumbnail: "/images/spreker/video-thumb-speech.jpg",
           embedUrl: "https://www.youtube.com/embed/F6io8l_VYww",
           duration: "3:35",
         },
         {
-          title: nl
-            ? "Sales- en klantgerichte mindset in je team"
-            : "Sales and customer-focused mindset in your team",
+          title: text.videoItems[1],
           thumbnail: "/images/spreker/video-thumb-mindset.jpg",
           embedUrl: "https://www.youtube.com/embed/placeholder-mindset",
           duration: "1:46",
@@ -159,128 +258,42 @@ export function getSprekerContent(lang: Lang) {
       ],
     },
 
-    logoBar: {
-      label: nl ? "Gewerkt met onder andere" : "Worked with",
-    },
+    logoBar: { label: text.logoBarLabel },
 
     coaching: {
-      sectionEyebrow: nl ? "Coaching & Begeleiding" : "Coaching & Guidance",
-      sectionTitle1: nl ? "Persoonlijk of" : "Personal or",
-      sectionTitle2: nl ? "als team." : "as a team.",
+      sectionEyebrow: text.coachingEyebrow,
+      sectionTitle1: text.coachingTitle1,
+      sectionTitle2: text.coachingTitle2,
       individual: {
-        label: nl ? "Individueel" : "Individual",
-        title: nl ? "1-op-1 Coaching" : "1-on-1 Coaching",
-        description: nl
-          ? "Persoonlijke begeleiding voor sales professionals en leidinggevenden die willen groeien. Op jouw tempo, afgestemd op jouw uitdagingen."
-          : "Personal guidance for sales professionals and leaders who want to grow. At your pace, tailored to your challenges.",
-        features: nl
-          ? [
-              "Individueel traject op maat",
-              "Persoonlijke sparring & feedback",
-              "Focus op jouw specifieke uitdagingen",
-              "Flexibel in te plannen",
-            ]
-          : [
-              "Customised individual programme",
-              "Personal sparring & feedback",
-              "Focus on your specific challenges",
-              "Flexible scheduling",
-            ],
-        price: nl ? "Op aanvraag" : "On request",
-        cta: nl ? "Neem contact op →" : "Get in touch →",
+        label: text.individualLabel,
+        title: text.individualTitle,
+        description: text.individualDescription,
+        features: text.individualFeatures,
+        price: text.individualPrice,
+        cta: text.individualCta,
       },
       team: {
-        label: "Teams",
-        title: nl ? "Coaching voor Teams" : "Team Coaching",
-        description: nl
-          ? "Begeleid je team naar een gezamenlijke commerciële mindset. Van bewustwording tot implementatie — samen groeien in klantgerichtheid."
-          : "Guide your team towards a shared commercial mindset. From awareness to implementation — growing together in customer focus.",
-        features: nl
-          ? [
-              "Gezamenlijke kick-off op locatie",
-              "Teamgerichte oefeningen & casussen",
-              "Begeleiding tijdens implementatie",
-              "Meetbare resultaten per deelnemer",
-            ]
-          : [
-              "Joint kick-off on location",
-              "Team-focused exercises & cases",
-              "Guidance during implementation",
-              "Measurable results per participant",
-            ],
-        price: nl ? "Op aanvraag" : "On request",
-        cta: nl ? "Plan een gesprek →" : "Schedule a call →",
+        label: text.teamLabel,
+        title: text.teamTitle,
+        description: text.teamDescription,
+        features: text.teamFeatures,
+        price: text.teamPrice,
+        cta: text.teamCta,
       },
     },
 
     faq: {
-      title: nl ? "Praktische info." : "Practical info.",
-      titleAccent: nl ? "Voor organisatoren." : "For organisers.",
-      items: nl
-        ? [
-            {
-              question: "Hoe lang duurt een keynote of workshop?",
-              answer:
-                "Een keynote duurt 30 tot 60 minuten. Een workshop kan een halve of hele dag beslaan. Alles is op maat samen te stellen, afhankelijk van je programma en doelstelling.",
-            },
-            {
-              question: "Waar geeft Klaas zijn sessies?",
-              answer:
-                "Overal in Nederland en België, op jullie locatie. Internationaal is ook mogelijk — Klaas heeft ervaring in 21 landen en geeft sessies in het Nederlands en Engels.",
-            },
-            {
-              question: "Wat kost een keynote of workshop?",
-              answer:
-                "De investering hangt af van de duur, locatie en het aantal deelnemers. Neem contact op voor een vrijblijvend voorstel op maat.",
-            },
-            {
-              question: "Voor welk publiek is Klaas geschikt?",
-              answer:
-                "Salesteams, management, klantenservice, kick-offs, conferenties en klantevents. Van 10 tot 500 deelnemers. De boodschap is altijd: oprecht en ontspannen commercieel groeien.",
-            },
-            {
-              question: "Kan de sessie gecombineerd worden met coaching?",
-              answer:
-                "Ja, een keynote of workshop kan uitgebreid worden met 1-op-1 coaching of teambegeleiding. Zo blijft de impact niet beperkt tot de dag zelf.",
-            },
-          ]
-        : [
-            {
-              question: "How long does a keynote or workshop last?",
-              answer:
-                "A keynote lasts 30 to 60 minutes. A workshop can span half a day or a full day. Everything can be tailored, depending on your programme and objectives.",
-            },
-            {
-              question: "Where does Klaas deliver his sessions?",
-              answer:
-                "Anywhere in the Netherlands and Belgium, at your location. International is also possible — Klaas has experience in 21 countries and delivers sessions in Dutch and English.",
-            },
-            {
-              question: "What does a keynote or workshop cost?",
-              answer:
-                "The investment depends on the duration, location and number of participants. Get in touch for a no-obligation custom proposal.",
-            },
-            {
-              question: "What audience is Klaas suited for?",
-              answer:
-                "Sales teams, management, customer service, kick-offs, conferences and client events. From 10 to 500 participants. The message is always: genuine and relaxed commercial growth.",
-            },
-            {
-              question: "Can the session be combined with coaching?",
-              answer:
-                "Yes, a keynote or workshop can be extended with 1-on-1 coaching or team guidance. That way the impact is not limited to the day itself.",
-            },
-          ],
+      title: text.faqTitle,
+      titleAccent: text.faqTitleAccent,
+      items: text.faqItems,
     },
 
     cta: {
-      title: nl ? "Boek Klaas." : "Book Klaas.",
-      titleAccent: nl ? "Voor jouw event." : "For your event.",
-      description: nl
-        ? "Een inspirerende sessie die teams in beweging zet. Neem contact op om de mogelijkheden te bespreken."
-        : "An inspiring session that sets teams in motion. Get in touch to discuss the possibilities.",
+      title: text.ctaTitle,
+      titleAccent: text.ctaTitleAccent,
+      description: text.ctaDescription,
       href: "/contact",
-      ctaLabel: nl ? "Neem contact op" : "Get in touch",
+      ctaLabel: text.ctaLabel,
     },
   };
 }

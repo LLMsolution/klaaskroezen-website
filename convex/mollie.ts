@@ -5,17 +5,6 @@ import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import createMollieClient, { Locale, PaymentMethod, type Payment } from "@mollie/api-client";
 
-// Product prices in cents (must match payments.ts)
-const PRODUCT_PRICES: Record<string, number> = {
-  "set-online": 225000,
-  "set-coaching": 375000,
-  "cst-online": 225000,
-  "cst-coaching": 375000,
-  "boek-ebook": 2250,
-  "boek-hardcopy": 3250,
-  "boek-luisterboek": 2250,
-};
-
 export const createMolliePayment = action({
   args: {
     pendingOrderId: v.id("pendingOrders"),
@@ -27,22 +16,46 @@ export const createMolliePayment = action({
     });
     if (!order) throw new Error("Bestelling niet gevonden.");
 
-    const allSlugs = [order.product, ...order.bumps];
-    let totalCents = 0;
-    for (const slug of allSlugs) {
-      const p = PRODUCT_PRICES[slug];
-      if (p) totalCents += p;
+    // Get main product price from DB
+    const mainProduct = await ctx.runQuery(
+      internal.checkoutProducts.getProductPriceData,
+      { slug: order.product },
+    );
+    if (!mainProduct) throw new Error(`Product "${order.product}" niet gevonden.`);
+
+    // Calculate total with bump price overrides from DB
+    let totalCents = mainProduct.priceCents;
+    const overridesMap = new Map(
+      mainProduct.bumpPriceOverrides.map(
+        (o: { bumpSlug: string; priceCents: number }) => [o.bumpSlug, o.priceCents],
+      ),
+    );
+
+    for (const bumpSlug of order.bumps) {
+      const overridePrice = overridesMap.get(bumpSlug);
+      if (overridePrice !== undefined) {
+        totalCents += overridePrice;
+      } else {
+        const bumpData = await ctx.runQuery(
+          internal.checkoutProducts.getProductPriceData,
+          { slug: bumpSlug },
+        );
+        totalCents += bumpData?.priceCents ?? 0;
+      }
     }
+
+    const siteUrl = process.env.SITE_URL!;
+    const webhookBaseUrl = process.env.MOLLIE_WEBHOOK_URL || siteUrl;
 
     const mollieClient = createMollieClient({ apiKey: process.env.MOLLIE_API_KEY! });
     const payment = await (mollieClient.payments.create({
       amount: { currency: "EUR", value: (totalCents / 100).toFixed(2) },
       description: `Klaas Kroezen — ${order.product}`,
-      redirectUrl: `${process.env.SITE_URL}/checkout/bedankt?email=${encodeURIComponent(order.email)}&product=${order.product}&lang=${order.lang}`,
-      webhookUrl: `${process.env.SITE_URL}/api/webhooks/mollie`,
+      redirectUrl: `${siteUrl}/checkout/bedankt?email=${encodeURIComponent(order.email)}&product=${order.product}&lang=${order.lang}&orderId=${pendingOrderId}`,
+      webhookUrl: `${webhookBaseUrl}/api/webhooks/mollie`,
       method: method as PaymentMethod,
       metadata: { pendingOrderId, product: order.product },
-      locale: order.lang === "nl" ? Locale.nl_NL : Locale.en_US,
+      locale: order.lang === "nl" ? Locale.nl_NL : order.lang === "de" ? Locale.de_DE : Locale.en_US,
     }) as Promise<Payment>);
 
     await ctx.runMutation(internal.payments.linkMolliePayment, {

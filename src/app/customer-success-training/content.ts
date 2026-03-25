@@ -1,191 +1,281 @@
 import type { Lang } from "@/lib/i18n";
 
 export function getCstContent(lang: Lang) {
-  const nl = lang === "nl";
+  const text = {
+    nl: {
+      metaDescription: "Maak van klanten fans. Leer hoe je vanuit klantcontact bijdraagt aan groei, retentie en ambassadeurschap \u2014 ontspannen en oprecht.",
+      jsonLdDescription: "Maak van klanten fans. Leer hoe je vanuit klantcontact bijdraagt aan groei, retentie en ambassadeurschap.",
+      heroTitleLine1: "Van klant",
+      heroTitleLine2: "naar fan.",
+      heroDescription: "Je hebt geen salesfunctie \u2014 maar jij bepaalt w\u00e9l of een klant blijft, groeit en anderen aanbeveelt. Dat is commercieel goud.",
+      heroImageAlt: "Deelnemers van de Customer Success Training",
+      glassItems: [
+        { label: "Geen salestraining", text: "Specifiek voor professionals in klantcontact, service en delivery. Geen verkooptechnieken maar verbindingsvaardigheden." },
+        { label: "Direct toepasbaar", text: "Praktische tools en frameworks die je morgen al kunt inzetten in elk klantgesprek." },
+        { label: "Resultaatgarantie", text: "10% beter in klanttevredenheid of geld terug. Gemeten via het Customer Experience Model." },
+      ],
+      painEyebrow: "Je doet geen sales. Maar je bent commercieel cruciaal.",
+      painTitle: "Je herkent dit.",
+      painTitleAccent: "En je wilt het anders.",
+      painPoints: [
+        "Klanten vertrekken zonder dat je weet waarom",
+        "Onbenut potentieel in bestaand klantcontact",
+        "Geen structuur in opvolging en relatiebeheer",
+        "Continu brandjes blussen in plaats van proactief werken",
+        "Moeite met het bespreekbaar maken van meerwaarde",
+        "Je team is betrokken, maar mist de commerci\u00eble vaardigheden",
+      ],
+      transformation: [
+        { label: "Retentie", before: "Klanten vertrekken zonder dat je weet waarom", after: "Je ziet signalen vroeg en handelt proactief" },
+        { label: "Klantcontact", before: "Onbenut potentieel in bestaand klantcontact", after: "Elk gesprek draagt bij aan groei en retentie" },
+        { label: "Proces", before: "Geen structuur in opvolging en relatiebeheer", after: "Een helder proces van onboarding tot ambassadeur" },
+        { label: "Werkwijze", before: "Continu brandjes blussen in plaats van proactief werken", after: "Rust en overzicht \u2014 je werkt vooruit, niet achteruit" },
+        { label: "Waarde", before: "Moeite met het bespreekbaar maken van meerwaarde", after: "Je bespreekt waarde op een natuurlijke, ontspannen manier" },
+        { label: "Team", before: "Je team is betrokken, maar mist de commerci\u00eble vaardigheden", after: "Iedereen weet hoe klantcontact bijdraagt aan commercieel succes" },
+      ],
+      audiences: ["Customer Success Managers", "Supportteams", "Consultants", "Accountteams", "Delivery & service", "Projectmanagers"],
+      modules: [
+        { number: "01", title: "Jouw Rol in het Commerci\u00eble Geheel", description: "Begrijp hoe jouw klantcontact direct invloed heeft op omzet, retentie en ambassadeurschap. Je bent geen verkoper \u2014 maar w\u00e9l onmisbaar." },
+        { number: "02", title: "Oprechte Klantfocus", description: "Leer luisteren voorbij het oppervlak. Begrijp wat je klant \u00e9cht nodig heeft en bouw relaties die verder gaan dan het project." },
+        { number: "03", title: "Signalen Herkennen", description: "Klanten geven continu signalen \u2014 over tevredenheid, kansen en risico\u2019s. Leer ze herkennen en er ontspannen op acteren." },
+        { number: "04", title: "Moeilijke Gesprekken Ontspannen Voeren", description: "Prijsverhogingen, verwachtingsmanagement, teleurstelling \u2014 leer hoe je lastige onderwerpen bespreekt zonder de relatie te beschadigen." },
+        { number: "05", title: "Kansen Zien Zonder \"Te Verkopen\"", description: "Herken natuurlijke momenten om meerwaarde te bieden. Geen upsell-trucjes, maar oprechte suggesties die je klant verder helpen." },
+        { number: "06", title: "Van Klant naar Ambassadeur", description: "Tevreden klanten zijn goed. Ambassadeurs zijn beter. Leer hoe je van klantcontact een groeimachine maakt voor je organisatie." },
+      ],
+      reviews: [
+        { text: "Direct meer resultaat. Klaas maakt helder dat iedereen met klantcontact essentieel is voor commercieel succes \u2014 en geeft je de tools om dat waar te maken.", name: "Simon Kornblum", role: "Directeur Visma YouServe", avatar: "/images/reviews/simon-kornblum.jpg" },
+        { text: "Echte sales begint bij wie je b\u00e9nt. Mindset, rust en oprechte intentie leiden tot verbinding. Een must voor wie klanten wil veranderen in fans.", name: "Michael Pilarczyk", role: "Oprichter MasterMind Academy", avatar: "/images/reviews/michael-pilarczyk.jpeg" },
+        { text: "Dit boek gaat helemaal niet over sales. Het gaat over gedrag. Over hoe je oprechte verbinding maakt.", name: "Roderick G\u00f6ttgens", role: "Oprichter Behavior Boost" },
+      ],
+      guarantee: "10% beter in klanttevredenheid of geld terug \u2014 gemeten via het Customer Experience Model.",
+      individualTiers: [
+        { label: "Zelf studeren", title: "Online", price: "\u20ac 2.250", priceNote: "Excl. BTW", description: "Flexibel en in eigen tempo. Start direct met de volledige online training.", features: ["6 modules online training", "Digitaal werkboek met opdrachten", "1 jaar toegang", "Inclusief bestseller boek", "Certificaat na afronding"], cta: "Direct starten", href: "/checkout/cst-online" },
+        { label: "Meest gekozen", title: "Training + Coaching", price: "\u20ac 3.750", priceNote: "Excl. BTW", description: "Alles van Online plus persoonlijke begeleiding van kick-off tot afronding.", features: ["Alles van Online", "Fysiek werkboek met opdrachten", "Persoonlijke kick-off sessie", "Presentatie met feedback van Klaas", "Actieplan op maat"], cta: "Training kopen", href: "/checkout/cst-coaching", featured: true },
+      ],
+      teamTiers: [
+        { label: "Kleine teams", title: "Team Training", price: "\u20ac 2.250", priceNote: "Per deelnemer \u00b7 Excl. BTW \u00b7 Vanaf 3 personen", description: "Dezelfde training, maar samen met je team. Inclusief gezamenlijke kick-off en teamgerichte oefeningen.", features: ["Alles van Training + Coaching", "Fysiek werkboek per deelnemer", "Gezamenlijke kick-off op locatie", "Groepspresentaties met live feedback", "Certificaat per deelnemer"], cta: "Neem contact op", href: "/contact", featured: true },
+        { label: "Maatwerk", title: "Enterprise", price: "Op aanvraag", description: "Voor grotere organisaties. Volledig op maat, inclusief team-implementatie en persoonlijke coaching.", features: ["Alles van Team Training", "Op locatie of hybride", "Volledige team-implementatie", "Op maat voor jouw organisatie", "Persoonlijke coaching per deelnemer", "Managementrapportage"], cta: "Plan een gesprek", href: "/contact" },
+      ],
+      crossEyebrow: "Ook interessant",
+      crossTitleAccent: "Meer omzet, minder stress.",
+      crossDescription: "Voor verkopers en salesteams die weten dat er meer in zit. Leer hoe je met oprechtheid en ontspanning structureel beter verkoopt.",
+      crossImageAlt: "Deelnemers van de Sales Excellence Training met certificaten",
+      crossCtaLabel: "Bekijk training",
+      faqTitle: "Nog vragen?",
+      faqTitleAccent: "We helpen je graag.",
+      faqItems: [
+        { question: "Moet ik een salesachtergrond hebben?", answer: "Nee, juist niet. Deze training is specifiek ontworpen voor mensen z\u00f3nder salesfunctie die w\u00e9l klantcontact hebben: customer success managers, servicedesks, accountmanagers en consultants." },
+        { question: "Hoe lang duurt de training?", answer: "De online training bestaat uit 6 modules die je in je eigen tempo doorloopt. Gemiddeld ben je 6 tot 8 weken bezig. Bij de variant met coaching krijg je daarnaast persoonlijke begeleiding." },
+        { question: "Wat als het niet werkt voor mij?", answer: "We bieden een 10% resultaatgarantie. Als je na het volledig doorlopen van de training niet minimaal 10% verbetering ervaart in klanttevredenheid of retentie, krijg je je geld terug." },
+        { question: "Kan ik de training ook voor mijn team inkopen?", answer: "Ja, we bieden een incompany variant aan op maat. Met teamgerichte oefeningen, klantcasussen uit jullie praktijk en begeleiding tijdens implementatie. Neem contact op voor een voorstel." },
+        { question: "Krijg ik direct toegang na aankoop?", answer: "Ja, je ontvangt direct na betaling een e-mail met je inloggegevens. Je kunt meteen beginnen met de eerste module." },
+        { question: "Wat is het verschil met de Sales Excellence Training?", answer: "Sales Excellence is gericht op het binnenhalen van nieuwe klanten. Customer Success draait om het behouden en laten groeien van bestaande klanten. Samen vormen ze \u00e9\u00e9n methode voor commerci\u00eble groei." },
+      ],
+      ctaTitle: "Start vandaag.",
+      ctaTitleAccent: "Oprecht & ontspannen.",
+      ctaDescription: "Hogere klanttevredenheid, meer retentie en klanten die ambassadeur worden. Zonder verkoopdruk.",
+    },
+    en: {
+      metaDescription: "Turn customers into fans. Learn how customer interactions drive growth, retention and advocacy \u2014 relaxed and genuine.",
+      jsonLdDescription: "Turn customers into fans. Learn how customer interactions drive growth, retention and advocacy.",
+      heroTitleLine1: "From customer",
+      heroTitleLine2: "to fan.",
+      heroDescription: "You're not in a sales role \u2014 but you do determine whether a customer stays, grows and recommends others. That's commercial gold.",
+      heroImageAlt: "Participants of the Customer Success Training",
+      glassItems: [
+        { label: "Not a sales training", text: "Specifically for professionals in customer contact, service and delivery. Not sales techniques but connection skills." },
+        { label: "Immediately applicable", text: "Practical tools and frameworks you can use in every customer conversation starting tomorrow." },
+        { label: "Results guarantee", text: "10% better in customer satisfaction or your money back. Measured via the Customer Experience Model." },
+      ],
+      painEyebrow: "You're not in sales. But you're commercially crucial.",
+      painTitle: "You recognise this.",
+      painTitleAccent: "And you want it to change.",
+      painPoints: [
+        "Customers leave without you knowing why",
+        "Untapped potential in existing customer interactions",
+        "No structure in follow-up and relationship management",
+        "Constantly firefighting instead of working proactively",
+        "Difficulty discussing added value",
+        "Your team is engaged, but lacks the commercial skills",
+      ],
+      transformation: [
+        { label: "Retention", before: "Customers leave without you knowing why", after: "You spot signals early and act proactively" },
+        { label: "Customer contact", before: "Untapped potential in existing customer interactions", after: "Every conversation contributes to growth and retention" },
+        { label: "Process", before: "No structure in follow-up and relationship management", after: "A clear process from onboarding to ambassador" },
+        { label: "Way of working", before: "Constantly firefighting instead of working proactively", after: "Calm and overview \u2014 you work ahead, not behind" },
+        { label: "Value", before: "Difficulty discussing added value", after: "You discuss value in a natural, relaxed way" },
+        { label: "Team", before: "Your team is engaged, but lacks the commercial skills", after: "Everyone knows how customer contact contributes to commercial success" },
+      ],
+      audiences: ["Customer Success Managers", "Support teams", "Consultants", "Account teams", "Delivery & service", "Project managers"],
+      modules: [
+        { number: "01", title: "Your Role in the Commercial Whole", description: "Understand how your customer interactions directly impact revenue, retention and advocacy. You're not a salesperson \u2014 but you are indispensable." },
+        { number: "02", title: "Genuine Customer Focus", description: "Learn to listen beyond the surface. Understand what your customer truly needs and build relationships that go beyond the project." },
+        { number: "03", title: "Recognising Signals", description: "Customers continuously give signals \u2014 about satisfaction, opportunities and risks. Learn to recognise them and act on them with ease." },
+        { number: "04", title: "Handling Difficult Conversations with Ease", description: "Price increases, expectation management, disappointment \u2014 learn how to discuss difficult topics without damaging the relationship." },
+        { number: "05", title: "Spotting Opportunities Without 'Selling'", description: "Recognise natural moments to offer added value. No upsell tricks, but genuine suggestions that help your customer move forward." },
+        { number: "06", title: "From Customer to Ambassador", description: "Satisfied customers are good. Ambassadors are better. Learn how to turn customer contact into a growth engine for your organisation." },
+      ],
+      reviews: [
+        { text: "Immediate results. Klaas makes clear that everyone with customer contact is essential for commercial success \u2014 and gives you the tools to make it happen.", name: "Simon Kornblum", role: "Director Visma YouServe", avatar: "/images/reviews/simon-kornblum.jpg" },
+        { text: "Real sales starts with who you are. Mindset, calm and genuine intention lead to connection. A must for anyone who wants to turn customers into fans.", name: "Michael Pilarczyk", role: "Founder MasterMind Academy", avatar: "/images/reviews/michael-pilarczyk.jpeg" },
+        { text: "This book isn't about sales at all. It's about behaviour. About how you create genuine connection.", name: "Roderick G\u00f6ttgens", role: "Founder Behavior Boost" },
+      ],
+      guarantee: "10% better in customer satisfaction or your money back \u2014 measured via the Customer Experience Model.",
+      individualTiers: [
+        { label: "Self-study", title: "Online", price: "\u20ac 2,250", priceNote: "Excl. VAT", description: "Flexible and at your own pace. Start immediately with the full online training.", features: ["6 modules online training", "Digital workbook with exercises", "1 year access", "Includes bestselling book", "Certificate upon completion"], cta: "Start now", href: "/checkout/cst-online" },
+        { label: "Most popular", title: "Training + Coaching", price: "\u20ac 3,750", priceNote: "Excl. VAT", description: "Everything from Online plus personal guidance from kick-off to completion.", features: ["Everything from Online", "Physical workbook with exercises", "Personal kick-off session", "Presentation with feedback from Klaas", "Custom action plan"], cta: "Buy training", href: "/checkout/cst-coaching", featured: true },
+      ],
+      teamTiers: [
+        { label: "Small teams", title: "Team Training", price: "\u20ac 2,250", priceNote: "Per participant \u00b7 Excl. VAT \u00b7 From 3 people", description: "The same training, but together with your team. Including joint kick-off and team-focused exercises.", features: ["Everything from Training + Coaching", "Physical workbook per participant", "Joint kick-off on location", "Group presentations with live feedback", "Certificate per participant"], cta: "Get in touch", href: "/contact", featured: true },
+        { label: "Custom", title: "Enterprise", price: "On request", description: "For larger organisations. Fully customised, including team implementation and personal coaching.", features: ["Everything from Team Training", "On location or hybrid", "Full team implementation", "Tailored to your organisation", "Personal coaching per participant", "Management reporting"], cta: "Schedule a call", href: "/contact" },
+      ],
+      crossEyebrow: "Also interesting",
+      crossTitleAccent: "More revenue, less stress.",
+      crossDescription: "For sales professionals and teams who know there is more potential. Learn how to sell structurally better with authenticity and ease.",
+      crossImageAlt: "Participants of the Sales Excellence Training with certificates",
+      crossCtaLabel: "View training",
+      faqTitle: "Questions?",
+      faqTitleAccent: "We're happy to help.",
+      faqItems: [
+        { question: "Do I need a sales background?", answer: "No, quite the opposite. This training is specifically designed for people without a sales role who do have customer contact: customer success managers, service desks, account managers and consultants." },
+        { question: "How long does the training take?", answer: "The online training consists of 6 modules you complete at your own pace. On average it takes 6 to 8 weeks. The coaching variant includes personal guidance alongside." },
+        { question: "What if it doesn't work for me?", answer: "We offer a 10% results guarantee. If after completing the full training you don't experience at least 10% improvement in customer satisfaction or retention, you get your money back." },
+        { question: "Can I purchase the training for my team?", answer: "Yes, we offer a customised in-company variant. With team-focused exercises, customer cases from your own practice and guidance during implementation. Get in touch for a proposal." },
+        { question: "Do I get immediate access after purchase?", answer: "Yes, you receive an email with your login details immediately after payment. You can start with the first module right away." },
+        { question: "What is the difference with the Sales Excellence Training?", answer: "Sales Excellence focuses on winning new customers. Customer Success is about retaining and growing existing customers. Together they form one method for commercial growth." },
+      ],
+      ctaTitle: "Start today.",
+      ctaTitleAccent: "Genuine & relaxed.",
+      ctaDescription: "Higher customer satisfaction, more retention and customers who become ambassadors. Without sales pressure.",
+    },
+    de: {
+      metaDescription: "Machen Sie aus Kunden Fans. Erfahren Sie, wie Kundeninteraktionen zu Wachstum, Bindung und Weiterempfehlung beitragen \u2014 entspannt und aufrichtig.",
+      jsonLdDescription: "Machen Sie aus Kunden Fans. Erfahren Sie, wie Kundeninteraktionen zu Wachstum, Bindung und Weiterempfehlung beitragen.",
+      heroTitleLine1: "Vom Kunden",
+      heroTitleLine2: "zum Fan.",
+      heroDescription: "Sie haben keine Vertriebsfunktion \u2014 aber Sie bestimmen, ob ein Kunde bleibt, w\u00e4chst und andere empfiehlt. Das ist kommerzielles Gold.",
+      heroImageAlt: "Teilnehmer des Customer Success Trainings",
+      glassItems: [
+        { label: "Kein Vertriebstraining", text: "Speziell f\u00fcr Fachkr\u00e4fte im Kundenkontakt, Service und Delivery. Keine Verkaufstechniken, sondern Verbindungsf\u00e4higkeiten." },
+        { label: "Sofort anwendbar", text: "Praktische Tools und Frameworks, die Sie morgen schon in jedem Kundengespr\u00e4ch einsetzen k\u00f6nnen." },
+        { label: "Ergebnisgarantie", text: "10 % bessere Kundenzufriedenheit oder Geld zur\u00fcck. Gemessen \u00fcber das Customer Experience Model." },
+      ],
+      painEyebrow: "Sie arbeiten nicht im Vertrieb. Aber Sie sind kommerziell entscheidend.",
+      painTitle: "Sie erkennen das wieder.",
+      painTitleAccent: "Und Sie wollen es \u00e4ndern.",
+      painPoints: [
+        "Kunden gehen, ohne dass Sie wissen, warum",
+        "Ungenutztes Potenzial in bestehenden Kundeninteraktionen",
+        "Keine Struktur in der Nachverfolgung und Beziehungspflege",
+        "St\u00e4ndig Brandherde l\u00f6schen statt proaktiv arbeiten",
+        "Schwierigkeiten, den Mehrwert anzusprechen",
+        "Ihr Team ist engagiert, aber es fehlen die kommerziellen F\u00e4higkeiten",
+      ],
+      transformation: [
+        { label: "Bindung", before: "Kunden gehen, ohne dass Sie wissen, warum", after: "Sie erkennen Signale fr\u00fch und handeln proaktiv" },
+        { label: "Kundenkontakt", before: "Ungenutztes Potenzial in bestehenden Kundeninteraktionen", after: "Jedes Gespr\u00e4ch tr\u00e4gt zu Wachstum und Bindung bei" },
+        { label: "Prozess", before: "Keine Struktur in der Nachverfolgung und Beziehungspflege", after: "Ein klarer Prozess vom Onboarding bis zum Botschafter" },
+        { label: "Arbeitsweise", before: "St\u00e4ndig Brandherde l\u00f6schen statt proaktiv arbeiten", after: "Ruhe und \u00dcberblick \u2014 Sie arbeiten voraus, nicht hinterher" },
+        { label: "Wert", before: "Schwierigkeiten, den Mehrwert anzusprechen", after: "Sie besprechen Wert auf nat\u00fcrliche, entspannte Weise" },
+        { label: "Team", before: "Ihr Team ist engagiert, aber es fehlen die kommerziellen F\u00e4higkeiten", after: "Jeder wei\u00df, wie Kundenkontakt zum kommerziellen Erfolg beitr\u00e4gt" },
+      ],
+      audiences: ["Customer Success Manager", "Support-Teams", "Berater", "Account-Teams", "Delivery & Service", "Projektmanager"],
+      modules: [
+        { number: "01", title: "Ihre Rolle im kommerziellen Gesamtbild", description: "Verstehen Sie, wie Ihr Kundenkontakt direkt Umsatz, Bindung und Weiterempfehlung beeinflusst. Sie sind kein Verk\u00e4ufer \u2014 aber unverzichtbar." },
+        { number: "02", title: "Aufrichtiger Kundenfokus", description: "Lernen Sie, \u00fcber die Oberfl\u00e4che hinaus zuzuh\u00f6ren. Verstehen Sie, was Ihr Kunde wirklich braucht, und bauen Sie Beziehungen auf, die \u00fcber das Projekt hinausgehen." },
+        { number: "03", title: "Signale erkennen", description: "Kunden senden kontinuierlich Signale \u2014 \u00fcber Zufriedenheit, Chancen und Risiken. Lernen Sie, diese zu erkennen und entspannt darauf zu reagieren." },
+        { number: "04", title: "Schwierige Gespr\u00e4che entspannt f\u00fchren", description: "Preiserh\u00f6hungen, Erwartungsmanagement, Entt\u00e4uschung \u2014 lernen Sie, heikle Themen zu besprechen, ohne die Beziehung zu besch\u00e4digen." },
+        { number: "05", title: "Chancen erkennen, ohne zu \u201everkaufen\u201c", description: "Erkennen Sie nat\u00fcrliche Momente, um Mehrwert zu bieten. Keine Upsell-Tricks, sondern aufrichtige Vorschl\u00e4ge, die Ihrem Kunden weiterhelfen." },
+        { number: "06", title: "Vom Kunden zum Botschafter", description: "Zufriedene Kunden sind gut. Botschafter sind besser. Lernen Sie, wie Sie Kundenkontakt zu einem Wachstumsmotor f\u00fcr Ihre Organisation machen." },
+      ],
+      reviews: [
+        { text: "Sofort mehr Ergebnisse. Klaas macht deutlich, dass jeder mit Kundenkontakt f\u00fcr den kommerziellen Erfolg entscheidend ist \u2014 und gibt Ihnen die Werkzeuge, um das umzusetzen.", name: "Simon Kornblum", role: "Direktor Visma YouServe", avatar: "/images/reviews/simon-kornblum.jpg" },
+        { text: "Echter Vertrieb beginnt bei dem, wer Sie sind. Mindset, Ruhe und aufrichtige Absicht f\u00fchren zu Verbindung. Ein Muss f\u00fcr alle, die Kunden in Fans verwandeln wollen.", name: "Michael Pilarczyk", role: "Gr\u00fcnder MasterMind Academy", avatar: "/images/reviews/michael-pilarczyk.jpeg" },
+        { text: "Dieses Buch handelt \u00fcberhaupt nicht von Vertrieb. Es geht um Verhalten. Darum, wie man aufrichtige Verbindung schafft.", name: "Roderick G\u00f6ttgens", role: "Gr\u00fcnder Behavior Boost" },
+      ],
+      guarantee: "10 % bessere Kundenzufriedenheit oder Geld zur\u00fcck \u2014 gemessen \u00fcber das Customer Experience Model.",
+      individualTiers: [
+        { label: "Selbststudium", title: "Online", price: "\u20ac 2.250", priceNote: "Zzgl. MwSt.", description: "Flexibel und im eigenen Tempo. Starten Sie sofort mit dem vollst\u00e4ndigen Online-Training.", features: ["6 Module Online-Training", "Digitales Arbeitsbuch mit Aufgaben", "1 Jahr Zugang", "Inklusive Bestseller-Buch", "Zertifikat nach Abschluss"], cta: "Jetzt starten", href: "/checkout/cst-online" },
+        { label: "Am beliebtesten", title: "Training + Coaching", price: "\u20ac 3.750", priceNote: "Zzgl. MwSt.", description: "Alles aus Online plus pers\u00f6nliche Begleitung vom Kick-off bis zum Abschluss.", features: ["Alles aus Online", "Physisches Arbeitsbuch mit Aufgaben", "Pers\u00f6nliche Kick-off-Sitzung", "Pr\u00e4sentation mit Feedback von Klaas", "Ma\u00dfgeschneiderter Aktionsplan"], cta: "Training kaufen", href: "/checkout/cst-coaching", featured: true },
+      ],
+      teamTiers: [
+        { label: "Kleine Teams", title: "Team-Training", price: "\u20ac 2.250", priceNote: "Pro Teilnehmer \u00b7 Zzgl. MwSt. \u00b7 Ab 3 Personen", description: "Dasselbe Training, aber gemeinsam mit Ihrem Team. Inklusive gemeinsamem Kick-off und teamorientierten \u00dcbungen.", features: ["Alles aus Training + Coaching", "Physisches Arbeitsbuch pro Teilnehmer", "Gemeinsamer Kick-off vor Ort", "Gruppenpr\u00e4sentationen mit Live-Feedback", "Zertifikat pro Teilnehmer"], cta: "Kontakt aufnehmen", href: "/contact", featured: true },
+        { label: "Ma\u00dfarbeit", title: "Enterprise", price: "Auf Anfrage", description: "F\u00fcr gr\u00f6\u00dfere Organisationen. Vollst\u00e4ndig ma\u00dfgeschneidert, inklusive Team-Implementierung und pers\u00f6nlichem Coaching.", features: ["Alles aus Team-Training", "Vor Ort oder hybrid", "Vollst\u00e4ndige Team-Implementierung", "Ma\u00dfgeschneidert f\u00fcr Ihre Organisation", "Pers\u00f6nliches Coaching pro Teilnehmer", "Management-Reporting"], cta: "Gespr\u00e4ch vereinbaren", href: "/contact" },
+      ],
+      crossEyebrow: "Auch interessant",
+      crossTitleAccent: "Mehr Umsatz, weniger Stress.",
+      crossDescription: "F\u00fcr Vertriebsprofis und Teams, die wissen, dass mehr m\u00f6glich ist. Erfahren Sie, wie Sie mit Aufrichtigkeit und Entspannung strukturell besser verkaufen.",
+      crossImageAlt: "Teilnehmer des Sales Excellence Trainings mit Zertifikaten",
+      crossCtaLabel: "Training ansehen",
+      faqTitle: "Noch Fragen?",
+      faqTitleAccent: "Wir helfen Ihnen gerne.",
+      faqItems: [
+        { question: "Brauche ich einen Vertriebshintergrund?", answer: "Nein, im Gegenteil. Dieses Training ist speziell f\u00fcr Menschen ohne Vertriebsfunktion konzipiert, die dennoch Kundenkontakt haben: Customer Success Manager, Servicedesks, Account Manager und Berater." },
+        { question: "Wie lange dauert das Training?", answer: "Das Online-Training besteht aus 6 Modulen, die Sie in Ihrem eigenen Tempo durchlaufen. Im Durchschnitt ben\u00f6tigen Sie 6 bis 8 Wochen. Bei der Coaching-Variante erhalten Sie zus\u00e4tzlich pers\u00f6nliche Begleitung." },
+        { question: "Was, wenn es f\u00fcr mich nicht funktioniert?", answer: "Wir bieten eine 10-%-Ergebnisgarantie. Wenn Sie nach vollst\u00e4ndigem Abschluss des Trainings keine mindestens 10-prozentige Verbesserung der Kundenzufriedenheit oder Bindung feststellen, erhalten Sie Ihr Geld zur\u00fcck." },
+        { question: "Kann ich das Training auch f\u00fcr mein Team einkaufen?", answer: "Ja, wir bieten eine ma\u00dfgeschneiderte Inhouse-Variante an. Mit teamorientierten \u00dcbungen, Kundenf\u00e4llen aus Ihrer Praxis und Begleitung w\u00e4hrend der Implementierung. Nehmen Sie Kontakt auf f\u00fcr ein Angebot." },
+        { question: "Erhalte ich nach dem Kauf sofort Zugang?", answer: "Ja, Sie erhalten direkt nach der Zahlung eine E-Mail mit Ihren Zugangsdaten. Sie k\u00f6nnen sofort mit dem ersten Modul beginnen." },
+        { question: "Was ist der Unterschied zum Sales Excellence Training?", answer: "Sales Excellence konzentriert sich auf die Gewinnung neuer Kunden. Customer Success dreht sich um die Bindung und das Wachstum bestehender Kunden. Zusammen bilden sie eine Methode f\u00fcr kommerzielles Wachstum." },
+      ],
+      ctaTitle: "Starten Sie heute.",
+      ctaTitleAccent: "Aufrichtig & entspannt.",
+      ctaDescription: "H\u00f6here Kundenzufriedenheit, mehr Bindung und Kunden, die zu Botschaftern werden. Ohne Verkaufsdruck.",
+    },
+  }[lang];
 
   return {
-    meta: {
-      title: "Customer Success Training",
-      description: nl
-        ? "Maak van klanten fans. Leer hoe je vanuit klantcontact bijdraagt aan groei, retentie en ambassadeurschap — ontspannen en oprecht."
-        : "Turn customers into fans. Learn how customer interactions drive growth, retention and advocacy — relaxed and genuine.",
-    },
+    meta: { title: "Customer Success Training", description: text.metaDescription },
     jsonLd: {
       name: "Customer Success Training",
-      description: nl
-        ? "Maak van klanten fans. Leer hoe je vanuit klantcontact bijdraagt aan groei, retentie en ambassadeurschap."
-        : "Turn customers into fans. Learn how customer interactions drive growth, retention and advocacy.",
+      description: text.jsonLdDescription,
       url: "https://www.klaaskroezen.com/customer-success-training",
       price: "2250",
     },
     hero: {
       eyebrow: "Customer Success Training",
-      titleLine1: nl ? "Van klant" : "From customer",
-      titleLine2: nl ? "naar fan." : "to fan.",
-      description: nl
-        ? "Je hebt geen salesfunctie — maar jij bepaalt wél of een klant blijft, groeit en anderen aanbeveelt. Dat is commercieel goud."
-        : "You're not in a sales role — but you do determine whether a customer stays, grows and recommends others. That's commercial gold.",
+      titleLine1: text.heroTitleLine1,
+      titleLine2: text.heroTitleLine2,
+      description: text.heroDescription,
       image: "/images/hero/customer-success-group.jpg",
-      imageAlt: nl
-        ? "Deelnemers van de Customer Success Training"
-        : "Participants of the Customer Success Training",
+      imageAlt: text.heroImageAlt,
       imagePosition: "center center",
-      glassItems: nl
-        ? [
-            { label: "Geen salestraining", text: "Specifiek voor professionals in klantcontact, service en delivery. Geen verkooptechnieken maar verbindingsvaardigheden." },
-            { label: "Direct toepasbaar", text: "Praktische tools en frameworks die je morgen al kunt inzetten in elk klantgesprek." },
-            { label: "Resultaatgarantie", text: "10% beter in klanttevredenheid of geld terug. Gemeten via het Customer Experience Model." },
-          ]
-        : [
-            { label: "Not a sales training", text: "Specifically for professionals in customer contact, service and delivery. Not sales techniques but connection skills." },
-            { label: "Immediately applicable", text: "Practical tools and frameworks you can use in every customer conversation starting tomorrow." },
-            { label: "Results guarantee", text: "10% better in customer satisfaction or your money back. Measured via the Customer Experience Model." },
-          ],
+      glassItems: text.glassItems,
     },
     painPoints: {
-      eyebrow: nl
-        ? "Je doet geen sales. Maar je bent commercieel cruciaal."
-        : "You're not in sales. But you're commercially crucial.",
-      title: nl ? "Je herkent dit." : "You recognise this.",
-      titleAccent: nl ? "En je wilt het anders." : "And you want it to change.",
-      points: nl
-        ? [
-            "Klanten vertrekken zonder dat je weet waarom",
-            "Onbenut potentieel in bestaand klantcontact",
-            "Geen structuur in opvolging en relatiebeheer",
-            "Continu brandjes blussen in plaats van proactief werken",
-            "Moeite met het bespreekbaar maken van meerwaarde",
-            "Je team is betrokken, maar mist de commerciële vaardigheden",
-          ]
-        : [
-            "Customers leave without you knowing why",
-            "Untapped potential in existing customer interactions",
-            "No structure in follow-up and relationship management",
-            "Constantly firefighting instead of working proactively",
-            "Difficulty discussing added value",
-            "Your team is engaged, but lacks the commercial skills",
-          ],
+      eyebrow: text.painEyebrow,
+      title: text.painTitle,
+      titleAccent: text.painTitleAccent,
+      points: text.painPoints,
     },
-    transformation: nl
-      ? [
-          { label: "Retentie", before: "Klanten vertrekken zonder dat je weet waarom", after: "Je ziet signalen vroeg en handelt proactief" },
-          { label: "Klantcontact", before: "Onbenut potentieel in bestaand klantcontact", after: "Elk gesprek draagt bij aan groei en retentie" },
-          { label: "Proces", before: "Geen structuur in opvolging en relatiebeheer", after: "Een helder proces van onboarding tot ambassadeur" },
-          { label: "Werkwijze", before: "Continu brandjes blussen in plaats van proactief werken", after: "Rust en overzicht — je werkt vooruit, niet achteruit" },
-          { label: "Waarde", before: "Moeite met het bespreekbaar maken van meerwaarde", after: "Je bespreekt waarde op een natuurlijke, ontspannen manier" },
-          { label: "Team", before: "Je team is betrokken, maar mist de commerciële vaardigheden", after: "Iedereen weet hoe klantcontact bijdraagt aan commercieel succes" },
-        ]
-      : [
-          { label: "Retention", before: "Customers leave without you knowing why", after: "You spot signals early and act proactively" },
-          { label: "Customer contact", before: "Untapped potential in existing customer interactions", after: "Every conversation contributes to growth and retention" },
-          { label: "Process", before: "No structure in follow-up and relationship management", after: "A clear process from onboarding to ambassador" },
-          { label: "Way of working", before: "Constantly firefighting instead of working proactively", after: "Calm and overview — you work ahead, not behind" },
-          { label: "Value", before: "Difficulty discussing added value", after: "You discuss value in a natural, relaxed way" },
-          { label: "Team", before: "Your team is engaged, but lacks the commercial skills", after: "Everyone knows how customer contact contributes to commercial success" },
-        ],
-    audiences: nl
-      ? ["Customer Success Managers", "Supportteams", "Consultants", "Accountteams", "Delivery & service", "Projectmanagers"]
-      : ["Customer Success Managers", "Support teams", "Consultants", "Account teams", "Delivery & service", "Project managers"],
-    program: {
-      price: "€ 2.250",
-      modules: nl
-        ? [
-            { number: "01", title: "Jouw Rol in het Commerciële Geheel", description: "Begrijp hoe jouw klantcontact direct invloed heeft op omzet, retentie en ambassadeurschap. Je bent geen verkoper — maar wél onmisbaar." },
-            { number: "02", title: "Oprechte Klantfocus", description: "Leer luisteren voorbij het oppervlak. Begrijp wat je klant écht nodig heeft en bouw relaties die verder gaan dan het project." },
-            { number: "03", title: "Signalen Herkennen", description: "Klanten geven continu signalen — over tevredenheid, kansen en risico's. Leer ze herkennen en er ontspannen op acteren." },
-            { number: "04", title: "Moeilijke Gesprekken Ontspannen Voeren", description: "Prijsverhogingen, verwachtingsmanagement, teleurstelling — leer hoe je lastige onderwerpen bespreekt zonder de relatie te beschadigen." },
-            { number: "05", title: 'Kansen Zien Zonder "Te Verkopen"', description: "Herken natuurlijke momenten om meerwaarde te bieden. Geen upsell-trucjes, maar oprechte suggesties die je klant verder helpen." },
-            { number: "06", title: "Van Klant naar Ambassadeur", description: "Tevreden klanten zijn goed. Ambassadeurs zijn beter. Leer hoe je van klantcontact een groeimachine maakt voor je organisatie." },
-          ]
-        : [
-            { number: "01", title: "Your Role in the Commercial Whole", description: "Understand how your customer interactions directly impact revenue, retention and advocacy. You're not a salesperson — but you are indispensable." },
-            { number: "02", title: "Genuine Customer Focus", description: "Learn to listen beyond the surface. Understand what your customer truly needs and build relationships that go beyond the project." },
-            { number: "03", title: "Recognising Signals", description: "Customers continuously give signals — about satisfaction, opportunities and risks. Learn to recognise them and act on them with ease." },
-            { number: "04", title: "Handling Difficult Conversations with Ease", description: "Price increases, expectation management, disappointment — learn how to discuss difficult topics without damaging the relationship." },
-            { number: "05", title: "Spotting Opportunities Without 'Selling'", description: "Recognise natural moments to offer added value. No upsell tricks, but genuine suggestions that help your customer move forward." },
-            { number: "06", title: "From Customer to Ambassador", description: "Satisfied customers are good. Ambassadors are better. Learn how to turn customer contact into a growth engine for your organisation." },
-          ],
-    },
-    reviews: nl
-      ? [
-          { text: "Direct meer resultaat. Klaas maakt helder dat iedereen met klantcontact essentieel is voor commercieel succes — en geeft je de tools om dat waar te maken.", name: "Simon Kornblum", role: "Directeur Visma YouServe", avatar: "/images/reviews/simon-kornblum.jpg" },
-          { text: "Echte sales begint bij wie je bént. Mindset, rust en oprechte intentie leiden tot verbinding. Een must voor wie klanten wil veranderen in fans.", name: "Michael Pilarczyk", role: "Oprichter MasterMind Academy", avatar: "/images/reviews/michael-pilarczyk.jpeg" },
-          { text: "Dit boek gaat helemaal niet over sales. Het gaat over gedrag. Over hoe je oprechte verbinding maakt.", name: "Roderick Göttgens", role: "Oprichter Behavior Boost" },
-        ]
-      : [
-          { text: "Immediate results. Klaas makes clear that everyone with customer contact is essential for commercial success — and gives you the tools to make it happen.", name: "Simon Kornblum", role: "Director Visma YouServe", avatar: "/images/reviews/simon-kornblum.jpg" },
-          { text: "Real sales starts with who you are. Mindset, calm and genuine intention lead to connection. A must for anyone who wants to turn customers into fans.", name: "Michael Pilarczyk", role: "Founder MasterMind Academy", avatar: "/images/reviews/michael-pilarczyk.jpeg" },
-          { text: "This book isn't about sales at all. It's about behaviour. About how you create genuine connection.", name: "Roderick Göttgens", role: "Founder Behavior Boost" },
-        ],
+    transformation: text.transformation,
+    audiences: text.audiences,
+    program: { price: "\u20ac 2.250", modules: text.modules },
+    reviews: text.reviews,
     pricing: {
-      guarantee: nl
-        ? "10% beter in klanttevredenheid of geld terug — gemeten via het Customer Experience Model."
-        : "10% better in customer satisfaction or your money back — measured via the Customer Experience Model.",
-      individual: {
-        tiers: nl
-          ? [
-              { label: "Zelf studeren", title: "Online", price: "€ 2.250", priceNote: "Excl. BTW", description: "Flexibel en in eigen tempo. Start direct met de volledige online training.", features: ["6 modules online training", "Digitaal werkboek met opdrachten", "1 jaar toegang", "Inclusief bestseller boek", "Certificaat na afronding"], cta: "Direct starten", href: "https://klaaskroezen.plugandpay.com/checkout/customer-success-training" },
-              { label: "Meest gekozen", title: "Training + Coaching", price: "€ 3.750", priceNote: "Excl. BTW", description: "Alles van Online plus persoonlijke begeleiding van kick-off tot afronding.", features: ["Alles van Online", "Fysiek werkboek met opdrachten", "Persoonlijke kick-off sessie", "Presentatie met feedback van Klaas", "Actieplan op maat"], cta: "Training kopen", href: "https://klaaskroezen.plugandpay.com/checkout/customer-success-training", featured: true },
-            ]
-          : [
-              { label: "Self-study", title: "Online", price: "€ 2,250", priceNote: "Excl. VAT", description: "Flexible and at your own pace. Start immediately with the full online training.", features: ["6 modules online training", "Digital workbook with exercises", "1 year access", "Includes bestselling book", "Certificate upon completion"], cta: "Start now", href: "https://klaaskroezen.plugandpay.com/checkout/customer-success-training" },
-              { label: "Most popular", title: "Training + Coaching", price: "€ 3,750", priceNote: "Excl. VAT", description: "Everything from Online plus personal guidance from kick-off to completion.", features: ["Everything from Online", "Physical workbook with exercises", "Personal kick-off session", "Presentation with feedback from Klaas", "Custom action plan"], cta: "Buy training", href: "https://klaaskroezen.plugandpay.com/checkout/customer-success-training", featured: true },
-            ],
-      },
-      team: {
-        tiers: nl
-          ? [
-              { label: "Kleine teams", title: "Team Training", price: "€ 2.250", priceNote: "Per deelnemer · Excl. BTW · Vanaf 3 personen", description: "Dezelfde training, maar samen met je team. Inclusief gezamenlijke kick-off en teamgerichte oefeningen.", features: ["Alles van Training + Coaching", "Fysiek werkboek per deelnemer", "Gezamenlijke kick-off op locatie", "Groepspresentaties met live feedback", "Certificaat per deelnemer"], cta: "Neem contact op", href: "/contact", featured: true },
-              { label: "Maatwerk", title: "Enterprise", price: "Op aanvraag", description: "Voor grotere organisaties. Volledig op maat, inclusief team-implementatie en persoonlijke coaching.", features: ["Alles van Team Training", "Op locatie of hybride", "Volledige team-implementatie", "Op maat voor jouw organisatie", "Persoonlijke coaching per deelnemer", "Managementrapportage"], cta: "Plan een gesprek", href: "/contact" },
-            ]
-          : [
-              { label: "Small teams", title: "Team Training", price: "€ 2,250", priceNote: "Per participant · Excl. VAT · From 3 people", description: "The same training, but together with your team. Including joint kick-off and team-focused exercises.", features: ["Everything from Training + Coaching", "Physical workbook per participant", "Joint kick-off on location", "Group presentations with live feedback", "Certificate per participant"], cta: "Get in touch", href: "/contact", featured: true },
-              { label: "Custom", title: "Enterprise", price: "On request", description: "For larger organisations. Fully customised, including team implementation and personal coaching.", features: ["Everything from Team Training", "On location or hybrid", "Full team implementation", "Tailored to your organisation", "Personal coaching per participant", "Management reporting"], cta: "Schedule a call", href: "/contact" },
-            ],
-      },
+      guarantee: text.guarantee,
+      individual: { tiers: text.individualTiers },
+      team: { tiers: text.teamTiers },
     },
     crossLink: {
-      eyebrow: nl ? "Ook interessant" : "Also interesting",
+      eyebrow: text.crossEyebrow,
       title: "Sales Excellence Training.",
-      titleAccent: nl ? "Meer omzet, minder stress." : "More revenue, less stress.",
-      description: nl
-        ? "Voor verkopers en salesteams die weten dat er meer in zit. Leer hoe je met oprechtheid en ontspanning structureel beter verkoopt."
-        : "For sales professionals and teams who know there is more potential. Learn how to sell structurally better with authenticity and ease.",
+      titleAccent: text.crossTitleAccent,
+      description: text.crossDescription,
       image: "/images/hero/sales-excellence-group.jpeg",
-      imageAlt: nl
-        ? "Deelnemers van de Sales Excellence Training met certificaten"
-        : "Participants of the Sales Excellence Training with certificates",
+      imageAlt: text.crossImageAlt,
       href: "/sales-excellence-training",
-      ctaLabel: nl ? "Bekijk training" : "View training",
+      ctaLabel: text.crossCtaLabel,
       dark: true,
     },
     faq: {
-      title: nl ? "Nog vragen?" : "Questions?",
-      titleAccent: nl ? "We helpen je graag." : "We're happy to help.",
-      items: nl
-        ? [
-            { question: "Moet ik een salesachtergrond hebben?", answer: "Nee, juist niet. Deze training is specifiek ontworpen voor mensen zónder salesfunctie die wél klantcontact hebben: customer success managers, servicedesks, accountmanagers en consultants." },
-            { question: "Hoe lang duurt de training?", answer: "De online training bestaat uit 6 modules die je in je eigen tempo doorloopt. Gemiddeld ben je 6 tot 8 weken bezig. Bij de variant met coaching krijg je daarnaast persoonlijke begeleiding." },
-            { question: "Wat als het niet werkt voor mij?", answer: "We bieden een 10% resultaatgarantie. Als je na het volledig doorlopen van de training niet minimaal 10% verbetering ervaart in klanttevredenheid of retentie, krijg je je geld terug." },
-            { question: "Kan ik de training ook voor mijn team inkopen?", answer: "Ja, we bieden een incompany variant aan op maat. Met teamgerichte oefeningen, klantcasussen uit jullie praktijk en begeleiding tijdens implementatie. Neem contact op voor een voorstel." },
-            { question: "Krijg ik direct toegang na aankoop?", answer: "Ja, je ontvangt direct na betaling een e-mail met je inloggegevens. Je kunt meteen beginnen met de eerste module." },
-            { question: "Wat is het verschil met de Sales Excellence Training?", answer: "Sales Excellence is gericht op het binnenhalen van nieuwe klanten. Customer Success draait om het behouden en laten groeien van bestaande klanten. Samen vormen ze één methode voor commerciële groei." },
-          ]
-        : [
-            { question: "Do I need a sales background?", answer: "No, quite the opposite. This training is specifically designed for people without a sales role who do have customer contact: customer success managers, service desks, account managers and consultants." },
-            { question: "How long does the training take?", answer: "The online training consists of 6 modules you complete at your own pace. On average it takes 6 to 8 weeks. The coaching variant includes personal guidance alongside." },
-            { question: "What if it doesn't work for me?", answer: "We offer a 10% results guarantee. If after completing the full training you don't experience at least 10% improvement in customer satisfaction or retention, you get your money back." },
-            { question: "Can I purchase the training for my team?", answer: "Yes, we offer a customised in-company variant. With team-focused exercises, customer cases from your own practice and guidance during implementation. Get in touch for a proposal." },
-            { question: "Do I get immediate access after purchase?", answer: "Yes, you receive an email with your login details immediately after payment. You can start with the first module right away." },
-            { question: "What is the difference with the Sales Excellence Training?", answer: "Sales Excellence focuses on winning new customers. Customer Success is about retaining and growing existing customers. Together they form one method for commercial growth." },
-          ],
+      title: text.faqTitle,
+      titleAccent: text.faqTitleAccent,
+      items: text.faqItems,
     },
     cta: {
-      title: nl ? "Start vandaag." : "Start today.",
-      titleAccent: nl ? "Oprecht & ontspannen." : "Genuine & relaxed.",
-      description: nl
-        ? "Hogere klanttevredenheid, meer retentie en klanten die ambassadeur worden. Zonder verkoopdruk."
-        : "Higher customer satisfaction, more retention and customers who become ambassadors. Without sales pressure.",
+      title: text.ctaTitle,
+      titleAccent: text.ctaTitleAccent,
+      description: text.ctaDescription,
       href: "#pricing",
     },
   };

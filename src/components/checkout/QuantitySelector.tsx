@@ -14,7 +14,7 @@ export function QuantitySelector({ tiers, selected, onChange, lang }: Props) {
   return (
     <div className="space-y-2">
       <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 mb-2">
-        {lang === "nl" ? "Aantal" : "Quantity"}
+        {{ nl: "Aantal", en: "Quantity", de: "Anzahl" }[lang]}
       </p>
       <div className="grid gap-2">
         {tiers.map((tier) => {
@@ -49,7 +49,7 @@ export function QuantitySelector({ tiers, selected, onChange, lang }: Props) {
                   </span>
                   {isBest && (
                     <span className="ml-2 text-[10px] font-medium tracking-[0.1em] uppercase text-copper">
-                      {lang === "nl" ? "Populair" : "Popular"}
+                      {{ nl: "Populair", en: "Popular", de: "Beliebt" }[lang]}
                     </span>
                   )}
                 </div>
@@ -61,9 +61,7 @@ export function QuantitySelector({ tiers, selected, onChange, lang }: Props) {
                       {formatPrice(total, lang)}
                     </span>
                     <span className="block text-[11px] text-copper font-medium">
-                      {lang === "nl"
-                        ? `Je bespaart ${tier.savingsPercent}%`
-                        : `Save ${tier.savingsPercent}%`}
+                      {{ nl: `Je bespaart ${tier.savingsPercent}%`, en: `Save ${tier.savingsPercent}%`, de: `Sie sparen ${tier.savingsPercent}%` }[lang]}
                     </span>
                   </div>
                 )}
