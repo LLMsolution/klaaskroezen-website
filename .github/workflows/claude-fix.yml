@@ -135,11 +135,13 @@ jobs:
           echo "${DELIMITER}" >> $GITHUB_OUTPUT
 
       - name: Run Claude Code (plan mode)
+        id: claude-plan
         uses: anthropics/claude-code-action@beta
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           custom_instructions: ${{ steps.load-prompt.outputs.CUSTOM_INSTRUCTIONS }}
           direct_prompt: "true"
+          allowed_tools: "Write,Read,Glob,Grep,Bash"
 
       - name: Send plan callback
         if: always()

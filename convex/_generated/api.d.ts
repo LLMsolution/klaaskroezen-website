@@ -20,6 +20,7 @@ import type * as automationSeed from "../automationSeed.js";
 import type * as blog from "../blog.js";
 import type * as blogSeed from "../blogSeed.js";
 import type * as blogSeedArchive from "../blogSeedArchive.js";
+import type * as blogTranslate from "../blogTranslate.js";
 import type * as bookmarks from "../bookmarks.js";
 import type * as checkout from "../checkout.js";
 import type * as checkoutProductSeed from "../checkoutProductSeed.js";
@@ -93,6 +94,7 @@ declare const fullApi: ApiFromModules<{
   blog: typeof blog;
   blogSeed: typeof blogSeed;
   blogSeedArchive: typeof blogSeedArchive;
+  blogTranslate: typeof blogTranslate;
   bookmarks: typeof bookmarks;
   checkout: typeof checkout;
   checkoutProductSeed: typeof checkoutProductSeed;

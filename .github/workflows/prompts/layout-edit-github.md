@@ -17,13 +17,20 @@ You are making visual/layout changes to a Next.js website. Follow these rules st
 - `src/components/sections/**` — Page section components
 - `src/components/ui/**` — Reusable UI primitives
 - `src/app/*/page.tsx` — Page files (NOT admin pages)
+- `src/app/*/content.ts` or `content-*.ts` — Page content
+- `src/lib/site-config.ts` — ONLY to add new pages to PAGES array
+
+### ALSO ALLOWED for NEW pages only (if target starts with "new:"):
+- `convex/siteSchemas.ts` — Add content schema for admin editing
+- `convex/siteSeed*.ts` — Add seed content for the new page
+- `src/app/[new-slug]/page.tsx` — Create the new page route
 
 ### FORBIDDEN files (NEVER touch these):
-- `convex/**` — Backend logic
 - `src/app/admin/**` — Admin panel
 - `src/middleware.ts` — Middleware
 - `package.json`, `*.config.*` — Configurations
 - `src/app/checkout/**` — Checkout flow
+- `convex/auth.ts`, `convex/payments.ts`, `convex/mollie.ts` — Core backend
 
 ### Design System (ALWAYS use these tokens):
 - **Fonts**: Playfair Display (headings), DM Sans (body)

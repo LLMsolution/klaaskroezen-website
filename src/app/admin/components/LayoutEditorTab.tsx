@@ -21,6 +21,7 @@ export function LayoutEditorTab() {
   const triggerBuild = useAction(api.layoutEditorActions.triggerBuild);
   const approveSession = useAction(api.layoutEditorActions.approveSession);
   const rejectSession = useAction(api.layoutEditorActions.rejectSession);
+  const closeSession = useMutation(api.layoutEditor.closeSession);
 
   const [selectedPage, setSelectedPage] = useState("");
   const [inputText, setInputText] = useState("");
@@ -128,6 +129,12 @@ export function LayoutEditorTab() {
         onBuild={handleBuild}
         onApprove={handleApprove}
         onReject={handleReject}
+        onBack={async () => {
+          if (!confirm("Sessie afsluiten? Het plan gaat verloren.")) return;
+          try {
+            await closeSession({ sessionId: session._id, action: "reject" });
+          } catch { /* ignore */ }
+        }}
         messagesEndRef={messagesEndRef}
       />
       {/* Right: Plan or Preview */}
@@ -148,6 +155,9 @@ function StartScreen({ pages, selectedPage, onPageChange, onStart }: {
   onPageChange: (v: string) => void;
   onStart: () => void;
 }) {
+  const [newPageMode, setNewPageMode] = useState(false);
+  const [newPageName, setNewPageName] = useState("");
+
   return (
     <div className="max-w-[500px] mx-auto py-16">
       <h2 className="font-display text-[24px] font-black tracking-[-0.02em] mb-2">Layout Editor</h2>
@@ -157,11 +167,34 @@ function StartScreen({ pages, selectedPage, onPageChange, onStart }: {
       <div className="space-y-4">
         <div>
           <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40 mb-2 block">Pagina</label>
-          <select value={selectedPage} onChange={(e) => onPageChange(e.target.value)}
-            className="w-full bg-transparent border border-rule px-3 py-2.5 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px] cursor-pointer">
-            <option value="">Selecteer een pagina...</option>
-            {pages.map((p) => (<option key={p.slug} value={p.slug}>{p.title.nl}</option>))}
-          </select>
+          {newPageMode ? (
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={newPageName}
+                onChange={(e) => { setNewPageName(e.target.value); onPageChange(`new:${e.target.value}`); }}
+                placeholder="Naam van de nieuwe pagina"
+                className="w-full bg-transparent border border-rule px-3 py-2.5 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]"
+                autoFocus
+              />
+              <button onClick={() => { setNewPageMode(false); setNewPageName(""); onPageChange(""); }}
+                className="text-[12px] text-ink/40 hover:text-ink cursor-pointer">
+                Bestaande pagina kiezen
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <select value={selectedPage} onChange={(e) => onPageChange(e.target.value)}
+                className="w-full bg-transparent border border-rule px-3 py-2.5 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px] cursor-pointer">
+                <option value="">Selecteer een pagina...</option>
+                {pages.map((p) => (<option key={p.slug} value={p.slug}>{p.title.nl}</option>))}
+              </select>
+              <button onClick={() => setNewPageMode(true)}
+                className="text-[12px] text-copper hover:text-copper-light cursor-pointer">
+                + Nieuwe pagina aanmaken
+              </button>
+            </div>
+          )}
         </div>
         <button onClick={onStart} disabled={!selectedPage}
           className="w-full bg-copper text-paper px-6 py-3 text-[13px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer disabled:opacity-40">
@@ -174,7 +207,7 @@ function StartScreen({ pages, selectedPage, onPageChange, onStart }: {
 
 /* ─── Chat panel (left) ─── */
 
-function ChatPanel({ session, inputText, sending, onInputChange, onSend, onBuild, onApprove, onReject, messagesEndRef }: {
+function ChatPanel({ session, inputText, sending, onInputChange, onSend, onBuild, onApprove, onReject, onBack, messagesEndRef }: {
   session: { _id: string; targetPage: string; status: string; plan?: string; messages: { role: string; text: string; createdAt: number }[]; errorMessage?: string };
   inputText: string;
   sending: boolean;
@@ -183,6 +216,7 @@ function ChatPanel({ session, inputText, sending, onInputChange, onSend, onBuild
   onBuild: () => void;
   onApprove: () => void;
   onReject: () => void;
+  onBack: () => void;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const isPlanning = session.status === "planning";
@@ -194,8 +228,13 @@ function ChatPanel({ session, inputText, sending, onInputChange, onSend, onBuild
     <div className="w-[40%] min-w-[320px] border-r border-rule flex flex-col">
       {/* Header */}
       <div className="px-5 py-4 border-b border-rule bg-warm/20">
+        <div className="flex items-center justify-between mb-1">
+          <button onClick={onBack} className="text-[11px] text-ink/40 hover:text-ink cursor-pointer">
+            ← Terug
+          </button>
+          <StatusBadge status={session.status} />
+        </div>
         <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper">{session.targetPage}</p>
-        <StatusBadge status={session.status} />
       </div>
 
       {/* Messages */}
