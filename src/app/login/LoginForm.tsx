@@ -17,7 +17,7 @@ export function LoginForm({ lang }: Props) {
   const [magicLinkSent, setMagicLinkSent] = useState(false);
 
   const inputClass =
-    "w-full bg-transparent border border-rule px-4 py-3 text-[15px] text-ink placeholder:text-ink/30 focus:border-copper focus:outline-none transition-colors rounded-[2px]";
+    "w-full bg-transparent border border-rule px-4 py-3 text-[15px] text-ink placeholder:text-ink/30 focus:border-copper focus:outline-none focus-visible:outline-none focus:ring-0 transition-colors rounded-[2px]";
 
   const btnPrimary =
     "w-full bg-copper text-paper py-3.5 text-[13px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer disabled:opacity-50";
