@@ -8,6 +8,7 @@ import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lang } from "@/lib/i18n";
 import { CertificateButton } from "./CertificateButton";
+import { AudiobookOverview } from "./AudiobookOverview";
 
 type LocalizedStr = { nl: string; en: string; de?: string };
 function loc(obj: LocalizedStr, lang: Lang): string {
@@ -43,6 +44,11 @@ export function TrainingOverviewClient({ lang }: { lang: Lang }) {
 
   if (!training.hasAccess) {
     return <NoAccessState title={loc(training.title, lang)} slug={slug} lang={lang} />;
+  }
+
+  // Audiobook mode
+  if (training.type === "audiobook") {
+    return <AudiobookOverview training={training} slug={slug} lang={lang} />;
   }
 
   return <TrainingContent training={training} slug={slug} lang={lang} />;
@@ -109,7 +115,7 @@ function TrainingContent({
   slug,
   lang,
 }: {
-  training: { _id: Id<"trainings">; title: LocalizedStr; description: LocalizedStr; thumbnailUrl?: string; hasAccess: boolean };
+  training: { _id: Id<"trainings">; title: LocalizedStr; description: LocalizedStr; type?: string; thumbnailUrl?: string; coverImageUrl?: string; hasAccess: boolean };
   slug: string;
   lang: Lang;
 }) {

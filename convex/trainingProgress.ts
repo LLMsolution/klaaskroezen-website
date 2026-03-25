@@ -203,6 +203,7 @@ export const getMyTrainings = query({
         _id: training._id,
         slug: training.slug,
         title: training.title,
+        type: training.type ?? "training",
         thumbnailUrl,
         overallProgress,
         totalModules: activeModules.length,

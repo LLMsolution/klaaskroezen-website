@@ -1,11 +1,13 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { useParams } from "next/navigation";
+import { useCallback } from "react";
 import Link from "next/link";
 import { api } from "../../../convex/_generated/api";
 import type { Lang } from "@/lib/i18n";
 import { VideoPlayer } from "./VideoPlayer";
+import { AudioPlayer } from "./AudioPlayer";
 import { QuizSection } from "./QuizSection";
 import { DiscussionSection } from "./DiscussionSection";
 import { BookmarksList } from "./BookmarksList";
@@ -79,6 +81,25 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
     );
   }
 
+  const updateProgress = useMutation(api.trainingProgress.updateVideoProgress);
+  const hasAudio = !!moduleWithProgress?.audioUrl && !mod.vimeoVideoId;
+
+  const handleAudioProgress = useCallback(
+    async (percent: number, positionSeconds: number) => {
+      try {
+        await updateProgress({
+          moduleId: mod._id,
+          trainingId: mod.trainingId,
+          videoProgress: percent,
+          videoPosition: Math.round(positionSeconds),
+        });
+      } catch {
+        // Silently fail
+      }
+    },
+    [mod._id, mod.trainingId, updateProgress],
+  );
+
   return (
     <div className="mx-auto max-w-[1180px] px-7 lg:px-14 py-8 lg:py-14">
       {/* Back link */}
@@ -110,6 +131,17 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
           trainingId={mod.trainingId}
           initialPosition={moduleWithProgress?.progress?.videoPosition ?? 0}
         />
+      )}
+
+      {/* Audio player (for audiobook chapters without video) */}
+      {hasAudio && moduleWithProgress?.audioUrl && (
+        <div className="mb-8">
+          <AudioPlayer
+            src={moduleWithProgress.audioUrl}
+            initialPosition={moduleWithProgress?.progress?.videoPosition ?? 0}
+            onProgress={handleAudioProgress}
+          />
+        </div>
       )}
 
       {/* Bookmarks */}

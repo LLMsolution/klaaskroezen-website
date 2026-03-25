@@ -178,13 +178,13 @@ export function DashboardClient() {
       </section>
 
       {/* Mijn trainingen */}
-      {myTrainings && myTrainings.length > 0 && (
+      {myTrainings && myTrainings.filter((t) => t.type !== "audiobook").length > 0 && (
         <section className="mb-12">
           <h2 className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-4">
             Mijn trainingen
           </h2>
           <div className="space-y-3">
-            {myTrainings.map((t) => (
+            {myTrainings.filter((t) => t.type !== "audiobook").map((t) => (
               <Link
                 key={t._id}
                 href={t.lastModuleSlug ? `/training/${t.slug}/${t.lastModuleSlug}` : `/training/${t.slug}`}
@@ -202,6 +202,46 @@ export function DashboardClient() {
                     </p>
                     <p className="text-[12px] text-ink/40">
                       {t.completedModules} van {t.totalModules} modules · {t.overallProgress}% voltooid
+                    </p>
+                  </div>
+                  <div className="shrink-0 w-16">
+                    <div className="h-1.5 bg-warm rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-copper rounded-full transition-all"
+                        style={{ width: `${t.overallProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Mijn luisterboeken */}
+      {myTrainings && myTrainings.filter((t) => t.type === "audiobook").length > 0 && (
+        <section className="mb-12">
+          <h2 className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-4">
+            Mijn luisterboeken
+          </h2>
+          <div className="space-y-3">
+            {myTrainings.filter((t) => t.type === "audiobook").map((t) => (
+              <Link
+                key={t._id}
+                href={`/training/${t.slug}`}
+                className="block border border-rule rounded-[2px] p-5 hover:border-copper/30 transition-colors group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-[2px] bg-copper/10 flex items-center justify-center shrink-0">
+                    <HeadphonesIcon />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[15px] font-medium text-ink group-hover:text-copper transition-colors">
+                      {loc(t.title, lang)}
+                    </p>
+                    <p className="text-[12px] text-ink/40">
+                      {t.completedModules} van {t.totalModules} hoofdstukken · {t.overallProgress}% beluisterd
                     </p>
                   </div>
                   <div className="shrink-0 w-16">
@@ -404,6 +444,15 @@ function AudioIcon() {
       <path d="M9 18V5l12-2v13" />
       <circle cx="6" cy="18" r="3" />
       <circle cx="18" cy="16" r="3" />
+    </svg>
+  );
+}
+
+function HeadphonesIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-copper">
+      <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
+      <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
     </svg>
   );
 }

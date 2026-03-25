@@ -6,7 +6,7 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { Loading } from "./shared";
 import { QuizEditor } from "./QuizEditor";
-import { ModuleVideoField } from "./ModuleFields";
+import { ModuleVideoField, ModuleAudioField } from "./ModuleFields";
 import { AdminImageUpload } from "./AdminImageUpload";
 
 interface Props {
@@ -22,6 +22,9 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
   const createModule = useMutation(api.trainingModules.createModule);
   const updateModule = useMutation(api.trainingModules.updateModule);
   const deleteModule = useMutation(api.trainingModules.deleteModule);
+  const generateUploadUrl = useMutation(api.trainings.generateUploadUrl);
+  const saveAudio = useMutation(api.trainingModules.saveAudio);
+  const removeAudio = useMutation(api.trainingModules.removeAudio);
   const [editingQuizModule, setEditingQuizModule] = useState<Id<"trainingModules"> | null>(null);
   const [expandedModuleId, setExpandedModuleId] = useState<string | null>(null);
   const [addingModule, setAddingModule] = useState(false);
@@ -90,15 +93,30 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
           <h2 className="font-display text-[24px] font-black tracking-[-0.02em]">{t.title.nl}</h2>
           <p className="text-[13px] text-ink/40">/{t.slug}</p>
         </div>
-        <select
-          value={t.active ? "active" : "inactive"}
-          onChange={(e) => updateTraining({ id: trainingId, active: e.target.value === "active" })}
-          className={`text-[12px] font-medium px-3 py-2 rounded-[2px] cursor-pointer ${t.active ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}
-        >
-          <option value="active">Actief</option>
-          <option value="inactive">Inactief</option>
-        </select>
+        <div className="flex items-center gap-3">
+          <select
+            value={(t as Record<string, unknown>).type as string ?? "training"}
+            onChange={(e) => updateTraining({ id: trainingId, type: e.target.value as "training" | "audiobook" })}
+            className="text-[12px] font-medium px-3 py-2 rounded-[2px] cursor-pointer border border-rule bg-paper text-ink"
+          >
+            <option value="training">Training</option>
+            <option value="audiobook">Luisterboek</option>
+          </select>
+          <select
+            value={t.active ? "active" : "inactive"}
+            onChange={(e) => updateTraining({ id: trainingId, active: e.target.value === "active" })}
+            className={`text-[12px] font-medium px-3 py-2 rounded-[2px] cursor-pointer ${t.active ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}
+          >
+            <option value="active">Actief</option>
+            <option value="inactive">Inactief</option>
+          </select>
+        </div>
       </div>
+
+      {/* Cover image (audiobook) */}
+      {(t as Record<string, unknown>).type === "audiobook" && (
+        <CoverImageSection trainingId={trainingId} />
+      )}
 
       {/* Linked products */}
       {checkoutProducts && (
@@ -171,9 +189,17 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
                         key={lesson._id}
                         lesson={lesson}
                         label={`${modIdx + 1}.${lessonIdx + 1}`}
+                        isAudiobook={(t as Record<string, unknown>).type === "audiobook"}
                         onUpdateVideo={async (videoId) => { await updateModule({ id: lesson._id, vimeoVideoId: videoId }); }}
                         onUpdateTitle={async (title) => { await updateModule({ id: lesson._id, title: { nl: title, en: title } }); }}
                         onUpdateDesc={async (desc) => { await updateModule({ id: lesson._id, description: { nl: desc, en: desc } }); }}
+                        onUploadAudio={async (file) => {
+                          const url = await generateUploadUrl();
+                          const res = await fetch(url, { method: "POST", headers: { "Content-Type": file.type }, body: file });
+                          const { storageId } = await res.json();
+                          await saveAudio({ moduleId: lesson._id, storageId, fileName: file.name });
+                        }}
+                        onRemoveAudio={async () => { await removeAudio({ moduleId: lesson._id }); }}
                         onDelete={async () => { if (confirm(`Training "${lesson.title.nl}" verwijderen?`)) await deleteModule({ id: lesson._id }); }}
                         onEditQuiz={() => setEditingQuizModule(lesson._id)}
                       />
@@ -216,16 +242,21 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
 
 /* ─── Lesson card within a module ─── */
 
-function LessonCard({ lesson, label, onUpdateVideo, onUpdateTitle, onUpdateDesc, onDelete, onEditQuiz }: {
-  lesson: { _id: Id<"trainingModules">; title: { nl: string }; description: { nl: string }; vimeoVideoId?: string; quizRequired: boolean };
+function LessonCard({ lesson, label, isAudiobook, onUpdateVideo, onUpdateTitle, onUpdateDesc, onUploadAudio, onRemoveAudio, onDelete, onEditQuiz }: {
+  lesson: { _id: Id<"trainingModules">; title: { nl: string }; description: { nl: string }; vimeoVideoId?: string; audioStorageId?: Id<"_storage">; audioFileName?: string; quizRequired: boolean };
   label: string;
+  isAudiobook?: boolean;
   onUpdateVideo: (id: string) => Promise<void>;
   onUpdateTitle: (t: string) => Promise<void>;
   onUpdateDesc: (d: string) => Promise<void>;
+  onUploadAudio?: (file: File) => Promise<void>;
+  onRemoveAudio?: () => Promise<void>;
   onDelete: () => Promise<void>;
   onEditQuiz: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const hasAudio = !!(lesson as Record<string, unknown>).audioStorageId;
+  const audioFile = (lesson as Record<string, unknown>).audioFileName as string | undefined;
 
   return (
     <div className="border border-rule/60 rounded-[2px] bg-paper overflow-hidden">
@@ -234,6 +265,7 @@ function LessonCard({ lesson, label, onUpdateVideo, onUpdateTitle, onUpdateDesc,
         <span className="text-[12px] font-medium text-ink/25 w-8">{label}</span>
         <p className="text-[13px] font-medium text-ink flex-1">{lesson.title.nl}</p>
         {lesson.vimeoVideoId && <span className="text-[10px] text-ink/30">Video</span>}
+        {hasAudio && <span className="text-[10px] text-ink/30">Audio</span>}
         <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className={`text-ink/20 transition-transform ${expanded ? "rotate-180" : ""}`}><path d="M4 6l4 4 4-4" /></svg>
       </button>
 
@@ -241,7 +273,19 @@ function LessonCard({ lesson, label, onUpdateVideo, onUpdateTitle, onUpdateDesc,
         <div className="border-t border-rule/50 p-3 space-y-3">
           <EditableField label="Titel" value={lesson.title.nl} onSave={onUpdateTitle} />
           <EditableField label="Beschrijving" value={lesson.description.nl} onSave={onUpdateDesc} multiline />
-          <ModuleVideoField moduleId={lesson._id} currentVideoId={lesson.vimeoVideoId} onSave={onUpdateVideo} />
+          {isAudiobook ? (
+            onUploadAudio && onRemoveAudio && (
+              <ModuleAudioField
+                moduleId={lesson._id}
+                hasAudio={hasAudio}
+                fileName={audioFile}
+                onUpload={onUploadAudio}
+                onRemove={onRemoveAudio}
+              />
+            )
+          ) : (
+            <ModuleVideoField moduleId={lesson._id} currentVideoId={lesson.vimeoVideoId} onSave={onUpdateVideo} />
+          )}
           <div className="flex items-center gap-3 pt-2">
             <button onClick={onEditQuiz} className="text-[12px] text-copper hover:text-copper-light cursor-pointer">Quiz</button>
             <button onClick={onDelete} className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer">Verwijder</button>
@@ -383,6 +427,28 @@ function WorkbookSection({ trainingId }: { trainingId: Id<"trainings"> }) {
   );
 }
 
+/* ─── Cover image section (audiobooks) ─── */
+function CoverImageSection({ trainingId }: { trainingId: Id<"trainings"> }) {
+  const genUrl = useMutation(api.trainings.generateUploadUrl);
+  const saveCover = useMutation(api.trainings.saveCoverImage);
+  const removeCover = useMutation(api.trainings.removeCoverImage);
+  const [uploading, setUploading] = useState(false);
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]; if (!file) return;
+    setUploading(true);
+    try { const url = await genUrl(); const res = await fetch(url, { method: "POST", headers: { "Content-Type": file.type }, body: file }); const { storageId } = await res.json(); await saveCover({ trainingId, storageId }); } finally { setUploading(false); }
+  }
+  return (
+    <Section title="Cover afbeelding" subtitle="Albumhoes van het luisterboek.">
+      <div className="flex items-center gap-4">
+        <label className={`inline-block bg-copper text-paper px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light rounded-[2px] cursor-pointer ${uploading ? "opacity-50" : ""}`}>
+          {uploading ? "Uploaden..." : "Afbeelding uploaden"}<input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} className="hidden" />
+        </label>
+        <button onClick={() => removeCover({ trainingId })} className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer">Verwijderen</button>
+      </div>
+    </Section>
+  );
+}
 /* ─── Certificate section ─── */
 
 function CertificateSection({ trainingId }: { trainingId: Id<"trainings"> }) {

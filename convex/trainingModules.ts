@@ -40,7 +40,12 @@ export const getWithProgress = query({
       workbookUrl = (await ctx.storage.getUrl(mod.workbookStorageId)) ?? undefined;
     }
 
-    return { ...mod, progress, workbookUrl };
+    let audioUrl: string | undefined;
+    if (mod.audioStorageId) {
+      audioUrl = (await ctx.storage.getUrl(mod.audioStorageId)) ?? undefined;
+    }
+
+    return { ...mod, progress, workbookUrl, audioUrl };
   },
 });
 
@@ -138,6 +143,56 @@ export const reorderModules = mutation({
     for (let i = 0; i < orderedIds.length; i++) {
       await ctx.db.patch(orderedIds[i], { sortOrder: i });
     }
+  },
+});
+
+// ── File upload (audio) ──
+
+export const saveAudio = mutation({
+  args: {
+    moduleId: v.id("trainingModules"),
+    storageId: v.id("_storage"),
+    fileName: v.string(),
+  },
+  handler: async (ctx, { moduleId, storageId, fileName }) => {
+    await requireAdmin(ctx);
+    const mod = await ctx.db.get(moduleId);
+    if (!mod) throw new Error("Module niet gevonden.");
+    // Delete old audio if exists
+    if (mod.audioStorageId) {
+      await ctx.storage.delete(mod.audioStorageId);
+    }
+    await ctx.db.patch(moduleId, {
+      audioStorageId: storageId,
+      audioFileName: fileName,
+    });
+  },
+});
+
+export const saveAudioDuration = mutation({
+  args: {
+    moduleId: v.id("trainingModules"),
+    durationSeconds: v.number(),
+  },
+  handler: async (ctx, { moduleId, durationSeconds }) => {
+    await requireAdmin(ctx);
+    await ctx.db.patch(moduleId, { audioDurationSeconds: durationSeconds });
+  },
+});
+
+export const removeAudio = mutation({
+  args: { moduleId: v.id("trainingModules") },
+  handler: async (ctx, { moduleId }) => {
+    await requireAdmin(ctx);
+    const mod = await ctx.db.get(moduleId);
+    if (mod?.audioStorageId) {
+      await ctx.storage.delete(mod.audioStorageId);
+    }
+    await ctx.db.patch(moduleId, {
+      audioStorageId: undefined,
+      audioFileName: undefined,
+      audioDurationSeconds: undefined,
+    });
   },
 });
 

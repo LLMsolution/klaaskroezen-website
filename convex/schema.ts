@@ -733,8 +733,10 @@ export default defineSchema({
   // Main training record (SET, CST)
   trainings: defineTable({
     slug: v.string(),
+    type: v.optional(v.union(v.literal("training"), v.literal("audiobook"))),
     title: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
     description: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
+    coverImageStorageId: v.optional(v.id("_storage")), // For audiobooks: album/book cover
     thumbnailStorageId: v.optional(v.id("_storage")),
     certificateStorageId: v.optional(v.id("_storage")),
     certificateFileName: v.optional(v.string()),
@@ -763,6 +765,9 @@ export default defineSchema({
     title: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
     description: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
     vimeoVideoId: v.optional(v.string()),
+    audioStorageId: v.optional(v.id("_storage")),
+    audioDurationSeconds: v.optional(v.number()),
+    audioFileName: v.optional(v.string()),
     durationSeconds: v.optional(v.number()),
     sortOrder: v.number(),
     workbookStorageId: v.optional(v.id("_storage")),

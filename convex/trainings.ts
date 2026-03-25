@@ -19,8 +19,13 @@ export const getBySlug = query({
       thumbnailUrl = (await ctx.storage.getUrl(training.thumbnailStorageId)) ?? undefined;
     }
 
+    let coverImageUrl: string | undefined;
+    if (training.coverImageStorageId) {
+      coverImageUrl = (await ctx.storage.getUrl(training.coverImageStorageId)) ?? undefined;
+    }
+
     const hasAccess = await checkTrainingAccess(ctx, training._id);
-    return { ...training, thumbnailUrl, hasAccess };
+    return { ...training, thumbnailUrl, coverImageUrl, hasAccess };
   },
 });
 
@@ -112,6 +117,7 @@ export const updateTraining = mutation({
   args: {
     id: v.id("trainings"),
     slug: v.optional(v.string()),
+    type: v.optional(v.union(v.literal("training"), v.literal("audiobook"))),
     title: v.optional(v.object({ nl: v.string(), en: v.string() })),
     description: v.optional(v.object({ nl: v.string(), en: v.string() })),
     linkedProducts: v.optional(v.array(v.string())),
@@ -167,6 +173,33 @@ export const saveThumbnail = mutation({
   handler: async (ctx, { trainingId, storageId }) => {
     await requireAdmin(ctx);
     await ctx.db.patch(trainingId, { thumbnailStorageId: storageId });
+  },
+});
+
+export const saveCoverImage = mutation({
+  args: {
+    trainingId: v.id("trainings"),
+    storageId: v.id("_storage"),
+  },
+  handler: async (ctx, { trainingId, storageId }) => {
+    await requireAdmin(ctx);
+    const training = await ctx.db.get(trainingId);
+    if (training?.coverImageStorageId) {
+      await ctx.storage.delete(training.coverImageStorageId);
+    }
+    await ctx.db.patch(trainingId, { coverImageStorageId: storageId });
+  },
+});
+
+export const removeCoverImage = mutation({
+  args: { trainingId: v.id("trainings") },
+  handler: async (ctx, { trainingId }) => {
+    await requireAdmin(ctx);
+    const training = await ctx.db.get(trainingId);
+    if (training?.coverImageStorageId) {
+      await ctx.storage.delete(training.coverImageStorageId);
+    }
+    await ctx.db.patch(trainingId, { coverImageStorageId: undefined });
   },
 });
 

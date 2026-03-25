@@ -136,6 +136,68 @@ export function ModuleWorkbookField({
   );
 }
 
+export function ModuleAudioField({
+  moduleId,
+  hasAudio,
+  fileName,
+  onUpload,
+  onRemove,
+}: {
+  moduleId: Id<"trainingModules">;
+  hasAudio: boolean;
+  fileName?: string;
+  onUpload: (file: File) => Promise<void>;
+  onRemove: () => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      await onUpload(file);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  return (
+    <div>
+      <p className="text-[11px] text-ink/50 mb-1">Audio (MP3)</p>
+      {hasAudio ? (
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-copper">
+              <path d="M9 18V5l12-2v13" />
+              <circle cx="6" cy="18" r="3" />
+              <circle cx="18" cy="16" r="3" />
+            </svg>
+            <span className="text-[13px] text-ink">{fileName || "audio.mp3"}</span>
+          </div>
+          <label className="text-[12px] text-copper hover:text-copper-light cursor-pointer">
+            Vervangen
+            <input type="file" accept=".mp3,audio/mpeg" onChange={handleUpload} className="hidden" />
+          </label>
+          <button onClick={onRemove} className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer">
+            Verwijderen
+          </button>
+        </div>
+      ) : (
+        <label className={`inline-flex items-center gap-2 text-[12px] text-copper hover:text-copper-light cursor-pointer ${uploading ? "opacity-50" : ""}`}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <path d="M17 8l-5-5-5 5" />
+            <path d="M12 3v12" />
+          </svg>
+          {uploading ? "Uploaden..." : "MP3 uploaden"}
+          <input type="file" accept=".mp3,audio/mpeg" onChange={handleUpload} disabled={uploading} className="hidden" />
+        </label>
+      )}
+    </div>
+  );
+}
+
 export function AddVideoToChapter({
   trainingId,
   parentModuleId,
