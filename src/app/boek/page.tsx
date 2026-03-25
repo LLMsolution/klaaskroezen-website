@@ -18,7 +18,7 @@ import { BookPreview } from "@/components/sections/BookPreview";
 import { JsonLd, bookJsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/lib/i18n/server";
 import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
-import { loadSiteImages } from "@/lib/site-images";
+import { loadSiteImages, imgUrl } from "@/lib/site-images";
 import { getBoekContent } from "./content";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -72,8 +72,8 @@ export default async function BoekPage() {
   ];
   const coverKey = "book/sales-oprecht-ontspannen-cover.png";
   const bookImages = await loadSiteImages([...previewKeys, coverKey]);
-  const previewPages = previewKeys.map((k) => bookImages[k].url);
-  const coverUrl = bookImages[coverKey].url;
+  const previewPages = previewKeys.map((k) => imgUrl(bookImages, k));
+  const coverUrl = imgUrl(bookImages, coverKey);
 
   return (
     <>

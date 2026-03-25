@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/Label";
 import { ButtonLink, ButtonArrow } from "@/components/ui/Button";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { t, type Lang } from "@/lib/i18n";
-import { loadSiteImages } from "@/lib/site-images";
+import { loadSiteImages, imgUrl } from "@/lib/site-images";
 
 export async function AboutKlaas({ lang }: { lang: Lang }) {
   const img = await loadSiteImages(["about/klaas-kroezen-portrait.jpeg"]);
@@ -23,7 +23,7 @@ export async function AboutKlaas({ lang }: { lang: Lang }) {
     >
       <div className="relative overflow-hidden bg-warm lg:border-r lg:border-rule min-h-[300px] sm:min-h-[340px]">
         <Image
-          src={img["about/klaas-kroezen-portrait.jpeg"].url}
+          src={imgUrl(img, "about/klaas-kroezen-portrait.jpeg")}
           unoptimized
           alt={s.imageAlt}
           fill

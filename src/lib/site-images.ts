@@ -53,3 +53,8 @@ export async function loadSiteImage(key: string): Promise<string> {
   const images = await loadSiteImages([key]);
   return images[key]?.url ?? `/images/${key}`;
 }
+
+/** Safe URL accessor — never throws, always returns a usable string */
+export function imgUrl(images: Record<string, ImageData>, key: string): string {
+  return images[key]?.url ?? `/images/${key}`;
+}

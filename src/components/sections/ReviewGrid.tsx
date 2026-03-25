@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/Label";
 import { Container } from "@/components/ui/Container";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { t, type Lang } from "@/lib/i18n";
-import { loadSiteImages } from "@/lib/site-images";
+import { loadSiteImages, imgUrl } from "@/lib/site-images";
 
 const AVATAR_KEYS = [
   "reviews/simon-kornblum.jpg",
@@ -90,7 +90,7 @@ export async function ReviewGrid({ lang }: { lang: Lang }) {
   const img = await loadSiteImages([...AVATAR_KEYS]);
   const reviews = reviewData.map((r) => ({
     ...r,
-    avatar: r.avatarKey ? img[r.avatarKey].url : null,
+    avatar: r.avatarKey ? imgUrl(img, r.avatarKey) : null,
   }));
 
   return (

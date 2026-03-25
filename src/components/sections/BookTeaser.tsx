@@ -2,7 +2,7 @@ import Image from "next/image";
 import { ButtonLink, ButtonArrow } from "@/components/ui/Button";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { t, type Lang } from "@/lib/i18n";
-import { loadSiteImages } from "@/lib/site-images";
+import { loadSiteImages, imgUrl } from "@/lib/site-images";
 
 export async function BookTeaser({ lang }: { lang: Lang }) {
   const img = await loadSiteImages(["book/sales-oprecht-ontspannen-cover.png"]);
@@ -24,7 +24,7 @@ export async function BookTeaser({ lang }: { lang: Lang }) {
         />
         <div className="relative z-10 w-[min(160px,45%)] sm:w-[min(180px,52%)]">
           <Image
-            src={img["book/sales-oprecht-ontspannen-cover.png"].url}
+            src={imgUrl(img, "book/sales-oprecht-ontspannen-cover.png")}
             unoptimized
             alt={s.imageAlt}
             width={340}

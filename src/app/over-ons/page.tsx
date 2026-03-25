@@ -8,7 +8,7 @@ import { FadeIn } from "@/components/ui/FadeIn";
 import { JsonLd, personJsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/lib/i18n/server";
 import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
-import { loadSiteImages } from "@/lib/site-images";
+import { loadSiteImages, imgUrl } from "@/lib/site-images";
 import { getOverOnsContent } from "./content";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -32,8 +32,8 @@ export default async function OverOnsPage() {
     "about/sanne-bakker.png",
   ]);
   const imageUrls: Record<string, string> = {};
-  for (const [key, val] of Object.entries(img)) {
-    imageUrls[key] = val.url;
+  for (const key of Object.keys(img)) {
+    imageUrls[key] = imgUrl(img, key);
   }
   const fallback = getOverOnsContent(lang, imageUrls);
 
@@ -52,7 +52,7 @@ export default async function OverOnsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[calc(100vh-96px)]">
           <div className="relative aspect-[3/4] lg:aspect-auto overflow-hidden bg-warm">
             <Image
-              src={img["about/klaas-over-mij.jpeg"].url}
+              src={imgUrl(img, "about/klaas-over-mij.jpeg")}
               alt={hero.imageAlt}
               fill
               unoptimized
@@ -164,7 +164,7 @@ export default async function OverOnsPage() {
           </div>
           <div className="relative aspect-[4/3] lg:aspect-auto lg:min-h-[560px] overflow-hidden">
             <Image
-              src={img["about/klaas-kroezen-portrait-2.jpeg"].url}
+              src={imgUrl(img, "about/klaas-kroezen-portrait-2.jpeg")}
               alt={mission.imageAlt}
               fill
               unoptimized
@@ -224,7 +224,7 @@ export default async function OverOnsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2">
           <div className="relative aspect-video lg:aspect-auto lg:min-h-[480px] overflow-hidden">
             <Image
-              src={img["about/kantoor-administratie.jpg"].url}
+              src={imgUrl(img, "about/kantoor-administratie.jpg")}
               alt={office.imageAlt}
               fill
               unoptimized

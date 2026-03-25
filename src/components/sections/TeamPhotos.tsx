@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { Label } from "@/components/ui/Label";
 import { FadeIn } from "@/components/ui/FadeIn";
-import { loadSiteImages } from "@/lib/site-images";
+import { loadSiteImages, imgUrl } from "@/lib/site-images";
 
 const PHOTO_KEYS = [
   "hero/sales-excellence-group.jpeg",
@@ -37,7 +37,7 @@ export async function TeamPhotos() {
   const img = await loadSiteImages([...PHOTO_KEYS]);
   const photos = photoData.map((p) => ({
     ...p,
-    src: img[p.key].url,
+    src: imgUrl(img, p.key),
   }));
   return (
     <section aria-labelledby="team-heading" className="border-b border-rule">

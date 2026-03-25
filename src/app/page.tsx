@@ -38,13 +38,13 @@ export default async function HomePage() {
   ]);
   const slideImages: Record<string, string> = {};
   for (const key of SLIDE_KEYS) {
-    slideImages[key] = img[key].url;
+    slideImages[key] = img[key]?.url ?? `/images/${key}`;
   }
 
   return (
     <>
       <JsonLd data={websiteJsonLd} />
-      <BookPopup lang={lang} coverImage={img["book/sales-oprecht-ontspannen-cover.png"].url} />
+      <BookPopup lang={lang} coverImage={img["book/sales-oprecht-ontspannen-cover.png"]?.url ?? "/images/book/sales-oprecht-ontspannen-cover.png"} />
       <Hero lang={lang} slideImages={slideImages} />
       <LogoBar />
       <TrainingCards lang={lang} />

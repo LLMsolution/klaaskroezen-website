@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { loadSiteImages } from "@/lib/site-images";
+import { loadSiteImages, imgUrl } from "@/lib/site-images";
 
 const LOGO_KEYS = [
   "logos/visma.png",
@@ -33,7 +33,7 @@ interface LogoBarProps {
 
 export async function LogoBar({ label = "Trainingen verzorgd voor" }: LogoBarProps) {
   const img = await loadSiteImages([...LOGO_KEYS]);
-  const logos = logoData.map((l) => ({ ...l, src: img[l.key].url }));
+  const logos = logoData.map((l) => ({ ...l, src: imgUrl(img, l.key) }));
   return (
     <section
       aria-label="Klanten"
