@@ -5,6 +5,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { ImageUpload } from "./ImageUpload";
+import { DeepLButton } from "./DeepLButton";
 
 type ProductType = "training" | "book";
 type ProductSubType = "training" | "book" | "event";
@@ -17,9 +18,9 @@ interface ProductData {
   slug: string;
   active: boolean;
   sortOrder: number;
-  name: { nl: string; en: string };
-  shortName: { nl: string; en: string };
-  description: { nl: string; en: string };
+  name: { nl: string; en: string; de?: string };
+  shortName: { nl: string; en: string; de?: string };
+  description: { nl: string; en: string; de?: string };
   type: ProductType;
   productType: ProductSubType;
   priceCents: number;
@@ -71,10 +72,13 @@ export function CheckoutPageForm({ product, onBack }: Props) {
   const [sortOrder, setSortOrder] = useState(product?.sortOrder ?? (allProducts?.length ?? 0));
   const [nameNl, setNameNl] = useState(product?.name.nl ?? "");
   const [nameEn, setNameEn] = useState(product?.name.en ?? "");
+  const [nameDe, setNameDe] = useState(product?.name.de ?? "");
   const [shortNameNl, setShortNameNl] = useState(product?.shortName.nl ?? "");
   const [shortNameEn, setShortNameEn] = useState(product?.shortName.en ?? "");
+  const [shortNameDe, setShortNameDe] = useState(product?.shortName.de ?? "");
   const [descNl, setDescNl] = useState(product?.description.nl ?? "");
   const [descEn, setDescEn] = useState(product?.description.en ?? "");
+  const [descDe, setDescDe] = useState(product?.description.de ?? "");
   const [type, setType] = useState<ProductType>(product?.type ?? "training");
   const [productType, setProductType] = useState<ProductSubType>(product?.productType ?? "training");
   const [priceCents, setPriceCents] = useState(product?.priceCents ?? 0);
@@ -109,9 +113,9 @@ export function CheckoutPageForm({ product, onBack }: Props) {
     setSaving(true);
     const data = {
       slug, active, sortOrder,
-      name: { nl: nameNl, en: nameEn },
-      shortName: { nl: shortNameNl, en: shortNameEn },
-      description: { nl: descNl, en: descEn },
+      name: { nl: nameNl, en: nameEn, de: nameDe || undefined },
+      shortName: { nl: shortNameNl, en: shortNameEn, de: shortNameDe || undefined },
+      description: { nl: descNl, en: descEn, de: descDe || undefined },
       type, productType, priceCents, priceInclBtw, btwRate,
       features: { nl: featuresNl.filter((f) => f.trim()), en: featuresEn.filter((f) => f.trim()), de: featuresDe.filter((f) => f.trim()) },
       image: image || undefined,
@@ -189,14 +193,21 @@ export function CheckoutPageForm({ product, onBack }: Props) {
               <input type="number" value={sortOrder} onChange={(e) => setSortOrder(Number(e.target.value))} className={I} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className={L}>Korte naam NL</label>
+              <div className="flex items-center justify-between">
+                <label className={L}>Korte naam NL</label>
+                <DeepLButton sourceText={shortNameNl} onTranslated={(t) => { setShortNameEn(t.en ?? shortNameEn); setShortNameDe(t.de ?? shortNameDe); }} />
+              </div>
               <input value={shortNameNl} onChange={(e) => setShortNameNl(e.target.value)} placeholder="SET Online" className={I} />
             </div>
             <div>
               <label className={L}>Korte naam EN</label>
               <input value={shortNameEn} onChange={(e) => setShortNameEn(e.target.value)} placeholder="SET Online" className={I} />
+            </div>
+            <div>
+              <label className={L}>Korte naam DE</label>
+              <input value={shortNameDe} onChange={(e) => setShortNameDe(e.target.value)} placeholder="SET Online" className={I} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -228,24 +239,38 @@ export function CheckoutPageForm({ product, onBack }: Props) {
 
       {/* Basis — full-width names */}
       <Section title="Naam & Beschrijving" open={openSections.basis} onToggle={() => toggle("basis")}>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <div>
-            <label className={L}>Volledige naam NL</label>
+            <div className="flex items-center justify-between">
+              <label className={L}>Volledige naam NL</label>
+              <DeepLButton sourceText={nameNl} onTranslated={(t) => { setNameEn(t.en ?? nameEn); setNameDe(t.de ?? nameDe); }} />
+            </div>
             <input value={nameNl} onChange={(e) => setNameNl(e.target.value)} className={I} />
           </div>
           <div>
             <label className={L}>Volledige naam EN</label>
             <input value={nameEn} onChange={(e) => setNameEn(e.target.value)} className={I} />
           </div>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={L}>Beschrijving NL</label>
+            <label className={L}>Volledige naam DE</label>
+            <input value={nameDe} onChange={(e) => setNameDe(e.target.value)} className={I} />
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <div className="flex items-center justify-between">
+              <label className={L}>Beschrijving NL</label>
+              <DeepLButton sourceText={descNl} onTranslated={(t) => { setDescEn(t.en ?? descEn); setDescDe(t.de ?? descDe); }} />
+            </div>
             <textarea value={descNl} onChange={(e) => setDescNl(e.target.value)} rows={2} className={I} />
           </div>
           <div>
             <label className={L}>Beschrijving EN</label>
             <textarea value={descEn} onChange={(e) => setDescEn(e.target.value)} rows={2} className={I} />
+          </div>
+          <div>
+            <label className={L}>Beschrijving DE</label>
+            <textarea value={descDe} onChange={(e) => setDescDe(e.target.value)} rows={2} className={I} />
           </div>
         </div>
       </Section>

@@ -8,6 +8,7 @@ import Image from "next/image";
 import { Loading, EmptyState, formatDate } from "./shared";
 import { TrainingEditor } from "./TrainingEditor";
 import { TrainingParticipantsTab } from "./TrainingParticipantsTab";
+import { DeepLButton } from "./DeepLButton";
 
 type View = "list" | "create" | "edit" | "participants";
 
@@ -30,8 +31,10 @@ export function TrainingsTab({ filterType }: { filterType?: "training" | "audiob
   const [slug, setSlug] = useState("");
   const [titleNl, setTitleNl] = useState("");
   const [titleEn, setTitleEn] = useState("");
+  const [titleDe, setTitleDe] = useState("");
   const [descNl, setDescNl] = useState("");
   const [descEn, setDescEn] = useState("");
+  const [descDe, setDescDe] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -65,15 +68,17 @@ export function TrainingsTab({ filterType }: { filterType?: "training" | "audiob
     try {
       const id = await createTraining({
         slug,
-        title: { nl: titleNl, en: titleEn },
-        description: { nl: descNl, en: descEn },
+        title: { nl: titleNl, en: titleEn, de: titleDe || undefined },
+        description: { nl: descNl, en: descEn, de: descDe || undefined },
         active: false,
       });
       setSlug("");
       setTitleNl("");
       setTitleEn("");
+      setTitleDe("");
       setDescNl("");
       setDescEn("");
+      setDescDe("");
       setEditId(id);
       setView("edit");
     } catch (err) {
@@ -98,13 +103,27 @@ export function TrainingsTab({ filterType }: { filterType?: "training" | "audiob
 
         {error && <p className="text-red-600 text-[13px] mb-4">{error}</p>}
 
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-3 gap-4 mb-4">
           <Field label="Slug" value={slug} onChange={setSlug} placeholder="sales-excellence-training" />
-          <div />
-          <Field label="Titel (NL)" value={titleNl} onChange={setTitleNl} />
+          <div /><div />
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-[12px] text-ink/50">Titel (NL)</label>
+              <DeepLButton sourceText={titleNl} onTranslated={(t) => { setTitleEn(t.en ?? titleEn); setTitleDe(t.de ?? titleDe); }} />
+            </div>
+            <input type="text" value={titleNl} onChange={(e) => setTitleNl(e.target.value)} className="w-full bg-transparent border border-rule px-4 py-2.5 text-[14px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
+          </div>
           <Field label="Titel (EN)" value={titleEn} onChange={setTitleEn} />
-          <Field label="Beschrijving (NL)" value={descNl} onChange={setDescNl} multiline />
+          <Field label="Titel (DE)" value={titleDe} onChange={setTitleDe} />
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-[12px] text-ink/50">Beschrijving (NL)</label>
+              <DeepLButton sourceText={descNl} onTranslated={(t) => { setDescEn(t.en ?? descEn); setDescDe(t.de ?? descDe); }} />
+            </div>
+            <textarea value={descNl} onChange={(e) => setDescNl(e.target.value)} rows={3} className="w-full bg-transparent border border-rule px-4 py-2.5 text-[14px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
+          </div>
           <Field label="Beschrijving (EN)" value={descEn} onChange={setDescEn} multiline />
+          <Field label="Beschrijving (DE)" value={descDe} onChange={setDescDe} multiline />
         </div>
 
         <button

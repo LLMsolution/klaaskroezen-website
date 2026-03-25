@@ -90,8 +90,8 @@ export const listAll = query({
 export const createTraining = mutation({
   args: {
     slug: v.string(),
-    title: v.object({ nl: v.string(), en: v.string() }),
-    description: v.object({ nl: v.string(), en: v.string() }),
+    title: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
+    description: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
     active: v.boolean(),
   },
   handler: async (ctx, args) => {
@@ -118,8 +118,8 @@ export const updateTraining = mutation({
     id: v.id("trainings"),
     slug: v.optional(v.string()),
     type: v.optional(v.union(v.literal("training"), v.literal("audiobook"))),
-    title: v.optional(v.object({ nl: v.string(), en: v.string() })),
-    description: v.optional(v.object({ nl: v.string(), en: v.string() })),
+    title: v.optional(v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) })),
+    description: v.optional(v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) })),
     linkedProducts: v.optional(v.array(v.string())),
     active: v.optional(v.boolean()),
     sortOrder: v.optional(v.number()),

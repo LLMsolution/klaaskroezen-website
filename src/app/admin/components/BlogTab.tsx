@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { Loading, EmptyState, formatDate } from "./shared";
 import { AdminImageUpload } from "./AdminImageUpload";
+import { DeepLButton } from "./DeepLButton";
 
 /** Convert plain text with markdown-light syntax to HTML */
 function plainTextToHtml(text: string): string {
@@ -277,6 +278,9 @@ export function BlogTab() {
                 </button>
               ))}
             </div>
+            <div className="mt-2">
+              <BlogTranslateButton title={title} excerpt={excerpt} body={body} onTranslated={(t, lang) => { setTitle(t.title); setExcerpt(t.excerpt); setBody(t.body); setLang(lang); }} />
+            </div>
           </div>
           <div>
             <label className={labelClass}>Status</label>
@@ -354,6 +358,51 @@ export function BlogTab() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+/* ─── Blog translate button: translates title+excerpt+body to EN or DE ─── */
+
+function BlogTranslateButton({ title, excerpt, body, onTranslated }: {
+  title: string;
+  excerpt: string;
+  body: string;
+  onTranslated: (fields: { title: string; excerpt: string; body: string }, lang: "nl" | "en" | "de") => void;
+}) {
+  const translateField = useAction(api.blogTranslate.translateField);
+  const [loading, setLoading] = useState(false);
+  const [targetLang, setTargetLang] = useState<"en" | "de">("en");
+
+  async function handleTranslate() {
+    if (!title.trim()) return;
+    setLoading(true);
+    try {
+      const langCode = targetLang === "en" ? "EN-US" : "DE";
+      const [tTitle, tExcerpt, tBody] = await Promise.all([
+        translateField({ text: title, targetLang: langCode, html: false }),
+        translateField({ text: excerpt, targetLang: langCode, html: false }),
+        translateField({ text: body, targetLang: langCode, html: false }),
+      ]);
+      onTranslated({ title: tTitle, excerpt: tExcerpt, body: tBody }, targetLang);
+    } catch {
+      // silently fail
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <select value={targetLang} onChange={(e) => setTargetLang(e.target.value as "en" | "de")}
+        className="text-[11px] border border-rule rounded-[2px] px-2 py-1 bg-transparent text-ink/60 cursor-pointer">
+        <option value="en">EN</option>
+        <option value="de">DE</option>
+      </select>
+      <button type="button" onClick={handleTranslate} disabled={loading || !title.trim()}
+        className="text-[11px] text-copper hover:text-copper-light cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+        {loading ? "Vertalen..." : "Vertaal artikel met DeepL"}
+      </button>
     </div>
   );
 }

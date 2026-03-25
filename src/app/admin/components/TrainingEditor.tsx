@@ -7,7 +7,8 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import { Loading } from "./shared";
 import { QuizEditor } from "./QuizEditor";
 import { ModuleVideoField, ModuleAudioField } from "./ModuleFields";
-import { AdminImageUpload } from "./AdminImageUpload";
+import { DeepLButton } from "./DeepLButton";
+import { Section, EditableField, InlineForm, WorkbookSection, CoverImageSection, CertificateSection } from "./TrainingEditorSections";
 
 interface Props {
   trainingId: Id<"trainings">;
@@ -40,6 +41,7 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
     return <QuizEditor moduleId={editingQuizModule} onBack={() => setEditingQuizModule(null)} />;
   }
 
+  const isAudiobook = (t as Record<string, unknown>).type === "audiobook";
   const sorted = [...modules].sort((a, b) => a.sortOrder - b.sortOrder);
   const topModules = sorted.filter((m) => !m.parentModuleId);
   const lessonMap = new Map<string, typeof sorted>();
@@ -81,6 +83,19 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
     setFormTitle(""); setAddingLessonFor(null); setSaving(false);
   }
 
+  async function addChapter() {
+    if (!formTitle.trim()) return;
+    setSaving(true);
+    const slug = `ch-${topModules.length + 1}-${formTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+    await createModule({
+      trainingId, slug,
+      title: { nl: formTitle, en: formTitle, de: "" },
+      description: { nl: "", en: "", de: "" },
+      discussionEnabled: false, quizRequired: false, active: true,
+    });
+    setFormTitle(""); setAddingModule(false); setSaving(false);
+  }
+
   return (
     <div>
       <button onClick={onBack} className="text-[12px] text-ink/40 hover:text-ink mb-6 cursor-pointer">
@@ -114,9 +129,7 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
       </div>
 
       {/* Cover image (audiobook) */}
-      {(t as Record<string, unknown>).type === "audiobook" && (
-        <CoverImageSection trainingId={trainingId} />
-      )}
+      {isAudiobook && <CoverImageSection trainingId={trainingId} />}
 
       {/* Linked products */}
       {checkoutProducts && (
@@ -139,120 +152,308 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
       <WorkbookSection trainingId={trainingId} />
 
       {/* Certificaat */}
-      <CertificateSection trainingId={trainingId} />
+      {!isAudiobook && <CertificateSection trainingId={trainingId} />}
 
-      {/* Modules */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper">
-            Modules ({topModules.length})
-          </h3>
-          <button onClick={() => { setAddingModule(!addingModule); setFormTitle(""); }} className="text-[12px] text-copper hover:text-copper-light cursor-pointer">
-            {addingModule ? "Annuleer" : "+ Module toevoegen"}
-          </button>
-        </div>
+      {/* Audiobook: flat chapter list */}
+      {isAudiobook ? (
+        <AudiobookChapterList
+          chapters={topModules}
+          addingChapter={addingModule}
+          formTitle={formTitle}
+          saving={saving}
+          onToggleAdd={() => { setAddingModule(!addingModule); setFormTitle(""); }}
+          onFormTitleChange={setFormTitle}
+          onAddChapter={addChapter}
+          onCancelAdd={() => setAddingModule(false)}
+          onUpdateModule={updateModule}
+          onDeleteModule={deleteModule}
+          generateUploadUrl={generateUploadUrl}
+          saveAudio={saveAudio}
+          removeAudio={removeAudio}
+        />
+      ) : (
+        /* Training: module hierarchy */
+        <TrainingModuleList
+          topModules={topModules}
+          lessonMap={lessonMap}
+          isAudiobook={false}
+          expandedModuleId={expandedModuleId}
+          addingModule={addingModule}
+          addingLessonFor={addingLessonFor}
+          formTitle={formTitle}
+          saving={saving}
+          onToggleExpand={(id) => setExpandedModuleId(expandedModuleId === id ? null : id)}
+          onToggleAddModule={() => { setAddingModule(!addingModule); setFormTitle(""); }}
+          onFormTitleChange={setFormTitle}
+          onAddModule={addModule}
+          onCancelAddModule={() => setAddingModule(false)}
+          onStartAddLesson={(id) => { setAddingLessonFor(id); setFormTitle(""); }}
+          onAddLesson={addLesson}
+          onCancelAddLesson={() => setAddingLessonFor(null)}
+          onUpdateModule={updateModule}
+          onDeleteModule={deleteModule}
+          generateUploadUrl={generateUploadUrl}
+          saveAudio={saveAudio}
+          removeAudio={removeAudio}
+          onEditQuiz={setEditingQuizModule}
+        />
+      )}
+    </div>
+  );
+}
 
-        {addingModule && (
-          <InlineForm placeholder="Naam van de module" value={formTitle} onChange={setFormTitle} saving={saving} onSave={addModule} onCancel={() => setAddingModule(false)} />
-        )}
+/* ─── Audiobook flat chapter list ─── */
 
-        {topModules.length === 0 && !addingModule && (
-          <p className="text-[14px] text-ink/30 py-6 text-center border border-dashed border-rule rounded-[2px]">Nog geen modules.</p>
-        )}
+type Mod = { _id: Id<"trainingModules">; title: { nl: string; en?: string; de?: string }; description: { nl: string }; sortOrder: number; audioStorageId?: Id<"_storage">; audioFileName?: string };
+type ModMut = ReturnType<typeof useMutation<typeof api.trainingModules.updateModule>>;
+type ModDel = ReturnType<typeof useMutation<typeof api.trainingModules.deleteModule>>;
+type GenUrl = ReturnType<typeof useMutation<typeof api.trainings.generateUploadUrl>>;
+type AudioSave = ReturnType<typeof useMutation<typeof api.trainingModules.saveAudio>>;
+type AudioRm = ReturnType<typeof useMutation<typeof api.trainingModules.removeAudio>>;
+type AudioOps = { generateUploadUrl: GenUrl; saveAudio: AudioSave; removeAudio: AudioRm };
 
-        <div className="space-y-2">
-          {topModules.map((mod, modIdx) => {
-            const lessons = lessonMap.get(mod._id) ?? [];
-            const isExpanded = expandedModuleId === mod._id;
+function AudiobookChapterList({ chapters, addingChapter, formTitle, saving, onToggleAdd, onFormTitleChange, onAddChapter, onCancelAdd, onUpdateModule, onDeleteModule, generateUploadUrl, saveAudio, removeAudio }: {
+  chapters: Mod[]; addingChapter: boolean; formTitle: string; saving: boolean;
+  onToggleAdd: () => void; onFormTitleChange: (v: string) => void; onAddChapter: () => void; onCancelAdd: () => void;
+  onUpdateModule: ModMut; onDeleteModule: ModDel; generateUploadUrl: GenUrl; saveAudio: AudioSave; removeAudio: AudioRm;
+}) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-            return (
-              <div key={mod._id} className="border border-rule rounded-[2px] overflow-hidden">
-                {/* Module header */}
-                <button type="button" onClick={() => setExpandedModuleId(isExpanded ? null : mod._id)}
-                  className="w-full flex items-center justify-between p-4 cursor-pointer hover:bg-warm/20 transition-colors text-left">
-                  <div className="flex items-center gap-3">
-                    <span className="text-[13px] font-medium text-ink/25 w-7 text-center">{String(modIdx + 1).padStart(2, "0")}</span>
-                    <div>
-                      <p className="text-[14px] font-medium text-ink">{mod.title.nl}</p>
-                      <p className="text-[11px] text-ink/40">{lessons.length} training{lessons.length !== 1 ? "en" : ""}</p>
-                    </div>
-                  </div>
-                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className={`text-ink/30 shrink-0 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}><path d="M4 6l4 4 4-4" /></svg>
-                </button>
+  return (
+    <div className="mb-8">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper">
+          Hoofdstukken ({chapters.length})
+        </h3>
+        <button onClick={onToggleAdd} className="text-[12px] text-copper hover:text-copper-light cursor-pointer">
+          {addingChapter ? "Annuleer" : "+ Hoofdstuk toevoegen"}
+        </button>
+      </div>
 
-                {/* Expanded: trainingen within module */}
-                {isExpanded && (
-                  <div className="border-t border-rule p-4 space-y-3 bg-warm/5">
-                    {/* Existing lessons */}
-                    {lessons.map((lesson, lessonIdx) => (
-                      <LessonCard
-                        key={lesson._id}
-                        lesson={lesson}
-                        label={`${modIdx + 1}.${lessonIdx + 1}`}
-                        isAudiobook={(t as Record<string, unknown>).type === "audiobook"}
-                        onUpdateVideo={async (videoId) => { await updateModule({ id: lesson._id, vimeoVideoId: videoId }); }}
-                        onUpdateTitle={async (title) => { await updateModule({ id: lesson._id, title: { nl: title, en: title } }); }}
-                        onUpdateDesc={async (desc) => { await updateModule({ id: lesson._id, description: { nl: desc, en: desc } }); }}
-                        onUploadAudio={async (file) => {
-                          const url = await generateUploadUrl();
-                          const res = await fetch(url, { method: "POST", headers: { "Content-Type": file.type }, body: file });
-                          const { storageId } = await res.json();
-                          await saveAudio({ moduleId: lesson._id, storageId, fileName: file.name });
-                        }}
-                        onRemoveAudio={async () => { await removeAudio({ moduleId: lesson._id }); }}
-                        onDelete={async () => { if (confirm(`Training "${lesson.title.nl}" verwijderen?`)) await deleteModule({ id: lesson._id }); }}
-                        onEditQuiz={() => setEditingQuizModule(lesson._id)}
-                      />
-                    ))}
+      {addingChapter && (
+        <InlineForm placeholder="Titel van het hoofdstuk" value={formTitle} onChange={onFormTitleChange} saving={saving} onSave={onAddChapter} onCancel={onCancelAdd} />
+      )}
 
-                    {/* Add training */}
-                    {addingLessonFor === mod._id ? (
-                      <InlineForm placeholder={`Titel training ${modIdx + 1}.${lessons.length + 1}`} value={formTitle} onChange={setFormTitle} saving={saving}
-                        onSave={() => addLesson(mod._id)} onCancel={() => setAddingLessonFor(null)} />
-                    ) : (
-                      <button onClick={() => { setAddingLessonFor(mod._id); setFormTitle(""); }}
-                        className="text-[12px] text-copper hover:text-copper-light cursor-pointer">
-                        + Training toevoegen
-                      </button>
-                    )}
+      {chapters.length === 0 && !addingChapter && (
+        <p className="text-[14px] text-ink/30 py-6 text-center border border-dashed border-rule rounded-[2px]">Nog geen hoofdstukken.</p>
+      )}
 
-                    {/* Module actions */}
-                    <div className="flex items-center gap-3 pt-2 border-t border-rule">
-                      <button onClick={() => setEditingQuizModule(mod._id)} className="text-[12px] text-copper hover:text-copper-light cursor-pointer">
-                        Quiz beheren
-                      </button>
-                      <button onClick={async () => {
-                        if (confirm("Module en alle trainingen verwijderen?")) {
-                          for (const l of lessons) await deleteModule({ id: l._id });
-                          await deleteModule({ id: mod._id });
-                          setExpandedModuleId(null);
-                        }
-                      }} className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer">Verwijder module</button>
-                    </div>
-                  </div>
+      <div className="space-y-1">
+        {chapters.map((ch, idx) => {
+          const hasAudio = !!(ch as Record<string, unknown>).audioStorageId;
+          const audioFile = (ch as Record<string, unknown>).audioFileName as string | undefined;
+          const isExpanded = expandedId === ch._id;
+
+          return (
+            <div key={ch._id} className="border border-rule rounded-[2px] overflow-hidden">
+              <button type="button" onClick={() => setExpandedId(isExpanded ? null : ch._id)}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left cursor-pointer hover:bg-warm/20 transition-colors">
+                <span className="text-[13px] font-medium text-ink/25 w-7 text-center">{String(idx + 1).padStart(2, "0")}</span>
+                <p className="text-[13px] font-medium text-ink flex-1">{ch.title.nl}</p>
+                {hasAudio ? (
+                  <span className="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded-[2px]">MP3: {audioFile || "audio"}</span>
+                ) : (
+                  <span className="text-[10px] text-ink/25">MP3 uploaden</span>
                 )}
-              </div>
-            );
-          })}
-        </div>
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className={`text-ink/20 transition-transform ${isExpanded ? "rotate-180" : ""}`}><path d="M4 6l4 4 4-4" /></svg>
+              </button>
+
+              {isExpanded && (
+                <AudiobookChapterExpanded
+                  chapter={ch}
+                  hasAudio={hasAudio}
+                  audioFile={audioFile}
+                  onUpdateModule={onUpdateModule}
+                  onDeleteModule={onDeleteModule}
+                  generateUploadUrl={generateUploadUrl}
+                  saveAudio={saveAudio}
+                  removeAudio={removeAudio}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 }
 
-/* ─── Lesson card within a module ─── */
+/* ─── Expanded chapter card for audiobooks ─── */
 
-function LessonCard({ lesson, label, isAudiobook, onUpdateVideo, onUpdateTitle, onUpdateDesc, onUploadAudio, onRemoveAudio, onDelete, onEditQuiz }: {
-  lesson: { _id: Id<"trainingModules">; title: { nl: string }; description: { nl: string }; vimeoVideoId?: string; audioStorageId?: Id<"_storage">; audioFileName?: string; quizRequired: boolean };
-  label: string;
-  isAudiobook?: boolean;
-  onUpdateVideo: (id: string) => Promise<void>;
-  onUpdateTitle: (t: string) => Promise<void>;
-  onUpdateDesc: (d: string) => Promise<void>;
-  onUploadAudio?: (file: File) => Promise<void>;
-  onRemoveAudio?: () => Promise<void>;
-  onDelete: () => Promise<void>;
-  onEditQuiz: () => void;
+function AudiobookChapterExpanded({ chapter, hasAudio, audioFile, onUpdateModule, onDeleteModule, generateUploadUrl, saveAudio, removeAudio }: {
+  chapter: Mod; hasAudio: boolean; audioFile?: string;
+  onUpdateModule: ModMut; onDeleteModule: ModDel; generateUploadUrl: GenUrl; saveAudio: AudioSave; removeAudio: AudioRm;
+}) {
+  const [titleNl, setTitleNl] = useState(chapter.title.nl);
+  const [titleEn, setTitleEn] = useState(chapter.title.en ?? "");
+  const [titleDe, setTitleDe] = useState(chapter.title.de ?? "");
+  const [dirty, setDirty] = useState(false);
+  const [savingTitle, setSavingTitle] = useState(false);
+
+  function markDirty(setter: (v: string) => void, val: string) {
+    setter(val);
+    setDirty(true);
+  }
+
+  async function saveTitles() {
+    setSavingTitle(true);
+    await onUpdateModule({ id: chapter._id, title: { nl: titleNl, en: titleEn, de: titleDe || undefined } });
+    setSavingTitle(false);
+    setDirty(false);
+  }
+
+  return (
+    <div className="border-t border-rule/50 p-4 space-y-3 bg-warm/5">
+      {/* Title NL with DeepL */}
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-[11px] text-ink/50">Titel (NL)</p>
+          <DeepLButton sourceText={titleNl} onTranslated={(t) => { markDirty(setTitleEn, t.en ?? titleEn); markDirty(setTitleDe, t.de ?? titleDe); }} />
+        </div>
+        <input value={titleNl} onChange={(e) => markDirty(setTitleNl, e.target.value)}
+          className="w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <p className="text-[11px] text-ink/50 mb-1">Titel (EN)</p>
+          <input value={titleEn} onChange={(e) => markDirty(setTitleEn, e.target.value)}
+            className="w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
+        </div>
+        <div>
+          <p className="text-[11px] text-ink/50 mb-1">Titel (DE)</p>
+          <input value={titleDe} onChange={(e) => markDirty(setTitleDe, e.target.value)}
+            className="w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
+        </div>
+      </div>
+      {dirty && (
+        <button onClick={saveTitles} disabled={savingTitle}
+          className="text-[11px] text-copper hover:text-copper-light cursor-pointer disabled:opacity-50">
+          {savingTitle ? "Opslaan..." : "Titels opslaan"}
+        </button>
+      )}
+
+      {/* Audio upload */}
+      <ModuleAudioField
+        moduleId={chapter._id}
+        hasAudio={hasAudio}
+        fileName={audioFile}
+        onUpload={async (file) => {
+          const url = await generateUploadUrl();
+          const res = await fetch(url, { method: "POST", headers: { "Content-Type": file.type }, body: file });
+          const { storageId } = await res.json();
+          await saveAudio({ moduleId: chapter._id, storageId, fileName: file.name });
+        }}
+        onRemove={async () => { await removeAudio({ moduleId: chapter._id }); }}
+      />
+
+      {/* Delete */}
+      <button onClick={async () => { if (confirm(`Hoofdstuk "${chapter.title.nl}" verwijderen?`)) await onDeleteModule({ id: chapter._id }); }}
+        className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer">
+        Verwijder hoofdstuk
+      </button>
+    </div>
+  );
+}
+
+/* ─── Training module hierarchy ─── */
+
+function TrainingModuleList({ topModules, lessonMap, expandedModuleId, addingModule, addingLessonFor, formTitle, saving, onToggleExpand, onToggleAddModule, onFormTitleChange, onAddModule, onCancelAddModule, onStartAddLesson, onAddLesson, onCancelAddLesson, onUpdateModule, onDeleteModule, generateUploadUrl, saveAudio, removeAudio, onEditQuiz }: {
+  topModules: Mod[]; lessonMap: Map<string, Mod[]>; isAudiobook: boolean;
+  expandedModuleId: string | null; addingModule: boolean; addingLessonFor: string | null; formTitle: string; saving: boolean;
+  onToggleExpand: (id: string) => void; onToggleAddModule: () => void; onFormTitleChange: (v: string) => void;
+  onAddModule: () => void; onCancelAddModule: () => void; onStartAddLesson: (id: string) => void;
+  onAddLesson: (parentId: Id<"trainingModules">) => Promise<void>; onCancelAddLesson: () => void;
+  onUpdateModule: ModMut; onDeleteModule: ModDel; generateUploadUrl: GenUrl; saveAudio: AudioSave; removeAudio: AudioRm;
+  onEditQuiz: (id: Id<"trainingModules">) => void;
+}) {
+  return (
+    <div className="mb-8">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper">Modules ({topModules.length})</h3>
+        <button onClick={onToggleAddModule} className="text-[12px] text-copper hover:text-copper-light cursor-pointer">
+          {addingModule ? "Annuleer" : "+ Module toevoegen"}
+        </button>
+      </div>
+
+      {addingModule && (
+        <InlineForm placeholder="Naam van de module" value={formTitle} onChange={onFormTitleChange} saving={saving} onSave={onAddModule} onCancel={onCancelAddModule} />
+      )}
+
+      {topModules.length === 0 && !addingModule && (
+        <p className="text-[14px] text-ink/30 py-6 text-center border border-dashed border-rule rounded-[2px]">Nog geen modules.</p>
+      )}
+
+      <div className="space-y-2">
+        {topModules.map((mod, modIdx) => {
+          const lessons = lessonMap.get(mod._id) ?? [];
+          const isExpanded = expandedModuleId === mod._id;
+
+          return (
+            <div key={mod._id} className="border border-rule rounded-[2px] overflow-hidden">
+              <button type="button" onClick={() => onToggleExpand(mod._id)}
+                className="w-full flex items-center justify-between p-4 cursor-pointer hover:bg-warm/20 transition-colors text-left">
+                <div className="flex items-center gap-3">
+                  <span className="text-[13px] font-medium text-ink/25 w-7 text-center">{String(modIdx + 1).padStart(2, "0")}</span>
+                  <div>
+                    <p className="text-[14px] font-medium text-ink">{mod.title.nl}</p>
+                    <p className="text-[11px] text-ink/40">{lessons.length} training{lessons.length !== 1 ? "en" : ""}</p>
+                  </div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className={`text-ink/30 shrink-0 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}><path d="M4 6l4 4 4-4" /></svg>
+              </button>
+
+              {isExpanded && (
+                <div className="border-t border-rule p-4 space-y-3 bg-warm/5">
+                  {lessons.map((lesson, lessonIdx) => (
+                    <LessonCard
+                      key={lesson._id}
+                      lesson={lesson}
+                      label={`${modIdx + 1}.${lessonIdx + 1}`}
+                      onUpdateModule={onUpdateModule}
+                      onUploadAudio={async (file) => {
+                        const url = await generateUploadUrl();
+                        const res = await fetch(url, { method: "POST", headers: { "Content-Type": file.type }, body: file });
+                        const { storageId } = await res.json();
+                        await saveAudio({ moduleId: lesson._id, storageId, fileName: file.name });
+                      }}
+                      onRemoveAudio={async () => { await removeAudio({ moduleId: lesson._id }); }}
+                      onDelete={async () => { if (confirm(`Training "${lesson.title.nl}" verwijderen?`)) await onDeleteModule({ id: lesson._id }); }}
+                      onEditQuiz={() => onEditQuiz(lesson._id)}
+                    />
+                  ))}
+
+                  {addingLessonFor === mod._id ? (
+                    <InlineForm placeholder={`Titel training ${modIdx + 1}.${lessons.length + 1}`} value={formTitle} onChange={onFormTitleChange} saving={saving}
+                      onSave={() => onAddLesson(mod._id)} onCancel={onCancelAddLesson} />
+                  ) : (
+                    <button onClick={() => onStartAddLesson(mod._id)} className="text-[12px] text-copper hover:text-copper-light cursor-pointer">+ Training toevoegen</button>
+                  )}
+
+                  <div className="flex items-center gap-3 pt-2 border-t border-rule">
+                    <button onClick={() => onEditQuiz(mod._id)} className="text-[12px] text-copper hover:text-copper-light cursor-pointer">Quiz beheren</button>
+                    <button onClick={async () => {
+                      if (confirm("Module en alle trainingen verwijderen?")) {
+                        for (const l of lessons) await onDeleteModule({ id: l._id });
+                        await onDeleteModule({ id: mod._id });
+                      }
+                    }} className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer">Verwijder module</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Lesson card within a training module ─── */
+
+function LessonCard({ lesson, label, onUpdateModule, onUploadAudio, onRemoveAudio, onDelete, onEditQuiz }: {
+  lesson: Mod & { vimeoVideoId?: string; quizRequired?: boolean }; label: string;
+  onUpdateModule: ModMut; onUploadAudio: (file: File) => Promise<void>; onRemoveAudio: () => Promise<void>;
+  onDelete: () => Promise<void>; onEditQuiz: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const hasAudio = !!(lesson as Record<string, unknown>).audioStorageId;
@@ -271,21 +472,10 @@ function LessonCard({ lesson, label, isAudiobook, onUpdateVideo, onUpdateTitle, 
 
       {expanded && (
         <div className="border-t border-rule/50 p-3 space-y-3">
-          <EditableField label="Titel" value={lesson.title.nl} onSave={onUpdateTitle} />
-          <EditableField label="Beschrijving" value={lesson.description.nl} onSave={onUpdateDesc} multiline />
-          {isAudiobook ? (
-            onUploadAudio && onRemoveAudio && (
-              <ModuleAudioField
-                moduleId={lesson._id}
-                hasAudio={hasAudio}
-                fileName={audioFile}
-                onUpload={onUploadAudio}
-                onRemove={onRemoveAudio}
-              />
-            )
-          ) : (
-            <ModuleVideoField moduleId={lesson._id} currentVideoId={lesson.vimeoVideoId} onSave={onUpdateVideo} />
-          )}
+          <EditableField label="Titel" value={lesson.title.nl} onSave={async (v) => { await onUpdateModule({ id: lesson._id, title: { nl: v, en: lesson.title.en ?? v } }); }} />
+          <EditableField label="Beschrijving" value={lesson.description.nl} onSave={async (v) => { await onUpdateModule({ id: lesson._id, description: { nl: v, en: v } }); }} multiline />
+          <ModuleVideoField moduleId={lesson._id} currentVideoId={lesson.vimeoVideoId} onSave={async (videoId) => { await onUpdateModule({ id: lesson._id, vimeoVideoId: videoId }); }} />
+          <ModuleAudioField moduleId={lesson._id} hasAudio={hasAudio} fileName={audioFile} onUpload={onUploadAudio} onRemove={onRemoveAudio} />
           <div className="flex items-center gap-3 pt-2">
             <button onClick={onEditQuiz} className="text-[12px] text-copper hover:text-copper-light cursor-pointer">Quiz</button>
             <button onClick={onDelete} className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer">Verwijder</button>
@@ -293,205 +483,5 @@ function LessonCard({ lesson, label, isAudiobook, onUpdateVideo, onUpdateTitle, 
         </div>
       )}
     </div>
-  );
-}
-
-/* ─── Editable inline field ─── */
-
-function EditableField({ label, value, onSave, multiline }: {
-  label: string; value: string; onSave: (v: string) => Promise<void>; multiline?: boolean;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [val, setVal] = useState(value);
-  const cls = "w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]";
-
-  if (!editing) {
-    return (
-      <div>
-        <p className="text-[11px] text-ink/50 mb-1">{label}</p>
-        <div className="flex items-center gap-2">
-          <p className="text-[13px] text-ink flex-1">{value || <span className="text-ink/25">Niet ingesteld</span>}</p>
-          <button onClick={() => { setVal(value); setEditing(true); }} className="text-[11px] text-copper hover:text-copper-light cursor-pointer">Wijzig</button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <p className="text-[11px] text-ink/50 mb-1">{label}</p>
-      {multiline ? <textarea value={val} onChange={(e) => setVal(e.target.value)} rows={2} className={cls} /> : <input value={val} onChange={(e) => setVal(e.target.value)} className={cls} />}
-      <div className="flex gap-2 mt-1">
-        <button onClick={async () => { await onSave(val); setEditing(false); }} className="text-[11px] text-copper cursor-pointer">Opslaan</button>
-        <button onClick={() => setEditing(false)} className="text-[11px] text-ink/40 cursor-pointer">Annuleer</button>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Inline add form ─── */
-
-function InlineForm({ placeholder, value, onChange, saving, onSave, onCancel }: {
-  placeholder: string; value: string; onChange: (v: string) => void; saving: boolean; onSave: () => void; onCancel: () => void;
-}) {
-  return (
-    <div className="flex gap-2 mb-3">
-      <input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-        className="flex-1 bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]"
-        onKeyDown={(e) => { if (e.key === "Enter") onSave(); }} autoFocus />
-      <button onClick={onSave} disabled={saving || !value.trim()} className="bg-copper text-paper px-4 py-2 text-[12px] font-medium hover:bg-copper-light rounded-[2px] cursor-pointer disabled:opacity-50">
-        {saving ? "..." : "Toevoegen"}
-      </button>
-      <button onClick={onCancel} className="text-[12px] text-ink/40 hover:text-ink cursor-pointer">Annuleer</button>
-    </div>
-  );
-}
-
-/* ─── Section wrapper ─── */
-
-function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
-  return (
-    <div className="mb-8 border border-rule rounded-[2px] p-5">
-      <h3 className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40 mb-2">{title}</h3>
-      {subtitle && <p className="text-[12px] text-ink/40 mb-3">{subtitle}</p>}
-      {children}
-    </div>
-  );
-}
-
-/* ─── Werkboek section ─── */
-
-function WorkbookSection({ trainingId }: { trainingId: Id<"trainings"> }) {
-  const trainingData = useQuery(api.trainings.listAll);
-  const generateUploadUrl = useMutation(api.trainings.generateUploadUrl);
-  const saveWorkbook = useMutation(api.trainings.saveWorkbook);
-  const removeWorkbook = useMutation(api.trainings.removeWorkbook);
-  const updateMeta = useMutation(api.trainings.updateWorkbookMeta);
-  const saveImage = useMutation(api.trainings.saveWorkbookImage);
-  const [uploading, setUploading] = useState(false);
-
-  const t = trainingData?.find((tr) => tr._id === trainingId);
-  const has = t && "workbookStorageId" in t && !!t.workbookStorageId;
-  const tRec = t as Record<string, unknown> | undefined;
-  const wbTitle = (tRec?.workbookTitle as string) ?? "";
-  const wbDesc = (tRec?.workbookDescription as string) ?? "";
-  const wbFile = (tRec?.workbookFileName as string) ?? "";
-
-  async function handleUploadPdf(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const url = await generateUploadUrl();
-      const res = await fetch(url, { method: "POST", headers: { "Content-Type": file.type }, body: file });
-      const { storageId } = await res.json();
-      await saveWorkbook({ trainingId, storageId, fileName: file.name, title: wbTitle || file.name, description: wbDesc });
-    } finally { setUploading(false); }
-  }
-
-  return (
-    <Section title="Werkboek" subtitle="Upload een PDF werkboek met titel, afbeelding en beschrijving. Deelnemers kunnen dit downloaden.">
-      {has ? (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-copper">
-                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><path d="M14 2v6h6" />
-              </svg>
-              <span className="text-[13px] text-ink">{wbFile}</span>
-            </div>
-            <div className="flex gap-3">
-              <label className="text-[12px] text-copper hover:text-copper-light cursor-pointer">
-                Vervangen <input type="file" accept=".pdf" onChange={handleUploadPdf} className="hidden" />
-              </label>
-              <button onClick={() => removeWorkbook({ trainingId })} className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer">Verwijderen</button>
-            </div>
-          </div>
-          <EditableField label="Titel" value={wbTitle} onSave={async (v) => { await updateMeta({ trainingId, title: v, description: wbDesc }); }} />
-          <EditableField label="Beschrijving" value={wbDesc} onSave={async (v) => { await updateMeta({ trainingId, title: wbTitle, description: v }); }} multiline />
-          <div>
-            <p className="text-[11px] text-ink/50 mb-1">Afbeelding</p>
-            <AdminImageUpload
-              onUploaded={async (storageId) => { await saveImage({ trainingId, storageId }); }}
-              alt="Werkboek cover"
-            />
-          </div>
-        </div>
-      ) : (
-        <label className={`inline-block bg-copper text-paper px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light rounded-[2px] cursor-pointer ${uploading ? "opacity-50" : ""}`}>
-          {uploading ? "Uploaden..." : "PDF uploaden"}
-          <input type="file" accept=".pdf" onChange={handleUploadPdf} disabled={uploading} className="hidden" />
-        </label>
-      )}
-    </Section>
-  );
-}
-
-/* ─── Cover image section (audiobooks) ─── */
-function CoverImageSection({ trainingId }: { trainingId: Id<"trainings"> }) {
-  const genUrl = useMutation(api.trainings.generateUploadUrl);
-  const saveCover = useMutation(api.trainings.saveCoverImage);
-  const removeCover = useMutation(api.trainings.removeCoverImage);
-  const [uploading, setUploading] = useState(false);
-  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]; if (!file) return;
-    setUploading(true);
-    try { const url = await genUrl(); const res = await fetch(url, { method: "POST", headers: { "Content-Type": file.type }, body: file }); const { storageId } = await res.json(); await saveCover({ trainingId, storageId }); } finally { setUploading(false); }
-  }
-  return (
-    <Section title="Cover afbeelding" subtitle="Albumhoes van het luisterboek.">
-      <div className="flex items-center gap-4">
-        <label className={`inline-block bg-copper text-paper px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light rounded-[2px] cursor-pointer ${uploading ? "opacity-50" : ""}`}>
-          {uploading ? "Uploaden..." : "Afbeelding uploaden"}<input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} className="hidden" />
-        </label>
-        <button onClick={() => removeCover({ trainingId })} className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer">Verwijderen</button>
-      </div>
-    </Section>
-  );
-}
-/* ─── Certificate section ─── */
-
-function CertificateSection({ trainingId }: { trainingId: Id<"trainings"> }) {
-  const trainingData = useQuery(api.trainings.listAll);
-  const generateUploadUrl = useMutation(api.trainings.generateUploadUrl);
-  const saveCertificate = useMutation(api.trainings.saveCertificate);
-  const removeCertificate = useMutation(api.trainings.removeCertificate);
-  const [uploading, setUploading] = useState(false);
-
-  const t = trainingData?.find((tr) => tr._id === trainingId);
-  const has = t && "certificateStorageId" in t && !!t.certificateStorageId;
-  const fileName = (t as Record<string, unknown> | undefined)?.certificateFileName as string | undefined;
-
-  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const url = await generateUploadUrl();
-      const res = await fetch(url, { method: "POST", headers: { "Content-Type": file.type }, body: file });
-      const { storageId } = await res.json();
-      await saveCertificate({ trainingId, storageId, fileName: file.name });
-    } finally { setUploading(false); }
-  }
-
-  return (
-    <Section title="Certificaat PDF" subtitle="Deelnemers downloaden dit na afronding van alle quizzes.">
-      {has ? (
-        <div className="flex items-center justify-between">
-          <p className="text-[14px] text-ink">{fileName || "certificaat.pdf"}</p>
-          <div className="flex gap-3">
-            <label className="text-[12px] text-copper hover:text-copper-light cursor-pointer">
-              Vervangen <input type="file" accept=".pdf" onChange={handleUpload} className="hidden" />
-            </label>
-            <button onClick={() => removeCertificate({ trainingId })} className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer">Verwijderen</button>
-          </div>
-        </div>
-      ) : (
-        <label className={`inline-block bg-copper text-paper px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light rounded-[2px] cursor-pointer ${uploading ? "opacity-50" : ""}`}>
-          {uploading ? "Uploaden..." : "PDF uploaden"}
-          <input type="file" accept=".pdf" onChange={handleUpload} disabled={uploading} className="hidden" />
-        </label>
-      )}
-    </Section>
   );
 }

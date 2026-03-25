@@ -6,6 +6,7 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { AdminImageUpload } from "./AdminImageUpload";
 import { Loading } from "./shared";
+import { DeepLButton } from "./DeepLButton";
 
 type I18nField = { nl: string; en: string; de: string };
 
@@ -232,7 +233,14 @@ function I18nFieldGroup({
 
   return (
     <div>
-      <label className={LABEL}>{label}</label>
+      <div className="flex items-center justify-between">
+        <label className={LABEL}>{label}</label>
+        <DeepLButton
+          sourceText={value.nl}
+          onTranslated={(t) => onChange({ ...value, en: t.en ?? value.en, de: t.de ?? value.de })}
+          html={multiline}
+        />
+      </div>
       <div className="grid grid-cols-3 gap-3">
         {langs.map(({ key, label: langLabel }) => (
           <div key={key}>
