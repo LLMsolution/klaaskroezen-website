@@ -2,8 +2,8 @@ import { v } from "convex/values";
 import { action, internalAction } from "./_generated/server";
 import { internal, api } from "./_generated/api";
 
-const GITHUB_OWNER = "timlind";
-const GITHUB_REPO = "website-klaaskroezen";
+const GITHUB_OWNER = "LLMsolution";
+const GITHUB_REPO = "klaaskroezen-website";
 
 /** Trigger a plan update via GitHub Actions — Claude reads chat + updates plan */
 export const triggerPlanUpdate = action({

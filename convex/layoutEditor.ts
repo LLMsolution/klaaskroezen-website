@@ -206,8 +206,6 @@ export const updateSessionStatus = internalMutation({
       v.literal("rejected"),
       v.literal("failed"),
     ),
-    plan: v.optional(v.string()),
-    planVersion: v.optional(v.number()),
     previewUrl: v.optional(v.string()),
     prNumber: v.optional(v.number()),
     errorMessage: v.optional(v.string()),

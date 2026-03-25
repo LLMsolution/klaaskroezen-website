@@ -2,7 +2,7 @@ name: Claude Code Fix (Write Access)
 
 on:
   repository_dispatch:
-    types: [layout-edit, email-generate]
+    types: [layout-plan, layout-edit, email-generate]
   issue_comment:
     types: [created]
   pull_request_review_comment:
@@ -106,6 +106,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
 
     steps:
       - uses: actions/checkout@v4
@@ -244,7 +245,7 @@ jobs:
           CALLBACK_SECRET: ${{ github.event.client_payload.callbackSecret }}
         run: |
           # Get preview URL from branch name
-          PREVIEW_URL="https://website-klaaskroezen-git-${BRANCH_NAME}-timlind.vercel.app"
+          PREVIEW_URL="https://klaaskroezen-website-git-${BRANCH_NAME}-llm-solutions-projects.vercel.app"
 
           # Check if PR exists, if not create one
           PR_NUM=$(gh pr list --head "$BRANCH_NAME" --json number -q '.[0].number')

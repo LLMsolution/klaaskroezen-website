@@ -119,7 +119,7 @@ export const triggerGeneration = action({
     });
 
     const response = await fetch(
-      "https://api.github.com/repos/timlind/website-klaaskroezen/dispatches",
+      "https://api.github.com/repos/LLMsolution/klaaskroezen-website/dispatches",
       {
         method: "POST",
         headers: {
