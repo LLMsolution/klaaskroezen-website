@@ -42,7 +42,7 @@ export function LoginForm({ lang }: Props) {
     setError("");
     setLoading(true);
     try {
-      await signIn("resend", { email });
+      await signIn("resend", { email, lang });
       setMagicLinkSent(true);
     } catch {
       setError(s.errorMagicLink);
