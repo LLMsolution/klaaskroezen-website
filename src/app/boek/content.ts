@@ -3,7 +3,7 @@ import { boekNl } from "./content-nl";
 import { boekEn } from "./content-en";
 import { boekDe } from "./content-de";
 
-export function getBoekContent(lang: Lang) {
+export function getBoekContent(lang: Lang, images?: Record<string, string>) {
   const text = { nl: boekNl, en: boekEn, de: boekDe }[lang];
 
   return {
@@ -51,13 +51,13 @@ export function getBoekContent(lang: Lang) {
       items: [
         {
           title: text.videoItems[0],
-          thumbnail: "/images/spreker/video-thumb-speech.jpg",
+          thumbnail: images?.["spreker/video-thumb-speech.jpg"] ?? "/images/spreker/video-thumb-speech.jpg",
           embedUrl: "https://www.youtube.com/embed/F6io8l_VYww",
           duration: "3:35",
         },
         {
           title: text.videoItems[1],
-          thumbnail: "/images/book/boeklancering.jpeg",
+          thumbnail: images?.["book/boeklancering.jpeg"] ?? "/images/book/boeklancering.jpeg",
           embedUrl: "https://www.youtube.com/embed/o7ajUmwEWpI",
           duration: "1:08",
         },
@@ -68,7 +68,7 @@ export function getBoekContent(lang: Lang) {
       eyebrow: "Managementboek.nl",
       title: text.interviewTitle,
       titleAccent: text.interviewTitleAccent,
-      image: "/images/blog/klaas-managementboek-interview.jpg",
+      image: images?.["blog/klaas-managementboek-interview.jpg"] ?? "/images/blog/klaas-managementboek-interview.jpg",
       imageAlt: "Klaas Kroezen \u2014 interview Managementboek.nl",
       intro: text.interviewIntro,
       quotes: text.interviewQuotes,
@@ -82,7 +82,7 @@ export function getBoekContent(lang: Lang) {
       title: "Sales Excellence Training.",
       titleAccent: text.crossTitleAccent,
       description: text.crossDescription,
-      image: "/images/hero/sales-excellence-group.jpeg",
+      image: images?.["hero/sales-excellence-group.jpeg"] ?? "/images/hero/sales-excellence-group.jpeg",
       imageAlt: text.crossImageAlt,
       href: "/sales-excellence-training",
       ctaLabel: text.crossCtaLabel,

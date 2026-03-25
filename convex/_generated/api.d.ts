@@ -61,6 +61,8 @@ import type * as rateLimits from "../rateLimits.js";
 import type * as setTrainingSeed from "../setTrainingSeed.js";
 import type * as settings from "../settings.js";
 import type * as siteContent from "../siteContent.js";
+import type * as siteImages from "../siteImages.js";
+import type * as siteImagesMigration from "../siteImagesMigration.js";
 import type * as siteSchemas from "../siteSchemas.js";
 import type * as siteSeed from "../siteSeed.js";
 import type * as siteSeedBoek from "../siteSeedBoek.js";
@@ -135,6 +137,8 @@ declare const fullApi: ApiFromModules<{
   setTrainingSeed: typeof setTrainingSeed;
   settings: typeof settings;
   siteContent: typeof siteContent;
+  siteImages: typeof siteImages;
+  siteImagesMigration: typeof siteImagesMigration;
   siteSchemas: typeof siteSchemas;
   siteSeed: typeof siteSeed;
   siteSeedBoek: typeof siteSeedBoek;

@@ -5,6 +5,7 @@ import { ArrowIcon } from "@/components/ui/ArrowIcon";
 import { Container } from "@/components/ui/Container";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { t, type Lang } from "@/lib/i18n";
+import { loadSiteImages } from "@/lib/site-images";
 
 interface Training {
   href: string;
@@ -18,14 +19,19 @@ interface Training {
   points: string[];
 }
 
-export function TrainingCards({ lang }: { lang: Lang }) {
+export async function TrainingCards({ lang }: { lang: Lang }) {
   const s = t(lang).trainingCards;
+
+  const images = await loadSiteImages([
+    "hero/sales-excellence-group.jpeg",
+    "hero/customer-success-group.jpg",
+  ]);
 
   const trainings: Training[] = [
     {
       href: "/sales-excellence-training",
       featured: true,
-      image: "/images/hero/sales-excellence-group.jpeg",
+      image: images["hero/sales-excellence-group.jpeg"].url,
       imageAlt: s.setImageAlt,
       tag: s.setTag,
       title: s.setTitle,
@@ -44,7 +50,7 @@ export function TrainingCards({ lang }: { lang: Lang }) {
     {
       href: "/customer-success-training",
       featured: false,
-      image: "/images/hero/customer-success-group.jpg",
+      image: images["hero/customer-success-group.jpg"].url,
       imageAlt: s.cstImageAlt,
       tag: s.cstTag,
       title: s.cstTitle,

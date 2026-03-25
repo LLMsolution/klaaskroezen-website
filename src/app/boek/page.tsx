@@ -18,6 +18,7 @@ import { BookPreview } from "@/components/sections/BookPreview";
 import { JsonLd, bookJsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/lib/i18n/server";
 import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
+import { loadSiteImages } from "@/lib/site-images";
 import { getBoekContent } from "./content";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -49,6 +50,31 @@ export default async function BoekPage() {
   const faq = sectionOr(db, "faq", fallback.faq);
   const cta = sectionOr(db, "cta", fallback.cta);
 
+  // Load book preview images from Convex (with /images/ fallback)
+  const previewKeys = [
+    "book/preview/page-5.png",
+    "book/preview/page-6.png",
+    "book/preview/page-7.png",
+    "book/preview/page-8.png",
+    "book/preview/page-9.png",
+    "book/preview/page-11.png",
+    "book/preview/page-14.png",
+    "book/preview/page-19.png",
+    "book/preview/page-21.png",
+    "book/preview/page-25.png",
+    "book/preview/page-27.png",
+    "book/preview/page-28.png",
+    "book/preview/page-31.png",
+    "book/preview/page-33.png",
+    "book/preview/page-35.png",
+    "book/preview/page-39.png",
+    "book/preview/page-132.png",
+  ];
+  const coverKey = "book/sales-oprecht-ontspannen-cover.png";
+  const bookImages = await loadSiteImages([...previewKeys, coverKey]);
+  const previewPages = previewKeys.map((k) => bookImages[k].url);
+  const coverUrl = bookImages[coverKey].url;
+
   return (
     <>
       <JsonLd data={bookJsonLd} />
@@ -59,7 +85,7 @@ export default async function BoekPage() {
             <div className="flex justify-center lg:justify-start pb-4">
               <div className="relative w-[260px] sm:w-[320px] lg:w-[380px]">
                 <Image
-                  src="/images/book/sales-oprecht-ontspannen-cover.png"
+                  src={coverUrl}
                   alt={hero.imageAlt}
                   width={380}
                   height={570}
@@ -132,7 +158,7 @@ export default async function BoekPage() {
         modules={program.modules}
       />
 
-      <BookPreview lang={lang} />
+      <BookPreview lang={lang} pages={previewPages} coverImage={coverUrl} />
 
       <BookPricing lang={lang} />
 

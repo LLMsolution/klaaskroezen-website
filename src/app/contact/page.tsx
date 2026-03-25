@@ -7,6 +7,7 @@ import { ContactForm } from "@/components/sections/ContactForm";
 import { JsonLd, contactPageJsonLd } from "@/components/seo/JsonLd";
 import { t } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n/server";
+import { loadSiteImages } from "@/lib/site-images";
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLocale();
@@ -20,6 +21,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function ContactPage() {
   const lang = await getLocale();
   const s = t(lang).contact;
+  const img = await loadSiteImages([
+    "about/klaas-kroezen-portrait-2.jpeg",
+  ]);
 
   return (
     <>
@@ -29,7 +33,7 @@ export default async function ContactPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2">
           <div className="relative aspect-[4/3] lg:aspect-auto lg:min-h-[480px] overflow-hidden bg-warm">
             <Image
-              src="/images/about/klaas-kroezen-portrait-2.jpeg"
+              src={img["about/klaas-kroezen-portrait-2.jpeg"].url}
               alt={s.imageAlt}
               fill
               className="object-cover object-top"

@@ -3,7 +3,7 @@ import { setNl } from "./content-nl";
 import { setEn } from "./content-en";
 import { setDe } from "./content-de";
 
-export function getSetContent(lang: Lang) {
+export function getSetContent(lang: Lang, images?: Record<string, string>) {
   const text = { nl: setNl, en: setEn, de: setDe }[lang];
 
   return {
@@ -24,7 +24,7 @@ export function getSetContent(lang: Lang) {
       titleLine1: text.heroTitleLine1,
       titleLine2: text.heroTitleLine2,
       description: text.heroDescription,
-      image: "/images/training/visma-youserve-session.jpg",
+      image: images?.["training/visma-youserve-session.jpg"] ?? "/images/training/visma-youserve-session.jpg",
       imageAlt: text.heroImageAlt,
       imagePosition: "center 25%",
       glassItems: text.glassItems,
@@ -45,7 +45,12 @@ export function getSetContent(lang: Lang) {
       modules: text.modules,
     },
 
-    reviews: text.reviews,
+    reviews: text.reviews.map((r) => ({
+      ...r,
+      avatar: r.avatar
+        ? images?.[r.avatar.replace("/images/", "")] ?? r.avatar
+        : undefined,
+    })),
 
     pricing: {
       guarantee: text.guarantee,
@@ -58,7 +63,7 @@ export function getSetContent(lang: Lang) {
       title: "Customer Success Training.",
       titleAccent: text.crossTitleAccent,
       description: text.crossDescription,
-      image: "/images/hero/customer-success-group.jpg",
+      image: images?.["hero/customer-success-group.jpg"] ?? "/images/hero/customer-success-group.jpg",
       imageAlt: text.crossImageAlt,
       href: "/customer-success-training",
       ctaLabel: text.crossCtaLabel,

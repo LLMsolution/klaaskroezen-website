@@ -20,6 +20,7 @@ type Tab =
   | "discounts"
   | "content"
   | "blog"
+  | "images"
   | "layout-editor"
   | "settings";
 
@@ -233,6 +234,17 @@ const SECTIONS: { key: Section; label: string; items: NavItem[] }[] = [
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3">
             <path d="M3 2h10v12H3z" />
             <path d="M5 5h6M5 7.5h6M5 10h3" />
+          </svg>
+        ),
+      },
+      {
+        key: "images",
+        label: "Afbeeldingen",
+        icon: (
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3">
+            <rect x="2" y="2" width="12" height="12" rx="1" />
+            <circle cx="6" cy="6" r="1.5" />
+            <path d="M2 11l4-4 2 2 4-4" />
           </svg>
         ),
       },

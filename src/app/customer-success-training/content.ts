@@ -1,6 +1,6 @@
 import type { Lang } from "@/lib/i18n";
 
-export function getCstContent(lang: Lang) {
+export function getCstContent(lang: Lang, images?: Record<string, string>) {
   const text = {
     nl: {
       metaDescription: "Maak van klanten fans. Leer hoe je vanuit klantcontact bijdraagt aan groei, retentie en ambassadeurschap \u2014 ontspannen en oprecht.",
@@ -236,7 +236,7 @@ export function getCstContent(lang: Lang) {
       titleLine1: text.heroTitleLine1,
       titleLine2: text.heroTitleLine2,
       description: text.heroDescription,
-      image: "/images/hero/customer-success-group.jpg",
+      image: images?.["hero/customer-success-group.jpg"] ?? "/images/hero/customer-success-group.jpg",
       imageAlt: text.heroImageAlt,
       imagePosition: "center center",
       glassItems: text.glassItems,
@@ -250,7 +250,12 @@ export function getCstContent(lang: Lang) {
     transformation: text.transformation,
     audiences: text.audiences,
     program: { price: "\u20ac 2.250", modules: text.modules },
-    reviews: text.reviews,
+    reviews: text.reviews.map((r: { text: string; name: string; role: string; avatar?: string }) => ({
+      ...r,
+      avatar: r.avatar
+        ? images?.[r.avatar.replace("/images/", "")] ?? r.avatar
+        : undefined,
+    })),
     pricing: {
       guarantee: text.guarantee,
       individual: { tiers: text.individualTiers },
@@ -261,7 +266,7 @@ export function getCstContent(lang: Lang) {
       title: "Sales Excellence Training.",
       titleAccent: text.crossTitleAccent,
       description: text.crossDescription,
-      image: "/images/hero/sales-excellence-group.jpeg",
+      image: images?.["hero/sales-excellence-group.jpeg"] ?? "/images/hero/sales-excellence-group.jpeg",
       imageAlt: text.crossImageAlt,
       href: "/sales-excellence-training",
       ctaLabel: text.crossCtaLabel,

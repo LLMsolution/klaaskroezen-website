@@ -1,6 +1,6 @@
 import type { Lang } from "@/lib/i18n";
 
-export function getSprekerContent(lang: Lang) {
+export function getSprekerContent(lang: Lang, images?: Record<string, string>) {
   const text = {
     nl: {
       metaTitle: "Spreker \u2014 Klaas Kroezen",

@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/Label";
 import { FadeIn } from "@/components/ui/FadeIn";
 import type { Lang } from "@/lib/i18n";
 
-const PAGES = [
+/** Fallback page paths used when no pages prop is provided */
+const DEFAULT_PAGES = [
   "/images/book/preview/page-5.png",
   "/images/book/preview/page-6.png",
   "/images/book/preview/page-7.png",
@@ -64,18 +65,28 @@ const content = {
 
 const SWIPE_THRESHOLD = 50;
 
-export function BookPreview({ lang }: { lang: Lang }) {
+type BookPreviewProps = {
+  lang: Lang;
+  /** URLs for the book preview page images */
+  pages?: string[];
+  /** URL for the book cover image shown on desktop */
+  coverImage?: string;
+};
+
+export function BookPreview({ lang, pages, coverImage }: BookPreviewProps) {
+  const PAGES = pages ?? DEFAULT_PAGES;
+  const cover = coverImage ?? "/images/book/sales-oprecht-ontspannen-cover.png";
   const [current, setCurrent] = useState(0);
   const touchStartX = useRef(0);
   const s = content[lang];
 
   const prev = useCallback(() => {
     setCurrent((c) => (c === 0 ? PAGES.length - 1 : c - 1));
-  }, []);
+  }, [PAGES.length]);
 
   const next = useCallback(() => {
     setCurrent((c) => (c === PAGES.length - 1 ? 0 : c + 1));
-  }, []);
+  }, [PAGES.length]);
 
   function handleTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX;
@@ -192,7 +203,7 @@ export function BookPreview({ lang }: { lang: Lang }) {
             <div className="flex items-end gap-6 mb-6 lg:mb-8">
               <div className="shrink-0">
                 <Image
-                  src="/images/book/sales-oprecht-ontspannen-cover.png"
+                  src={cover}
                   alt={s.label}
                   width={100}
                   height={150}

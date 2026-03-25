@@ -8,6 +8,7 @@ import { FadeIn } from "@/components/ui/FadeIn";
 import { JsonLd, personJsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/lib/i18n/server";
 import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
+import { loadSiteImages } from "@/lib/site-images";
 import { getOverOnsContent } from "./content";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -23,6 +24,11 @@ export default async function OverOnsPage() {
   const lang = await getLocale();
   const fallback = getOverOnsContent(lang);
   const db = await loadPageContent("over-ons", lang);
+  const img = await loadSiteImages([
+    "about/klaas-over-mij.jpeg",
+    "about/klaas-kroezen-portrait-2.jpeg",
+    "about/kantoor-administratie.jpg",
+  ]);
 
   const hero = sectionOr(db, "hero", fallback.hero);
   const journey = sectionOr(db, "journey", fallback.journey);
@@ -39,7 +45,7 @@ export default async function OverOnsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[calc(100vh-96px)]">
           <div className="relative aspect-[3/4] lg:aspect-auto overflow-hidden bg-warm">
             <Image
-              src="/images/about/klaas-over-mij.jpeg"
+              src={img["about/klaas-over-mij.jpeg"].url}
               alt={hero.imageAlt}
               fill
               className="object-cover"
@@ -150,7 +156,7 @@ export default async function OverOnsPage() {
           </div>
           <div className="relative aspect-[4/3] lg:aspect-auto lg:min-h-[560px] overflow-hidden">
             <Image
-              src="/images/about/klaas-kroezen-portrait-2.jpeg"
+              src={img["about/klaas-kroezen-portrait-2.jpeg"].url}
               alt={mission.imageAlt}
               fill
               className="object-cover object-top"
@@ -208,7 +214,7 @@ export default async function OverOnsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2">
           <div className="relative aspect-video lg:aspect-auto lg:min-h-[480px] overflow-hidden">
             <Image
-              src="/images/about/kantoor-administratie.jpg"
+              src={img["about/kantoor-administratie.jpg"].url}
               alt={office.imageAlt}
               fill
               className="object-cover"

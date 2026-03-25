@@ -9,6 +9,7 @@ import { Faq } from "@/components/sections/Faq";
 import { JsonLd, personJsonLd, speakerServiceJsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/lib/i18n/server";
 import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
+import { loadSiteImages } from "@/lib/site-images";
 import { getSprekerContent } from "./content";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -24,6 +25,9 @@ export default async function SprekerPage() {
   const lang = await getLocale();
   const fallback = getSprekerContent(lang);
   const db = await loadPageContent("spreker", lang);
+  const img = await loadSiteImages([
+    "spreker/klaas-flipchart.jpeg",
+  ]);
 
   const hero = sectionOr(db, "hero", fallback.hero);
   const audiences = sectionOr(db, "audiences", { items: fallback.audiences });
@@ -61,7 +65,7 @@ export default async function SprekerPage() {
         eyebrow={contentBlock.eyebrow}
         title={contentBlock.title}
         titleAccent={contentBlock.titleAccent}
-        image="/images/spreker/klaas-flipchart.jpeg"
+        image={img["spreker/klaas-flipchart.jpeg"].url}
         imageAlt={contentBlock.imageAlt}
         objectPosition="center top"
         imagePosition="right"
