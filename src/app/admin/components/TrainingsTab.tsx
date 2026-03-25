@@ -11,8 +11,14 @@ import { TrainingParticipantsTab } from "./TrainingParticipantsTab";
 
 type View = "list" | "create" | "edit" | "participants";
 
-export function TrainingsTab() {
-  const trainings = useQuery(api.trainings.listAll);
+export function TrainingsTab({ filterType }: { filterType?: "training" | "audiobook" } = {}) {
+  const allTrainings = useQuery(api.trainings.listAll);
+  const trainings = allTrainings?.filter((t) => {
+    if (!filterType) return true;
+    const type = (t as Record<string, unknown>).type as string | undefined;
+    if (filterType === "audiobook") return type === "audiobook";
+    return type !== "audiobook"; // default: show trainings (including those without type set)
+  });
   const createTraining = useMutation(api.trainings.createTraining);
   const updateTraining = useMutation(api.trainings.updateTraining);
 

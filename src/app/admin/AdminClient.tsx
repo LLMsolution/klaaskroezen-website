@@ -8,7 +8,6 @@ import { useState } from "react";
 import { AdminSidebar, type AdminTab } from "./components/AdminSidebar";
 import { DashboardTab } from "./components/DashboardTab";
 import { OrdersTab } from "./components/OrdersTab";
-import { ContactsTab } from "./components/ContactsTab";
 import { InvoicesTab } from "./components/InvoicesTab";
 import { EmailActivityTab } from "./components/EmailActivityTab";
 import { EmailTemplatesTab } from "./components/EmailTemplatesTab";
@@ -22,12 +21,34 @@ import { ContentTab } from "./components/ContentTab";
 import { TrainingsTab } from "./components/TrainingsTab";
 import { PipelineTab } from "./components/crm/PipelineTab";
 import { CrmContactsTab } from "./components/crm/CrmContactsTab";
-import { AutomationsTab } from "./components/crm/AutomationsTab";
-import { NurturingTab } from "./components/crm/NurturingTab";
 import { CrmReportsTab } from "./components/crm/CrmReportsTab";
 import { WorkflowsTab } from "./components/WorkflowsTab";
 import { LayoutEditorTab } from "./components/LayoutEditorTab";
 import { ImagesTab } from "./components/ImagesTab";
+
+const TAB_LABELS: Record<AdminTab, string> = {
+  dashboard: "Dashboard",
+  trainings: "Trainingen",
+  audiobooks: "Luisterboeken",
+  "checkout-pages": "Betaalpagina's",
+  discounts: "Kortingscodes",
+  orders: "Bestellingen",
+  invoices: "Facturen",
+  experiments: "Experimenten",
+  content: "Pagina's",
+  blog: "Blog / Nieuws",
+  images: "Afbeeldingen",
+  popup: "Popup",
+  "layout-editor": "Layout Editor",
+  "email-templates": "E-mail templates",
+  broadcasts: "Broadcasts",
+  "email-activity": "E-mail activiteit",
+  "crm-workflows": "Workflows",
+  "crm-pipeline": "Pipeline",
+  "crm-contacts": "Contacten",
+  "crm-reports": "Rapportages",
+  settings: "Instellingen",
+};
 
 export function AdminClient() {
   const user = useQuery(api.users.getCurrentUser);
@@ -64,31 +85,6 @@ export function AdminClient() {
     );
   }
 
-  const TAB_LABELS: Record<AdminTab, string> = {
-    dashboard: "Dashboard",
-    orders: "Bestellingen",
-    contacts: "Contacten",
-    invoices: "Facturen",
-    "email-activity": "E-mail activiteit",
-    "crm-pipeline": "Pipeline",
-    "crm-contacts": "CRM Contacten",
-    "crm-automations": "Automations (legacy)",
-    "crm-nurturing": "Nurturing (legacy)",
-    "crm-workflows": "Workflows",
-    "crm-reports": "Rapportages",
-    content: "Content",
-    trainings: "Trainingen",
-    "checkout-pages": "Betaalpagina's",
-    "email-templates": "E-mail templates",
-    broadcasts: "Broadcasts",
-    experiments: "Experimenten",
-    discounts: "Kortingscodes",
-    blog: "Blog / Nieuws",
-    images: "Afbeeldingen",
-    "layout-editor": "Layout Editor",
-    settings: "Instellingen",
-  };
-
   return (
     <div className="flex min-h-[calc(100dvh-64px)]">
       <AdminSidebar
@@ -98,12 +94,10 @@ export function AdminClient() {
         onMobileClose={() => setSidebarOpen(false)}
       />
 
-      {/* Main content */}
       <div className="flex-1 min-w-0">
         {/* Top bar */}
         <div className="sticky top-16 z-30 bg-paper border-b border-rule px-6 lg:px-10 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* Mobile sidebar toggle */}
             <button
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden w-9 h-9 flex items-center justify-center text-ink/40 hover:text-ink transition-colors cursor-pointer"
@@ -121,16 +115,10 @@ export function AdminClient() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <Link
-              href="/dashboard"
-              className="text-[12px] text-ink/40 hover:text-ink transition-colors"
-            >
+            <Link href="/dashboard" className="text-[12px] text-ink/40 hover:text-ink transition-colors">
               Mijn account
             </Link>
-            <button
-              onClick={() => signOut()}
-              className="text-[12px] text-ink/40 hover:text-ink transition-colors cursor-pointer"
-            >
+            <button onClick={() => signOut()} className="text-[12px] text-ink/40 hover:text-ink transition-colors cursor-pointer">
               Uitloggen
             </button>
           </div>
@@ -139,26 +127,25 @@ export function AdminClient() {
         {/* Tab content */}
         <div className="px-6 lg:px-10 py-8">
           {activeTab === "dashboard" && <DashboardTab />}
-          {activeTab === "orders" && <OrdersTab />}
-          {activeTab === "contacts" && <ContactsTab />}
-          {activeTab === "invoices" && <InvoicesTab />}
-          {activeTab === "email-activity" && <EmailActivityTab />}
-          {activeTab === "crm-pipeline" && <PipelineTab />}
-          {activeTab === "crm-contacts" && <CrmContactsTab />}
-          {activeTab === "crm-automations" && <AutomationsTab />}
-          {activeTab === "crm-nurturing" && <NurturingTab />}
-          {activeTab === "crm-workflows" && <WorkflowsTab />}
-          {activeTab === "crm-reports" && <CrmReportsTab />}
-          {activeTab === "content" && <ContentTab />}
-          {activeTab === "trainings" && <TrainingsTab />}
+          {activeTab === "trainings" && <TrainingsTab filterType="training" />}
+          {activeTab === "audiobooks" && <TrainingsTab filterType="audiobook" />}
           {activeTab === "checkout-pages" && <CheckoutPagesTab />}
-          {activeTab === "email-templates" && <EmailTemplatesTab />}
-          {activeTab === "broadcasts" && <BroadcastsTab />}
-          {activeTab === "experiments" && <ExperimentsTab />}
           {activeTab === "discounts" && <DiscountsTab />}
+          {activeTab === "orders" && <OrdersTab />}
+          {activeTab === "invoices" && <InvoicesTab />}
+          {activeTab === "experiments" && <ExperimentsTab />}
+          {activeTab === "content" && <ContentTab />}
           {activeTab === "blog" && <BlogTab />}
           {activeTab === "images" && <ImagesTab />}
+          {activeTab === "popup" && <SettingsTab />}
           {activeTab === "layout-editor" && <LayoutEditorTab />}
+          {activeTab === "email-templates" && <EmailTemplatesTab />}
+          {activeTab === "broadcasts" && <BroadcastsTab />}
+          {activeTab === "email-activity" && <EmailActivityTab />}
+          {activeTab === "crm-workflows" && <WorkflowsTab />}
+          {activeTab === "crm-pipeline" && <PipelineTab />}
+          {activeTab === "crm-contacts" && <CrmContactsTab />}
+          {activeTab === "crm-reports" && <CrmReportsTab />}
           {activeTab === "settings" && <SettingsTab />}
         </div>
       </div>
