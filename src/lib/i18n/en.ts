@@ -226,7 +226,7 @@ export const en = {
 
   // ─── Login ───
   login: {
-    title: "Welcome back.",
+    title: "Welcome",
     subtitle: "Log in to access your trainings and materials.",
     googleCta: "Continue with Google",
     divider: "or",

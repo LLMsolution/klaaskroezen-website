@@ -226,7 +226,7 @@ export const nl = {
 
   // ─── Login ───
   login: {
-    title: "Welkom terug.",
+    title: "Welkom",
     subtitle: "Log in om je trainingen en materialen te bekijken.",
     googleCta: "Doorgaan met Google",
     divider: "of",

@@ -226,7 +226,7 @@ export const de = {
 
   // ─── Login ───
   login: {
-    title: "Willkommen zur\u00fcck.",
+    title: "Willkommen",
     subtitle: "Melden Sie sich an, um auf Ihre Trainings und Materialien zuzugreifen.",
     googleCta: "Weiter mit Google",
     divider: "oder",
