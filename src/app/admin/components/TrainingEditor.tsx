@@ -56,8 +56,8 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
     const slug = formTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     await createModule({
       trainingId, slug,
-      title: { nl: formTitle, en: formTitle },
-      description: { nl: "", en: "" },
+      title: { nl: formTitle, en: formTitle, de: "" },
+      description: { nl: "", en: "", de: "" },
       discussionEnabled: false, quizRequired: false, active: true,
     });
     setFormTitle(""); setAddingModule(false); setSaving(false);
@@ -71,8 +71,8 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
     const slug = `${parentIdx + 1}-${children.length + 1}-${formTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
     await createModule({
       trainingId, parentModuleId: parentId, slug,
-      title: { nl: formTitle, en: formTitle },
-      description: { nl: "", en: "" },
+      title: { nl: formTitle, en: formTitle, de: "" },
+      description: { nl: "", en: "", de: "" },
       discussionEnabled: false, quizRequired: false, active: true,
     });
     setFormTitle(""); setAddingLessonFor(null); setSaving(false);

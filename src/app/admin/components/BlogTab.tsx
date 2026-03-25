@@ -79,6 +79,7 @@ export function BlogTab() {
   const [ctaText, setCtaText] = useState("");
   const [ctaUrl, setCtaUrl] = useState("");
   const [category, setCategory] = useState("nieuws");
+  const [lang, setLang] = useState<"nl" | "en" | "de">("nl");
   const [published, setPublished] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -96,6 +97,7 @@ export function BlogTab() {
     setCtaText("");
     setCtaUrl("");
     setCategory("nieuws");
+    setLang("nl");
     setPublished(true);
     setError("");
     setShowPreview(false);
@@ -112,6 +114,7 @@ export function BlogTab() {
     setCtaText(post.ctaText || "");
     setCtaUrl(post.ctaUrl || "");
     setCategory(post.category);
+    setLang(((post as Record<string, unknown>).lang as "nl" | "en" | "de") ?? "nl");
     setPublished(post.published);
     setError("");
     setShowPreview(false);
@@ -131,7 +134,7 @@ export function BlogTab() {
           videoUrl: videoUrl || undefined,
           ctaText: ctaText || undefined,
           ctaUrl: ctaUrl || undefined,
-          category, published,
+          category, lang, published,
         });
       } else if (editId) {
         await updatePost({
@@ -141,7 +144,7 @@ export function BlogTab() {
           videoUrl: videoUrl || undefined,
           ctaText: ctaText || undefined,
           ctaUrl: ctaUrl || undefined,
-          category, published,
+          category, lang, published,
         });
       }
       resetForm();

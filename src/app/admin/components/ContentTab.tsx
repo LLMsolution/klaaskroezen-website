@@ -6,8 +6,7 @@ import { api } from "../../../../convex/_generated/api";
 import { Loading, EmptyState } from "./shared";
 import { ContentFieldRenderer } from "./ContentFieldRenderer";
 import type { FieldSchema } from "../../../../convex/siteSchemas";
-
-type Lang = "nl" | "en";
+import type { Lang } from "@/lib/i18n";
 
 export function ContentTab() {
   const pages = useQuery(api.siteContent.listPages);
@@ -184,7 +183,7 @@ function PageSections({ slug }: { slug: string }) {
               <div className="border-t border-rule px-4 py-5 bg-warm/10">
                 {/* Lang toggle */}
                 <div className="flex items-center gap-2 mb-5">
-                  {(["nl", "en"] as Lang[]).map((lang) => (
+                  {(["nl", "en", "de"] as const).map((lang) => (
                     <button
                       key={lang}
                       onClick={() => handleLangSwitch(lang)}

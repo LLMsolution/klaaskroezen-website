@@ -134,14 +134,38 @@ jobs:
           echo "$TEMPLATE" >> $GITHUB_OUTPUT
           echo "${DELIMITER}" >> $GITHUB_OUTPUT
 
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
       - name: Run Claude Code (plan mode)
         id: claude-plan
-        uses: anthropics/claude-code-action@beta
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          custom_instructions: ${{ steps.load-prompt.outputs.CUSTOM_INSTRUCTIONS }}
-          direct_prompt: "true"
-          allowed_tools: "Write,Read,Glob,Grep,Bash"
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          PROMPT="${{ steps.load-prompt.outputs.CUSTOM_INSTRUCTIONS }}"
+          echo "$PROMPT" | claude --output-format json --max-turns 3 --allowedTools "Write,Read,Bash" -p - > /tmp/claude-output.json 2>&1 || true
+
+          # Extract the plan output file that Claude should have written
+          if [ ! -f /tmp/plan-output.json ]; then
+            # Fallback: try to extract JSON from Claude's response
+            if [ -f /tmp/claude-output.json ]; then
+              # Try to find JSON in the output
+              python3 -c "
+import json, sys
+try:
+    with open('/tmp/claude-output.json') as f:
+        data = json.load(f)
+    # Claude CLI output format: look for result text
+    result = data.get('result', '')
+    # Try to parse as JSON directly
+    parsed = json.loads(result)
+    with open('/tmp/plan-output.json', 'w') as f:
+        json.dump(parsed, f)
+except:
+    pass
+" 2>/dev/null || true
+            fi
+          fi
 
       - name: Send plan callback
         if: always()

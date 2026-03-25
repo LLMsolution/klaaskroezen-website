@@ -21,8 +21,10 @@ export type Template = {
   stepIndex: number;
   subjectNl: string;
   subjectEn: string;
+  subjectDe?: string;
   htmlNl: string;
   htmlEn: string;
+  htmlDe?: string;
   delayDays: number;
   active: boolean;
   updatedAt: number;
@@ -60,16 +62,20 @@ export function TemplateDetailPanel({
   template: Template;
   previewWidth: PreviewWidth;
   setPreviewWidth: (w: PreviewWidth) => void;
-  previewLang: "nl" | "en";
-  setPreviewLang: (l: "nl" | "en") => void;
+  previewLang: "nl" | "en" | "de";
+  setPreviewLang: (l: "nl" | "en" | "de") => void;
   editSubjectNl: string;
   setEditSubjectNl: (v: string) => void;
   editSubjectEn: string;
   setEditSubjectEn: (v: string) => void;
+  editSubjectDe: string;
+  setEditSubjectDe: (v: string) => void;
   editHtmlNl: string;
   setEditHtmlNl: (v: string) => void;
   editHtmlEn: string;
   setEditHtmlEn: (v: string) => void;
+  editHtmlDe: string;
+  setEditHtmlDe: (v: string) => void;
   editDelayDays: string;
   setEditDelayDays: (v: string) => void;
   editActive: boolean;
@@ -80,8 +86,10 @@ export function TemplateDetailPanel({
   onSave: () => void;
   onClose: () => void;
 }) {
-  const currentHtml = previewLang === "nl" ? editHtmlNl : editHtmlEn;
-  const setCurrentHtml = previewLang === "nl" ? setEditHtmlNl : setEditHtmlEn;
+  const htmlByLang = { nl: editHtmlNl, en: editHtmlEn, de: editHtmlDe };
+  const setHtmlByLang = { nl: setEditHtmlNl, en: setEditHtmlEn, de: setEditHtmlDe };
+  const currentHtml = htmlByLang[previewLang];
+  const setCurrentHtml = setHtmlByLang[previewLang];
   const widthPx = PREVIEW_WIDTHS[previewWidth];
   const previewHtml = currentHtml ? layout(currentHtml, { lang: previewLang }) : "";
 
@@ -102,7 +110,7 @@ export function TemplateDetailPanel({
 
       <div className="p-5 space-y-5">
         {/* Subject fields */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2">
               Onderwerp (NL)
@@ -122,6 +130,17 @@ export function TemplateDetailPanel({
               type="text"
               value={editSubjectEn}
               onChange={(e) => setEditSubjectEn(e.target.value)}
+              className="w-full bg-transparent border border-rule px-3 py-2.5 text-[14px] text-ink focus:border-copper focus:outline-none rounded-[2px]"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2">
+              Betreff (DE)
+            </label>
+            <input
+              type="text"
+              value={editSubjectDe}
+              onChange={(e) => setEditSubjectDe(e.target.value)}
               className="w-full bg-transparent border border-rule px-3 py-2.5 text-[14px] text-ink focus:border-copper focus:outline-none rounded-[2px]"
             />
           </div>
@@ -195,22 +214,17 @@ export function TemplateDetailPanel({
             </div>
             <div className="flex items-center gap-2">
               <div className="flex border border-rule rounded-[2px] overflow-hidden mr-2">
-                <button
-                  onClick={() => setPreviewLang("nl")}
-                  className={`text-[11px] px-3 py-1.5 cursor-pointer transition-colors ${
-                    previewLang === "nl" ? "bg-copper text-paper" : "text-ink/50 hover:bg-warm/30"
-                  }`}
-                >
-                  NL
-                </button>
-                <button
-                  onClick={() => setPreviewLang("en")}
-                  className={`text-[11px] px-3 py-1.5 cursor-pointer transition-colors ${
-                    previewLang === "en" ? "bg-copper text-paper" : "text-ink/50 hover:bg-warm/30"
-                  }`}
-                >
-                  EN
-                </button>
+                {(["nl", "en", "de"] as const).map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => setPreviewLang(l)}
+                    className={`text-[11px] px-3 py-1.5 cursor-pointer transition-colors ${
+                      previewLang === l ? "bg-copper text-paper" : "text-ink/50 hover:bg-warm/30"
+                    }`}
+                  >
+                    {l.toUpperCase()}
+                  </button>
+                ))}
               </div>
               {(["desktop", "tablet", "mobile"] as PreviewWidth[]).map((w) => (
                 <button
@@ -295,7 +309,7 @@ export function TemplateDetailPanel({
                   />
                 ) : (
                   <div className="p-8 text-center text-[13px] text-ink/40">
-                    Geen {previewLang === "nl" ? "Nederlandse" : "Engelse"} HTML beschikbaar.
+                    Geen {{ nl: "Nederlandse", en: "Engelse", de: "Duitse" }[previewLang]} HTML beschikbaar.
                   </div>
                 )}
               </div>

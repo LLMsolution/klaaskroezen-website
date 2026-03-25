@@ -35,7 +35,8 @@ export function AbTestPanel({
   const [subEnB, setSubEnB] = useState(subjectEnB ?? "");
   const [htmlNl, setHtmlNl] = useState(htmlNlB ?? "");
   const [htmlEn, setHtmlEn] = useState(htmlEnB ?? "");
-  const [editLang, setEditLang] = useState<"nl" | "en">("nl");
+  const [htmlDe, setHtmlDe] = useState("");
+  const [editLang, setEditLang] = useState<"nl" | "en" | "de">("nl");
   const [saving, setSaving] = useState(false);
 
   const hasVariantB = !!(subjectNlB && htmlNlB);
@@ -145,35 +146,30 @@ export function AbTestPanel({
                 HTML B
               </label>
               <div className="flex border border-rule rounded-[2px] overflow-hidden">
-                <button
-                  onClick={() => setEditLang("nl")}
-                  className={`text-[10px] px-2 py-1 cursor-pointer transition-colors ${
-                    editLang === "nl" ? "bg-copper text-paper" : "text-ink/50 hover:bg-warm/30"
-                  }`}
-                >
-                  NL
-                </button>
-                <button
-                  onClick={() => setEditLang("en")}
-                  className={`text-[10px] px-2 py-1 cursor-pointer transition-colors ${
-                    editLang === "en" ? "bg-copper text-paper" : "text-ink/50 hover:bg-warm/30"
-                  }`}
-                >
-                  EN
-                </button>
+                {(["nl", "en", "de"] as const).map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => setEditLang(l)}
+                    className={`text-[10px] px-2 py-1 cursor-pointer transition-colors ${
+                      editLang === l ? "bg-copper text-paper" : "text-ink/50 hover:bg-warm/30"
+                    }`}
+                  >
+                    {l.toUpperCase()}
+                  </button>
+                ))}
               </div>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               <textarea
-                value={editLang === "nl" ? htmlNl : htmlEn}
-                onChange={(e) => editLang === "nl" ? setHtmlNl(e.target.value) : setHtmlEn(e.target.value)}
+                value={{ nl: htmlNl, en: htmlEn, de: htmlDe }[editLang]}
+                onChange={(e) => ({ nl: setHtmlNl, en: setHtmlEn, de: setHtmlDe }[editLang](e.target.value))}
                 className="w-full bg-white border border-rule px-3 py-2 text-[11px] text-ink font-mono focus:border-copper focus:outline-none rounded-[2px] resize-y"
                 style={{ minHeight: 300 }}
                 spellCheck={false}
               />
               <div className="bg-warm/20 rounded-[2px] p-2">
                 <iframe
-                  srcDoc={layout(editLang === "nl" ? htmlNl : htmlEn, { lang: editLang })}
+                  srcDoc={layout({ nl: htmlNl, en: htmlEn, de: htmlDe }[editLang], { lang: editLang })}
                   className="w-full border-0 bg-white rounded-[2px]"
                   style={{ minHeight: 300 }}
                   title={`Variant B preview ${editLang}`}

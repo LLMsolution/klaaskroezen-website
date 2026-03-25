@@ -82,6 +82,7 @@ export function CheckoutPageForm({ product, onBack }: Props) {
   const [btwRate, setBtwRate] = useState(product?.btwRate ?? 21);
   const [featuresNl, setFeaturesNl] = useState<string[]>(product?.features.nl ?? [""]);
   const [featuresEn, setFeaturesEn] = useState<string[]>(product?.features.en ?? [""]);
+  const [featuresDe, setFeaturesDe] = useState<string[]>((product?.features as { de?: string[] })?.de ?? [""]);
   const [image] = useState(product?.image ?? "");
   const [imageStorageId, setImageStorageId] = useState<Id<"_storage"> | undefined>(product?.imageStorageId);
   const [bumps, setBumps] = useState<string[]>(product?.bumps ?? []);
@@ -112,7 +113,7 @@ export function CheckoutPageForm({ product, onBack }: Props) {
       shortName: { nl: shortNameNl, en: shortNameEn },
       description: { nl: descNl, en: descEn },
       type, productType, priceCents, priceInclBtw, btwRate,
-      features: { nl: featuresNl.filter((f) => f.trim()), en: featuresEn.filter((f) => f.trim()) },
+      features: { nl: featuresNl.filter((f) => f.trim()), en: featuresEn.filter((f) => f.trim()), de: featuresDe.filter((f) => f.trim()) },
       image: image || undefined,
       imageStorageId: imageStorageId ?? undefined,
       bumps,
@@ -291,7 +292,7 @@ export function CheckoutPageForm({ product, onBack }: Props) {
 
       {/* Features / Content */}
       <Section title="Features" open={openSections.content} onToggle={() => toggle("content")}>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div>
             <p className={L}>NL</p>
             {featuresNl.map((f, i) => (
@@ -311,6 +312,16 @@ export function CheckoutPageForm({ product, onBack }: Props) {
               </div>
             ))}
             <button type="button" onClick={() => setFeaturesEn([...featuresEn, ""])} className="text-[11px] text-copper cursor-pointer">+ toevoegen</button>
+          </div>
+          <div>
+            <p className={L}>DE</p>
+            {featuresDe.map((f, i) => (
+              <div key={i} className="flex gap-1 mb-1.5">
+                <input value={f} onChange={(e) => { const n = [...featuresDe]; n[i] = e.target.value; setFeaturesDe(n); }} className={I} placeholder={`Feature ${i + 1}`} />
+                <button type="button" onClick={() => setFeaturesDe(featuresDe.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600 cursor-pointer px-1 shrink-0">&#215;</button>
+              </div>
+            ))}
+            <button type="button" onClick={() => setFeaturesDe([...featuresDe, ""])} className="text-[11px] text-copper cursor-pointer">+ toevoegen</button>
           </div>
         </div>
       </Section>

@@ -11,6 +11,7 @@ export function CreateTemplateForm({ onDone }: { onDone: () => void }) {
   const [stepIndex, setStepIndex] = useState("0");
   const [subjectNl, setSubjectNl] = useState("");
   const [subjectEn, setSubjectEn] = useState("");
+  const [subjectDe, setSubjectDe] = useState("");
   const [delayDays, setDelayDays] = useState("2");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -29,8 +30,10 @@ export function CreateTemplateForm({ onDone }: { onDone: () => void }) {
         stepIndex: Number(stepIndex),
         subjectNl,
         subjectEn: subjectEn || subjectNl,
+        subjectDe: subjectDe || undefined,
         htmlNl: "<p>Template inhoud hier.</p>",
         htmlEn: "<p>Template content here.</p>",
+        htmlDe: subjectDe ? "<p>Template-Inhalt hier.</p>" : undefined,
         delayDays: Number(delayDays),
       });
       onDone();
@@ -77,6 +80,10 @@ export function CreateTemplateForm({ onDone }: { onDone: () => void }) {
         <div>
           <label className={labelClass}>Subject (EN)</label>
           <input value={subjectEn} onChange={(e) => setSubjectEn(e.target.value)} placeholder="Welcome to your training" className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>Betreff (DE)</label>
+          <input value={subjectDe} onChange={(e) => setSubjectDe(e.target.value)} placeholder="Willkommen bei Ihrem Training" className={inputClass} />
         </div>
         {error && <p className="text-[12px] text-red-500">{error}</p>}
         <div className="flex gap-3">

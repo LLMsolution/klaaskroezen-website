@@ -45,11 +45,13 @@ export function EmailTemplatesTab() {
   const [showCreate, setShowCreate] = useState(false);
   const [selectedId, setSelectedId] = useState<Id<"emailTemplates"> | null>(null);
   const [previewWidth, setPreviewWidth] = useState<"desktop" | "tablet" | "mobile">("desktop");
-  const [previewLang, setPreviewLang] = useState<"nl" | "en">("nl");
+  const [previewLang, setPreviewLang] = useState<"nl" | "en" | "de">("nl");
   const [editSubjectNl, setEditSubjectNl] = useState("");
   const [editSubjectEn, setEditSubjectEn] = useState("");
+  const [editSubjectDe, setEditSubjectDe] = useState("");
   const [editHtmlNl, setEditHtmlNl] = useState("");
   const [editHtmlEn, setEditHtmlEn] = useState("");
+  const [editHtmlDe, setEditHtmlDe] = useState("");
   const [editDelayDays, setEditDelayDays] = useState("");
   const [editActive, setEditActive] = useState(true);
   const [editMode, setEditMode] = useState<"preview" | "edit" | "ai">("preview");
@@ -86,8 +88,10 @@ export function EmailTemplatesTab() {
     setSelectedId(t._id);
     setEditSubjectNl(t.subjectNl);
     setEditSubjectEn(t.subjectEn);
+    setEditSubjectDe(t.subjectDe ?? "");
     setEditHtmlNl(t.htmlNl);
     setEditHtmlEn(t.htmlEn);
+    setEditHtmlDe(t.htmlDe ?? "");
     setEditDelayDays(String(t.delayDays));
     setEditActive(t.active);
     setEditMode("preview");
@@ -103,8 +107,10 @@ export function EmailTemplatesTab() {
         id: selectedId,
         subjectNl: editSubjectNl,
         subjectEn: editSubjectEn,
+        subjectDe: editSubjectDe || undefined,
         htmlNl: editHtmlNl,
         htmlEn: editHtmlEn,
+        htmlDe: editHtmlDe || undefined,
         delayDays: Number(editDelayDays),
         active: editActive,
       });
@@ -136,10 +142,14 @@ export function EmailTemplatesTab() {
           setEditSubjectNl={setEditSubjectNl}
           editSubjectEn={editSubjectEn}
           setEditSubjectEn={setEditSubjectEn}
+          editSubjectDe={editSubjectDe}
+          setEditSubjectDe={setEditSubjectDe}
           editHtmlNl={editHtmlNl}
           setEditHtmlNl={setEditHtmlNl}
           editHtmlEn={editHtmlEn}
           setEditHtmlEn={setEditHtmlEn}
+          editHtmlDe={editHtmlDe}
+          setEditHtmlDe={setEditHtmlDe}
           editDelayDays={editDelayDays}
           setEditDelayDays={setEditDelayDays}
           editActive={editActive}

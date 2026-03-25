@@ -14,9 +14,11 @@ interface ReviewForm {
   productSlug: string;
   textNl: string;
   textEn: string;
+  textDe: string;
   name: string;
   roleNl: string;
   roleEn: string;
+  roleDe: string;
   avatar: string;
   rating: number;
   active: boolean;
@@ -28,9 +30,11 @@ const emptyForm: ReviewForm = {
   productSlug: "",
   textNl: "",
   textEn: "",
+  textDe: "",
   name: "",
   roleNl: "",
   roleEn: "",
+  roleDe: "",
   avatar: "",
   rating: 5,
   active: true,
@@ -64,9 +68,11 @@ export function CheckoutReviewsPanel({ onBack }: Props) {
       productSlug: review.productSlug ?? "",
       textNl: review.text.nl,
       textEn: review.text.en,
+      textDe: (review.text as { de?: string }).de ?? "",
       name: review.name,
       roleNl: review.role.nl,
       roleEn: review.role.en,
+      roleDe: (review.role as { de?: string }).de ?? "",
       avatar: review.avatar ?? "",
       rating: review.rating,
       active: review.active,
@@ -86,9 +92,9 @@ export function CheckoutReviewsPanel({ onBack }: Props) {
     const data = {
       productType: form.productType,
       productSlug: form.productSlug || undefined,
-      text: { nl: form.textNl, en: form.textEn },
+      text: { nl: form.textNl, en: form.textEn, de: form.textDe || undefined },
       name: form.name,
-      role: { nl: form.roleNl, en: form.roleEn },
+      role: { nl: form.roleNl, en: form.roleEn, de: form.roleDe || undefined },
       avatar: form.avatar || undefined,
       rating: form.rating,
       active: form.active,
@@ -142,7 +148,7 @@ export function CheckoutReviewsPanel({ onBack }: Props) {
             <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Jan Jansen" className={inputClass} />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <label className={labelClass}>Rol (NL)</label>
               <input value={form.roleNl} onChange={(e) => setForm({ ...form, roleNl: e.target.value })} placeholder="Directeur Bedrijf X" className={inputClass} />
@@ -150,6 +156,10 @@ export function CheckoutReviewsPanel({ onBack }: Props) {
             <div>
               <label className={labelClass}>Rol (EN)</label>
               <input value={form.roleEn} onChange={(e) => setForm({ ...form, roleEn: e.target.value })} placeholder="Director Company X" className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Rolle (DE)</label>
+              <input value={form.roleDe} onChange={(e) => setForm({ ...form, roleDe: e.target.value })} placeholder="Direktor Firma X" className={inputClass} />
             </div>
           </div>
 
@@ -160,6 +170,10 @@ export function CheckoutReviewsPanel({ onBack }: Props) {
           <div>
             <label className={labelClass}>Review tekst (EN)</label>
             <textarea value={form.textEn} onChange={(e) => setForm({ ...form, textEn: e.target.value })} rows={3} className={inputClass} />
+          </div>
+          <div>
+            <label className={labelClass}>Review-Text (DE)</label>
+            <textarea value={form.textDe} onChange={(e) => setForm({ ...form, textDe: e.target.value })} rows={3} className={inputClass} />
           </div>
 
           <div className="grid grid-cols-3 gap-4">

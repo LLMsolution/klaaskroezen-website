@@ -6,7 +6,7 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { layout } from "../../../../convex/emailHelpers";
 
-type Lang = "nl" | "en";
+import type { Lang } from "@/lib/i18n";
 
 interface Props {
   templateId: Id<"emailTemplates">;
