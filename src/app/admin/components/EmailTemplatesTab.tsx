@@ -52,7 +52,7 @@ export function EmailTemplatesTab() {
   const [editHtmlEn, setEditHtmlEn] = useState("");
   const [editDelayDays, setEditDelayDays] = useState("");
   const [editActive, setEditActive] = useState(true);
-  const [editMode, setEditMode] = useState<"preview" | "edit">("preview");
+  const [editMode, setEditMode] = useState<"preview" | "edit" | "ai">("preview");
   const [saving, setSaving] = useState(false);
 
   if (templates === undefined) return <Loading />;
