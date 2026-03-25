@@ -58,7 +58,7 @@ const content = {
   },
 };
 
-export function BookPopup({ lang }: { lang: Lang }) {
+export function BookPopup({ lang, coverImage }: { lang: Lang; coverImage?: string }) {
   const [mounted, setMounted] = useState(false);
   const [show, setShow] = useState(false);
   const s = content[lang];
@@ -147,10 +147,11 @@ export function BookPopup({ lang }: { lang: Lang }) {
             {/* Book cover */}
             <div className="flex items-center justify-center p-6 bg-warm/40 border-r border-ink/[0.06]">
               <Image
-                src="/images/book/sales-oprecht-ontspannen-cover.png"
+                src={coverImage ?? "/images/book/sales-oprecht-ontspannen-cover.png"}
                 alt={s.imageAlt}
                 width={140}
                 height={210}
+                unoptimized={!!coverImage}
                 className="drop-shadow-lg"
               />
             </div>
@@ -240,10 +241,11 @@ export function BookPopup({ lang }: { lang: Lang }) {
           <div className="flex gap-4">
             <div className="shrink-0">
               <Image
-                src="/images/book/sales-oprecht-ontspannen-cover.png"
+                src={coverImage ?? "/images/book/sales-oprecht-ontspannen-cover.png"}
                 alt={s.imageAlt}
                 width={72}
                 height={108}
+                unoptimized={!!coverImage}
                 className="drop-shadow-md"
               />
             </div>

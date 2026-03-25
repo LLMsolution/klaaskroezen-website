@@ -15,6 +15,7 @@ import { Faq } from "@/components/sections/Faq";
 import { JsonLd, courseJsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/lib/i18n/server";
 import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
+import { loadSiteImages } from "@/lib/site-images";
 import { getCstContent } from "./content";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -28,7 +29,17 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function CustomerSuccessTrainingPage() {
   const lang = await getLocale();
-  const fallback = getCstContent(lang);
+  const img = await loadSiteImages([
+    "hero/customer-success-group.jpg",
+    "hero/sales-excellence-group.jpeg",
+    "reviews/simon-kornblum.jpg",
+    "reviews/michael-pilarczyk.jpeg",
+  ]);
+  const imageUrls: Record<string, string> = {};
+  for (const [key, val] of Object.entries(img)) {
+    imageUrls[key] = val.url;
+  }
+  const fallback = getCstContent(lang, imageUrls);
   const db = await loadPageContent("customer-success-training", lang);
 
   const hero = sectionOr(db, "hero", fallback.hero);

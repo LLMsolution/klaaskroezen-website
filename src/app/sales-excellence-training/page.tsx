@@ -15,6 +15,7 @@ import { Faq } from "@/components/sections/Faq";
 import { JsonLd, courseJsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/lib/i18n/server";
 import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
+import { loadSiteImages } from "@/lib/site-images";
 import { getSetContent } from "./content";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -28,7 +29,17 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function SalesExcellenceTrainingPage() {
   const lang = await getLocale();
-  const fallback = getSetContent(lang);
+  const img = await loadSiteImages([
+    "training/visma-youserve-session.jpg",
+    "hero/customer-success-group.jpg",
+    "reviews/simon-kornblum.jpg",
+    "reviews/mark-tigchelaar.jpeg",
+  ]);
+  const imageUrls: Record<string, string> = {};
+  for (const [key, val] of Object.entries(img)) {
+    imageUrls[key] = val.url;
+  }
+  const fallback = getSetContent(lang, imageUrls);
   const db = await loadPageContent("sales-excellence-training", lang);
 
   const hero = sectionOr(db, "hero", fallback.hero);

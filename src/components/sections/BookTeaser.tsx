@@ -2,8 +2,10 @@ import Image from "next/image";
 import { ButtonLink, ButtonArrow } from "@/components/ui/Button";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { t, type Lang } from "@/lib/i18n";
+import { loadSiteImages } from "@/lib/site-images";
 
-export function BookTeaser({ lang }: { lang: Lang }) {
+export async function BookTeaser({ lang }: { lang: Lang }) {
+  const img = await loadSiteImages(["book/sales-oprecht-ontspannen-cover.png"]);
   const s = t(lang).bookTeaser;
 
   const badges = [s.badge1, s.badge2, s.badge3];
@@ -22,7 +24,8 @@ export function BookTeaser({ lang }: { lang: Lang }) {
         />
         <div className="relative z-10 w-[min(160px,45%)] sm:w-[min(180px,52%)]">
           <Image
-            src="/images/book/sales-oprecht-ontspannen-cover.png"
+            src={img["book/sales-oprecht-ontspannen-cover.png"].url}
+            unoptimized
             alt={s.imageAlt}
             width={340}
             height={480}

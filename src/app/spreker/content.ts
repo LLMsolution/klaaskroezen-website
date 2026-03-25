@@ -216,7 +216,7 @@ export function getSprekerContent(lang: Lang, images?: Record<string, string>) {
       titleLine1: text.heroTitleLine1,
       titleLine2: text.heroTitleLine2,
       description: text.heroDescription,
-      image: "/images/spreker/klaas-hero.jpeg",
+      image: images?.["spreker/klaas-hero.jpeg"] ?? "/images/spreker/klaas-hero.jpeg",
       imageAlt: text.heroImageAlt,
       imagePosition: "center 25%",
       ctaLabel: text.heroCtaLabel,
@@ -245,13 +245,13 @@ export function getSprekerContent(lang: Lang, images?: Record<string, string>) {
       items: [
         {
           title: text.videoItems[0],
-          thumbnail: "/images/spreker/video-thumb-speech.jpg",
+          thumbnail: images?.["spreker/video-thumb-speech.jpg"] ?? "/images/spreker/video-thumb-speech.jpg",
           embedUrl: "https://www.youtube.com/embed/F6io8l_VYww",
           duration: "3:35",
         },
         {
           title: text.videoItems[1],
-          thumbnail: "/images/spreker/video-thumb-mindset.jpg",
+          thumbnail: images?.["spreker/video-thumb-mindset.jpg"] ?? "/images/spreker/video-thumb-mindset.jpg",
           embedUrl: "https://www.youtube.com/embed/placeholder-mindset",
           duration: "1:46",
         },

@@ -95,13 +95,21 @@ export function OrderSummary({ product, lang }: SummaryProps) {
   );
 }
 
+const DEFAULT_TRUST_LOGOS = [
+  { src: "/images/logos/visma.png", alt: "Visma", w: 64 },
+  { src: "/images/logos/vasco.png", alt: "Vasco", w: 56 },
+  { src: "/images/logos/mt-sprout.png", alt: "MT/Sprout", w: 56 },
+  { src: "/images/logos/mom-in-balance.png", alt: "Mom in Balance", w: 56 },
+];
+
 interface ReviewsProps {
   productType: "training" | "book";
   productSlug: string;
   lang: Lang;
+  logos?: Array<{ src: string; alt: string; w: number }>;
 }
 
-export function CheckoutReviews({ productType, productSlug, lang }: ReviewsProps) {
+export function CheckoutReviews({ productType, productSlug, lang, logos = DEFAULT_TRUST_LOGOS }: ReviewsProps) {
   const reviews = useQuery(api.checkoutReviews.listForProduct, {
     productType,
     productSlug,
@@ -192,12 +200,7 @@ export function CheckoutReviews({ productType, productSlug, lang }: ReviewsProps
             {{ nl: "Vertrouwd door", en: "Trusted by", de: "Vertraut von" }[lang]}
           </p>
           <div className="flex items-center justify-center gap-6 flex-wrap opacity-40 grayscale">
-            {[
-              { src: "/images/logos/visma.png", alt: "Visma", w: 64 },
-              { src: "/images/logos/vasco.png", alt: "Vasco", w: 56 },
-              { src: "/images/logos/mt-sprout.png", alt: "MT/Sprout", w: 56 },
-              { src: "/images/logos/mom-in-balance.png", alt: "Mom in Balance", w: 56 },
-            ].map((logo) => (
+            {logos.map((logo) => (
               <Image
                 key={logo.alt}
                 src={logo.src}

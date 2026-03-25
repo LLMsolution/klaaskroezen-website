@@ -23,11 +23,18 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function SprekerPage() {
   const lang = await getLocale();
-  const fallback = getSprekerContent(lang);
   const db = await loadPageContent("spreker", lang);
   const img = await loadSiteImages([
     "spreker/klaas-flipchart.jpeg",
+    "spreker/klaas-hero.jpeg",
+    "spreker/video-thumb-speech.jpg",
+    "spreker/video-thumb-mindset.jpg",
   ]);
+  const imageUrls: Record<string, string> = {};
+  for (const [key, val] of Object.entries(img)) {
+    imageUrls[key] = val.url;
+  }
+  const fallback = getSprekerContent(lang, imageUrls);
 
   const hero = sectionOr(db, "hero", fallback.hero);
   const audiences = sectionOr(db, "audiences", { items: fallback.audiences });

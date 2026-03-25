@@ -31,6 +31,7 @@ export function ContentBlock({
         src={image}
         alt={imageAlt}
         fill
+        unoptimized={image.startsWith("https://")}
         className="object-cover"
         style={{ objectPosition }}
         sizes="(max-width: 1024px) 100vw, 50vw"

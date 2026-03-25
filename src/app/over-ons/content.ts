@@ -1,6 +1,6 @@
 import type { Lang } from "@/lib/i18n";
 
-export function getOverOnsContent(lang: Lang) {
+export function getOverOnsContent(lang: Lang, images?: Record<string, string>) {
   const text = {
     nl: {
       metaTitle: "Over Ons",
@@ -193,14 +193,17 @@ export function getOverOnsContent(lang: Lang) {
       label: text.teamLabel,
       title: text.teamTitle,
       titleAccent: text.teamTitleAccent,
-      members: text.teamMembers.map((m, i) => ({
-        ...m,
-        image: [
-          "/images/about/tim-lind.png",
-          "/images/about/joost-wammes.png",
-          "/images/about/sanne-bakker.png",
-        ][i],
-      })),
+      members: text.teamMembers.map((m, i) => {
+        const keys = [
+          "about/tim-lind.png",
+          "about/joost-wammes.png",
+          "about/sanne-bakker.png",
+        ];
+        return {
+          ...m,
+          image: images?.[keys[i]] ?? `/images/${keys[i]}`,
+        };
+      }),
     },
 
     office: {

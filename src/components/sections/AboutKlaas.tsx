@@ -3,8 +3,10 @@ import { Label } from "@/components/ui/Label";
 import { ButtonLink, ButtonArrow } from "@/components/ui/Button";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { t, type Lang } from "@/lib/i18n";
+import { loadSiteImages } from "@/lib/site-images";
 
-export function AboutKlaas({ lang }: { lang: Lang }) {
+export async function AboutKlaas({ lang }: { lang: Lang }) {
+  const img = await loadSiteImages(["about/klaas-kroezen-portrait.jpeg"]);
   const s = t(lang).aboutKlaas;
 
   const stats = [
@@ -21,7 +23,8 @@ export function AboutKlaas({ lang }: { lang: Lang }) {
     >
       <div className="relative overflow-hidden bg-warm lg:border-r lg:border-rule min-h-[300px] sm:min-h-[340px]">
         <Image
-          src="/images/about/klaas-kroezen-portrait.jpeg"
+          src={img["about/klaas-kroezen-portrait.jpeg"].url}
+          unoptimized
           alt={s.imageAlt}
           fill
           className="object-cover object-[center_top]"

@@ -22,13 +22,20 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function OverOnsPage() {
   const lang = await getLocale();
-  const fallback = getOverOnsContent(lang);
   const db = await loadPageContent("over-ons", lang);
   const img = await loadSiteImages([
     "about/klaas-over-mij.jpeg",
     "about/klaas-kroezen-portrait-2.jpeg",
     "about/kantoor-administratie.jpg",
+    "about/tim-lind.png",
+    "about/joost-wammes.png",
+    "about/sanne-bakker.png",
   ]);
+  const imageUrls: Record<string, string> = {};
+  for (const [key, val] of Object.entries(img)) {
+    imageUrls[key] = val.url;
+  }
+  const fallback = getOverOnsContent(lang, imageUrls);
 
   const hero = sectionOr(db, "hero", fallback.hero);
   const journey = sectionOr(db, "journey", fallback.journey);
@@ -48,6 +55,7 @@ export default async function OverOnsPage() {
               src={img["about/klaas-over-mij.jpeg"].url}
               alt={hero.imageAlt}
               fill
+              unoptimized
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"
               priority
@@ -159,6 +167,7 @@ export default async function OverOnsPage() {
               src={img["about/klaas-kroezen-portrait-2.jpeg"].url}
               alt={mission.imageAlt}
               fill
+              unoptimized
               className="object-cover object-top"
               sizes="(max-width: 1024px) 100vw, 50vw"
               loading="lazy"
@@ -187,6 +196,7 @@ export default async function OverOnsPage() {
                     src={member.image}
                     alt={member.name}
                     fill
+                    unoptimized
                     className="object-cover"
                     sizes="(max-width: 640px) 100vw, 33vw"
                     loading="lazy"
@@ -217,6 +227,7 @@ export default async function OverOnsPage() {
               src={img["about/kantoor-administratie.jpg"].url}
               alt={office.imageAlt}
               fill
+              unoptimized
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"
               loading="lazy"

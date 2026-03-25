@@ -3,9 +3,18 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 
-const slides = [
+const SLIDE_KEYS = [
+  "hero/sales-excellence-group.jpeg",
+  "spreker/klaas-flipchart.jpeg",
+  "training/visma-youserve-session.jpg",
+  "team/heigo-group.jpeg",
+  "hero/customer-success-group.jpg",
+] as const;
+
+const slideData = [
   {
-    src: "/images/hero/sales-excellence-group.jpeg",
+    key: SLIDE_KEYS[0],
+    fallback: "/images/hero/sales-excellence-group.jpeg",
     alt: "Groep deelnemers tijdens de Sales Excellence Training met certificaten",
     objectPosition: "center 20%",
     quote: "Direct meer resultaat. De training heeft ons salesteam fundamenteel veranderd.",
@@ -14,7 +23,8 @@ const slides = [
     detail: "30\u00A0deelnemers",
   },
   {
-    src: "/images/spreker/klaas-flipchart.jpeg",
+    key: SLIDE_KEYS[1],
+    fallback: "/images/spreker/klaas-flipchart.jpeg",
     alt: "Klaas Kroezen geeft training bij een flipchart",
     objectPosition: "center 25%",
     quote: "Van 10 leads werden 1 tot 2 klant. Nu zijn dat er 7 tot 8. Niet door harder te pushen, maar door oprecht geïnteresseerd te zijn.",
@@ -23,7 +33,8 @@ const slides = [
     detail: "",
   },
   {
-    src: "/images/training/visma-youserve-session.jpg",
+    key: SLIDE_KEYS[2],
+    fallback: "/images/training/visma-youserve-session.jpg",
     alt: "Training sessie bij Visma YouServe",
     objectPosition: "center 30%",
     quote: "Echte sales begint bij wie je bént. Mindset, rust en oprechte intentie leiden tot verbinding.",
@@ -32,7 +43,8 @@ const slides = [
     detail: "",
   },
   {
-    src: "/images/team/heigo-group.jpeg",
+    key: SLIDE_KEYS[3],
+    fallback: "/images/team/heigo-group.jpeg",
     alt: "Teamtraining bij Heigo Nederland",
     objectPosition: "center 25%",
     quote: "Trots op het team en de stappen die we binnen Heigo blijven zetten.",
@@ -41,7 +53,8 @@ const slides = [
     detail: "",
   },
   {
-    src: "/images/hero/customer-success-group.jpg",
+    key: SLIDE_KEYS[4],
+    fallback: "/images/hero/customer-success-group.jpg",
     alt: "Deelnemers van de Customer Success Training",
     objectPosition: "center center",
     quote: "Klaas laat zien dat verkopen niet gaat over trucjes maar over écht contact maken.",
@@ -51,7 +64,14 @@ const slides = [
   },
 ] as const;
 
-export function HeroSlideshow() {
+export { SLIDE_KEYS };
+
+export function HeroSlideshow({ images }: { images?: Record<string, string> }) {
+  const slides = slideData.map((s) => ({
+    ...s,
+    src: images?.[s.key] ?? s.fallback,
+  }));
+
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
@@ -59,17 +79,18 @@ export function HeroSlideshow() {
       setCurrent((prev) => (prev + 1) % slides.length);
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [slides.length]);
 
   return (
     <div className="relative overflow-hidden bg-ink h-[50vh] sm:h-[55vh] lg:h-auto lg:border-r lg:border-paper/[0.07] order-1">
       {/* Stacked images with crossfade */}
       {slides.map((slide, i) => (
         <Image
-          key={slide.src}
+          key={slide.key}
           src={slide.src}
           alt={slide.alt}
           fill
+          unoptimized
           className="object-cover opacity-0 transition-opacity duration-[1500ms] ease-in-out"
           style={{
             objectPosition: slide.objectPosition,

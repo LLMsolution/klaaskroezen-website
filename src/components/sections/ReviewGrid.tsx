@@ -3,48 +3,55 @@ import { Label } from "@/components/ui/Label";
 import { Container } from "@/components/ui/Container";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { t, type Lang } from "@/lib/i18n";
+import { loadSiteImages } from "@/lib/site-images";
 
-const reviews = [
+const AVATAR_KEYS = [
+  "reviews/simon-kornblum.jpg",
+  "reviews/michael-pilarczyk.jpeg",
+  "reviews/mark-tigchelaar.jpeg",
+] as const;
+
+const reviewData = [
   {
     text: "Van 10 leads werden 1 tot 2 klant. Nu zijn dat er 7 tot 8. Niet door harder te pushen, maar door oprecht geïnteresseerd te zijn.",
     name: "Max de Weijer",
     role: "Ondernemer",
-    avatar: null,
+    avatarKey: null,
     dark: false,
   },
   {
     text: "Direct meer resultaat. Klaas heeft ons salesteam fundamenteel veranderd — niet met trucjes maar met een aanpak die écht werkt en blijft hangen.",
     name: "Simon Kornblum",
     role: "Directeur Visma YouServe",
-    avatar: "/images/reviews/simon-kornblum.jpg",
+    avatarKey: "reviews/simon-kornblum.jpg" as const,
     dark: true,
   },
   {
     text: "Echte sales begint bij wie je bént. Mindset, rust en oprechte intentie leiden tot verbinding. Een must voor wie klanten wil veranderen in fans.",
     name: "Michael Pilarczyk",
     role: "Oprichter MasterMind Academy",
-    avatar: "/images/reviews/michael-pilarczyk.jpeg",
+    avatarKey: "reviews/michael-pilarczyk.jpeg" as const,
     dark: false,
   },
   {
     text: "Dit boek gaat helemaal niet over sales. Het gaat over gedrag. Over hoe je oprechte verbinding maakt.",
     name: "Roderick Göttgens",
     role: "Oprichter Behavior Boost",
-    avatar: null,
+    avatarKey: null,
     dark: true,
   },
   {
     text: "Sales kan ook rustig. Oprecht. En ijzersterk. Het brengt sales terug naar de basis: vertrouwen, vakmanschap en relaties die blijven.",
     name: "Hendrika Willemse-Vreugdenhil",
     role: "Expert Review Managementboek.nl",
-    avatar: null,
+    avatarKey: null,
     dark: false,
   },
   {
     text: "Klaas laat zien dat verkopen niet gaat over trucjes maar over écht contact maken. Een aanpak die werkt — ook als je jezelf geen verkoper vindt.",
     name: "Mark Tigchelaar",
     role: "Psycholoog · Focus AAN/UIT",
-    avatar: "/images/reviews/mark-tigchelaar.jpeg",
+    avatarKey: "reviews/mark-tigchelaar.jpeg" as const,
     dark: true,
   },
 ] as const;
@@ -78,8 +85,13 @@ function InitialsAvatar({ name, dark }: { name: string; dark: boolean }) {
   );
 }
 
-export function ReviewGrid({ lang }: { lang: Lang }) {
+export async function ReviewGrid({ lang }: { lang: Lang }) {
   const s = t(lang).reviewGrid;
+  const img = await loadSiteImages([...AVATAR_KEYS]);
+  const reviews = reviewData.map((r) => ({
+    ...r,
+    avatar: r.avatarKey ? img[r.avatarKey].url : null,
+  }));
 
   return (
     <section
@@ -138,6 +150,7 @@ export function ReviewGrid({ lang }: { lang: Lang }) {
                       alt=""
                       width={36}
                       height={36}
+                      unoptimized
                       className="w-9 h-9 rounded-full object-cover bg-warm shrink-0"
                       loading="lazy"
                     />

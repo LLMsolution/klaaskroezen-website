@@ -1,24 +1,31 @@
 import Image from "next/image";
 import { Label } from "@/components/ui/Label";
 import { FadeIn } from "@/components/ui/FadeIn";
+import { loadSiteImages } from "@/lib/site-images";
 
-const photos = [
+const PHOTO_KEYS = [
+  "hero/sales-excellence-group.jpeg",
+  "team/heigo-group.jpeg",
+  "hero/customer-success-group.jpg",
+] as const;
+
+const photoData = [
   {
-    src: "/images/hero/sales-excellence-group.jpeg",
+    key: PHOTO_KEYS[0],
     alt: "Groep deelnemers met certificaten na de Sales Excellence Training bij Visma YouServe",
     company: "Visma YouServe",
     text: "30 sales- en marketingprofessionals getraind in Sales Excellence",
     result: "\"De training heeft ons salesteam fundamenteel veranderd\" — Simon Kornblum, Directeur",
   },
   {
-    src: "/images/team/heigo-group.jpeg",
+    key: PHOTO_KEYS[1],
     alt: "Teamtraining bij Heigo Nederland — binnendienst, buitendienst en directie",
     company: "Heigo Nederland",
     text: "Binnendienst, buitendienst én directie samen getraind",
     result: "\"Trots op het team en de stappen die we blijven zetten\" — Heigo Nederland",
   },
   {
-    src: "/images/hero/customer-success-group.jpg",
+    key: PHOTO_KEYS[2],
     alt: "Deelnemers van de Customer Success Training",
     company: "Customer Success Training",
     text: "Van klantcontact naar fans — de hele organisatie profiteert",
@@ -26,7 +33,12 @@ const photos = [
   },
 ] as const;
 
-export function TeamPhotos() {
+export async function TeamPhotos() {
+  const img = await loadSiteImages([...PHOTO_KEYS]);
+  const photos = photoData.map((p) => ({
+    ...p,
+    src: img[p.key].url,
+  }));
   return (
     <section aria-labelledby="team-heading" className="border-b border-rule">
       <div className="py-12 sm:py-20 px-7 sm:px-14 max-w-[1180px] mx-auto">
@@ -45,7 +57,7 @@ export function TeamPhotos() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-rule border-t border-rule">
         {photos.map((photo, i) => (
           <div
-            key={photo.src}
+            key={photo.key}
             className={`group relative overflow-hidden bg-warm cursor-default ${
               i === 0
                 ? "sm:row-span-2 h-[280px] sm:h-[500px]"
@@ -56,6 +68,7 @@ export function TeamPhotos() {
               src={photo.src}
               alt={photo.alt}
               fill
+              unoptimized
               className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
               sizes="(max-width: 640px) 100vw, 50vw"
               loading="lazy"

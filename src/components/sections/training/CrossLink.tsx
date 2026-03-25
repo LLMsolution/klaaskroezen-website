@@ -41,6 +41,7 @@ export function CrossLink({
               alt={imageAlt}
               width={590}
               height={332}
+              unoptimized={image.startsWith("https://")}
               className="w-full h-auto object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"
               loading="lazy"

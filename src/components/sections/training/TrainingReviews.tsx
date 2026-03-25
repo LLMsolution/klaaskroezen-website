@@ -60,6 +60,7 @@ export function TrainingReviews({ reviews }: TrainingReviewsProps) {
                     alt=""
                     width={36}
                     height={36}
+                    unoptimized={review.avatar.startsWith("https://")}
                     className="w-9 h-9 rounded-full object-cover bg-warm shrink-0"
                     loading="lazy"
                   />
