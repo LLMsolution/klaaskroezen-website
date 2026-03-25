@@ -310,8 +310,10 @@ export default defineSchema({
     stepIndex: v.number(),
     subjectNl: v.string(),
     subjectEn: v.string(),
+    subjectDe: v.optional(v.string()),
     htmlNl: v.string(),
     htmlEn: v.string(),
+    htmlDe: v.optional(v.string()),
     delayDays: v.number(),
     active: v.boolean(),
     updatedAt: v.number(),
@@ -319,8 +321,10 @@ export default defineSchema({
     abTestActive: v.optional(v.boolean()),
     subjectNlB: v.optional(v.string()),
     subjectEnB: v.optional(v.string()),
+    subjectDeB: v.optional(v.string()),
     htmlNlB: v.optional(v.string()),
     htmlEnB: v.optional(v.string()),
+    htmlDeB: v.optional(v.string()),
   })
     .index("by_key", ["templateKey"])
     .index("by_sequence", ["sequenceType", "stepIndex"]),
