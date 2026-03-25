@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
@@ -67,26 +66,6 @@ export default async function RootLayout({
             <Footer lang={lang} />
             <SpeedInsights />
             <Analytics />
-
-            {/* Google Analytics 4 — replace G-XXXXXXXXXX with your Measurement ID */}
-            {process.env.NEXT_PUBLIC_GA4_ID && (
-              <>
-                <Script
-                  src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA4_ID}`}
-                  strategy="afterInteractive"
-                />
-                <Script id="ga4" strategy="afterInteractive">
-                  {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${process.env.NEXT_PUBLIC_GA4_ID}',{send_page_view:true});`}
-                </Script>
-              </>
-            )}
-
-            {/* Microsoft Clarity — replace CLARITY_ID with your Project ID */}
-            {process.env.NEXT_PUBLIC_CLARITY_ID && (
-              <Script id="clarity" strategy="afterInteractive">
-                {`(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,"clarity","script","${process.env.NEXT_PUBLIC_CLARITY_ID}");`}
-              </Script>
-            )}
           </ConvexProvider>
         </body>
       </html>

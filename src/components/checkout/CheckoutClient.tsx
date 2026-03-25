@@ -71,25 +71,21 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
   const [error, setError] = useState("");
   const [quantity, setQuantity] = useState(1);
 
-  // Returning visitor recognition via cookie
+  // Returning visitor recognition via localStorage (no cookies needed)
   useEffect(() => {
-    const savedEmail = document.cookie.match(/kk_checkout_email=([^;]+)/)?.[1];
-    const savedName = document.cookie.match(/kk_checkout_name=([^;]+)/)?.[1];
-    if (savedEmail && !email && !recoveryOrderId) {
-      setEmail(decodeURIComponent(savedEmail));
-    }
-    if (savedName && !firstName && !recoveryOrderId) {
-      setFirstName(decodeURIComponent(savedName));
-    }
+    try {
+      const savedEmail = localStorage.getItem("kk_checkout_email");
+      const savedName = localStorage.getItem("kk_checkout_name");
+      if (savedEmail && !email && !recoveryOrderId) setEmail(savedEmail);
+      if (savedName && !firstName && !recoveryOrderId) setFirstName(savedName);
+    } catch { /* localStorage unavailable */ }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (email && email.includes("@")) {
-      document.cookie = `kk_checkout_email=${encodeURIComponent(email)};path=/;max-age=${60 * 60 * 24 * 30}`;
-    }
-    if (firstName) {
-      document.cookie = `kk_checkout_name=${encodeURIComponent(firstName)};path=/;max-age=${60 * 60 * 24 * 30}`;
-    }
+    try {
+      if (email && email.includes("@")) localStorage.setItem("kk_checkout_email", email);
+      if (firstName) localStorage.setItem("kk_checkout_name", firstName);
+    } catch { /* localStorage unavailable */ }
   }, [email, firstName]);
   // Persist experiment cookie for DB-driven experiments (not set by middleware)
   useEffect(() => {
