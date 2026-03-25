@@ -85,8 +85,13 @@ export const checkoutAbandoned = internalMutation({
       createdAt: Date.now(),
     });
 
-    // Evaluate automation rules for abandoned checkout
+    // Evaluate automation rules for abandoned checkout (legacy + new workflows)
     await ctx.scheduler.runAfter(0, internal.crmAutomation.evaluateRules, {
+      trigger: "checkout_abandoned",
+      contactId: contact._id,
+      metadata: JSON.stringify({ product: order.product }),
+    });
+    await ctx.scheduler.runAfter(0, internal.workflows.evaluateTrigger, {
       trigger: "checkout_abandoned",
       contactId: contact._id,
       metadata: JSON.stringify({ product: order.product }),
@@ -174,8 +179,17 @@ export const purchaseCompleted = internalMutation({
       });
     }
 
-    // Evaluate automation rules for purchase
+    // Evaluate automation rules for purchase (legacy + new workflows)
     await ctx.scheduler.runAfter(0, internal.crmAutomation.evaluateRules, {
+      trigger: "purchase",
+      contactId: contact._id,
+      metadata: JSON.stringify({
+        product: order.product,
+        amountCents,
+        purchaseId,
+      }),
+    });
+    await ctx.scheduler.runAfter(0, internal.workflows.evaluateTrigger, {
       trigger: "purchase",
       contactId: contact._id,
       metadata: JSON.stringify({

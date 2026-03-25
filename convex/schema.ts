@@ -493,8 +493,7 @@ export default defineSchema({
     .index("by_contact", ["contactId"])
     .index("by_type", ["type"]),
 
-  // ── CRM: Automation Rules ──
-  // Configurable trigger → action rules
+  // ── CRM: Automation Rules (legacy — kept for backward compat) ──
   automationRules: defineTable({
     name: v.string(),
     active: v.boolean(),
@@ -514,8 +513,8 @@ export default defineSchema({
       v.literal("assign_lead"),
       v.literal("create_lead"),
     ),
-    triggerConfig: v.string(), // JSON
-    actionConfig: v.string(), // JSON
+    triggerConfig: v.string(),
+    actionConfig: v.string(),
     executionCount: v.number(),
     lastExecutedAt: v.optional(v.number()),
     createdAt: v.number(),
@@ -523,8 +522,7 @@ export default defineSchema({
     .index("by_trigger", ["trigger"])
     .index("by_active", ["active"]),
 
-  // ── CRM: Nurturing Sequences ──
-  // Email sequences for non-customers (lead nurturing)
+  // ── CRM: Nurturing (legacy — kept for backward compat) ──
   nurturingSequences: defineTable({
     name: v.string(),
     description: v.optional(v.string()),
@@ -534,28 +532,19 @@ export default defineSchema({
     completedCount: v.number(),
     createdAt: v.number(),
   }),
-
-  // ── CRM: Nurturing Steps ──
   nurturingSteps: defineTable({
     sequenceId: v.id("nurturingSequences"),
     order: v.number(),
-    templateKey: v.string(), // references emailTemplates
-    delayDays: v.number(), // days after previous step
+    templateKey: v.string(),
+    delayDays: v.number(),
     createdAt: v.number(),
-  })
-    .index("by_sequence", ["sequenceId", "order"]),
-
-  // ── CRM: Nurturing Enrollments ──
+  }).index("by_sequence", ["sequenceId", "order"]),
   nurturingEnrollments: defineTable({
     sequenceId: v.id("nurturingSequences"),
     contactId: v.id("contacts"),
-    currentStep: v.number(), // 0-indexed
-    status: v.union(
-      v.literal("active"),
-      v.literal("completed"),
-      v.literal("cancelled"),
-    ),
-    cancelReason: v.optional(v.string()), // "purchased", "unsubscribed", "manual"
+    currentStep: v.number(),
+    status: v.union(v.literal("active"), v.literal("completed"), v.literal("cancelled")),
+    cancelReason: v.optional(v.string()),
     lastSentAt: v.optional(v.number()),
     completedAt: v.optional(v.number()),
     createdAt: v.number(),
@@ -563,6 +552,83 @@ export default defineSchema({
     .index("by_sequence", ["sequenceId"])
     .index("by_contact", ["contactId"])
     .index("by_status", ["status"]),
+
+  // ── CRM: Workflows (replaces automationRules + nurturingSequences) ──
+  // Multi-step if/then automations with branching
+  workflows: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    trigger: v.union(
+      v.literal("purchase"),
+      v.literal("contact_form"),
+      v.literal("checkout_abandoned"),
+      v.literal("tag_added"),
+      v.literal("tag_removed"),
+      v.literal("email_opened"),
+      v.literal("email_clicked"),
+      v.literal("score_threshold"),
+      v.literal("stage_change"),
+      v.literal("manual"),
+    ),
+    triggerConfig: v.optional(v.string()), // JSON: { tag?, product?, scoreType?, threshold? }
+    active: v.boolean(),
+    allowReentry: v.boolean(),
+    enrolledCount: v.number(),
+    completedCount: v.number(),
+    createdAt: v.number(),
+  })
+    .index("by_trigger", ["trigger", "active"])
+    .index("by_active", ["active"]),
+
+  // ── CRM: Workflow Steps ──
+  // Linked list of steps — each points to next (and optionally else branch)
+  workflowSteps: defineTable({
+    workflowId: v.id("workflows"),
+    type: v.union(
+      v.literal("send_email"),
+      v.literal("wait"),
+      v.literal("if_else"),
+      v.literal("add_tag"),
+      v.literal("remove_tag"),
+      v.literal("update_score"),
+      v.literal("move_stage"),
+      v.literal("notify_team"),
+      v.literal("start_workflow"),
+      v.literal("goal"),
+      v.literal("webhook"),
+    ),
+    config: v.string(), // JSON per type
+    nextStepId: v.optional(v.id("workflowSteps")),
+    elseBranchStepId: v.optional(v.id("workflowSteps")), // only for if_else
+    sortOrder: v.number(), // for admin UI display
+    createdAt: v.number(),
+  })
+    .index("by_workflow", ["workflowId", "sortOrder"]),
+
+  // ── CRM: Workflow Enrollments ──
+  // Tracks each contact's position in a workflow
+  workflowEnrollments: defineTable({
+    workflowId: v.id("workflows"),
+    contactId: v.id("contacts"),
+    currentStepId: v.optional(v.id("workflowSteps")), // null = completed or not started
+    status: v.union(
+      v.literal("active"),
+      v.literal("waiting"), // waiting for a delay/condition
+      v.literal("paused"),
+      v.literal("completed"),
+      v.literal("cancelled"),
+    ),
+    nextRunAt: v.optional(v.number()), // when to execute next step (for wait steps)
+    pausedAt: v.optional(v.number()),
+    completedAt: v.optional(v.number()),
+    cancelledAt: v.optional(v.number()),
+    metadata: v.optional(v.string()), // JSON: trigger data passed at enrollment
+    createdAt: v.number(),
+  })
+    .index("by_workflow", ["workflowId"])
+    .index("by_contact", ["contactId"])
+    .index("by_status", ["status"])
+    .index("by_next_run", ["status", "nextRunAt"]),
 
   // ── Checkout Products ──
   // Single source of truth for all checkout product data

@@ -11,6 +11,7 @@ type Tab =
   | "crm-contacts"
   | "crm-automations"
   | "crm-nurturing"
+  | "crm-workflows"
   | "crm-reports"
   | "trainings"
   | "checkout-pages"
@@ -134,6 +135,15 @@ const SECTIONS: { key: Section; label: string; items: NavItem[] }[] = [
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3">
             <path d="M2 4h12v8H2zM2 4l6 4 6-4" />
             <path d="M8 8v4" />
+          </svg>
+        ),
+      },
+      {
+        key: "crm-workflows",
+        label: "Workflows",
+        icon: (
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3">
+            <path d="M4 2v4l4 2 4-2V2" /><path d="M8 8v6" /><circle cx="4" cy="2" r="1" /><circle cx="12" cy="2" r="1" /><circle cx="8" cy="14" r="1" />
           </svg>
         ),
       },

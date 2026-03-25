@@ -195,8 +195,13 @@ export const crmHook = internalMutation({
       }
     }
 
-    // Evaluate automation rules for contact form submission
+    // Evaluate automation rules + workflows for contact form submission
     await ctx.scheduler.runAfter(0, internal.crmAutomation.evaluateRules, {
+      trigger: "contact_form",
+      contactId: contact._id,
+      metadata: JSON.stringify({ subject: sub.subject }),
+    });
+    await ctx.scheduler.runAfter(0, internal.workflows.evaluateTrigger, {
       trigger: "contact_form",
       contactId: contact._id,
       metadata: JSON.stringify({ subject: sub.subject }),

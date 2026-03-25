@@ -27,6 +27,14 @@ crons.daily(
   internal.crmAutomation.checkInactivityRules,
 );
 
+// Workflows: Process waiting enrollments (execute next step when delay is over)
+// Runs every 5 minutes
+crons.interval(
+  "workflow-process-waiting",
+  { minutes: 5 },
+  internal.workflowEngine.processWaitingEnrollments,
+);
+
 // Layout editor: Clean up expired sessions
 // Runs every 30 minutes
 crons.interval(

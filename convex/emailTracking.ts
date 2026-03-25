@@ -5,6 +5,7 @@
 
 import { v } from "convex/values";
 import { internalMutation, internalQuery, mutation } from "./_generated/server";
+import { internal } from "./_generated/api";
 
 /* ═══════════════════════════════════════════
    EMAIL LOGGING
@@ -143,7 +144,7 @@ export const trackEvent = mutation({
       });
     }
 
-    // CRM: update engagement score on contact
+    // CRM: update engagement score on contact + evaluate workflow triggers
     const contact = await ctx.db
       .query("contacts")
       .withIndex("by_email", (q) => q.eq("email", email.to.toLowerCase()))
@@ -160,6 +161,12 @@ export const trackEvent = mutation({
         title: type === "open" ? `Email geopend: ${email.subject}` : `Email link geklikt: ${email.subject}`,
         emailLogId: email._id,
         createdAt: now,
+      });
+      // Fire workflow triggers for email engagement
+      await ctx.scheduler.runAfter(0, internal.workflows.evaluateTrigger, {
+        trigger: type === "open" ? "email_opened" : "email_clicked",
+        contactId: contact._id,
+        metadata: JSON.stringify({ subject: email.subject, template: email.template }),
       });
     }
   },

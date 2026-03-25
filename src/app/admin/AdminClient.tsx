@@ -25,6 +25,7 @@ import { CrmContactsTab } from "./components/crm/CrmContactsTab";
 import { AutomationsTab } from "./components/crm/AutomationsTab";
 import { NurturingTab } from "./components/crm/NurturingTab";
 import { CrmReportsTab } from "./components/crm/CrmReportsTab";
+import { WorkflowsTab } from "./components/WorkflowsTab";
 import { LayoutEditorTab } from "./components/LayoutEditorTab";
 import { ImagesTab } from "./components/ImagesTab";
 
@@ -71,8 +72,9 @@ export function AdminClient() {
     "email-activity": "E-mail activiteit",
     "crm-pipeline": "Pipeline",
     "crm-contacts": "CRM Contacten",
-    "crm-automations": "Automations",
-    "crm-nurturing": "Nurturing",
+    "crm-automations": "Automations (legacy)",
+    "crm-nurturing": "Nurturing (legacy)",
+    "crm-workflows": "Workflows",
     "crm-reports": "Rapportages",
     content: "Content",
     trainings: "Trainingen",
@@ -145,6 +147,7 @@ export function AdminClient() {
           {activeTab === "crm-contacts" && <CrmContactsTab />}
           {activeTab === "crm-automations" && <AutomationsTab />}
           {activeTab === "crm-nurturing" && <NurturingTab />}
+          {activeTab === "crm-workflows" && <WorkflowsTab />}
           {activeTab === "crm-reports" && <CrmReportsTab />}
           {activeTab === "content" && <ContentTab />}
           {activeTab === "trainings" && <TrainingsTab />}
