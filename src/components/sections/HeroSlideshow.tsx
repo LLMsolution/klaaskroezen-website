@@ -90,7 +90,6 @@ export function HeroSlideshow({ images }: { images?: Record<string, string> }) {
           src={slide.src}
           alt={slide.alt}
           fill
-          unoptimized
           className="object-cover opacity-0 transition-opacity duration-[1500ms] ease-in-out"
           style={{
             objectPosition: slide.objectPosition,

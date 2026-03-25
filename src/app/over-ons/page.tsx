@@ -55,7 +55,6 @@ export default async function OverOnsPage() {
               src={imgUrl(img, "about/klaas-over-mij.jpeg")}
               alt={hero.imageAlt}
               fill
-              unoptimized
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"
               priority
@@ -167,7 +166,6 @@ export default async function OverOnsPage() {
               src={imgUrl(img, "about/klaas-kroezen-portrait-2.jpeg")}
               alt={mission.imageAlt}
               fill
-              unoptimized
               className="object-cover object-top"
               sizes="(max-width: 1024px) 100vw, 50vw"
               loading="lazy"
@@ -196,7 +194,6 @@ export default async function OverOnsPage() {
                     src={member.image}
                     alt={member.name}
                     fill
-                    unoptimized
                     className="object-cover"
                     sizes="(max-width: 640px) 100vw, 33vw"
                     loading="lazy"
@@ -227,7 +224,6 @@ export default async function OverOnsPage() {
               src={imgUrl(img, "about/kantoor-administratie.jpg")}
               alt={office.imageAlt}
               fill
-              unoptimized
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"
               loading="lazy"

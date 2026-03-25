@@ -24,7 +24,6 @@ export async function AboutKlaas({ lang }: { lang: Lang }) {
       <div className="relative overflow-hidden bg-warm lg:border-r lg:border-rule min-h-[300px] sm:min-h-[340px]">
         <Image
           src={imgUrl(img, "about/klaas-kroezen-portrait.jpeg")}
-          unoptimized
           alt={s.imageAlt}
           fill
           className="object-cover object-[center_top]"

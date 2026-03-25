@@ -308,7 +308,7 @@ export function VideoGrid({
                     src={video.thumbnail}
                     alt={video.title}
                     fill
-                    unoptimized={video.thumbnail.startsWith("https://")}
+                   
                     className="object-cover"
                     sizes="(max-width: 640px) 100vw, 50vw"
                     loading="lazy"

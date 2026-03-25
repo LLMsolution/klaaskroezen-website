@@ -150,7 +150,6 @@ export async function ReviewGrid({ lang }: { lang: Lang }) {
                       alt=""
                       width={36}
                       height={36}
-                      unoptimized
                       className="w-9 h-9 rounded-full object-cover bg-warm shrink-0"
                       loading="lazy"
                     />

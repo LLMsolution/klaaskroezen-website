@@ -151,7 +151,7 @@ export function BookPopup({ lang, coverImage }: { lang: Lang; coverImage?: strin
                 alt={s.imageAlt}
                 width={140}
                 height={210}
-                unoptimized={!!coverImage}
+               
                 className="drop-shadow-lg"
               />
             </div>
@@ -245,7 +245,7 @@ export function BookPopup({ lang, coverImage }: { lang: Lang; coverImage?: strin
                 alt={s.imageAlt}
                 width={72}
                 height={108}
-                unoptimized={!!coverImage}
+               
                 className="drop-shadow-md"
               />
             </div>

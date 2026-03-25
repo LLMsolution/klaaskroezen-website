@@ -55,7 +55,6 @@ export async function TrainingInfoBar({ audiences }: TrainingInfoBarProps) {
                   alt={logo.alt}
                   width={logo.w}
                   height={logo.h}
-                  unoptimized
                   className="h-[20px] sm:h-[22px] w-auto object-contain brightness-0 invert opacity-40"
                   loading="lazy"
                 />

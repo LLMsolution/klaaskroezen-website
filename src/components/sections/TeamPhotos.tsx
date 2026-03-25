@@ -68,7 +68,6 @@ export async function TeamPhotos() {
               src={photo.src}
               alt={photo.alt}
               fill
-              unoptimized
               className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
               sizes="(max-width: 640px) 100vw, 50vw"
               loading="lazy"

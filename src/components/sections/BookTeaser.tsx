@@ -25,7 +25,6 @@ export async function BookTeaser({ lang }: { lang: Lang }) {
         <div className="relative z-10 w-[min(160px,45%)] sm:w-[min(180px,52%)]">
           <Image
             src={imgUrl(img, "book/sales-oprecht-ontspannen-cover.png")}
-            unoptimized
             alt={s.imageAlt}
             width={340}
             height={480}

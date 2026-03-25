@@ -50,7 +50,7 @@ export function TrainingHero({
         src={image}
         alt={imageAlt}
         fill
-        unoptimized={image.startsWith("https://")}
+       
         className="object-cover"
         style={{ objectPosition: imagePosition, opacity: 0.5 }}
         priority

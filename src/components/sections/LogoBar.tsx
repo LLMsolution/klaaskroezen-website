@@ -51,7 +51,6 @@ export async function LogoBar({ label = "Trainingen verzorgd voor" }: LogoBarPro
               alt={logo.alt}
               width={logo.w}
               height={logo.h}
-              unoptimized
               className="h-[22px] sm:h-[26px] w-auto object-contain opacity-70 hover:opacity-100 transition-opacity duration-200"
               loading="lazy"
             />
