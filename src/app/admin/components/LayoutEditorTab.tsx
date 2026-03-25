@@ -321,15 +321,7 @@ function PlanPanel({ plan, planVersion, status }: { plan?: string; planVersion?:
       </div>
       <div className="flex-1 overflow-y-auto p-5">
         {plan ? (
-          <div className="prose prose-sm max-w-none text-[13px] leading-[1.8] text-ink/70">
-            {plan.split("\n").map((line, i) => {
-              if (line.startsWith("# ")) return <h2 key={i} className="text-[16px] font-display font-bold text-ink mt-4 mb-2">{line.slice(2)}</h2>;
-              if (line.startsWith("## ")) return <h3 key={i} className="text-[14px] font-display font-bold text-ink mt-3 mb-1">{line.slice(3)}</h3>;
-              if (line.startsWith("- ")) return <p key={i} className="pl-4 before:content-['•'] before:mr-2 before:text-copper">{line.slice(2)}</p>;
-              if (line.trim() === "") return <br key={i} />;
-              return <p key={i}>{line}</p>;
-            })}
-          </div>
+          <div className="max-w-none text-[13px] leading-[1.8] text-ink/70" dangerouslySetInnerHTML={{ __html: renderMarkdown(plan) }} />
         ) : (
           <div className="flex items-center justify-center h-full text-ink/20 text-[14px]">
             <div className="text-center">
@@ -406,14 +398,41 @@ function StatusBadge({ status }: { status: string }) {
 function MessageBubble({ message }: { message: { role: string; text: string; createdAt: number } }) {
   const isUser = message.role === "user";
   const isSystem = message.role === "system";
+  const isAssistant = message.role === "assistant";
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
       <div className={`max-w-[85%] px-3.5 py-2.5 rounded-[2px] text-[13px] leading-[1.6] ${
         isUser ? "bg-copper text-paper" : isSystem ? "bg-ink/5 text-ink/60 italic" : "bg-warm border border-rule text-ink"
       }`}>
-        {message.text}
+        {isAssistant ? (
+          <div dangerouslySetInnerHTML={{ __html: renderMarkdown(message.text) }} />
+        ) : (
+          message.text
+        )}
       </div>
     </div>
   );
+}
+
+/** Simple markdown → HTML renderer for plan and chat */
+function renderMarkdown(md: string): string {
+  return md
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    // Headings
+    .replace(/^### (.+)$/gm, '<h4 style="font-size:13px;font-weight:700;color:#0E0C0A;margin:12px 0 4px;">$1</h4>')
+    .replace(/^## (.+)$/gm, '<h3 style="font-size:14px;font-weight:700;color:#0E0C0A;margin:16px 0 6px;">$1</h3>')
+    .replace(/^# (.+)$/gm, '<h2 style="font-size:16px;font-weight:700;color:#0E0C0A;margin:20px 0 8px;">$1</h2>')
+    // Bold + italic
+    .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#0E0C0A;">$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    // Inline code
+    .replace(/`([^`]+)`/g, '<code style="background:#EDE9E2;padding:1px 4px;border-radius:2px;font-size:12px;">$1</code>')
+    // List items
+    .replace(/^[*\-] (.+)$/gm, '<div style="padding-left:16px;margin:2px 0;">• $1</div>')
+    // Line breaks
+    .replace(/\n\n/g, '<div style="height:8px;"></div>')
+    .replace(/\n/g, '<br />');
 }
