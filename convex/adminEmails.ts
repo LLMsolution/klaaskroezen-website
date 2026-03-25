@@ -55,8 +55,10 @@ export const updateEmailTemplate = mutation({
     id: v.id("emailTemplates"),
     subjectNl: v.optional(v.string()),
     subjectEn: v.optional(v.string()),
+    subjectDe: v.optional(v.string()),
     htmlNl: v.optional(v.string()),
     htmlEn: v.optional(v.string()),
+    htmlDe: v.optional(v.string()),
     delayDays: v.optional(v.number()),
     active: v.optional(v.boolean()),
   },
@@ -66,8 +68,10 @@ export const updateEmailTemplate = mutation({
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
     if (updates.subjectNl !== undefined) patch.subjectNl = updates.subjectNl;
     if (updates.subjectEn !== undefined) patch.subjectEn = updates.subjectEn;
+    if (updates.subjectDe !== undefined) patch.subjectDe = updates.subjectDe;
     if (updates.htmlNl !== undefined) patch.htmlNl = updates.htmlNl;
     if (updates.htmlEn !== undefined) patch.htmlEn = updates.htmlEn;
+    if (updates.htmlDe !== undefined) patch.htmlDe = updates.htmlDe;
     if (updates.delayDays !== undefined) patch.delayDays = updates.delayDays;
     if (updates.active !== undefined) patch.active = updates.active;
 

@@ -51,9 +51,9 @@ export const listAll = query({
 const reviewFields = {
   productType: v.union(v.literal("training"), v.literal("book")),
   productSlug: v.optional(v.string()),
-  text: v.object({ nl: v.string(), en: v.string() }),
+  text: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
   name: v.string(),
-  role: v.object({ nl: v.string(), en: v.string() }),
+  role: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
   avatar: v.optional(v.string()),
   rating: v.number(),
   active: v.boolean(),

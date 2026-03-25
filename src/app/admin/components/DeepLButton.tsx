@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useAction } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
 
 const DEEPL_LANGS: Record<string, string> = {
   en: "EN-US",
   de: "DE",
-  nl: "NL",
 };
 
 interface Props {
@@ -23,10 +24,10 @@ interface Props {
 
 /**
  * "Vertaal met DeepL" button.
- * Calls the Convex action that uses DeepL REST API.
- * Falls back to a simple admin-side fetch if Convex action is not available.
+ * Calls Convex action that uses DeepL REST API — key stays in Convex env only.
  */
 export function DeepLButton({ sourceText, targets = ["en", "de"], onTranslated, label, html = false }: Props) {
+  const translateField = useAction(api.blogTranslate.translateField);
   const [loading, setLoading] = useState(false);
 
   async function handleTranslate() {
@@ -35,19 +36,12 @@ export function DeepLButton({ sourceText, targets = ["en", "de"], onTranslated, 
     try {
       const results: Record<string, string> = {};
       for (const lang of targets) {
-        const res = await fetch("/api/translate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            text: sourceText,
-            targetLang: DEEPL_LANGS[lang],
-            html,
-          }),
+        const translated = await translateField({
+          text: sourceText,
+          targetLang: DEEPL_LANGS[lang],
+          html,
         });
-        if (res.ok) {
-          const data = await res.json();
-          results[lang] = data.text;
-        }
+        results[lang] = translated;
       }
       onTranslated(results);
     } catch {

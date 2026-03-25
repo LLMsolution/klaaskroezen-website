@@ -254,12 +254,29 @@ export function BlogTab() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div>
             <label className={labelClass}>Categorie</label>
             <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputClass}>
               {CATEGORIES.map((c) => <option key={c.key} value={c.key}>{c.label}</option>)}
             </select>
+          </div>
+          <div>
+            <label className={labelClass}>Taal</label>
+            <div className="flex border border-rule rounded-[2px] overflow-hidden">
+              {(["nl", "en", "de"] as const).map((l) => (
+                <button
+                  key={l}
+                  type="button"
+                  onClick={() => setLang(l)}
+                  className={`flex-1 text-[12px] px-3 py-2.5 cursor-pointer transition-colors ${
+                    lang === l ? "bg-copper text-paper" : "text-ink/50 hover:bg-warm/30"
+                  }`}
+                >
+                  {l.toUpperCase()}
+                </button>
+              ))}
+            </div>
           </div>
           <div>
             <label className={labelClass}>Status</label>

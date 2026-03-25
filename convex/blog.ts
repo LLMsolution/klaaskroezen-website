@@ -165,6 +165,7 @@ export const updatePost = mutation({
     ctaText: v.optional(v.string()),
     ctaUrl: v.optional(v.string()),
     category: v.optional(v.string()),
+    lang: v.optional(langValidator),
     published: v.optional(v.boolean()),
   },
   handler: async (ctx, { id, ...updates }) => {

@@ -14,7 +14,7 @@ export type CrossSellContext = "book" | "training" | "cst" | "general" | "none";
 type LayoutOptions = {
   preheader?: string;
   crossSell?: CrossSellContext;
-  lang?: "nl" | "en";
+  lang?: "nl" | "en" | "de";
 };
 
 /**
@@ -153,43 +153,46 @@ export function formatEuro(cents: number): string {
 
 // ─── CROSS-SELL BLOCK ───
 
-function crossSellBlock(context: CrossSellContext, lang: "nl" | "en"): string {
-  const isNl = lang === "nl";
-  const title = isNl ? "ONTDEK OOK" : "DISCOVER MORE";
+function crossSellBlock(context: CrossSellContext, lang: "nl" | "en" | "de"): string {
+  const t = {
+    nl: { title: "ONTDEK OOK", book: "Het boek", bookLabel: "Bekijk het boek &rarr;", setDesc: "Meer omzet, minder stress", setLabel: "Bekijk de training &rarr;", cstDesc: "Voor iedereen met klantcontact", cstLabel: "Meer info &rarr;" },
+    en: { title: "DISCOVER MORE", book: "The book", bookLabel: "View the book &rarr;", setDesc: "More revenue, less stress", setLabel: "View the training &rarr;", cstDesc: "For everyone with client contact", cstLabel: "Learn more &rarr;" },
+    de: { title: "ENTDECKEN SIE MEHR", book: "Das Buch", bookLabel: "Buch ansehen &rarr;", setDesc: "Mehr Umsatz, weniger Stress", setLabel: "Training ansehen &rarr;", cstDesc: "F\u00fcr alle mit Kundenkontakt", cstLabel: "Mehr erfahren &rarr;" },
+  }[lang];
 
   type Item = { name: string; desc: string; href: string; label: string };
   const items: Item[] = [];
 
   if (context !== "book") {
     items.push({
-      name: isNl ? "Het boek" : "The book",
+      name: t.book,
       desc: "Sales, Oprecht en Ontspannen",
       href: `${SITE_URL}/boek`,
-      label: isNl ? "Bekijk het boek &rarr;" : "View the book &rarr;",
+      label: t.bookLabel,
     });
   }
 
   if (context !== "training") {
     items.push({
       name: "Sales Excellence Training",
-      desc: isNl ? "Meer omzet, minder stress" : "More revenue, less stress",
+      desc: t.setDesc,
       href: `${SITE_URL}/sales-excellence-training`,
-      label: isNl ? "Bekijk de training &rarr;" : "View the training &rarr;",
+      label: t.setLabel,
     });
   }
 
   if (items.length < 2 && context !== "cst") {
     items.push({
       name: "Customer Success Training",
-      desc: isNl ? "Voor iedereen met klantcontact" : "For everyone with client contact",
+      desc: t.cstDesc,
       href: `${SITE_URL}/customer-success-training`,
-      label: isNl ? "Meer info &rarr;" : "Learn more &rarr;",
+      label: t.cstLabel,
     });
   }
 
   const display = items.slice(0, 2);
 
-  return `<p style="margin: 0 0 14px; font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: ${COPPER};">${title}</p>
+  return `<p style="margin: 0 0 14px; font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: ${COPPER};">${t.title}</p>
 ${display.map((item) => `<table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 0 10px; width: 100%;">
 <tr><td style="padding: 12px 16px; background-color: #ffffff; border-radius: 2px;">
   <p style="margin: 0 0 2px; font-family: Georgia, serif; font-size: 15px; font-weight: 700; color: ${INK};">${item.name}</p>

@@ -12,8 +12,10 @@ export const createTemplate = mutation({
     stepIndex: v.number(),
     subjectNl: v.string(),
     subjectEn: v.string(),
+    subjectDe: v.optional(v.string()),
     htmlNl: v.string(),
     htmlEn: v.string(),
+    htmlDe: v.optional(v.string()),
     delayDays: v.number(),
   },
   handler: async (ctx, args) => {

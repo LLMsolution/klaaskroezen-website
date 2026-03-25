@@ -41,6 +41,20 @@ async function translateText(
   return data.translations[0].text;
 }
 
+/** Generic text translation — used by admin DeepL button */
+export const translateField = action({
+  args: {
+    text: v.string(),
+    targetLang: v.string(),
+    html: v.optional(v.boolean()),
+  },
+  handler: async (ctx, { text, targetLang, html }) => {
+    const authKey = process.env.DEEPL_AUTH_KEY;
+    if (!authKey) throw new Error("DEEPL_AUTH_KEY not configured");
+    return await translateText(authKey, text, targetLang, html ? { tagHandling: "html" } : undefined);
+  },
+});
+
 export const translatePost = action({
   args: {
     postId: v.id("blogPosts"),
