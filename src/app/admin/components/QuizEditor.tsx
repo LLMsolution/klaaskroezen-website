@@ -16,9 +16,7 @@ interface Props {
 export function QuizEditor({ moduleId, onBack }: Props) {
   const quiz = useQuery(api.quizzes.getFullQuiz, { moduleId });
   const createQuiz = useMutation(api.quizzes.createQuiz);
-  const _updateQuiz = useMutation(api.quizzes.updateQuiz);
   const addQuestion = useMutation(api.quizzes.addQuestion);
-  const _updateQuestion = useMutation(api.quizzes.updateQuestion);
   const removeQuestion = useMutation(api.quizzes.removeQuestion);
 
   const [showForm, setShowForm] = useState(false);

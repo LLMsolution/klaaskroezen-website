@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation, internalMutation } from "./_generated/server";
-import { api, internal } from "./_generated/api";
+import { internal } from "./_generated/api";
 import { requireAdmin } from "./adminAuth";
 import { SEED_POSTS } from "./blogSeed";
 import { ARCHIVE_POSTS } from "./blogSeedArchive";
@@ -147,18 +147,7 @@ export const createPost = mutation({
       likes: 0,
     });
 
-    // Auto-translate NL posts to EN and DE
-    if (args.lang === "nl" || !args.lang) {
-      await ctx.scheduler.runAfter(0, api.blogTranslate.translatePost, {
-        postId,
-        targetLang: "en",
-      });
-      await ctx.scheduler.runAfter(1000, api.blogTranslate.translatePost, {
-        postId,
-        targetLang: "de",
-      });
-    }
-
+    // Auto-translation is triggered manually from admin via blogTranslate.translatePost
     return postId;
   },
 });
@@ -186,18 +175,7 @@ export const updatePost = mutation({
       await ctx.db.patch(id, patch);
     }
 
-    // Re-translate if this is a NL source post (no sourcePostId)
-    const post = await ctx.db.get(id);
-    if (post && post.lang === "nl" && !post.sourcePostId) {
-      await ctx.scheduler.runAfter(0, api.blogTranslate.translatePost, {
-        postId: id,
-        targetLang: "en",
-      });
-      await ctx.scheduler.runAfter(1000, api.blogTranslate.translatePost, {
-        postId: id,
-        targetLang: "de",
-      });
-    }
+    // Auto-translation is triggered manually from admin via blogTranslate.translatePost
   },
 });
 
