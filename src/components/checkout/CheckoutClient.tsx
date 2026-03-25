@@ -91,7 +91,6 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
       document.cookie = `kk_checkout_name=${encodeURIComponent(firstName)};path=/;max-age=${60 * 60 * 24 * 30}`;
     }
   }, [email, firstName]);
-
   // Persist experiment cookie for DB-driven experiments (not set by middleware)
   useEffect(() => {
     if (experimentNeedsCookie && experimentSlug && experimentVariant) {
@@ -159,6 +158,27 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
       setDiscountValue(null);
     }
   }, [discountResult]);
+
+  // Auto-save draft (debounced 3s after last change)
+  const saveDraft = useMutation(api.checkout.saveDraft);
+  const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!email || !email.includes("@") || !firstName || recovered) return;
+    if (draftTimer.current) clearTimeout(draftTimer.current);
+    draftTimer.current = setTimeout(() => {
+      saveDraft({
+        email, firstName, lastName, phone: phone || undefined,
+        product: productSlug, country, lang,
+        isBusiness, company: company || undefined, vatNumber: vatNumber || undefined,
+        street: street || undefined, houseNumber: houseNumber || undefined,
+        postalCode: postalCode || undefined, city: city || undefined,
+        quantity, bumps: selectedBumps, discountCode: discountCode || undefined,
+        installments: useInstallments,
+      }).catch(() => { /* silently fail */ });
+    }, 3000);
+    return () => { if (draftTimer.current) clearTimeout(draftTimer.current); };
+  }, [email, firstName, lastName, phone, country, isBusiness, company, vatNumber, street, houseNumber, postalCode, city, quantity, selectedBumps, discountCode, useInstallments]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Tab title change on visibility
   useEffect(() => {

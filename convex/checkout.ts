@@ -10,6 +10,72 @@ import { rateLimiter } from "./rateLimits";
 import { langValidator } from "./schema";
 
 /** Create a pending order when the user completes step 1 of checkout */
+/** Lightweight draft save — no rate limit, no CRM hooks, no abandoned cart.
+ *  Called automatically as user fills in the checkout form. */
+export const saveDraft = mutation({
+  args: {
+    email: v.string(),
+    firstName: v.string(),
+    lastName: v.string(),
+    phone: v.optional(v.string()),
+    product: v.string(),
+    country: v.string(),
+    lang: langValidator,
+    isBusiness: v.boolean(),
+    company: v.optional(v.string()),
+    vatNumber: v.optional(v.string()),
+    street: v.optional(v.string()),
+    houseNumber: v.optional(v.string()),
+    postalCode: v.optional(v.string()),
+    city: v.optional(v.string()),
+    quantity: v.optional(v.number()),
+    bumps: v.array(v.string()),
+    discountCode: v.optional(v.string()),
+    installments: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("pendingOrders")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("product"), args.product),
+          q.eq(q.field("convertedAt"), undefined),
+        ),
+      )
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        firstName: args.firstName,
+        lastName: args.lastName,
+        phone: args.phone,
+        country: args.country,
+        lang: args.lang,
+        isBusiness: args.isBusiness,
+        company: args.company,
+        vatNumber: args.vatNumber,
+        street: args.street,
+        houseNumber: args.houseNumber,
+        postalCode: args.postalCode,
+        city: args.city,
+        quantity: args.quantity,
+        bumps: args.bumps,
+        discountCode: args.discountCode,
+        installments: args.installments,
+      });
+      return existing._id;
+    }
+
+    return await ctx.db.insert("pendingOrders", {
+      ...args,
+      mailingOptIn: false,
+      remindersSent: 0,
+      createdAt: Date.now(),
+    });
+  },
+});
+
 export const createPendingOrder = mutation({
   args: {
     email: v.string(),
