@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { requireAdmin } from "./adminAuth";
 
 /**
@@ -79,10 +80,15 @@ export const checkScoreThresholds = internalMutation({
           : contact.engagementScore;
 
         if (score >= config.threshold) {
-          // Log execution
-          await ctx.db.patch(rule._id, {
-            executionCount: rule.executionCount + 1,
-            lastExecutedAt: now,
+          // Fire the actual automation action via evaluateRules
+          await ctx.scheduler.runAfter(0, internal.crmAutomation.evaluateRules, {
+            trigger: "score_threshold",
+            contactId: contact._id,
+            metadata: JSON.stringify({
+              scoreType: config.scoreType,
+              score,
+              threshold: config.threshold,
+            }),
           });
           notified++;
         }

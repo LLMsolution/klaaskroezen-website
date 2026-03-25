@@ -110,6 +110,8 @@ export const getProductPriceData = internalQuery({
       btwRate: product.btwRate,
       productType: product.productType,
       bumpPriceOverrides: product.bumpPriceOverrides ?? [],
+      installments: product.installments,
+      quantityTiers: product.quantityTiers,
     };
   },
 });

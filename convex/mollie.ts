@@ -23,8 +23,26 @@ export const createMolliePayment = action({
     );
     if (!mainProduct) throw new Error(`Product "${order.product}" niet gevonden.`);
 
-    // Calculate total with bump price overrides from DB
-    let totalCents = mainProduct.priceCents;
+    // Calculate main product charge, respecting quantity tiers and installments
+    let chargeAmountCents = mainProduct.priceCents;
+
+    // Apply quantity tier pricing
+    if (order.quantity && order.quantity > 1 && mainProduct.quantityTiers) {
+      const tier = mainProduct.quantityTiers.find(
+        (t: { quantity: number }) => t.quantity === order.quantity,
+      );
+      if (tier) chargeAmountCents = tier.unitPriceCents * order.quantity;
+      else chargeAmountCents = mainProduct.priceCents * order.quantity;
+    } else if (order.quantity && order.quantity > 1) {
+      chargeAmountCents = mainProduct.priceCents * order.quantity;
+    }
+
+    // Apply installment pricing (charge per term, not full price)
+    if (order.installments && mainProduct.installments) {
+      chargeAmountCents = mainProduct.installments.amountPerTermCents;
+    }
+
+    let totalCents = chargeAmountCents;
     const overridesMap = new Map(
       mainProduct.bumpPriceOverrides.map(
         (o: { bumpSlug: string; priceCents: number }) => [o.bumpSlug, o.priceCents],

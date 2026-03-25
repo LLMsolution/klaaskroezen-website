@@ -148,14 +148,21 @@ export const getBroadcastRecipients = internalQuery({
     ),
   },
   handler: async (ctx, { segment }) => {
+    // For "all" segment, use contacts table directly (reliable email source)
+    if (segment === "all") {
+      const contacts = await ctx.db.query("contacts").collect();
+      return contacts
+        .filter((c) => !c.unsubscribed)
+        .map((c) => ({ email: c.email, userId: c.userId ?? "" }));
+    }
+
+    // For purchase-based segments, join purchases with contacts
     const purchases = await ctx.db
       .query("purchases")
       .withIndex("by_status", (q) => q.eq("status", "paid"))
       .collect();
 
-    // Filter by segment
     const filtered = purchases.filter((p) => {
-      if (segment === "all") return true;
       if (segment === "training-buyers") return p.productType === "training";
       if (segment === "book-buyers") return p.productType === "book";
       if (segment === "set-buyers") return p.product.startsWith("set-");
@@ -163,26 +170,25 @@ export const getBroadcastRecipients = internalQuery({
       return true;
     });
 
-    // Get unique emails
+    // Collect unique userIds from matching purchases
+    const userIds = new Set<string>();
+    for (const purchase of filtered) {
+      userIds.add(purchase.userId);
+    }
+
+    // Resolve emails via contacts table (reliable, works for OAuth users too)
     const seen = new Set<string>();
     const recipients: { email: string; userId: string }[] = [];
 
-    for (const purchase of filtered) {
-      const userId = purchase.userId;
-      if (seen.has(userId)) continue;
-      seen.add(userId);
+    for (const userId of userIds) {
+      const contact = await ctx.db
+        .query("contacts")
+        .withIndex("by_user", (q) => q.eq("userId", userId as any))
+        .first();
 
-      const accounts = await ctx.db
-        .query("authAccounts")
-        .filter((q) => q.eq(q.field("userId"), userId))
-        .collect();
-
-      const emailAccount = accounts.find((a) => a.providerAccountId?.includes("@"));
-      const user = await ctx.db.get(userId);
-      const email = emailAccount?.providerAccountId ?? (user as any)?.email;
-
-      if (email) {
-        recipients.push({ email, userId });
+      if (contact && !contact.unsubscribed && !seen.has(contact.email)) {
+        seen.add(contact.email);
+        recipients.push({ email: contact.email, userId });
       }
     }
 

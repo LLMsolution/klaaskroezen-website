@@ -185,6 +185,8 @@ interface PendingOrder {
   vatNumber?: string;
   country: string;
   lang: "nl" | "en" | "de";
+  quantity?: number;
+  installments: boolean;
 }
 
 async function buildLineItems(ctx: { db: any }, order: PendingOrder) {
@@ -206,18 +208,36 @@ async function buildLineItems(ctx: { db: any }, order: PendingOrder) {
     .first();
 
   if (mainProduct) {
+    // Determine effective price per unit and quantity
+    let effectiveUnitPrice = mainProduct.priceCents;
+    let qty = order.quantity ?? 1;
+
+    // Apply quantity tier pricing
+    if (qty > 1 && mainProduct.quantityTiers) {
+      const tier = mainProduct.quantityTiers.find(
+        (t: { quantity: number }) => t.quantity === qty,
+      );
+      if (tier) effectiveUnitPrice = tier.unitPriceCents;
+    }
+
+    // Apply installment pricing (invoice shows per-term amount, qty 1)
+    if (order.installments && mainProduct.installments) {
+      effectiveUnitPrice = mainProduct.installments.amountPerTermCents;
+      qty = 1;
+    }
+
     const calculated = calcBtw(
-      mainProduct.priceCents,
+      effectiveUnitPrice,
       applyBtw ? mainProduct.btwRate : 0,
       mainProduct.priceInclBtw,
     );
     items.push({
       description: mainProduct.name[order.lang],
-      quantity: 1,
+      quantity: qty,
       unitPriceCents: calculated.net,
       btwRate: applyBtw ? mainProduct.btwRate : 0,
-      btwCents: calculated.btw,
-      totalCents: calculated.gross,
+      btwCents: calculated.btw * qty,
+      totalCents: calculated.gross * qty,
     });
 
     // Bump products (with price overrides from DB)

@@ -24,6 +24,7 @@ export function EmailAIPanel({ templateId, currentHtml, lang, onApply }: Props) 
   const generateUploadUrl = useMutation(api.trainings.generateUploadUrl);
   const startSession = useMutation(api.emailEditor.startSession);
   const triggerGeneration = useAction(api.emailEditor.triggerGeneration);
+  const applyToTemplate = useMutation(api.emailEditor.applyToTemplate);
   const discardSession = useMutation(api.emailEditor.discardSession);
   const activeSession = useQuery(api.emailEditor.getActiveSession);
 
@@ -71,9 +72,13 @@ export function EmailAIPanel({ templateId, currentHtml, lang, onApply }: Props) 
   }
 
   async function handleApply() {
-    if (generatedHtml) {
+    if (generatedHtml && sessionId) {
+      // First persist to DB
+      await applyToTemplate({ sessionId, templateId });
+      // Then update parent UI
       onApply(generatedHtml);
-      if (sessionId) await discardSession({ sessionId });
+      // Then clean up session
+      await discardSession({ sessionId });
     }
   }
 
