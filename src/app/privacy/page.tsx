@@ -58,6 +58,7 @@ export default function PrivacyPage() {
                   "Bedrijfsnaam en functie",
                   "Betalingsgegevens (via Mollie)",
                   "IP-adres en browsergegevens",
+                  "Google account gegevens (naam en e-mailadres, bij inloggen via Google)",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2.5">
                     <span className="text-copper text-[11px] mt-[3px] shrink-0">—</span>
@@ -88,6 +89,27 @@ export default function PrivacyPage() {
                   </li>
                 ))}
               </ul>
+            </div>
+
+            <div className="space-y-4">
+              <h2 className="font-display text-[20px] font-bold tracking-[-0.02em]">
+                Inloggen via Google
+              </h2>
+              <p className="text-[15px] text-ink/70 leading-[1.8]">
+                Je kunt inloggen op onze website via je Google account. Wanneer je
+                hiervoor kiest, ontvangen wij je naam en e-mailadres van Google.
+                Wij gebruiken deze gegevens uitsluitend om je account aan te maken
+                en je toegang te geven tot je aankopen en trainingen. Wij slaan
+                geen Google wachtwoord op en hebben geen toegang tot andere
+                Google-gegevens. Je kunt ook inloggen via een magic link per
+                e-mail zonder Google te gebruiken.
+              </p>
+              <p className="text-[15px] text-ink/70 leading-[1.8]">
+                Het gebruik van Google OAuth is onderworpen aan het{" "}
+                <a href="https://policies.google.com/privacy" className="text-copper hover:text-copper-light transition-colors" target="_blank" rel="noopener noreferrer">
+                  Google Privacybeleid
+                </a>.
+              </p>
             </div>
 
             <div className="space-y-4">
