@@ -136,7 +136,7 @@ export function AdminSidebar({ activeTab, onTabChange, mobileOpen, onMobileClose
             }
             return (
               <div key={entry.label} className={idx > 0 ? "mt-5" : ""}>
-                <p className="px-5 text-[9px] font-medium tracking-[0.22em] uppercase text-ink/25 mb-1.5">
+                <p className="px-5 text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-1.5">
                   {entry.label}
                 </p>
                 {entry.items.map((item) => (
