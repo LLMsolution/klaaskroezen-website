@@ -97,7 +97,6 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
       document.cookie = `ab-${experimentSlug}=${experimentVariant};path=/;max-age=${30 * 24 * 60 * 60};samesite=lax`;
     }
   }, [experimentNeedsCookie, experimentSlug, experimentVariant]);
-
   // Pre-fill from pending order (magic link recovery or returning visitor)
   const recoveryOrder = useQuery(
     api.checkout.getPendingOrderForRecovery,
@@ -322,17 +321,18 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
         </div>
 
         <div>
-          {/* Checkout speed indicator */}
+          {/* Checkout progress — dynamic based on form completion */}
           <div className="flex items-center gap-3 mb-6 text-[12px] text-ink/40">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
               <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
             </svg>
-            {{ nl: "Dit duurt nog ~1 minuut", en: "This takes ~1 minute", de: "Das dauert noch ~1 Minute" }[lang]}
+            {recovered
+              ? { nl: "Bijna klaar — kies je betaalmethode", en: "Almost done — choose your payment method", de: "Fast fertig — wählen Sie Ihre Zahlungsmethode" }[lang]
+              : { nl: "Dit duurt nog ~1 minuut", en: "This takes ~1 minute", de: "Das dauert noch ~1 Minute" }[lang]}
             <div className="flex-1 h-1 bg-rule rounded-full overflow-hidden">
-              <div className="h-full bg-copper/40 rounded-full" style={{ width: "15%" }} />
+              <div className="h-full bg-copper/40 rounded-full transition-all duration-500" style={{ width: recovered ? "85%" : `${Math.min(60, [firstName, lastName, email].filter(Boolean).length * 20)}%` }} />
             </div>
           </div>
-
           {/* Payment failure recovery banner */}
           {paymentFailed && (
             <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-[2px]">
