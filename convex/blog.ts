@@ -131,6 +131,8 @@ export const createPost = mutation({
     published: v.boolean(),
     publishedAt: v.optional(v.number()),
     lang: v.optional(langValidator),
+    sourcePostId: v.optional(v.id("blogPosts")),
+    autoTranslated: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
