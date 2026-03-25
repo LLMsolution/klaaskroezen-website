@@ -74,8 +74,12 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
   // Returning visitor recognition via cookie
   useEffect(() => {
     const savedEmail = document.cookie.match(/kk_checkout_email=([^;]+)/)?.[1];
+    const savedName = document.cookie.match(/kk_checkout_name=([^;]+)/)?.[1];
     if (savedEmail && !email && !recoveryOrderId) {
       setEmail(decodeURIComponent(savedEmail));
+    }
+    if (savedName && !firstName && !recoveryOrderId) {
+      setFirstName(decodeURIComponent(savedName));
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -83,7 +87,10 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
     if (email && email.includes("@")) {
       document.cookie = `kk_checkout_email=${encodeURIComponent(email)};path=/;max-age=${60 * 60 * 24 * 30}`;
     }
-  }, [email]);
+    if (firstName) {
+      document.cookie = `kk_checkout_name=${encodeURIComponent(firstName)};path=/;max-age=${60 * 60 * 24 * 30}`;
+    }
+  }, [email, firstName]);
 
   // Persist experiment cookie for DB-driven experiments (not set by middleware)
   useEffect(() => {
@@ -99,7 +106,7 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
   );
   const returningOrder = useQuery(
     api.checkout.getPendingOrderByEmail,
-    !recoveryOrderId && email && email.includes("@") ? { email } : "skip",
+    !recoveryOrderId && email && email.includes("@") ? { email, product: productSlug } : "skip",
   );
 
   useEffect(() => {

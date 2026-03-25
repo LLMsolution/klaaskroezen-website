@@ -240,15 +240,15 @@ export const getPendingOrderForRecovery = query({
 
 /** Look up latest pending order by email for returning visitor recognition */
 export const getPendingOrderByEmail = query({
-  args: { email: v.string() },
-  handler: async (ctx, { email }) => {
+  args: { email: v.string(), product: v.optional(v.string()) },
+  handler: async (ctx, { email, product }) => {
     const orders = await ctx.db
       .query("pendingOrders")
       .withIndex("by_email", (q) => q.eq("email", email))
       .collect();
 
     const unconverted = orders
-      .filter((o) => !o.convertedAt)
+      .filter((o) => !o.convertedAt && (!product || o.product === product))
       .sort((a, b) => b.createdAt - a.createdAt);
 
     if (unconverted.length === 0) return null;
