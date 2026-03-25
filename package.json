@@ -19,7 +19,6 @@
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "convex": "^1.33.1",
-    "deepl-node": "^1.14.0",
     "jose": "^6.2.1",
 "next": "15.3.8",
     "react": "^19.1.0",

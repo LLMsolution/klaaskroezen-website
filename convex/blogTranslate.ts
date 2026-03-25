@@ -5,6 +5,42 @@ import { action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { langValidator } from "./schema";
 
+/** Translate text via DeepL REST API (no npm package needed) */
+async function translateText(
+  authKey: string,
+  text: string,
+  targetLang: string,
+  options?: { tagHandling?: string },
+): Promise<string> {
+  const isFree = authKey.endsWith(":fx");
+  const baseUrl = isFree
+    ? "https://api-free.deepl.com/v2/translate"
+    : "https://api.deepl.com/v2/translate";
+
+  const params: Record<string, string> = {
+    text,
+    target_lang: targetLang,
+  };
+  if (options?.tagHandling) params.tag_handling = options.tagHandling;
+
+  const res = await fetch(baseUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `DeepL-Auth-Key ${authKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(params),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`DeepL API error ${res.status}: ${err}`);
+  }
+
+  const data = await res.json();
+  return data.translations[0].text;
+}
+
 export const translatePost = action({
   args: {
     postId: v.id("blogPosts"),
@@ -23,31 +59,28 @@ export const translatePost = action({
       lang: targetLang,
     });
 
-    const deepl = await import("deepl-node");
-    const translator = new deepl.Translator(authKey);
-    const deeplLang = targetLang === "en" ? "en-US" : targetLang === "de" ? "de" : "nl";
+    const deeplLang = targetLang === "en" ? "EN-US" : targetLang === "de" ? "DE" : "NL";
 
-    const [titleResult, excerptResult, bodyResult] = await Promise.all([
-      translator.translateText(post.title, null, deeplLang as "en-US" | "de" | "nl"),
-      translator.translateText(post.excerpt, null, deeplLang as "en-US" | "de" | "nl"),
-      translator.translateText(post.body, null, deeplLang as "en-US" | "de" | "nl", { tagHandling: "html" }),
+    const [title, excerpt, body] = await Promise.all([
+      translateText(authKey, post.title, deeplLang),
+      translateText(authKey, post.excerpt, deeplLang),
+      translateText(authKey, post.body, deeplLang, { tagHandling: "html" }),
     ]);
 
     if (existing) {
       await ctx.runMutation(api.blog.updatePost, {
         id: existing._id,
-        title: titleResult.text,
-        excerpt: excerptResult.text,
-        body: bodyResult.text,
+        title,
+        excerpt,
+        body,
         published: post.published,
       });
     } else {
-      // Create new translated post via the public createPost mutation
       await ctx.runMutation(api.blog.createPost, {
         slug: `${post.slug}-${targetLang}`,
-        title: titleResult.text,
-        excerpt: excerptResult.text,
-        body: bodyResult.text,
+        title,
+        excerpt,
+        body,
         imageUrl: post.imageUrl,
         videoUrl: post.videoUrl,
         ctaText: post.ctaText,
@@ -72,11 +105,9 @@ export const translateAllPosts = action({
     const originals = (allPosts as Array<{ _id: string; lang: string; sourcePostId?: string }>)
       .filter((p) => p.lang === "nl" && !p.sourcePostId);
 
-    const deepl = await import("deepl-node");
-    const translator = new deepl.Translator(authKey);
-    const deeplLang = targetLang === "en" ? "en-US" : targetLang === "de" ? "de" : "nl";
-
+    const deeplLang = targetLang === "en" ? "EN-US" : targetLang === "de" ? "DE" : "NL";
     let translated = 0;
+
     for (const post of originals) {
       const existing = await ctx.runQuery(api.blog.findTranslation, {
         sourcePostId: post._id as any,
@@ -87,17 +118,17 @@ export const translateAllPosts = action({
       const fullPost = await ctx.runQuery(api.blog.getById, { id: post._id as any });
       if (!fullPost) continue;
 
-      const [titleResult, excerptResult, bodyResult] = await Promise.all([
-        translator.translateText(fullPost.title, null, deeplLang as "en-US" | "de" | "nl"),
-        translator.translateText(fullPost.excerpt, null, deeplLang as "en-US" | "de" | "nl"),
-        translator.translateText(fullPost.body, null, deeplLang as "en-US" | "de" | "nl", { tagHandling: "html" }),
+      const [title, excerpt, body] = await Promise.all([
+        translateText(authKey, fullPost.title, deeplLang),
+        translateText(authKey, fullPost.excerpt, deeplLang),
+        translateText(authKey, fullPost.body, deeplLang, { tagHandling: "html" }),
       ]);
 
       await ctx.runMutation(api.blog.createPost, {
         slug: `${fullPost.slug}-${targetLang}`,
-        title: titleResult.text,
-        excerpt: excerptResult.text,
-        body: bodyResult.text,
+        title,
+        excerpt,
+        body,
         imageUrl: fullPost.imageUrl,
         videoUrl: fullPost.videoUrl,
         ctaText: fullPost.ctaText,
