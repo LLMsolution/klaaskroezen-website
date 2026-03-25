@@ -34,6 +34,9 @@ yarn-error.log*
 # dev-only assets
 /screenshots/
 /examples/
+nohup.out
+*.docx
+/photo's/
 
 # vercel
 .vercel
