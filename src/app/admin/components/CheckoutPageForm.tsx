@@ -82,7 +82,7 @@ export function CheckoutPageForm({ product, onBack }: Props) {
   const [btwRate, setBtwRate] = useState(product?.btwRate ?? 21);
   const [featuresNl, setFeaturesNl] = useState<string[]>(product?.features.nl ?? [""]);
   const [featuresEn, setFeaturesEn] = useState<string[]>(product?.features.en ?? [""]);
-  const [image, setImage] = useState(product?.image ?? "");
+  const [image] = useState(product?.image ?? "");
   const [imageStorageId, setImageStorageId] = useState<Id<"_storage"> | undefined>(product?.imageStorageId);
   const [bumps, setBumps] = useState<string[]>(product?.bumps ?? []);
   const [bumpOverrides, setBumpOverrides] = useState<BumpOverride[]>(product?.bumpPriceOverrides ?? []);

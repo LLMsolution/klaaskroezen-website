@@ -6,7 +6,7 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { Loading } from "./shared";
 import { QuizEditor } from "./QuizEditor";
-import { ModuleVideoField, ModuleWorkbookField } from "./ModuleFields";
+import { ModuleVideoField } from "./ModuleFields";
 import { AdminImageUpload } from "./AdminImageUpload";
 
 interface Props {
@@ -22,8 +22,6 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
   const createModule = useMutation(api.trainingModules.createModule);
   const updateModule = useMutation(api.trainingModules.updateModule);
   const deleteModule = useMutation(api.trainingModules.deleteModule);
-  const generateUploadUrl = useMutation(api.trainings.generateUploadUrl);
-
   const [editingQuizModule, setEditingQuizModule] = useState<Id<"trainingModules"> | null>(null);
   const [expandedModuleId, setExpandedModuleId] = useState<string | null>(null);
   const [addingModule, setAddingModule] = useState(false);
@@ -330,9 +328,10 @@ function WorkbookSection({ trainingId }: { trainingId: Id<"trainings"> }) {
 
   const t = trainingData?.find((tr) => tr._id === trainingId);
   const has = t && "workbookStorageId" in t && !!t.workbookStorageId;
-  const wbTitle = (t as any)?.workbookTitle ?? "";
-  const wbDesc = (t as any)?.workbookDescription ?? "";
-  const wbFile = (t as any)?.workbookFileName ?? "";
+  const tRec = t as Record<string, unknown> | undefined;
+  const wbTitle = (tRec?.workbookTitle as string) ?? "";
+  const wbDesc = (tRec?.workbookDescription as string) ?? "";
+  const wbFile = (tRec?.workbookFileName as string) ?? "";
 
   async function handleUploadPdf(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -395,7 +394,7 @@ function CertificateSection({ trainingId }: { trainingId: Id<"trainings"> }) {
 
   const t = trainingData?.find((tr) => tr._id === trainingId);
   const has = t && "certificateStorageId" in t && !!t.certificateStorageId;
-  const fileName = (t as any)?.certificateFileName;
+  const fileName = (t as Record<string, unknown> | undefined)?.certificateFileName as string | undefined;
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];

@@ -4,7 +4,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import { useState } from "react";
-import { StageBadge, AssigneeBadge, ScoreBadge, formatPrice, formatRelative } from "./shared";
+import { AssigneeBadge, ScoreBadge, formatPrice, formatRelative } from "./shared";
 
 type StageWithLeads = {
   _id: Id<"pipelineStages">;

@@ -41,7 +41,6 @@ export function BookmarksList({ moduleId, lang }: Props) {
 
   async function handleAdd() {
     // Get current video position from Vimeo player
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const iframes = document.querySelectorAll("iframe[src*='vimeo']");
     const iframe = iframes[0] as HTMLIFrameElement | undefined;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

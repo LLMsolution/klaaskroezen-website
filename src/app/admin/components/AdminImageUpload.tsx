@@ -133,6 +133,7 @@ export function AdminImageUpload({
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={displayUrl} alt={alt} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-ink/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
               <UploadIcon />
@@ -170,6 +171,7 @@ export function AdminImageUpload({
       {displayUrl ? (
         <div className="relative group">
           <div className="border border-rule rounded-[2px] overflow-hidden bg-warm/30">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={displayUrl}
               alt={alt}

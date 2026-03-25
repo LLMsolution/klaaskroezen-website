@@ -1,0 +1,7 @@
+rm: node_modules/@mollie 2/.api-client-siInQ38t/dist/types/data/onboarding: Directory not empty
+rm: node_modules/@mollie 2/.api-client-siInQ38t/dist/types/data: Directory not empty
+rm: node_modules/@mollie 2/.api-client-siInQ38t/dist/types: Directory not empty
+rm: node_modules/@mollie 2/.api-client-siInQ38t/dist: Directory not empty
+rm: node_modules/@mollie 2/.api-client-siInQ38t: Directory not empty
+rm: node_modules/@mollie 2: Directory not empty
+rm: node_modules: Directory not empty

@@ -168,12 +168,6 @@ export function CheckoutReviewsPanel({ onBack }: Props) {
               <AdminImageUpload
                 currentUrl={form.avatar || undefined}
                 onUploaded={(storageId) => {
-                  if (editId) {
-                    // Save immediately for existing reviews
-                    import("../../../../convex/_generated/api").then(({ api: convexApi }) => {
-                      // storageId is saved via the mutation — for now store in form
-                    });
-                  }
                   setForm({ ...form, avatar: `convex:${storageId}` });
                 }}
                 onRemoved={() => setForm({ ...form, avatar: "" })}

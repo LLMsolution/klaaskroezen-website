@@ -72,7 +72,7 @@ export function BlogTab() {
   const [excerpt, setExcerpt] = useState("");
   const [body, setBody] = useState("");
   const [imageUrl, setImageUrl] = useState("");
-  const [imageStorageId, setImageStorageId] = useState<Id<"_storage"> | null>(null);
+  const [, setImageStorageId] = useState<Id<"_storage"> | null>(null);
   const saveImage = useMutation(api.blog.saveImage);
   const removeImage = useMutation(api.blog.removeImage);
   const [videoUrl, setVideoUrl] = useState("");

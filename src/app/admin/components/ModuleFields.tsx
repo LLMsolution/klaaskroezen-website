@@ -6,7 +6,6 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 
 export function ModuleVideoField({
-  moduleId,
   currentVideoId,
   onSave,
 }: {
@@ -78,7 +77,6 @@ export function ModuleVideoField({
 }
 
 export function ModuleWorkbookField({
-  moduleId,
   hasWorkbook,
   fileName,
   onUpload,

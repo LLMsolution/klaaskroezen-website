@@ -6,8 +6,8 @@ import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import { Loading } from "../shared";
 import {
-  ScoreBadge, StageBadge, LeadStatusBadge, ActivityIcon,
-  formatPrice, formatDate, formatDateTime, formatRelative,
+  StageBadge, LeadStatusBadge, ActivityIcon,
+  formatPrice, formatDate, formatRelative,
 } from "./shared";
 
 type Props = {

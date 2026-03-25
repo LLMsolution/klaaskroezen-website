@@ -110,6 +110,7 @@ export function EmailAIPanel({ templateId, currentHtml, lang, onApply }: Props) 
             {imageUrls.map((url, i) => (
               <div key={i} className="relative group">
                 <div className="w-16 h-16 border border-rule rounded-[2px] overflow-hidden bg-warm/30">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={url} alt={`Upload ${i + 1}`} className="w-full h-full object-cover" />
                 </div>
                 <button

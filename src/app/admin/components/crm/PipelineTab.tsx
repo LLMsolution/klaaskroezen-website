@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
-import { Loading, EmptyState } from "../shared";
+import { Loading } from "../shared";
 import { PipelineKanban } from "./PipelineKanban";
 import { PipelineList } from "./PipelineList";
 import { LeadDetailPanel } from "./LeadDetailPanel";

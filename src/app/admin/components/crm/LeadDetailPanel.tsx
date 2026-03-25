@@ -7,7 +7,7 @@ import type { Id } from "../../../../../convex/_generated/dataModel";
 import { Loading } from "../shared";
 import {
   StageBadge, AssigneeBadge, LeadStatusBadge, ScoreBadge,
-  formatPrice, formatDate, formatDateTime, formatRelative, ActivityIcon,
+  formatPrice, formatDate, formatRelative, ActivityIcon,
 } from "./shared";
 import { AddNoteForm } from "./AddNoteForm";
 

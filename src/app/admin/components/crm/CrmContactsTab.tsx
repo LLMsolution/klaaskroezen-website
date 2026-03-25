@@ -5,7 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import { Loading, EmptyState, Th } from "../shared";
-import { ScoreBadge, formatDate, formatRelative } from "./shared";
+import { ScoreBadge, formatRelative } from "./shared";
 import { ContactDetailPanel } from "./ContactDetailPanel";
 
 export function CrmContactsTab() {
