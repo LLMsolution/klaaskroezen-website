@@ -142,29 +142,12 @@ jobs:
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         run: |
-          PROMPT="${{ steps.load-prompt.outputs.CUSTOM_INSTRUCTIONS }}"
-          echo "$PROMPT" | claude --output-format json --max-turns 3 --allowedTools "Write,Read,Bash" -p - > /tmp/claude-output.json 2>&1 || true
-
-          # Extract the plan output file that Claude should have written
+          PROMPT='${{ steps.load-prompt.outputs.CUSTOM_INSTRUCTIONS }}'
+          echo "$PROMPT" | claude --output-format json --max-turns 5 --allowedTools "Write,Read,Bash" -p - > /tmp/claude-raw.json 2>&1 || true
+          # Claude should have written /tmp/plan-output.json via Write tool
+          # If not, try extracting from CLI output
           if [ ! -f /tmp/plan-output.json ]; then
-            # Fallback: try to extract JSON from Claude's response
-            if [ -f /tmp/claude-output.json ]; then
-              # Try to find JSON in the output
-              python3 -c "
-import json, sys
-try:
-    with open('/tmp/claude-output.json') as f:
-        data = json.load(f)
-    # Claude CLI output format: look for result text
-    result = data.get('result', '')
-    # Try to parse as JSON directly
-    parsed = json.loads(result)
-    with open('/tmp/plan-output.json', 'w') as f:
-        json.dump(parsed, f)
-except:
-    pass
-" 2>/dev/null || true
-            fi
+            jq -r '.result // empty' /tmp/claude-raw.json 2>/dev/null | jq '.' > /tmp/plan-output.json 2>/dev/null || true
           fi
 
       - name: Send plan callback
