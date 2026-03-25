@@ -42,12 +42,13 @@ You are making visual/layout changes to a Next.js website. Follow these rules st
 - **Tracking labels**: `text-[10px] font-medium tracking-[0.2em] uppercase text-copper`
 
 ### Images
-- Available images are in `/public/images/` with subdirs: about, blog, book, contact, hero, logos, reviews, spreker, team, training
+- Legacy images exist in `/public/images/` — OK to reference for existing sections
+- NEW images should use Convex storage (uploaded via admin drag-drop)
+- For new sections: create an image prop (string) that accepts both static paths AND Convex URLs
+- The admin replaces images via the Content tab (AdminImageUpload component with auto-resizing to WebP)
 - ALWAYS use `next/image` (import Image from "next/image") — never `<img>`
-- Use existing images where possible — reference them as `/images/team/training-group-1.jpeg` etc.
-- For new sections that need images the admin doesn't have yet: use an image-path prop so the admin can replace it in the Content tab via drag-drop upload
 - For aspect ratio changes: use Tailwind classes like `aspect-[16/9]` + `object-cover`
-- NEVER hardcode image paths in components — always receive them via props
+- NEVER hardcode image paths in component JSX — always receive via props so admin can change them
 
 ### Component Props Contract
 - Components receive content via props — NEVER hardcode text
