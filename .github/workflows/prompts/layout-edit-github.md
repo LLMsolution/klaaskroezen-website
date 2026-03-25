@@ -41,6 +41,14 @@ You are making visual/layout changes to a Next.js website. Follow these rules st
 - **Breakpoint**: 1024px (lg)
 - **Tracking labels**: `text-[10px] font-medium tracking-[0.2em] uppercase text-copper`
 
+### Images
+- Available images are in `/public/images/` with subdirs: about, blog, book, contact, hero, logos, reviews, spreker, team, training
+- ALWAYS use `next/image` (import Image from "next/image") — never `<img>`
+- Use existing images where possible — reference them as `/images/team/training-group-1.jpeg` etc.
+- For new sections that need images the admin doesn't have yet: use an image-path prop so the admin can replace it in the Content tab via drag-drop upload
+- For aspect ratio changes: use Tailwind classes like `aspect-[16/9]` + `object-cover`
+- NEVER hardcode image paths in components — always receive them via props
+
 ### Component Props Contract
 - Components receive content via props — NEVER hardcode text
 - The props interface is the contract with the database — NEVER change prop types

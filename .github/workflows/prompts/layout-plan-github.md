@@ -13,6 +13,13 @@ Als de targetPage begint met "new:" is dit een NIEUWE pagina. Het plan moet dan 
 - Content schema toevoegen aan convex/siteSchemas.ts zodat het bewerkbaar is in de admin Content tab
 - Seed content toevoegen aan convex/siteSeed.ts
 
+## Afbeeldingen
+Beschikbare afbeeldingen staan in /public/images/ met submappen: about, blog, book, contact, hero, logos, reviews, spreker, team, training.
+- Gebruik ALTIJD bestaande afbeeldingen waar mogelijk
+- Als de admin een specifieke afbeelding wilt die er niet is: plan een image-path prop die via de admin Content tab vervangbaar is (drag-drop upload naar Convex storage)
+- Voor aspect ratio wijzigingen: gebruik Tailwind classes (aspect-square, aspect-[4/5], aspect-[16/9]) + object-cover
+- Nieuwe secties met afbeeldingen: gebruik altijd next/image met image-path props zodat de admin ze later kan vervangen
+
 ## Tech stack
 - Next.js 15 (App Router), React 19, Tailwind CSS 4
 - Design: editorial/magazine stijl, Playfair Display + DM Sans

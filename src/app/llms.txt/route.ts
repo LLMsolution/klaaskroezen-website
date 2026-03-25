@@ -1,8 +1,11 @@
 import { SITE, SITE_URL, PAGES, PRODUCTS } from "@/lib/site-config";
+import { fetchQuery } from "convex/nextjs";
+import { api } from "../../../convex/_generated/api";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
+export const revalidate = 3600; // Revalidate every hour
 
-export function GET() {
+export async function GET() {
   const activeProducts = PRODUCTS.filter((p) => p.active);
   const llmsPages = PAGES.filter((p) => p.llms);
 
@@ -10,12 +13,35 @@ export function GET() {
   const books = activeProducts.filter((p) => p.type === "book");
   const services = activeProducts.filter((p) => p.type === "service");
 
+  // Fetch dynamic content from Convex
+  let blogPosts: Array<{ slug: string; title: string; excerpt: string }> = [];
+  let trainingList: Array<{ slug: string; title: { nl: string }; description: { nl: string } }> = [];
+  try {
+    const posts = await fetchQuery(api.blog.listPublished, {});
+    blogPosts = (posts ?? [])
+      .filter((p: Record<string, unknown>) => (p.lang as string) === "nl" && !(p.sourcePostId))
+      .slice(0, 20)
+      .map((p: Record<string, unknown>) => ({
+        slug: p.slug as string,
+        title: p.title as string,
+        excerpt: p.excerpt as string,
+      }));
+    const tAll = await fetchQuery(api.trainings.listActive, {});
+    trainingList = (tAll ?? []).map((t: Record<string, unknown>) => ({
+      slug: t.slug as string,
+      title: t.title as { nl: string },
+      description: t.description as { nl: string },
+    }));
+  } catch {
+    // Convex not available — continue with static content only
+  }
+
   const lines: string[] = [
     `# ${SITE.name}`,
     `> ${SITE.description}`,
     "",
     `- Website: ${SITE_URL}`,
-    `- Taal: Nederlands`,
+    `- Taal: Nederlands, Engels, Duits`,
     `- Contact: ${SITE.email}`,
     "",
     "## Over",
@@ -44,6 +70,15 @@ export function GET() {
     }
   }
 
+  // Dynamic training modules
+  if (trainingList.length > 0) {
+    lines.push("## Trainingsplatform", "");
+    for (const t of trainingList) {
+      lines.push(`- [${t.title.nl}](${SITE_URL}/training/${t.slug}): ${t.description.nl}`);
+    }
+    lines.push("");
+  }
+
   if (books.length > 0) {
     lines.push("## Boeken", "");
     for (const b of books) {
@@ -64,6 +99,15 @@ export function GET() {
       lines.push(`Meer info: ${SITE_URL}${s.path}`);
       lines.push("");
     }
+  }
+
+  // Dynamic blog posts
+  if (blogPosts.length > 0) {
+    lines.push("## Recente artikelen", "");
+    for (const p of blogPosts) {
+      lines.push(`- [${p.title}](${SITE_URL}/nieuws/${p.slug}): ${p.excerpt}`);
+    }
+    lines.push("");
   }
 
   lines.push(
@@ -89,7 +133,7 @@ export function GET() {
   return new Response(body, {
     headers: {
       "Content-Type": "text/plain; charset=utf-8",
-      "Cache-Control": "public, max-age=86400, s-maxage=86400",
+      "Cache-Control": "public, max-age=3600, s-maxage=3600",
     },
   });
 }
