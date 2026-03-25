@@ -97,7 +97,7 @@ export const translatePost = action({
 
 export const translateAllPosts = action({
   args: { targetLang: langValidator },
-  handler: async (ctx, { targetLang }) => {
+  handler: async (ctx, { targetLang }): Promise<{ translated: number; total: number }> => {
     const authKey = process.env.DEEPL_AUTH_KEY;
     if (!authKey) throw new Error("DEEPL_AUTH_KEY not configured");
 
