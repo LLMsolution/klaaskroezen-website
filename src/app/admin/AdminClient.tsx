@@ -25,6 +25,7 @@ import { CrmReportsTab } from "./components/crm/CrmReportsTab";
 import { WorkflowsTab } from "./components/WorkflowsTab";
 import { LayoutEditorTab } from "./components/LayoutEditorTab";
 import { ImagesTab } from "./components/ImagesTab";
+import { PopupTab } from "./components/PopupTab";
 
 const TAB_LABELS: Record<AdminTab, string> = {
   dashboard: "Dashboard",
@@ -137,7 +138,7 @@ export function AdminClient() {
           {activeTab === "content" && <ContentTab />}
           {activeTab === "blog" && <BlogTab />}
           {activeTab === "images" && <ImagesTab />}
-          {activeTab === "popup" && <SettingsTab />}
+          {activeTab === "popup" && <PopupTab />}
           {activeTab === "layout-editor" && <LayoutEditorTab />}
           {activeTab === "email-templates" && <EmailTemplatesTab />}
           {activeTab === "broadcasts" && <BroadcastsTab />}

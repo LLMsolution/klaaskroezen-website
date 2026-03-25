@@ -8,7 +8,6 @@ import { ReviewGrid } from "@/components/sections/ReviewGrid";
 import { AboutKlaas } from "@/components/sections/AboutKlaas";
 import { BookTeaser } from "@/components/sections/BookTeaser";
 import { FinaleCta } from "@/components/sections/FinaleCta";
-import { BookPopup } from "@/components/ui/BookPopup";
 import { JsonLd, websiteJsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/lib/i18n/server";
 
@@ -34,7 +33,6 @@ export default async function HomePage() {
   return (
     <>
       <JsonLd data={websiteJsonLd} />
-      <BookPopup lang={lang} />
       <Hero lang={lang} />
       <LogoBar />
       <TrainingCards lang={lang} />
