@@ -5,7 +5,6 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
 import { playfair, dmSans } from "@/lib/fonts";
 import { Navbar } from "@/components/layout/Navbar";
-import { BookPopup } from "@/components/ui/BookPopup";
 import { Footer } from "@/components/layout/Footer";
 import { JsonLd, organizationJsonLd } from "@/components/seo/JsonLd";
 import { ConvexProvider } from "@/components/providers/ConvexProvider";
@@ -64,7 +63,6 @@ export default async function RootLayout({
               {{ nl: "Ga naar inhoud", en: "Skip to content", de: "Zum Inhalt springen" }[lang]}
             </a>
             <Navbar lang={lang} />
-            <BookPopup lang={lang} />
             <main id="main-content" className="flex-1">{children}</main>
             <Footer lang={lang} />
             <SpeedInsights />
