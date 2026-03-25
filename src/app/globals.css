@@ -12,6 +12,12 @@
   --font-body: var(--font-dm-sans), 'Helvetica Neue', sans-serif;
 }
 
+/* ── Remove default focus rings — we use border-copper instead ── */
+input:focus, textarea:focus, select:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 /* ── Base ── */
 html {
   scroll-behavior: smooth;
