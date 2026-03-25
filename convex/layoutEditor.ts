@@ -256,6 +256,27 @@ export const closeSession = mutation({
   },
 });
 
+/** Reset all stuck sessions — one-time utility */
+export const resetStuckSessions = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const sessions = await ctx.db
+      .query("layoutSessions")
+      .filter((q) =>
+        q.and(
+          q.neq(q.field("status"), "approved"),
+          q.neq(q.field("status"), "rejected"),
+          q.neq(q.field("status"), "failed"),
+        ),
+      )
+      .collect();
+    for (const s of sessions) {
+      await ctx.db.patch(s._id, { status: "failed", errorMessage: "Sessie handmatig gereset.", completedAt: Date.now() });
+    }
+    return sessions.length;
+  },
+});
+
 /** Get recent sessions (history, admin only) */
 export const listSessions = query({
   args: {},
