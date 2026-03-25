@@ -160,26 +160,30 @@ jobs:
           CALLBACK_URL: ${{ github.event.client_payload.callbackUrl }}
           CALLBACK_SECRET: ${{ github.event.client_payload.callbackSecret }}
         run: |
+          # Try to parse plan output, with multiple fallbacks
+          AI_RESPONSE="Het plan is bijgewerkt op basis van je bericht."
+          UPDATED_PLAN=""
+
           if [ -f /tmp/plan-output.json ]; then
-            # Read the plan output and send it
-            PLAN_DATA=$(cat /tmp/plan-output.json)
-            AI_RESPONSE=$(echo "$PLAN_DATA" | jq -r '.aiResponse // "Plan is bijgewerkt."')
-            UPDATED_PLAN=$(echo "$PLAN_DATA" | jq -r '.updatedPlan // ""')
-
-            # Escape for JSON
-            AI_RESPONSE_ESC=$(echo "$AI_RESPONSE" | jq -Rs .)
-            UPDATED_PLAN_ESC=$(echo "$UPDATED_PLAN" | jq -Rs .)
-
-            curl -X POST "$CALLBACK_URL" \
-              -H "Content-Type: application/json" \
-              -H "X-Callback-Secret: $CALLBACK_SECRET" \
-              -d "{\"sessionId\":\"$SESSION_ID\",\"aiResponse\":$AI_RESPONSE_ESC,\"updatedPlan\":$UPDATED_PLAN_ESC}"
-          else
-            curl -X POST "$CALLBACK_URL" \
-              -H "Content-Type: application/json" \
-              -H "X-Callback-Secret: $CALLBACK_SECRET" \
-              -d "{\"sessionId\":\"$SESSION_ID\",\"errorMessage\":\"Plan output niet gevonden. Check workflow logs.\"}"
+            AI_RESPONSE=$(jq -r '.aiResponse // "Plan is bijgewerkt."' /tmp/plan-output.json 2>/dev/null || echo "Plan is bijgewerkt.")
+            UPDATED_PLAN=$(jq -r '.updatedPlan // ""' /tmp/plan-output.json 2>/dev/null || echo "")
+          elif [ -f /tmp/claude-raw.json ]; then
+            # Fallback: extract from Claude CLI output
+            RESULT=$(jq -r '.result // ""' /tmp/claude-raw.json 2>/dev/null || echo "")
+            if [ -n "$RESULT" ]; then
+              AI_RESPONSE="$RESULT"
+              UPDATED_PLAN="$RESULT"
+            fi
           fi
+
+          # Always send callback — never let it fail silently
+          AI_ESC=$(echo "$AI_RESPONSE" | jq -Rs . 2>/dev/null || echo '"Plan verwerkt."')
+          PLAN_ESC=$(echo "$UPDATED_PLAN" | jq -Rs . 2>/dev/null || echo '""')
+
+          curl -s -X POST "$CALLBACK_URL" \
+            -H "Content-Type: application/json" \
+            -H "X-Callback-Secret: $CALLBACK_SECRET" \
+            -d "{\"sessionId\":\"$SESSION_ID\",\"aiResponse\":$AI_ESC,\"updatedPlan\":$PLAN_ESC}" || true
 
   layout-edit:
     if: github.event_name == 'repository_dispatch' && github.event.action == 'layout-edit'

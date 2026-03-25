@@ -81,3 +81,69 @@ export const updateSettings = mutation({
     }
   },
 });
+
+// ── Popup config ──
+
+export const getPopupConfig = query({
+  args: {},
+  handler: async (ctx) => {
+    const settings = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+    if (!settings) return null;
+    const imageUrl = settings.popupImageStorageId
+      ? await ctx.storage.getUrl(settings.popupImageStorageId)
+      : null;
+    return {
+      enabled: settings.popupEnabled ?? false,
+      product: settings.popupProduct,
+      imageUrl,
+      label: settings.popupLabel,
+      title: settings.popupTitle,
+      description: settings.popupDescription,
+      cta: settings.popupCta,
+      price: settings.popupPrice,
+      pages: settings.popupPages ?? [],
+    };
+  },
+});
+
+export const updatePopupConfig = mutation({
+  args: {
+    enabled: v.boolean(),
+    product: v.optional(v.string()),
+    imageStorageId: v.optional(v.id("_storage")),
+    label: v.optional(v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) })),
+    title: v.optional(v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) })),
+    description: v.optional(v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) })),
+    cta: v.optional(v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) })),
+    price: v.optional(v.string()),
+    pages: v.optional(v.array(v.string())),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const existing = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+
+    const patch: Record<string, unknown> = {
+      popupEnabled: args.enabled,
+    };
+    if (args.product !== undefined) patch.popupProduct = args.product;
+    if (args.imageStorageId !== undefined) patch.popupImageStorageId = args.imageStorageId;
+    if (args.label !== undefined) patch.popupLabel = args.label;
+    if (args.title !== undefined) patch.popupTitle = args.title;
+    if (args.description !== undefined) patch.popupDescription = args.description;
+    if (args.cta !== undefined) patch.popupCta = args.cta;
+    if (args.price !== undefined) patch.popupPrice = args.price;
+    if (args.pages !== undefined) patch.popupPages = args.pages;
+
+    if (existing) {
+      await ctx.db.patch(existing._id, patch);
+    } else {
+      await ctx.db.insert("siteSettings", { key: "global", ...patch });
+    }
+  },
+});

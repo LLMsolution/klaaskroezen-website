@@ -375,8 +375,18 @@ export default defineSchema({
   siteSettings: defineTable({
     key: v.string(),
     // Abandoned cart timing (minutes for first reminder, hours for escalations)
-    abandonedCartDelayMinutes: v.optional(v.number()), // default: 30
-    escalationDelayHours: v.optional(v.array(v.number())), // default: [24, 48, 96]
+    abandonedCartDelayMinutes: v.optional(v.number()),
+    escalationDelayHours: v.optional(v.array(v.number())),
+    // Popup config
+    popupEnabled: v.optional(v.boolean()),
+    popupProduct: v.optional(v.string()), // checkout product slug
+    popupImageStorageId: v.optional(v.id("_storage")),
+    popupLabel: v.optional(v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) })),
+    popupTitle: v.optional(v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) })),
+    popupDescription: v.optional(v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) })),
+    popupCta: v.optional(v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) })),
+    popupPrice: v.optional(v.string()),
+    popupPages: v.optional(v.array(v.string())), // pages where popup can show, empty = all except excluded
   }).index("by_key", ["key"]),
 
   // ── CRM: Contacts ──
