@@ -137,7 +137,6 @@ export function ModuleWorkbookField({
 }
 
 export function ModuleAudioField({
-  moduleId,
   hasAudio,
   fileName,
   onUpload,

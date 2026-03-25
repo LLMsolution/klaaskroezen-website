@@ -5,7 +5,6 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { Loading, EmptyState } from "./shared";
-import { AdminImageUpload } from "./AdminImageUpload";
 
 export function ImagesTab() {
   const categories = useQuery(api.siteImages.listCategories);
@@ -14,7 +13,6 @@ export function ImagesTab() {
   const saveImage = useMutation(api.siteImages.saveImage);
   const updateAlt = useMutation(api.siteImages.updateAlt);
   const deleteImage = useMutation(api.siteImages.deleteImage);
-  const generateUploadUrl = useMutation(api.siteImages.generateUploadUrl);
 
   const [editingAlt, setEditingAlt] = useState<string | null>(null);
   const [altValue, setAltValue] = useState("");
@@ -63,8 +61,6 @@ export function ImagesTab() {
                 {/* Replace overlay */}
                 <div className="absolute inset-0 bg-ink/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <ReplaceButton
-                    imageKey={img.key}
-                    category={img.category}
                     onReplace={async (storageId, fileName) => {
                       await saveImage({ key: img.key, storageId, fileName, category: img.category, alt: img.alt });
                     }}
@@ -128,9 +124,7 @@ export function ImagesTab() {
   );
 }
 
-function ReplaceButton({ imageKey, category, onReplace }: {
-  imageKey: string;
-  category: string;
+function ReplaceButton({ onReplace }: {
   onReplace: (storageId: Id<"_storage">, fileName: string) => Promise<void>;
 }) {
   const generateUploadUrl = useMutation(api.siteImages.generateUploadUrl);

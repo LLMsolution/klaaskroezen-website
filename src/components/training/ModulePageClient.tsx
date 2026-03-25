@@ -34,6 +34,23 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
   );
 
   const s = modulePageI18n[lang];
+  const updateProgress = useMutation(api.trainingProgress.updateVideoProgress);
+
+  const hasAudio = !!moduleWithProgress?.audioUrl && !mod?.vimeoVideoId;
+  const handleAudioProgress = useCallback(
+    async (percent: number, positionSeconds: number) => {
+      if (!mod) return;
+      try {
+        await updateProgress({
+          moduleId: mod._id,
+          trainingId: mod.trainingId,
+          videoProgress: percent,
+          videoPosition: Math.round(positionSeconds),
+        });
+      } catch { /* silently fail */ }
+    },
+    [mod, updateProgress],
+  );
 
   if (training === undefined || mod === undefined) {
     return (
@@ -80,25 +97,6 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
       </div>
     );
   }
-
-  const updateProgress = useMutation(api.trainingProgress.updateVideoProgress);
-  const hasAudio = !!moduleWithProgress?.audioUrl && !mod.vimeoVideoId;
-
-  const handleAudioProgress = useCallback(
-    async (percent: number, positionSeconds: number) => {
-      try {
-        await updateProgress({
-          moduleId: mod._id,
-          trainingId: mod.trainingId,
-          videoProgress: percent,
-          videoPosition: Math.round(positionSeconds),
-        });
-      } catch {
-        // Silently fail
-      }
-    },
-    [mod._id, mod.trainingId, updateProgress],
-  );
 
   return (
     <div className="mx-auto max-w-[1180px] px-7 lg:px-14 py-8 lg:py-14">
