@@ -837,6 +837,21 @@ export default defineSchema({
     .index("by_page_section", ["pageSlug", "sectionId", "lang"])
     .index("by_page", ["pageSlug"]),
 
+  // ── Site Images ──
+  // All site images stored in Convex storage, manageable via admin
+  siteImages: defineTable({
+    key: v.string(),
+    storageId: v.id("_storage"),
+    fileName: v.string(),
+    alt: v.optional(v.string()),
+    category: v.string(),
+    width: v.optional(v.number()),
+    height: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_key", ["key"])
+    .index("by_category", ["category"]),
+
   // ── Layout Editor ──
   // Sessions for AI-powered layout editing
   layoutSessions: defineTable({

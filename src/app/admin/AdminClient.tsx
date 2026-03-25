@@ -26,6 +26,7 @@ import { AutomationsTab } from "./components/crm/AutomationsTab";
 import { NurturingTab } from "./components/crm/NurturingTab";
 import { CrmReportsTab } from "./components/crm/CrmReportsTab";
 import { LayoutEditorTab } from "./components/LayoutEditorTab";
+import { ImagesTab } from "./components/ImagesTab";
 
 export function AdminClient() {
   const user = useQuery(api.users.getCurrentUser);
@@ -81,6 +82,7 @@ export function AdminClient() {
     experiments: "Experimenten",
     discounts: "Kortingscodes",
     blog: "Blog / Nieuws",
+    images: "Afbeeldingen",
     "layout-editor": "Layout Editor",
     settings: "Instellingen",
   };
@@ -152,6 +154,7 @@ export function AdminClient() {
           {activeTab === "experiments" && <ExperimentsTab />}
           {activeTab === "discounts" && <DiscountsTab />}
           {activeTab === "blog" && <BlogTab />}
+          {activeTab === "images" && <ImagesTab />}
           {activeTab === "layout-editor" && <LayoutEditorTab />}
           {activeTab === "settings" && <SettingsTab />}
         </div>
