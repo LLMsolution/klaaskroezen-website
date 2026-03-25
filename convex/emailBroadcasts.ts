@@ -173,7 +173,7 @@ export const getBroadcastRecipients = internalQuery({
     // Collect unique userIds from matching purchases
     const userIds = new Set<string>();
     for (const purchase of filtered) {
-      userIds.add(purchase.userId);
+      if (purchase.userId) userIds.add(purchase.userId);
     }
 
     // Resolve emails via contacts table (reliable, works for OAuth users too)

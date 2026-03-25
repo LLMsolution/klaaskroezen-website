@@ -49,18 +49,24 @@ export const createMolliePayment = action({
       ),
     );
 
+    let bumpTotal = 0;
     for (const bumpSlug of order.bumps) {
       const overridePrice = overridesMap.get(bumpSlug);
       if (overridePrice !== undefined) {
-        totalCents += overridePrice;
+        bumpTotal += overridePrice;
       } else {
         const bumpData = await ctx.runQuery(
           internal.checkoutProducts.getProductPriceData,
           { slug: bumpSlug },
         );
-        totalCents += bumpData?.priceCents ?? 0;
+        bumpTotal += bumpData?.priceCents ?? 0;
       }
     }
+    // Apply bundle discount: 15% off bumps when 2+ selected
+    if (order.bumps.length >= 2) {
+      bumpTotal = Math.round(bumpTotal * 0.85);
+    }
+    totalCents += bumpTotal;
 
     const siteUrl = process.env.SITE_URL!;
     const webhookBaseUrl = process.env.MOLLIE_WEBHOOK_URL || siteUrl;

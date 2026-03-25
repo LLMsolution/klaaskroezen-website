@@ -10,7 +10,8 @@ export default defineSchema({
   // ── Purchases ──
   // One record per completed payment via Mollie
   purchases: defineTable({
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")), // Optional — set when user account exists
+    buyerEmail: v.string(), // Always available from pending order
     product: v.string(), // e.g. "set-online", "set-coaching", "cst-teams", "boek-hardcopy"
     productType: v.union(
       v.literal("training"),

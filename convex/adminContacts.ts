@@ -33,6 +33,40 @@ export const getMailingList = query({
       .collect();
 
     for (const p of purchases) {
+      if (!p.userId) {
+        // Guest purchase — use buyerEmail as fallback
+        const email = (p as any).buyerEmail ?? "";
+        if (!email) continue;
+        const lowerEmail = email.toLowerCase();
+        const existing = contacts.get(lowerEmail);
+        if (existing) {
+          existing.products.push(p.product);
+          existing.totalSpent += p.amount;
+          existing.purchaseCount++;
+          if (p.paidAt && (!existing.lastPurchaseAt || p.paidAt > existing.lastPurchaseAt)) {
+            existing.lastPurchaseAt = p.paidAt;
+          }
+          if (p.paidAt && (!existing.firstPurchaseAt || p.paidAt < existing.firstPurchaseAt)) {
+            existing.firstPurchaseAt = p.paidAt;
+          }
+        } else {
+          contacts.set(lowerEmail, {
+            email,
+            name: "\u2014",
+            products: [p.product],
+            totalSpent: p.amount,
+            purchaseCount: 1,
+            firstPurchaseAt: p.paidAt ?? null,
+            lastPurchaseAt: p.paidAt ?? null,
+            emailsSent: 0,
+            totalOpens: 0,
+            totalClicks: 0,
+            lastEmailAt: null,
+            source: "purchase",
+          });
+        }
+        continue;
+      }
       const accounts = await ctx.db
         .query("authAccounts")
         .filter((q) => q.eq(q.field("userId"), p.userId))

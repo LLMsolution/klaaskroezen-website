@@ -73,6 +73,14 @@ export const getOrders = query({
     // Enrich with user info
     const enriched = [];
     for (const purchase of purchases) {
+      if (!purchase.userId) {
+        enriched.push({
+          ...purchase,
+          userName: "\u2014",
+          userEmail: (purchase as any).buyerEmail ?? "\u2014",
+        });
+        continue;
+      }
       const user = await ctx.db.get(purchase.userId);
 
       // Get email

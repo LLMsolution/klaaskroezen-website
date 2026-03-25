@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Lang } from "@/lib/i18n";
@@ -11,8 +11,14 @@ interface Props {
   lang: Lang;
 }
 
+/**
+ * Verifies payment succeeded by polling the pending order status.
+ * Waits up to 30 seconds for the Mollie webhook to process before redirecting.
+ */
 export function PaymentVerifier({ orderId, productSlug, lang }: Props) {
   const [checking, setChecking] = useState(!!orderId);
+  const retryCount = useRef(0);
+  const maxRetries = 6; // 6 × 5s = 30s max wait
 
   const order = useQuery(
     api.checkout.getPendingOrderForRecovery,
@@ -22,14 +28,20 @@ export function PaymentVerifier({ orderId, productSlug, lang }: Props) {
   useEffect(() => {
     if (!orderId || order === undefined) return;
 
-    // If order still exists (not converted), payment failed
-    if (order !== null) {
-      // Redirect back to checkout with failed flag
-      window.location.href = `/checkout/${productSlug}?failed=1&recover=${orderId}`;
-    } else {
+    if (order === null) {
       // Order converted = payment succeeded
       setChecking(false);
+      return;
     }
+
+    // Order still exists — webhook might not have arrived yet
+    retryCount.current += 1;
+
+    if (retryCount.current >= maxRetries) {
+      // After 30s, assume payment failed
+      window.location.href = `/checkout/${productSlug}?failed=1&recover=${orderId}`;
+    }
+    // Otherwise, Convex reactive query will auto-retry when data changes
   }, [order, orderId, productSlug]);
 
   if (checking) {

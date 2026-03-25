@@ -296,26 +296,30 @@ export const getSegmentRecipients = query({
 
     const filterFn = SEGMENT_FILTERS[segment] || SEGMENT_FILTERS.all;
 
+    // Filter out purchases without userId (guest purchases)
+    const userPurchases = purchases.filter((p) => p.userId);
+
     if (segment === "repeat-buyers") {
       const userCounts = new Map<string, number>();
-      for (const p of purchases) {
-        userCounts.set(p.userId.toString(), (userCounts.get(p.userId.toString()) ?? 0) + 1);
+      for (const p of userPurchases) {
+        const uid = p.userId!.toString();
+        userCounts.set(uid, (userCounts.get(uid) ?? 0) + 1);
       }
       const repeatUserIds = new Set(
         [...userCounts.entries()].filter(([, count]) => count > 1).map(([id]) => id),
       );
-      const filtered = purchases.filter((p) => repeatUserIds.has(p.userId.toString()));
+      const filtered = userPurchases.filter((p) => repeatUserIds.has(p.userId!.toString()));
       const uniqueUsers = new Map<string, typeof purchases[0]>();
       for (const p of filtered) {
-        if (!unsubSet.has(p.userId.toString())) {
-          uniqueUsers.set(p.userId.toString(), p);
+        if (!unsubSet.has(p.userId!.toString())) {
+          uniqueUsers.set(p.userId!.toString(), p);
         }
       }
       return uniqueUsers.size;
     }
 
-    const filtered = purchases.filter(filterFn);
-    const uniqueUsers = new Set(filtered.map((p) => p.userId.toString()));
+    const filtered = userPurchases.filter(filterFn);
+    const uniqueUsers = new Set(filtered.map((p) => p.userId!.toString()));
     return uniqueUsers.size;
   },
 });

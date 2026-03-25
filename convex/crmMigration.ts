@@ -21,6 +21,7 @@ export const backfillFromExistingData = mutation({
       .collect();
 
     for (const purchase of purchases) {
+      if (!purchase.userId) continue;
       const user = await ctx.db.get(purchase.userId);
       if (!user) continue;
 

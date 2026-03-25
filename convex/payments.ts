@@ -53,9 +53,21 @@ export const processSuccessfulPayment = internalMutation({
 
     const now = Date.now();
 
-    // 1. Create purchase record
+    // 1. Create or find user by email for access rights
+    let userId = order.userId;
+    if (!userId) {
+      // Find existing user by email via authAccounts
+      const accounts = await ctx.db.query("authAccounts").collect();
+      const match = accounts.find(
+        (a: any) => a.providerAccountId?.toLowerCase() === order.email.toLowerCase(),
+      );
+      if (match) userId = match.userId;
+    }
+
+    // 2. Create purchase record
     const purchaseId = await ctx.db.insert("purchases", {
-      userId: order.userId!,
+      userId,
+      buyerEmail: order.email,
       product: order.product,
       productType,
       amount: amountCents,
@@ -106,9 +118,9 @@ export const processSuccessfulPayment = internalMutation({
     });
 
     // 6. Grant access rights for digital products
-    if (order.userId) {
+    if (userId) {
       await ctx.db.insert("accessRights", {
-        userId: order.userId,
+        userId,
         purchaseId,
         resource: order.product,
         grantedAt: now,
@@ -117,7 +129,7 @@ export const processSuccessfulPayment = internalMutation({
       // Also grant access for bumps
       for (const bump of order.bumps) {
         await ctx.db.insert("accessRights", {
-          userId: order.userId,
+          userId,
           purchaseId,
           resource: bump,
           grantedAt: now,
@@ -125,19 +137,40 @@ export const processSuccessfulPayment = internalMutation({
       }
     }
 
-    // 7. Start automated email sequence
-    if (order.userId) {
-      await ctx.scheduler.runAfter(0, internal.emails.startSequence, {
-        purchaseId,
-        userId: order.userId,
-        email: order.email,
-        product: order.product,
-        productType,
-        lang: order.lang,
-      });
+    // 7. Start automated email sequence (always — uses email, not userId)
+    await ctx.scheduler.runAfter(0, internal.emails.startSequence, {
+      purchaseId,
+      userId: userId as any,
+      email: order.email,
+      product: order.product,
+      productType,
+      lang: order.lang,
+    });
+
+    // 8. Increment discount code usage if applicable
+    if (order.discountCode) {
+      const discount = await ctx.db.query("discountCodes")
+        .withIndex("by_code", (q) => q.eq("code", order.discountCode!))
+        .first();
+      if (discount) {
+        await ctx.db.patch(discount._id, { currentUses: discount.currentUses + 1 });
+      }
     }
 
-    // 8. Track A/B test conversion
+    // 9. Handle mailing opt-in
+    if (order.mailingOptIn) {
+      const contact = await ctx.db.query("contacts")
+        .withIndex("by_email", (q) => q.eq("email", order.email.toLowerCase()))
+        .first();
+      if (contact) {
+        const tags = contact.tags || [];
+        if (!tags.includes("mailing-optin")) {
+          await ctx.db.patch(contact._id, { tags: [...tags, "mailing-optin"], unsubscribed: false });
+        }
+      }
+    }
+
+    // 10. Track A/B test conversion
     if (order.experimentSlug && order.experimentVariant) {
       await ctx.scheduler.runAfter(0, internal.abtest.recordConversion, {
         slug: order.experimentSlug,
@@ -146,7 +179,7 @@ export const processSuccessfulPayment = internalMutation({
       });
     }
 
-    // 9. CRM: update contact score + log purchase + mark lead as won
+    // 11. CRM: update contact score + log purchase + mark lead as won
     await ctx.scheduler.runAfter(0, internal.crmHooks.purchaseCompleted, {
       pendingOrderId,
       purchaseId,
