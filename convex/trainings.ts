@@ -90,6 +90,7 @@ export const listAll = query({
 export const createTraining = mutation({
   args: {
     slug: v.string(),
+    type: v.optional(v.union(v.literal("training"), v.literal("audiobook"))),
     title: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
     description: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
     active: v.boolean(),

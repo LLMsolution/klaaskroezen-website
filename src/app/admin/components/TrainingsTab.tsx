@@ -68,6 +68,7 @@ export function TrainingsTab({ filterType }: { filterType?: "training" | "audiob
     try {
       const id = await createTraining({
         slug,
+        type: filterType ?? "training",
         title: { nl: titleNl, en: titleEn, de: titleDe || undefined },
         description: { nl: descNl, en: descEn, de: descDe || undefined },
         active: false,
@@ -98,7 +99,7 @@ export function TrainingsTab({ filterType }: { filterType?: "training" | "audiob
           ← Terug
         </button>
         <h2 className="font-display text-[22px] font-black tracking-[-0.02em] mb-6">
-          Nieuwe training
+          {filterType === "audiobook" ? "Nieuw luisterboek" : "Nieuwe training"}
         </h2>
 
         {error && <p className="text-red-600 text-[13px] mb-4">{error}</p>}
@@ -147,12 +148,12 @@ export function TrainingsTab({ filterType }: { filterType?: "training" | "audiob
           onClick={() => setView("create")}
           className="bg-copper text-paper px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer"
         >
-          + Nieuwe training
+          + {filterType === "audiobook" ? "Nieuw luisterboek" : "Nieuwe training"}
         </button>
       </div>
 
       {trainings.length === 0 ? (
-        <EmptyState text="Nog geen trainingen." />
+        <EmptyState text={filterType === "audiobook" ? "Nog geen luisterboeken." : "Nog geen trainingen."} />
       ) : (
         <div className="space-y-3">
           {trainings.map((t) => (
