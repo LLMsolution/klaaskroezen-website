@@ -39,6 +39,7 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
   const formRef = useRef<HTMLFormElement>(null);
 
   const { signIn } = useAuthActions();
+  const currentUser = useQuery(api.users.getCurrentUser);
   const createPendingOrder = useMutation(api.checkout.createPendingOrder);
   const createMolliePayment = useAction(api.mollie.createMolliePayment);
 
@@ -93,6 +94,20 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
       document.cookie = `ab-${experimentSlug}=${experimentVariant};path=/;max-age=${30 * 24 * 60 * 60};samesite=lax`;
     }
   }, [experimentNeedsCookie, experimentSlug, experimentVariant]);
+
+  // Auto-fill from logged-in user (after Google OAuth redirect back)
+  useEffect(() => {
+    if (!currentUser || recovered) return;
+    if (currentUser.name && !firstName) {
+      const parts = currentUser.name.split(" ");
+      setFirstName(parts[0] ?? "");
+      setLastName(parts.slice(1).join(" ") ?? "");
+    }
+    if (currentUser.email && !email) {
+      setEmail(currentUser.email);
+    }
+  }, [currentUser]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Pre-fill from pending order (magic link recovery or returning visitor)
   const recoveryOrder = useQuery(
     api.checkout.getPendingOrderForRecovery,
@@ -288,9 +303,26 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
     }
   }
 
-  async function handleOAuth(provider: "google") {
+  async function handleOAuth() {
     setError("");
-    try { await signIn(provider); } catch { setError(i18n.genericError); }
+    // If already logged in, autofill from account
+    if (currentUser) {
+      if (currentUser.name && !firstName) {
+        const parts = currentUser.name.split(" ");
+        setFirstName(parts[0] ?? "");
+        setLastName(parts.slice(1).join(" ") ?? "");
+      }
+      if (currentUser.email && !email) {
+        setEmail(currentUser.email);
+      }
+      return;
+    }
+    // Not logged in: start Google OAuth, will redirect back to this page after login
+    try {
+      await signIn("google", { redirectTo: window.location.href });
+    } catch {
+      setError(i18n.genericError);
+    }
   }
 
   const toggleBump = (slug: string) => {
