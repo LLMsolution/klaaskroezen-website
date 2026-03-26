@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import { requireAdmin } from "./adminAuth";
 import { checkTrainingAccess, requireTrainingAccess } from "./trainingProgress";
 
@@ -82,6 +83,138 @@ export const listAll = query({
       }),
     );
     return resolved.sort((a, b) => a.sortOrder - b.sortOrder);
+  },
+});
+
+/** Admin: get all participants with progress for a training */
+export const getParticipants = query({
+  args: { trainingId: v.id("trainings") },
+  handler: async (ctx, { trainingId }) => {
+    await requireAdmin(ctx);
+
+    const training = await ctx.db.get(trainingId);
+    if (!training) return [];
+
+    // Find all access rights matching this training's slug or linkedProducts
+    const allAccessRights = await ctx.db.query("accessRights").collect();
+    const linked = training.linkedProducts ?? [];
+    const matchSlugs = [
+      training.slug,
+      `${training.slug}-online`,
+      `${training.slug}-coaching`,
+      ...linked,
+    ];
+
+    const matchingRights = allAccessRights.filter(
+      (r) => !r.revokedAt && matchSlugs.includes(r.resource),
+    );
+
+    // Deduplicate by userId
+    const userIds = [...new Set(matchingRights.map((r) => r.userId))];
+
+    // Get modules for this training
+    const modules = await ctx.db
+      .query("trainingModules")
+      .withIndex("by_training", (q) => q.eq("trainingId", trainingId))
+      .collect();
+    const activeModules = modules.filter((m) => m.active);
+
+    // Build participant data
+    const participants = [];
+    for (const userId of userIds) {
+      const user = await ctx.db.get(userId);
+      if (!user) continue;
+
+      // Get email from authAccounts
+      const accounts = await ctx.db
+        .query("authAccounts")
+        .filter((q: any) => q.eq(q.field("userId"), userId))
+        .collect();
+      const emailAccount = accounts.find(
+        (a: any) => a.providerAccountId?.includes("@"),
+      );
+      const email = emailAccount?.providerAccountId ?? (user as any).email ?? "";
+
+      // Get module progress
+      const progress = await ctx.db
+        .query("moduleProgress")
+        .withIndex("by_user_training", (q) =>
+          q.eq("userId", userId).eq("trainingId", trainingId),
+        )
+        .collect();
+
+      const completedCount = progress.filter((p) => p.completedAt).length;
+      const overallPercent =
+        activeModules.length > 0
+          ? Math.round((completedCount / activeModules.length) * 100)
+          : 0;
+
+      const lastActivity = progress.length > 0
+        ? Math.max(...progress.map((p) => p.lastAccessedAt))
+        : undefined;
+
+      // Get quiz scores for modules in this training
+      const trainingQuizzes: Array<{ moduleId: Id<"trainingModules">; score: number; passed: boolean }> = [];
+      for (const mod of modules) {
+        const attempts = await ctx.db
+          .query("quizAttempts")
+          .withIndex("by_user_module", (q) =>
+            q.eq("userId", userId).eq("moduleId", mod._id),
+          )
+          .collect();
+        trainingQuizzes.push(...attempts);
+      }
+
+      // Per-module progress
+      const moduleProgress = activeModules
+        .filter((m) => !m.parentModuleId)
+        .map((mod) => {
+          // Submodules under this chapter
+          const subs = activeModules.filter(
+            (s) => s.parentModuleId === mod._id,
+          );
+          const relevantIds = subs.length > 0
+            ? subs.map((s) => s._id)
+            : [mod._id];
+          const prog = progress.filter((p) =>
+            relevantIds.includes(p.moduleId),
+          );
+          const done = prog.filter((p) => p.completedAt).length;
+          const quizzes = trainingQuizzes.filter((a) => a.moduleId === mod._id);
+          const bestQuiz = quizzes.length > 0
+            ? quizzes.sort((x, y) => y.score - x.score)[0]
+            : undefined;
+          return {
+            moduleId: mod._id,
+            title: mod.title.nl,
+            sortOrder: mod.sortOrder,
+            completed: done,
+            total: relevantIds.length,
+            quizPassed: bestQuiz?.passed,
+            quizScore: bestQuiz?.score,
+          };
+        })
+        .sort((a, b) => a.sortOrder - b.sortOrder);
+
+      // Access grant date
+      const grant = matchingRights.find((r) => r.userId === userId);
+
+      participants.push({
+        userId,
+        name: (user as any).name ?? `${email.split("@")[0]}`,
+        email,
+        overallPercent,
+        completedModules: completedCount,
+        totalModules: activeModules.length,
+        lastActivity,
+        grantedAt: grant?.grantedAt,
+        moduleProgress,
+      });
+    }
+
+    return participants.sort((a, b) =>
+      (a.name ?? "").localeCompare(b.name ?? ""),
+    );
   },
 });
 

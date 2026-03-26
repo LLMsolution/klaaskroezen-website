@@ -220,6 +220,8 @@ interface PendingOrder {
   lang: "nl" | "en" | "de";
   quantity?: number;
   installments: boolean;
+  discountCode?: string;
+  discountAmount?: number;
 }
 
 async function buildLineItems(ctx: { db: any }, order: PendingOrder) {
@@ -301,6 +303,18 @@ async function buildLineItems(ctx: { db: any }, order: PendingOrder) {
           totalCents: calculated.gross,
         });
       }
+    }
+
+    // Add discount line item (negative amount)
+    if (order.discountCode && order.discountAmount && order.discountAmount > 0) {
+      items.push({
+        description: `Korting: ${order.discountCode}`,
+        quantity: 1,
+        unitPriceCents: -order.discountAmount,
+        btwRate: 0,
+        btwCents: 0,
+        totalCents: -order.discountAmount,
+      });
     }
   }
 

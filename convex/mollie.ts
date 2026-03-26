@@ -68,6 +68,11 @@ export const createMolliePayment = action({
     }
     totalCents += bumpTotal;
 
+    // Apply discount code
+    if (order.discountAmount && order.discountAmount > 0) {
+      totalCents = Math.max(0, totalCents - order.discountAmount);
+    }
+
     const siteUrl = process.env.SITE_URL!;
     const webhookBaseUrl = process.env.MOLLIE_WEBHOOK_URL || siteUrl;
 

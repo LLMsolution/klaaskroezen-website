@@ -31,6 +31,7 @@ export const saveDraft = mutation({
     quantity: v.optional(v.number()),
     bumps: v.array(v.string()),
     discountCode: v.optional(v.string()),
+    discountAmount: v.optional(v.number()),
     installments: v.boolean(),
   },
   handler: async (ctx, args) => {
@@ -62,6 +63,7 @@ export const saveDraft = mutation({
         quantity: args.quantity,
         bumps: args.bumps,
         discountCode: args.discountCode,
+        discountAmount: args.discountAmount,
         installments: args.installments,
       });
       return existing._id;
@@ -96,6 +98,7 @@ export const createPendingOrder = mutation({
     mailingOptIn: v.optional(v.boolean()),
     bumps: v.array(v.string()),
     discountCode: v.optional(v.string()),
+    discountAmount: v.optional(v.number()),
     installments: v.boolean(),
     experimentSlug: v.optional(v.string()),
     experimentVariant: v.optional(v.string()),
@@ -140,6 +143,7 @@ export const createPendingOrder = mutation({
         mailingOptIn: args.mailingOptIn,
         bumps: args.bumps,
         discountCode: args.discountCode,
+        discountAmount: args.discountAmount,
         installments: args.installments,
         experimentSlug: args.experimentSlug,
         experimentVariant: args.experimentVariant,
@@ -150,7 +154,6 @@ export const createPendingOrder = mutation({
     // Create new pending order
     const id = await ctx.db.insert("pendingOrders", {
       ...args,
-      discountAmount: undefined,
       userId: undefined,
       molliePaymentId: undefined,
       remindersSent: 0,
