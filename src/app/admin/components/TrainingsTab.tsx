@@ -132,7 +132,7 @@ export function TrainingsTab({ filterType }: { filterType?: "training" | "audiob
           disabled={saving}
           className="bg-copper text-paper px-6 py-3 text-[13px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] disabled:opacity-50 cursor-pointer"
         >
-          {saving ? "Opslaan..." : "Training aanmaken"}
+          {saving ? "Opslaan..." : filterType === "audiobook" ? "Luisterboek aanmaken" : "Training aanmaken"}
         </button>
       </div>
     );
