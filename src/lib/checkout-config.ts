@@ -35,6 +35,7 @@ export interface BumpConfig {
   description: Record<string, string>;
   image?: string;
   mockupType?: "tablet" | "phone" | "audio";
+  requiresShipping?: boolean;
 }
 
 export interface QuantityTier {

@@ -15,6 +15,7 @@ interface Props {
   product: CheckoutProduct;
   bumps: BumpConfig[];
   lang: Lang;
+  needsShipping: boolean;
   // Form state
   firstName: string;
   setFirstName: (v: string) => void;
@@ -61,13 +62,23 @@ interface Props {
   onOAuth: () => void;
 }
 
-const inputClass = "w-full bg-transparent border border-rule px-4 py-3 text-[15px] text-ink placeholder:text-ink/30 focus:border-copper focus:outline-none transition-colors rounded-[2px]";
+const baseInput = "w-full border px-4 py-3 text-[15px] text-ink placeholder:text-ink/30 focus:border-copper focus:outline-none transition-all duration-200 rounded-[2px]";
+const fieldClass = (value: string) =>
+  value.trim()
+    ? `${baseInput} bg-warm/30 border-warm`
+    : `${baseInput} bg-transparent border-rule`;
+
+const baseSelect = "w-full border px-4 py-3 text-[15px] text-ink focus:border-copper focus:outline-none transition-all duration-200 rounded-[2px] appearance-none bg-no-repeat bg-[right_16px_center] bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%230E0C0A%22%20stroke-width%3D%222%22%3E%3Cpath%20d%3D%22M6%209l6%206%206-6%22%2F%3E%3C%2Fsvg%3E')]";
+const selectFieldClass = (value: string) =>
+  value.trim()
+    ? `${baseSelect} bg-warm/30 border-warm`
+    : `${baseSelect} bg-transparent border-rule`;
+
 const labelClass = "text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2";
-const selectClass = "w-full bg-transparent border border-rule px-4 py-3 text-[15px] text-ink focus:border-copper focus:outline-none transition-colors rounded-[2px] appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%230E0C0A%22%20stroke-width%3D%222%22%3E%3Cpath%20d%3D%22M6%209l6%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_16px_center]";
 
 export function CheckoutForm(props: Props) {
   const {
-    product, bumps, lang,
+    product, bumps, lang, needsShipping,
     firstName, setFirstName, lastName, setLastName,
     email, setEmail, phone, setPhone,
     country, setCountry,
@@ -88,18 +99,18 @@ export function CheckoutForm(props: Props) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="firstName" className={labelClass}>{i18n.firstName}</label>
-          <input id="firstName" name="firstName" autoComplete="given-name" type="text" required value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder={i18n.firstNamePlaceholder} className={inputClass} />
+          <input id="firstName" name="firstName" autoComplete="given-name" type="text" required value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder={i18n.firstNamePlaceholder} className={fieldClass(firstName)} />
         </div>
         <div>
           <label htmlFor="lastName" className={labelClass}>{i18n.lastName}</label>
-          <input id="lastName" name="lastName" autoComplete="family-name" type="text" required value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder={i18n.lastNamePlaceholder} className={inputClass} />
+          <input id="lastName" name="lastName" autoComplete="family-name" type="text" required value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder={i18n.lastNamePlaceholder} className={fieldClass(lastName)} />
         </div>
       </div>
 
       {/* Email */}
       <div>
         <label htmlFor="email" className={labelClass}>{i18n.email}</label>
-        <input id="email" name="email" autoComplete="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={i18n.emailPlaceholder} className={inputClass} />
+        <input id="email" name="email" autoComplete="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={i18n.emailPlaceholder} className={fieldClass(email)} />
       </div>
 
       {/* Google autofill */}
@@ -118,13 +129,13 @@ export function CheckoutForm(props: Props) {
         <label htmlFor="phone" className={labelClass}>
           {i18n.phone} <span className="text-ink/25 normal-case tracking-normal">({i18n.phoneOptional})</span>
         </label>
-        <input id="phone" name="phone" autoComplete="tel" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={i18n.phonePlaceholder} className={inputClass} />
+        <input id="phone" name="phone" autoComplete="tel" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={i18n.phonePlaceholder} className={fieldClass(phone)} />
       </div>
 
       {/* Country */}
       <div>
         <label htmlFor="country" className={labelClass}>{i18n.country}</label>
-        <select id="country" name="country" autoComplete="country" value={country} onChange={(e) => setCountry(e.target.value)} className={selectClass}>
+        <select id="country" name="country" autoComplete="country" value={country} onChange={(e) => setCountry(e.target.value)} className={selectFieldClass(country)}>
           {Object.entries(i18n.countries).map(([code, name]) => (
             <option key={code} value={code}>{name}</option>
           ))}
@@ -132,27 +143,27 @@ export function CheckoutForm(props: Props) {
       </div>
 
       {/* Shipping address */}
-      {product.requiresShipping && (
+      {needsShipping && (
         <div className="space-y-4">
           <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper">{i18n.shippingAddress}</p>
           <div className="grid grid-cols-[1fr_100px] gap-3">
             <div>
               <label htmlFor="street" className={labelClass}>{i18n.street}</label>
-              <input id="street" name="street" autoComplete="street-address" type="text" required value={street} onChange={(e) => setStreet(e.target.value)} placeholder={i18n.streetPlaceholder} className={inputClass} />
+              <input id="street" name="street" autoComplete="street-address" type="text" required value={street} onChange={(e) => setStreet(e.target.value)} placeholder={i18n.streetPlaceholder} className={fieldClass(street)} />
             </div>
             <div>
               <label htmlFor="houseNumber" className={labelClass}>{i18n.houseNumber}</label>
-              <input id="houseNumber" name="houseNumber" autoComplete="off" type="text" required value={houseNumber} onChange={(e) => setHouseNumber(e.target.value)} placeholder={i18n.houseNumberPlaceholder} className={inputClass} />
+              <input id="houseNumber" name="houseNumber" autoComplete="off" type="text" required value={houseNumber} onChange={(e) => setHouseNumber(e.target.value)} placeholder={i18n.houseNumberPlaceholder} className={fieldClass(houseNumber)} />
             </div>
           </div>
           <div className="grid grid-cols-[140px_1fr] gap-3">
             <div>
               <label htmlFor="postalCode" className={labelClass}>{i18n.postalCode}</label>
-              <input id="postalCode" name="postalCode" autoComplete="postal-code" type="text" required value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder={i18n.postalCodePlaceholder} className={inputClass} />
+              <input id="postalCode" name="postalCode" autoComplete="postal-code" type="text" required value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder={i18n.postalCodePlaceholder} className={fieldClass(postalCode)} />
             </div>
             <div>
               <label htmlFor="city" className={labelClass}>{i18n.city}</label>
-              <input id="city" name="city" autoComplete="address-level2" type="text" required value={city} onChange={(e) => setCity(e.target.value)} placeholder={i18n.cityPlaceholder} className={inputClass} />
+              <input id="city" name="city" autoComplete="address-level2" type="text" required value={city} onChange={(e) => setCity(e.target.value)} placeholder={i18n.cityPlaceholder} className={fieldClass(city)} />
             </div>
           </div>
         </div>
@@ -168,11 +179,11 @@ export function CheckoutForm(props: Props) {
         <div className="space-y-4 pl-7 border-l-2 border-copper/20">
           <div>
             <label htmlFor="company" className={labelClass}>{i18n.companyName}</label>
-            <input id="company" name="organization" autoComplete="organization" type="text" required={isBusiness} value={company} onChange={(e) => setCompany(e.target.value)} placeholder={i18n.companyPlaceholder} className={inputClass} />
+            <input id="company" name="organization" autoComplete="organization" type="text" required={isBusiness} value={company} onChange={(e) => setCompany(e.target.value)} placeholder={i18n.companyPlaceholder} className={fieldClass(company)} />
           </div>
           <div>
             <label htmlFor="vatNumber" className={labelClass}>{i18n.vatNumber}</label>
-            <input id="vatNumber" type="text" value={vatNumber} onChange={(e) => setVatNumber(e.target.value)} placeholder={i18n.vatPlaceholder} className={inputClass} />
+            <input id="vatNumber" type="text" value={vatNumber} onChange={(e) => setVatNumber(e.target.value)} placeholder={i18n.vatPlaceholder} className={fieldClass(vatNumber)} />
             {vatNumber && isEuCountry(country) && country !== "NL" && (
               <p className="text-[12px] text-copper mt-1">{i18n.btwReversed}</p>
             )}

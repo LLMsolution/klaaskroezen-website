@@ -9,9 +9,7 @@ import type { Id } from "./_generated/dataModel";
 import { rateLimiter } from "./rateLimits";
 import { langValidator } from "./schema";
 
-/** Create a pending order when the user completes step 1 of checkout */
-/** Lightweight draft save — no rate limit, no CRM hooks, no abandoned cart.
- *  Called automatically as user fills in the checkout form. */
+/** Lightweight draft save — no rate limit, no CRM hooks, no abandoned cart. */
 export const saveDraft = mutation({
   args: {
     email: v.string(),
@@ -191,6 +189,22 @@ export const createPendingOrder = mutation({
   },
 });
 
+/** Process a free order (total = 0 after discount) — skip Mollie entirely */
+export const processFreeOrder = mutation({
+  args: { pendingOrderId: v.id("pendingOrders") },
+  handler: async (ctx, { pendingOrderId }) => {
+    const order = await ctx.db.get(pendingOrderId);
+    if (!order) throw new Error("Bestelling niet gevonden");
+    if (order.convertedAt) throw new Error("Al verwerkt");
+    await ctx.scheduler.runAfter(0, internal.payments.processSuccessfulPayment, {
+      molliePaymentId: `FREE-${pendingOrderId}`,
+      amountCents: 0,
+      pendingOrderId,
+    });
+    return { success: true, email: order.email, product: order.product, lang: order.lang };
+  },
+});
+
 /** Mark pending order as converted after successful payment */
 export const markConverted = internalMutation({
   args: {
@@ -256,10 +270,8 @@ export const checkAbandoned = internalMutation({
       await ctx.scheduler.runAfter(0, internal.crmHooks.checkoutAbandoned, { orderId });
     }
 
-    // Update reminder count
     await ctx.db.patch(orderId, { remindersSent: step + 1 });
-
-    // Schedule next escalation (timing from admin settings)
+    // Schedule next escalation
     const settings = await ctx.db
       .query("siteSettings")
       .withIndex("by_key", (q) => q.eq("key", "global"))
@@ -483,8 +495,6 @@ export const createUpsellOrder = mutation({
       remindersSent: 0,
       createdAt: Date.now(),
     });
-
     return id;
   },
 });
-

@@ -16,6 +16,7 @@ import { CheckoutTotals } from "./CheckoutTotals";
 import { TrustBadges } from "./TrustBadges";
 import { ExitIntent } from "./ExitIntent";
 import { SocialProof } from "./SocialProof";
+import { IdealIcon, CreditCardIcon, ApplePayIcon } from "./PaymentIcons";
 
 interface Props {
   productSlug: string;
@@ -34,13 +35,12 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
   const product = useQuery(api.checkoutProducts.getBySlug, { slug: productSlug });
   const dbBumps = useQuery(api.checkoutProducts.getBumpsForProduct, { slug: productSlug });
   const bumps: BumpConfig[] = useMemo(() => dbBumps ?? [], [dbBumps]);
-
   const i18n = t(lang);
   const formRef = useRef<HTMLFormElement>(null);
-
   const { signIn } = useAuthActions();
   const currentUser = useQuery(api.users.getCurrentUser);
   const createPendingOrder = useMutation(api.checkout.createPendingOrder);
+  const processFreeOrder = useMutation(api.checkout.processFreeOrder);
   const createMolliePayment = useAction(api.mollie.createMolliePayment);
 
   // Form state
@@ -72,7 +72,7 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
   const [error, setError] = useState("");
   const [quantity, setQuantity] = useState(1);
 
-  // Returning visitor recognition via localStorage (no cookies needed)
+  // Returning visitor recognition via localStorage
   useEffect(() => {
     try {
       const savedEmail = localStorage.getItem("kk_checkout_email");
@@ -88,14 +88,13 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
       if (firstName) localStorage.setItem("kk_checkout_name", firstName);
     } catch { /* localStorage unavailable */ }
   }, [email, firstName]);
-  // Persist experiment cookie for DB-driven experiments (not set by middleware)
+  // Persist experiment cookie for DB-driven experiments
   useEffect(() => {
     if (experimentNeedsCookie && experimentSlug && experimentVariant) {
       document.cookie = `ab-${experimentSlug}=${experimentVariant};path=/;max-age=${30 * 24 * 60 * 60};samesite=lax`;
     }
   }, [experimentNeedsCookie, experimentSlug, experimentVariant]);
-
-  // Auto-fill from logged-in user (after Google OAuth redirect back)
+  // Auto-fill from logged-in user
   useEffect(() => {
     if (!currentUser || recovered) return;
     if (currentUser.name && !firstName) {
@@ -107,8 +106,7 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
       setEmail(currentUser.email);
     }
   }, [currentUser]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Pre-fill from pending order (magic link recovery or returning visitor)
+  // Pre-fill from pending order (recovery or returning visitor)
   const recoveryOrder = useQuery(
     api.checkout.getPendingOrderForRecovery,
     recoveryOrderId ? { orderId: recoveryOrderId } : "skip",
@@ -143,7 +141,6 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
       setRecovered(true);
     }
   }, [recoveryOrder, returningOrder, recovered]);
-
   useEffect(() => {
     if (country === "NL" || country === "BE") {
       setSelectedMethod("ideal");
@@ -151,7 +148,6 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
       setSelectedMethod("creditcard");
     }
   }, [country]);
-
   // Discount validation
   const discountResult = useQuery(
     api.checkout.validateDiscount,
@@ -168,8 +164,7 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
       setDiscountValue(null);
     }
   }, [discountResult]);
-
-  // Auto-save draft (debounced 3s after last change)
+  // Auto-save draft (debounced 3s)
   const saveDraft = useMutation(api.checkout.saveDraft);
   const draftTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -189,7 +184,6 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
     }, 3000);
     return () => { if (draftTimer.current) clearTimeout(draftTimer.current); };
   }, [email, firstName, lastName, phone, country, isBusiness, company, vatNumber, street, houseNumber, postalCode, city, quantity, selectedBumps, discountCode, useInstallments]); // eslint-disable-line react-hooks/exhaustive-deps
-
   // Tab title change on visibility
   useEffect(() => {
     const originalTitle = document.title;
@@ -206,7 +200,6 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
       document.title = originalTitle;
     };
   }, [lang]);
-
   // Calculate totals
   const calculateTotals = useCallback(() => {
     if (!product) return { productNet: 0, productBtw: 0, productGross: 0, bumpsNet: 0, bumpsBtw: 0, bumpsGross: 0, totalNet: 0, totalBtw: 0, totalGross: 0, btwReversed: false, noBtw: false };
@@ -252,9 +245,10 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
       noBtw: !applyBtw && !isEuCountry(country),
     };
   }, [product, selectedBumps, bumps, isBusiness, vatNumber, country, quantity, discountStatus, discountValue]);
-
   const totals = calculateTotals();
-
+  // Dynamic shipping: main product OR any selected bump requires shipping
+  const needsShipping = !!(product?.requiresShipping ||
+    bumps.some(b => selectedBumps.includes(b.slug) && b.requiresShipping));
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -281,10 +275,10 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
         product: productSlug, country, lang, isBusiness,
         company: isBusiness ? company : undefined,
         vatNumber: isBusiness ? vatNumber : undefined,
-        street: product?.requiresShipping ? street : undefined,
-        houseNumber: product?.requiresShipping ? houseNumber : undefined,
-        postalCode: product?.requiresShipping ? postalCode : undefined,
-        city: product?.requiresShipping ? city : undefined,
+        street: needsShipping ? street : undefined,
+        houseNumber: needsShipping ? houseNumber : undefined,
+        postalCode: needsShipping ? postalCode : undefined,
+        city: needsShipping ? city : undefined,
         quantity: quantity > 1 ? quantity : undefined,
         mailingOptIn: mailingOptIn || undefined,
         bumps: selectedBumps,
@@ -294,6 +288,16 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
         experimentSlug: experimentSlug || undefined,
         experimentVariant: experimentVariant || undefined,
       });
+
+      // Free order: skip Mollie, process directly
+      if (totals.totalGross === 0) {
+        const result = await processFreeOrder({ pendingOrderId: orderId });
+        if (result.success) {
+          const params = new URLSearchParams({ email, product: productSlug, lang });
+          window.location.href = `/checkout/bedankt?${params.toString()}`;
+        }
+        return;
+      }
 
       const result = await createMolliePayment({ pendingOrderId: orderId, method: selectedMethod });
       if (result.checkoutUrl) { window.location.href = result.checkoutUrl; }
@@ -328,8 +332,6 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
   const toggleBump = (slug: string) => {
     setSelectedBumps((prev) => prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]);
   };
-
-  // Loading state while product loads from DB
   if (!product) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -337,9 +339,7 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
       </div>
     );
   }
-
   const labelClass = "text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2";
-
   const paymentMethods = [
     ...(country === "NL" || country === "BE" ? [{ id: "ideal", label: i18n.ideal, icon: <IdealIcon />, recommended: true }] : []),
     { id: "creditcard", label: i18n.creditCard, icon: <CreditCardIcon /> },
@@ -372,39 +372,22 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
               <div className="h-full bg-copper/40 rounded-full transition-all duration-500" style={{ width: recovered ? "85%" : `${Math.min(60, [firstName, lastName, email].filter(Boolean).length * 20)}%` }} />
             </div>
           </div>
-          {/* Payment failure recovery banner */}
           {paymentFailed && (
             <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-[2px]">
-              <p className="text-[14px] font-medium text-amber-800 mb-1">
-                {{ nl: "Betaling niet gelukt", en: "Payment was not successful", de: "Zahlung fehlgeschlagen" }[lang]}
-              </p>
-              <p className="text-[13px] text-amber-700">
-                {{ nl: "Geen zorgen — probeer een andere betaalmethode hieronder.", en: "No worries — try a different payment method below.", de: "Keine Sorge — probieren Sie unten eine andere Zahlungsmethode." }[lang]}
-              </p>
+              <p className="text-[14px] font-medium text-amber-800 mb-1">{{ nl: "Betaling niet gelukt", en: "Payment was not successful", de: "Zahlung fehlgeschlagen" }[lang]}</p>
+              <p className="text-[13px] text-amber-700">{{ nl: "Geen zorgen — probeer een andere betaalmethode hieronder.", en: "No worries — try a different payment method below.", de: "Keine Sorge — probieren Sie unten eine andere Zahlungsmethode." }[lang]}</p>
             </div>
           )}
-
-          {/* Returning visitor welcome */}
           {recovered && !recoveryOrderId && (
             <div className="mb-6 p-4 bg-copper/5 border border-copper/20 rounded-[2px]">
-              <p className="text-[14px] font-medium text-ink">
-                {{ nl: `Welkom terug, ${firstName}!`, en: `Welcome back, ${firstName}!`, de: `Willkommen zurück, ${firstName}!` }[lang]}
-              </p>
-              <p className="text-[13px] text-ink/50">
-                {{ nl: "Je gegevens zijn al ingevuld. Kies een betaalmethode en je bent klaar.", en: "Your details are pre-filled. Choose a payment method and you're done.", de: "Ihre Daten sind bereits ausgefüllt. Wählen Sie eine Zahlungsmethode und Sie sind fertig." }[lang]}
-              </p>
+              <p className="text-[14px] font-medium text-ink">{{ nl: `Welkom terug, ${firstName}!`, en: `Welcome back, ${firstName}!`, de: `Willkommen zurück, ${firstName}!` }[lang]}</p>
+              <p className="text-[13px] text-ink/50">{{ nl: "Je gegevens zijn al ingevuld. Kies een betaalmethode en je bent klaar.", en: "Your details are pre-filled. Choose a payment method and you're done.", de: "Ihre Daten sind bereits ausgefüllt. Wählen Sie eine Zahlungsmethode und Sie sind fertig." }[lang]}</p>
             </div>
           )}
-
-          {/* Magic link recovery welcome */}
           {recoveryOrderId && recovered && (
             <div className="mb-6 p-4 bg-copper/5 border border-copper/20 rounded-[2px]">
-              <p className="text-[14px] font-medium text-ink">
-                {{ nl: `Hoi ${firstName}, je bestelling staat klaar!`, en: `Hi ${firstName}, your order is ready!`, de: `Hallo ${firstName}, Ihre Bestellung steht bereit!` }[lang]}
-              </p>
-              <p className="text-[13px] text-ink/50">
-                {{ nl: "Alles is al ingevuld — kies alleen je betaalmethode.", en: "Everything is pre-filled — just choose your payment method.", de: "Alles ist bereits ausgefüllt — wählen Sie nur Ihre Zahlungsmethode." }[lang]}
-              </p>
+              <p className="text-[14px] font-medium text-ink">{{ nl: `Hoi ${firstName}, je bestelling staat klaar!`, en: `Hi ${firstName}, your order is ready!`, de: `Hallo ${firstName}, Ihre Bestellung steht bereit!` }[lang]}</p>
+              <p className="text-[13px] text-ink/50">{{ nl: "Alles is al ingevuld — kies alleen je betaalmethode.", en: "Everything is pre-filled — just choose your payment method.", de: "Alles ist bereits ausgefüllt — wählen Sie nur Ihre Zahlungsmethode." }[lang]}</p>
             </div>
           )}
 
@@ -413,6 +396,7 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
               product={product}
               bumps={bumps}
               lang={lang}
+              needsShipping={needsShipping}
               firstName={firstName} setFirstName={setFirstName}
               lastName={lastName} setLastName={setLastName}
               email={email} setEmail={setEmail}
@@ -436,37 +420,39 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
               onOAuth={handleOAuth}
             />
 
-            {/* Payment method selection */}
-            <div className="border-t border-rule pt-5">
-              <p className={labelClass}>{i18n.paymentMethod}</p>
-              <div className="space-y-2">
-                {paymentMethods.map((pm) => (
-                  <button
-                    key={pm.id}
-                    type="button"
-                    onClick={() => setSelectedMethod(pm.id)}
-                    className={`flex items-center gap-3 w-full border py-3 px-4 text-[14px] transition-colors rounded-[2px] cursor-pointer ${
-                      selectedMethod === pm.id
-                        ? "border-copper bg-copper/5 text-ink"
-                        : "border-rule text-ink/60 hover:border-ink/30"
-                    }`}
-                  >
-                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-                      selectedMethod === pm.id ? "border-copper" : "border-ink/20"
-                    }`}>
-                      {selectedMethod === pm.id && <div className="w-2 h-2 rounded-full bg-copper" />}
-                    </div>
-                    {pm.icon}
-                    <span className="flex-1 text-left">{pm.label}</span>
-                    {pm.recommended && (
-                      <span className="text-[10px] text-copper font-medium tracking-[0.1em] uppercase">
-                        {{ nl: "Aanbevolen", en: "Recommended", de: "Empfohlen" }[lang]}
-                      </span>
-                    )}
-                  </button>
-                ))}
+            {/* Payment method selection — hidden for free orders */}
+            {totals.totalGross > 0 && (
+              <div className="border-t border-rule pt-5">
+                <p className={labelClass}>{i18n.paymentMethod}</p>
+                <div className="space-y-2">
+                  {paymentMethods.map((pm) => (
+                    <button
+                      key={pm.id}
+                      type="button"
+                      onClick={() => setSelectedMethod(pm.id)}
+                      className={`flex items-center gap-3 w-full border py-3 px-4 text-[14px] transition-colors rounded-[2px] cursor-pointer ${
+                        selectedMethod === pm.id
+                          ? "border-copper bg-copper/5 text-ink"
+                          : "border-rule text-ink/60 hover:border-ink/30"
+                      }`}
+                    >
+                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+                        selectedMethod === pm.id ? "border-copper" : "border-ink/20"
+                      }`}>
+                        {selectedMethod === pm.id && <div className="w-2 h-2 rounded-full bg-copper" />}
+                      </div>
+                      {pm.icon}
+                      <span className="flex-1 text-left">{pm.label}</span>
+                      {pm.recommended && (
+                        <span className="text-[10px] text-copper font-medium tracking-[0.1em] uppercase">
+                          {{ nl: "Aanbevolen", en: "Recommended", de: "Empfohlen" }[lang]}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Terms + mailing opt-in */}
             <div className="space-y-3">
@@ -493,8 +479,9 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
               discountValue={discountValue}
               lang={lang}
               payingMethod={payingMethod}
-              showDirectAccess={!product.requiresShipping}
+              showDirectAccess={!needsShipping}
               error={error}
+              ctaText={totals.totalGross === 0 ? { nl: "Bestelling afronden", en: "Complete order", de: "Bestellung abschließen" }[lang] : undefined}
             />
           </form>
 
@@ -509,24 +496,3 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
     </>
   );
 }
-
-/* ─── Icons ─── */
-
-const IdealIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <rect width="24" height="24" rx="4" fill="#CC0066" />
-    <text x="12" y="16" textAnchor="middle" fill="white" fontSize="9" fontWeight="bold" fontFamily="sans-serif">iDEAL</text>
-  </svg>
-);
-
-const CreditCardIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-ink/50">
-    <rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" />
-  </svg>
-);
-
-const ApplePayIcon = () => (
-  <svg width="18" height="22" viewBox="0 0 814 1000" className="text-ink/50">
-    <path fill="currentColor" d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76.5 0-103.7 40.8-165.9 40.8s-105.6-57.8-155.5-127.4c-58.3-81.6-105.3-208.2-105.3-329 0-193.6 125.8-296.3 249.6-296.3 65.8 0 120.8 43.4 162.1 43.4 39.2 0 100.2-46 175.6-46 28.3 0 130.9 2.6 198.3 98.3zm-271-182.2c31.2-36.9 53.4-88.1 53.4-139.3 0-7.1-.6-14.3-1.9-20.1-50.9 1.9-110.8 33.9-147.1 76.5-27 30.5-55.3 81.4-55.3 133.5 0 7.8.6 15.6 1.3 18.2 2.6.6 6.4 1.3 10.2 1.3 45.7 0 103.2-30.5 139.4-70.1z" />
-  </svg>
-);

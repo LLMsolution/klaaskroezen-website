@@ -28,12 +28,14 @@ interface Props {
   payingMethod: string | null;
   showDirectAccess: boolean;
   error: string;
+  /** Override CTA button text (used for free orders) */
+  ctaText?: string;
 }
 
 export function CheckoutTotals({
   totals, productShortName, selectedBumps, bumps,
   discountStatus, discountValue,
-  lang, payingMethod, showDirectAccess, error,
+  lang, payingMethod, showDirectAccess, error, ctaText,
 }: Props) {
   const i18n = t(lang);
 
@@ -85,7 +87,7 @@ export function CheckoutTotals({
             {i18n.processing}
           </>
         ) : (
-          `${i18n.payNow} — ${formatPrice(totals.totalGross, lang)}`
+          (ctaText ?? `${i18n.payNow} — ${formatPrice(totals.totalGross, lang)}`)
         )}
       </button>
 

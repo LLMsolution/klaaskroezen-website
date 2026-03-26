@@ -86,6 +86,7 @@ export const getBumpsForProduct = query({
         description: bumpProduct.description,
         image,
         mockupType: bumpProduct.mockupType,
+        requiresShipping: bumpProduct.requiresShipping,
       });
     }
     return bumps;
