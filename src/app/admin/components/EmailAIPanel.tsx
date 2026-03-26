@@ -50,7 +50,7 @@ export function EmailAIPanel({ templateId, currentHtml, lang, onApply }: Props) 
       });
       const { storageId } = await res.json();
       // Construct the Convex storage URL
-      const storageUrl = `${process.env.NEXT_PUBLIC_CONVEX_SITE_URL}/api/storage/${storageId}`;
+      const storageUrl = `${process.env.NEXT_PUBLIC_CONVEX_URL?.replace(".cloud", ".site")}/api/storage/${storageId}`;
       setImageUrls([...imageUrls, storageUrl]);
     } finally {
       setUploading(false);
