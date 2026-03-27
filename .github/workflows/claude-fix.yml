@@ -258,6 +258,20 @@ jobs:
         run: |
           claude --max-turns 15 --allowedTools "Write,Read,Edit,Bash,Glob,Grep" -p "$(cat /tmp/edit-prompt.txt)" || true
 
+      - name: Commit and push changes
+        env:
+          BRANCH_NAME: ${{ github.event.client_payload.branchName }}
+        run: |
+          git config user.name "Claude Code"
+          git config user.email "noreply@anthropic.com"
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git add -A
+            git commit -m "ai(layout): automated changes" || true
+            git push origin "$BRANCH_NAME" || true
+          fi
+
       - name: Send success callback
         if: success()
         env:
@@ -339,13 +353,21 @@ jobs:
           echo "$TEMPLATE" >> $GITHUB_OUTPUT
           echo "${DELIMITER}" >> $GITHUB_OUTPUT
 
+      - name: Write prompt to file
+        run: |
+          cat > /tmp/email-prompt.txt << 'EMAIL_PROMPT_EOF'
+          ${{ steps.load-prompt.outputs.CUSTOM_INSTRUCTIONS }}
+          EMAIL_PROMPT_EOF
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
       - name: Run Claude Code
         id: claude
-        uses: anthropics/claude-code-action@beta
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          custom_instructions: ${{ steps.load-prompt.outputs.CUSTOM_INSTRUCTIONS }}
-          direct_prompt: "true"
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          claude --max-turns 5 --allowedTools "Write,Read,Bash" -p "$(cat /tmp/email-prompt.txt)" || true
 
       - name: Send callback with generated HTML
         if: success()
