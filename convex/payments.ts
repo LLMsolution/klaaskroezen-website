@@ -305,15 +305,21 @@ async function buildLineItems(ctx: { db: any }, order: PendingOrder) {
       }
     }
 
-    // Add discount line item (negative amount)
+    // Add discount line item (negative amount, with proportional BTW)
     if (order.discountCode && order.discountAmount && order.discountAmount > 0) {
+      const discountBtwRate = applyBtw ? mainProduct.btwRate : 0;
+      const discountCalc = calcBtw(
+        order.discountAmount,
+        discountBtwRate,
+        mainProduct.priceInclBtw,
+      );
       items.push({
         description: `Korting: ${order.discountCode}`,
         quantity: 1,
-        unitPriceCents: -order.discountAmount,
-        btwRate: 0,
-        btwCents: 0,
-        totalCents: -order.discountAmount,
+        unitPriceCents: -discountCalc.net,
+        btwRate: discountBtwRate,
+        btwCents: -discountCalc.btw,
+        totalCents: -discountCalc.gross,
       });
     }
   }
