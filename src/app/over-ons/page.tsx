@@ -186,16 +186,16 @@ export default async function OverOnsPage() {
             </h2>
           </FadeIn>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-rule border border-rule">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-rule border border-rule">
             {(team.members ?? []).map((member: { name: string; role: string; image: string; description: string }) => (
               <div key={member.name} className="bg-paper">
-                <div className="relative aspect-square overflow-hidden bg-warm">
+                <div className="relative aspect-[3/4] overflow-hidden bg-warm">
                   <Image
                     src={member.image}
                     alt={member.name}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 640px) 100vw, 33vw"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     loading="lazy"
                   />
                 </div>
