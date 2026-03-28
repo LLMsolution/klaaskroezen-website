@@ -133,7 +133,7 @@ jobs:
       if: steps.detect.outputs.found == 'true'
       run: |
         cd ${{ steps.detect.outputs.dir }}
-        npm ci
+        npm install
         npm install --save-dev eslint-plugin-security || true
 
     - name: Run ESLint security scan

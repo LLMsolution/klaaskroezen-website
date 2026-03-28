@@ -49,7 +49,7 @@ jobs:
       if: steps.detect.outputs.found == 'true'
       run: |
         cd ${{ steps.detect.outputs.dir }}
-        npm ci
+        npm install
 
     - name: Run ESLint
       if: steps.detect.outputs.found == 'true'
