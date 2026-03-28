@@ -151,25 +151,24 @@ export const triggerBuild = action({
 
 /** Approve session: merge PR via GitHub API */
 export const approveSession = action({
-  args: { sessionId: v.id("layoutSessions") },
-  handler: async (ctx, { sessionId }) => {
+  args: {
+    sessionId: v.id("layoutSessions"),
+    syncContent: v.optional(v.boolean()),
+  },
+  handler: async (ctx, { sessionId, syncContent }) => {
     await ctx.runMutation(api.layoutEditor.verifyAdmin);
     const githubToken = process.env.GITHUB_PAT;
     if (!githubToken) throw new Error("GITHUB_PAT niet geconfigureerd.");
 
-    // Close session in DB
-    const result = await ctx.runMutation(api.layoutEditor.closeSession, {
-      sessionId,
-      action: "approve",
-    });
-
-    if (!result.prNumber) {
+    // Get session info BEFORE closing (need prNumber + targetPage)
+    const session = await ctx.runQuery(api.layoutEditor.getSession, { sessionId });
+    if (!session?.prNumber) {
       throw new Error("Geen PR nummer gevonden.");
     }
 
-    // Merge PR via GitHub API
+    // Merge PR FIRST — only close session after successful merge
     const mergeResponse = await fetch(
-      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/pulls/${result.prNumber}/merge`,
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/pulls/${session.prNumber}/merge`,
       {
         method: "PUT",
         headers: {
@@ -185,14 +184,61 @@ export const approveSession = action({
 
     if (!mergeResponse.ok) {
       const errorText = await mergeResponse.text();
+      await ctx.runMutation(internal.layoutEditor.addMessageInternal, {
+        sessionId,
+        role: "system",
+        text: `Merge mislukt: ${mergeResponse.status}. Probeer opnieuw.`,
+      });
       throw new Error(`PR merge failed: ${mergeResponse.status} ${errorText}`);
     }
 
-    // Sync new content to database (adds new pages/sections without overwriting admin edits)
+    // Get merge commit SHA for revert capability
+    let mergeCommitSha = "";
     try {
-      await ctx.runMutation(internal.siteSeed.syncNewContent, {});
+      const mergeData = await mergeResponse.json();
+      mergeCommitSha = mergeData.sha || "";
     } catch {
-      // Non-critical — new content can be synced manually via admin
+      // Non-critical — revert just won't be available
+    }
+
+    // Snapshot current page sections (before sync changes them)
+    let sectionSnapshot = "[]";
+    try {
+      const pageData = await ctx.runQuery(api.siteContent.getPage, { slug: session.targetPage });
+      if (pageData?.sections) {
+        sectionSnapshot = JSON.stringify(pageData.sections);
+      }
+    } catch {
+      // Non-critical
+    }
+
+    // Merge succeeded — now close session
+    const result = await ctx.runMutation(api.layoutEditor.closeSession, {
+      sessionId,
+      action: "approve",
+    });
+
+    // Store revert data on session
+    if (mergeCommitSha) {
+      try {
+        await ctx.runMutation(internal.layoutEditor.storeRevertData, {
+          sessionId,
+          mergeCommitSha,
+          sectionSnapshot,
+        });
+      } catch {
+        // Non-critical
+      }
+    }
+
+    // Schedule content sync after Convex redeploy (~3 min)
+    try {
+      await ctx.runMutation(internal.layoutEditor.scheduleSync, {
+        pageSlug: session.targetPage,
+        overwriteContent: syncContent ?? false,
+      });
+    } catch {
+      // Non-critical
     }
 
     // Delete branch (best-effort)
@@ -208,10 +254,14 @@ export const approveSession = action({
     );
 
     // Add system message
+    const syncMsg = syncContent
+      ? "Goedgekeurd! PR is gemerged. Content wordt over ~3 minuten gesynchroniseerd na de deploy."
+      : "Goedgekeurd! PR is gemerged. Je kunt de content invullen via het Content tabblad.";
+
     await ctx.runMutation(internal.layoutEditor.addMessageInternal, {
       sessionId,
       role: "system",
-      text: "Goedgekeurd! PR is gemerged en de wijziging gaat live na de deploy.",
+      text: syncMsg,
     });
   },
 });
@@ -262,6 +312,71 @@ export const rejectSession = action({
       sessionId,
       role: "system",
       text: "Afgewezen. De branch en PR zijn verwijderd.",
+    });
+  },
+});
+
+/** Revert the last approved session: dispatch git revert + restore page sections */
+export const revertSession = action({
+  args: { sessionId: v.id("layoutSessions") },
+  handler: async (ctx, { sessionId }) => {
+    await ctx.runMutation(api.layoutEditor.verifyAdmin);
+    const githubToken = process.env.GITHUB_PAT;
+    if (!githubToken) throw new Error("GITHUB_PAT niet geconfigureerd.");
+
+    const session = await ctx.runQuery(api.layoutEditor.getSession, { sessionId });
+    if (!session) throw new Error("Sessie niet gevonden.");
+    if (session.status !== "approved") throw new Error("Alleen goedgekeurde sessies kunnen worden teruggedraaid.");
+    if (!session.mergeCommitSha) throw new Error("Geen merge commit SHA beschikbaar voor revert.");
+
+    // 1. Dispatch git revert via GitHub Actions (reliable git revert --no-edit + push)
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/dispatches`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${githubToken}`,
+          Accept: "application/vnd.github.v3+json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          event_type: "layout-revert",
+          client_payload: {
+            commitSha: session.mergeCommitSha,
+            targetPage: session.targetPage,
+            sessionId,
+          },
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Revert dispatch mislukt: ${response.status} ${errorText}`);
+    }
+
+    // 2. Restore page sections from snapshot (remove AI-added sections)
+    if (session.sectionSnapshot) {
+      try {
+        await ctx.runMutation(internal.layoutEditor.restorePageSections, {
+          pageSlug: session.targetPage,
+          sectionSnapshot: session.sectionSnapshot,
+        });
+      } catch {
+        // Non-critical — sections can be fixed manually
+      }
+    }
+
+    // 3. Mark session as reverted
+    await ctx.runMutation(internal.layoutEditor.updateSessionStatus, {
+      sessionId,
+      status: "reverted",
+    });
+
+    await ctx.runMutation(internal.layoutEditor.addMessageInternal, {
+      sessionId,
+      role: "system",
+      text: "Teruggedraaid! De code wordt hersteld via GitHub. Vercel deployt opnieuw (~2 min).",
     });
   },
 });

@@ -946,6 +946,7 @@ export default defineSchema({
       v.literal("approved"),
       v.literal("rejected"),
       v.literal("failed"),
+      v.literal("reverted"),
     ),
     userId: v.id("users"),
     userEmail: v.string(),
@@ -963,6 +964,9 @@ export default defineSchema({
       }),
     ),
     errorMessage: v.optional(v.string()),
+    // Revert data (stored at approval, used for one-version-back undo)
+    mergeCommitSha: v.optional(v.string()),
+    sectionSnapshot: v.optional(v.string()), // JSON of page sections before sync
     lastActivityAt: v.number(),
     createdAt: v.number(),
     completedAt: v.optional(v.number()),

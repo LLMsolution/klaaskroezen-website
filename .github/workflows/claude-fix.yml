@@ -2,7 +2,7 @@ name: Claude Code Fix (Write Access)
 
 on:
   repository_dispatch:
-    types: [layout-plan, layout-edit, email-generate]
+    types: [layout-plan, layout-edit, layout-revert, email-generate]
   issue_comment:
     types: [created]
   pull_request_review_comment:
@@ -294,11 +294,19 @@ jobs:
           fi
           PR_NUM=${PR_NUM:-0}
 
-          # Callback to Convex
-          curl -X POST "$CALLBACK_URL" \
-            -H "Content-Type: application/json" \
-            -H "X-Callback-Secret: $CALLBACK_SECRET" \
-            -d "{\"sessionId\":\"$SESSION_ID\",\"status\":\"preview\",\"previewUrl\":\"$PREVIEW_URL\",\"prNumber\":$PR_NUM}"
+          if [ "$PR_NUM" = "0" ]; then
+            # No PR created — report failure
+            curl -X POST "$CALLBACK_URL" \
+              -H "Content-Type: application/json" \
+              -H "X-Callback-Secret: $CALLBACK_SECRET" \
+              -d "{\"sessionId\":\"$SESSION_ID\",\"status\":\"failed\",\"errorMessage\":\"Kon geen PR aanmaken. Controleer de workflow logs.\"}"
+          else
+            # PR exists — send preview
+            curl -X POST "$CALLBACK_URL" \
+              -H "Content-Type: application/json" \
+              -H "X-Callback-Secret: $CALLBACK_SECRET" \
+              -d "{\"sessionId\":\"$SESSION_ID\",\"status\":\"preview\",\"previewUrl\":\"$PREVIEW_URL\",\"prNumber\":$PR_NUM}"
+          fi
 
       - name: Send failure callback
         if: failure()
@@ -311,6 +319,29 @@ jobs:
             -H "Content-Type: application/json" \
             -H "X-Callback-Secret: $CALLBACK_SECRET" \
             -d "{\"sessionId\":\"$SESSION_ID\",\"status\":\"failed\",\"errorMessage\":\"Claude Code action failed. Check workflow logs for details.\"}"
+
+  layout-revert:
+    if: github.event_name == 'repository_dispatch' && github.event.action == 'layout-revert'
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Revert the merge commit
+        env:
+          COMMIT_SHA: ${{ github.event.client_payload.commitSha }}
+          TARGET_PAGE: ${{ github.event.client_payload.targetPage }}
+        run: |
+          git config user.name "Claude Code"
+          git config user.email "noreply@anthropic.com"
+          git revert --no-edit "$COMMIT_SHA"
+          git push origin main
 
   email-generate:
     if: github.event_name == 'repository_dispatch' && github.event.action == 'email-generate'

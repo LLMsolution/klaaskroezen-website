@@ -22,8 +22,10 @@ You are making visual/layout changes to a Next.js website. Follow these rules st
 
 ### ALSO ALLOWED for NEW pages only (if target starts with "new:"):
 - `convex/siteSchemas.ts` — Add content schema for admin editing
-- `convex/siteSeed*.ts` — Add seed content for the new page
+- `convex/siteSeed.ts` — Add import + entry to `getAllSeeds()` function
+- `convex/siteSeed[NewPage].ts` — Add seed content for the new page (follow existing pattern)
 - `src/app/[new-slug]/page.tsx` — Create the new page route
+- `src/lib/site-config.ts` — Add the new page to the PAGES array
 
 ### FORBIDDEN files (NEVER touch these):
 - `src/app/admin/**` — Admin panel
@@ -50,8 +52,14 @@ You are making visual/layout changes to a Next.js website. Follow these rules st
 - For aspect ratio changes: use Tailwind classes like `aspect-[16/9]` + `object-cover`
 - NEVER hardcode image paths in component JSX — always receive via props so admin can change them
 
+### Content Strategy
+- Content goes in `content.ts` files (fallback) — the admin can override via the Content tab later
+- If the user specifies exact content in their message (names, descriptions, text), use that exact content in `content.ts` — do NOT use placeholder text when the user gave you the real content
+- Only use placeholders ("Naam invullen", "Beschrijving toevoegen") when the user did NOT specify the content
+- The content.ts files serve as the initial values — the database overrides them when edited via admin
+
 ### Component Props Contract
-- Components receive content via props — NEVER hardcode text
+- Components receive content via props — NEVER hardcode text in JSX
 - The props interface is the contract with the database — NEVER change prop types
 - You may change how props are rendered (styling, layout) but not what props exist
 
