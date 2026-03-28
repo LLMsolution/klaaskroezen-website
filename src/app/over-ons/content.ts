@@ -43,6 +43,7 @@ export function getOverOnsContent(lang: Lang, images?: Record<string, string>) {
         { name: "Tim Lind", role: "Rechterhand van Klaas", description: "Samen bouwen we de app, verbeteren we continu de trainingen, werkboeken, presentaties en video\u2019s." },
         { name: "Joost Wammes", role: "Customer Success Manager", description: "Zocht zelf een salestraining en was z\u00f3 enthousiast dat hij nu deel uitmaakt van het team." },
         { name: "Sanne Bakker", role: "Klantenservice & administratie", description: "Al meer dan 20 jaar werkzaam bij Klaas. Verzorgt de klantenservice en administratie." },
+        { name: "Nieuwe collega", role: "Binnenkort meer", description: "We zijn op zoek naar een nieuw teamlid. Wil jij deel uitmaken van ons groeiende team?" },
       ],
       officeLabel: "Ons kantoor",
       officeTitle: "Het Oude",
@@ -94,6 +95,7 @@ export function getOverOnsContent(lang: Lang, images?: Record<string, string>) {
         { name: "Tim Lind", role: "Klaas's right hand", description: "Together we build the app and continuously improve the trainings, workbooks, presentations and videos." },
         { name: "Joost Wammes", role: "Customer Success Manager", description: "Was looking for a sales training himself and was so enthusiastic that he is now part of the team." },
         { name: "Sanne Bakker", role: "Customer service & administration", description: "Has been working with Klaas for over 20 years. Handles customer service and administration." },
+        { name: "New colleague", role: "Coming soon", description: "We are looking for a new team member. Would you like to be part of our growing team?" },
       ],
       officeLabel: "Our office",
       officeTitle: "The Old",
@@ -145,6 +147,7 @@ export function getOverOnsContent(lang: Lang, images?: Record<string, string>) {
         { name: "Tim Lind", role: "Rechte Hand von Klaas", description: "Gemeinsam entwickeln wir die App und verbessern kontinuierlich die Trainings, Arbeitsb\u00fccher, Pr\u00e4sentationen und Videos." },
         { name: "Joost Wammes", role: "Customer Success Manager", description: "Suchte selbst ein Vertriebstraining und war so begeistert, dass er jetzt Teil des Teams ist." },
         { name: "Sanne Bakker", role: "Kundenservice & Verwaltung", description: "Arbeitet seit \u00fcber 20 Jahren mit Klaas zusammen. K\u00fcmmert sich um den Kundenservice und die Verwaltung." },
+        { name: "Neue Kollegin", role: "Demnächst mehr", description: "Wir suchen ein neues Teammitglied. Möchten Sie Teil unseres wachsenden Teams werden?" },
       ],
       officeLabel: "Unser B\u00fcro",
       officeTitle: "Das Alte",
@@ -198,6 +201,7 @@ export function getOverOnsContent(lang: Lang, images?: Record<string, string>) {
           "about/tim-lind.png",
           "about/joost-wammes.png",
           "about/sanne-bakker.png",
+          "about/klaas-kroezen-portrait-2.jpeg",
         ];
         return {
           ...m,
