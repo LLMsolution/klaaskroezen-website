@@ -27,14 +27,25 @@ jobs:
   tests-passed:
     name: All Tests Passed
     runs-on: ubuntu-latest
+    if: always()
     needs: [frontend-linting, security-analysis, frontend-e2e]
     steps:
       - name: Tests Summary
         run: |
-          echo "✅ All required tests passed successfully!"
           echo "Frontend linting: ${{ needs.frontend-linting.result }}"
-          echo "Security analysis: ${{ needs.security-analysis.result }}"
+          echo "Security analysis: ${{ needs.security-analysis.result }} (non-blocking)"
           echo "Frontend E2E: ${{ needs.frontend-e2e.result }}"
+
+          # Required checks: linting + E2E must pass. Security is informational.
+          if [ "${{ needs.frontend-linting.result }}" != "success" ]; then
+            echo "::error::Frontend linting failed"
+            exit 1
+          fi
+          if [ "${{ needs.frontend-e2e.result }}" != "success" ]; then
+            echo "::error::Frontend E2E tests failed"
+            exit 1
+          fi
+          echo "All required tests passed!"
 
   # Auto-merge PR when all checks pass
   auto-merge:

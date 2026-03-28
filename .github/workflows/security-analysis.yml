@@ -128,14 +128,12 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '22'
-        cache: 'npm'
-        cache-dependency-path: '**/package-lock.json'
 
     - name: Install dependencies and security plugins
       if: steps.detect.outputs.found == 'true'
       run: |
         cd ${{ steps.detect.outputs.dir }}
-        npm ci
+        npm install
         npm install --save-dev eslint-plugin-security || true
 
     - name: Run ESLint security scan

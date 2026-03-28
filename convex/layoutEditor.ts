@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation, internalQuery, internalMutation } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { requireAdmin } from "./adminAuth";
 
 // ── Public queries ──
@@ -205,6 +206,7 @@ export const updateSessionStatus = internalMutation({
       v.literal("approved"),
       v.literal("rejected"),
       v.literal("failed"),
+      v.literal("reverted"),
     ),
     previewUrl: v.optional(v.string()),
     prNumber: v.optional(v.number()),
@@ -225,7 +227,7 @@ export const updateSessionStatus = internalMutation({
     if (errorMessage !== undefined) patch.errorMessage = errorMessage;
     if (plan !== undefined) patch.plan = plan;
     if (planVersion !== undefined) patch.planVersion = planVersion;
-    if (status === "approved" || status === "rejected" || status === "failed") {
+    if (["approved", "rejected", "failed", "reverted"].includes(status)) {
       patch.completedAt = Date.now();
     }
 
@@ -253,6 +255,25 @@ export const closeSession = mutation({
     });
 
     return { status, prNumber: session.prNumber, branchName: session.branchName };
+  },
+});
+
+/** Schedule content sync after Convex redeploy (called from approveSession action) */
+export const scheduleSync = internalMutation({
+  args: {
+    pageSlug: v.optional(v.string()),
+    overwriteContent: v.boolean(),
+  },
+  handler: async (ctx, { pageSlug, overwriteContent }) => {
+    const delayMs = 180_000; // 3 min — wait for Convex redeploy after PR merge
+
+    // Always sync structure (new pages/sections)
+    await ctx.scheduler.runAfter(delayMs, internal.siteSeed.syncNewContent, {});
+
+    // Optionally overwrite content for target page
+    if (overwriteContent && pageSlug) {
+      await ctx.scheduler.runAfter(delayMs + 5000, internal.siteSeed.syncPageContentFull, { pageSlug });
+    }
   },
 });
 
@@ -286,5 +307,57 @@ export const listSessions = query({
       .query("layoutSessions")
       .order("desc")
       .take(20);
+  },
+});
+
+/** Get the last approved session that can be reverted (admin only) */
+export const getRevertableSession = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    const session = await ctx.db
+      .query("layoutSessions")
+      .withIndex("by_status")
+      .filter((q) => q.eq(q.field("status"), "approved"))
+      .order("desc")
+      .first();
+
+    if (!session?.mergeCommitSha) return null;
+    return {
+      _id: session._id,
+      targetPage: session.targetPage,
+      completedAt: session.completedAt,
+      userEmail: session.userEmail,
+      plan: session.plan,
+    };
+  },
+});
+
+/** Internal: store revert data on approved session */
+export const storeRevertData = internalMutation({
+  args: {
+    sessionId: v.id("layoutSessions"),
+    mergeCommitSha: v.string(),
+    sectionSnapshot: v.string(),
+  },
+  handler: async (ctx, { sessionId, mergeCommitSha, sectionSnapshot }) => {
+    await ctx.db.patch(sessionId, { mergeCommitSha, sectionSnapshot });
+  },
+});
+
+/** Internal: restore page sections from snapshot (used by revert) */
+export const restorePageSections = internalMutation({
+  args: {
+    pageSlug: v.string(),
+    sectionSnapshot: v.string(),
+  },
+  handler: async (ctx, { pageSlug, sectionSnapshot }) => {
+    const page = await ctx.db.query("sitePages")
+      .filter((q) => q.eq(q.field("slug"), pageSlug))
+      .first();
+    if (!page) return;
+
+    const sections = JSON.parse(sectionSnapshot);
+    await ctx.db.patch(page._id, { sections, updatedAt: Date.now() });
   },
 });

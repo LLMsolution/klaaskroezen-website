@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
+import type { Id } from "../../../../convex/_generated/dataModel";
 import { Loading } from "./shared";
 
 type ViewportSize = "desktop" | "tablet" | "mobile";
@@ -15,13 +16,14 @@ const VIEWPORT_WIDTHS: Record<ViewportSize, string> = {
 export function LayoutEditorTab() {
   const pages = useQuery(api.siteContent.listPages);
   const activeSession = useQuery(api.layoutEditor.getActiveSession);
+  const revertableSession = useQuery(api.layoutEditor.getRevertableSession);
   const startSession = useMutation(api.layoutEditor.startSession);
   const addMessage = useMutation(api.layoutEditor.addMessage);
   const triggerPlanUpdate = useAction(api.layoutEditorActions.triggerPlanUpdate);
   const triggerBuild = useAction(api.layoutEditorActions.triggerBuild);
   const approveSession = useAction(api.layoutEditorActions.approveSession);
   const rejectSession = useAction(api.layoutEditorActions.rejectSession);
-  const closeSession = useMutation(api.layoutEditor.closeSession);
+  const revertSessionAction = useAction(api.layoutEditorActions.revertSession);
 
   const [selectedPage, setSelectedPage] = useState("");
   const [inputText, setInputText] = useState("");
@@ -35,7 +37,7 @@ export function LayoutEditorTab() {
 
   if (pages === undefined || activeSession === undefined) return <Loading />;
 
-  const isActive = activeSession && !["approved", "rejected", "failed"].includes(activeSession.status);
+  const isActive = activeSession && !["approved", "rejected", "failed", "reverted"].includes(activeSession.status);
   const session = isActive ? activeSession : null;
 
   async function handleStartSession() {
@@ -80,11 +82,14 @@ export function LayoutEditorTab() {
     }
   }
 
-  async function handleApprove() {
+  async function handleApprove(syncContent: boolean) {
     if (!session) return;
-    if (!confirm("Goedkeuren en live zetten?")) return;
+    const msg = syncContent
+      ? "Goedkeuren en AI-content overnemen in de database?"
+      : "Goedkeuren? Je kunt de content later zelf invullen via het Content tabblad.";
+    if (!confirm(msg)) return;
     try {
-      await approveSession({ sessionId: session._id });
+      await approveSession({ sessionId: session._id, syncContent });
     } catch (err) {
       alert(err instanceof Error ? err.message : "Fout bij goedkeuren.");
     }
@@ -101,7 +106,7 @@ export function LayoutEditorTab() {
   }
 
   // Lock by another user
-  if (activeSession && !["approved", "rejected", "failed"].includes(activeSession.status) && !session) {
+  if (activeSession && !["approved", "rejected", "failed", "reverted"].includes(activeSession.status) && !session) {
     return (
       <div className="text-center py-16">
         <p className="text-[15px] text-ink/60">Er is een actieve sessie van <strong>{activeSession.userEmail}</strong>.</p>
@@ -111,7 +116,23 @@ export function LayoutEditorTab() {
   }
 
   if (!session) {
-    return <StartScreen pages={pages} selectedPage={selectedPage} onPageChange={setSelectedPage} onStart={handleStartSession} />;
+    return (
+      <StartScreen
+        pages={pages}
+        selectedPage={selectedPage}
+        onPageChange={setSelectedPage}
+        onStart={handleStartSession}
+        revertable={revertableSession ?? null}
+        onRevert={async (id) => {
+          if (!confirm("Weet je zeker dat je de laatste layout wijziging wilt terugdraaien? Dit kan niet ongedaan worden.")) return;
+          try {
+            await revertSessionAction({ sessionId: id });
+          } catch (err) {
+            alert(err instanceof Error ? err.message : "Fout bij terugdraaien.");
+          }
+        }}
+      />
+    );
   }
 
   const showPreview = session.status === "preview" || session.status === "building";
@@ -130,9 +151,9 @@ export function LayoutEditorTab() {
         onApprove={handleApprove}
         onReject={handleReject}
         onBack={async () => {
-          if (!confirm("Sessie afsluiten? Het plan gaat verloren.")) return;
+          if (!confirm("Sessie afsluiten? De branch en eventuele PR worden verwijderd.")) return;
           try {
-            await closeSession({ sessionId: session._id, action: "reject" });
+            await rejectSession({ sessionId: session._id });
           } catch { /* ignore */ }
         }}
         messagesEndRef={messagesEndRef}
@@ -149,11 +170,13 @@ export function LayoutEditorTab() {
 
 /* ─── Start screen ─── */
 
-function StartScreen({ pages, selectedPage, onPageChange, onStart }: {
+function StartScreen({ pages, selectedPage, onPageChange, onStart, revertable, onRevert }: {
   pages: { slug: string; title: { nl: string; en: string } }[];
   selectedPage: string;
   onPageChange: (v: string) => void;
   onStart: () => void;
+  revertable: { _id: Id<"layoutSessions">; targetPage: string; completedAt?: number; userEmail: string; plan?: string } | null;
+  onRevert: (sessionId: Id<"layoutSessions">) => void;
 }) {
   const [newPageMode, setNewPageMode] = useState(false);
   const [newPageName, setNewPageName] = useState("");
@@ -201,6 +224,30 @@ function StartScreen({ pages, selectedPage, onPageChange, onStart }: {
           Sessie starten
         </button>
       </div>
+
+      {/* Revert last approved change */}
+      {revertable && (
+        <div className="mt-10 pt-8 border-t border-rule">
+          <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40 mb-3">Laatste wijziging</p>
+          <div className="border border-rule rounded-[2px] p-4 bg-warm/20">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[13px] font-medium text-ink">{revertable.targetPage}</p>
+              <span className="text-[11px] text-ink/40">
+                {revertable.completedAt ? new Date(revertable.completedAt).toLocaleDateString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : ""}
+              </span>
+            </div>
+            <p className="text-[12px] text-ink/50 mb-3 line-clamp-2">
+              {revertable.plan ? revertable.plan.slice(0, 150) + (revertable.plan.length > 150 ? "..." : "") : "Geen plan beschikbaar"}
+            </p>
+            <button
+              onClick={() => onRevert(revertable._id)}
+              className="text-[11px] font-medium tracking-[0.1em] uppercase text-red-600 hover:text-red-700 cursor-pointer"
+            >
+              Terugdraaien
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -214,7 +261,7 @@ function ChatPanel({ session, inputText, sending, onInputChange, onSend, onBuild
   onInputChange: (v: string) => void;
   onSend: () => void;
   onBuild: () => void;
-  onApprove: () => void;
+  onApprove: (syncContent: boolean) => void;
   onReject: () => void;
   onBack: () => void;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
@@ -265,11 +312,16 @@ function ChatPanel({ session, inputText, sending, onInputChange, onSend, onBuild
 
       {/* Action buttons */}
       {isPreview && (
-        <div className="px-5 py-3 border-t border-rule flex gap-2">
-          <button onClick={onApprove} className="flex-1 bg-green-700 text-white px-4 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-green-800 transition-colors rounded-[2px] cursor-pointer">
-            Goedkeuren
-          </button>
-          <button onClick={onReject} className="flex-1 bg-ink/10 text-ink px-4 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-ink/20 transition-colors rounded-[2px] cursor-pointer">
+        <div className="px-5 py-3 border-t border-rule space-y-2">
+          <div className="flex gap-2">
+            <button onClick={() => onApprove(false)} className="flex-1 bg-green-700 text-white px-3 py-2.5 text-[11px] font-medium tracking-[0.05em] uppercase hover:bg-green-800 transition-colors rounded-[2px] cursor-pointer">
+              Goedkeuren (zelf invullen)
+            </button>
+            <button onClick={() => onApprove(true)} className="flex-1 bg-copper text-paper px-3 py-2.5 text-[11px] font-medium tracking-[0.05em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer">
+              Goedkeuren (data overnemen)
+            </button>
+          </div>
+          <button onClick={onReject} className="w-full bg-ink/10 text-ink px-4 py-2 text-[11px] font-medium tracking-[0.1em] uppercase hover:bg-ink/20 transition-colors rounded-[2px] cursor-pointer">
             Afkeuren
           </button>
         </div>

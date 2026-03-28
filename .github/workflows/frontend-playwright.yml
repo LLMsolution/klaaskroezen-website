@@ -54,7 +54,7 @@ jobs:
       if: steps.detect.outputs.found == 'true'
       run: |
         cd ${{ steps.detect.outputs.dir }}
-        npm ci
+        npm install
 
     - name: Install Playwright browsers
       if: steps.detect.outputs.found == 'true'
