@@ -188,6 +188,13 @@ export const approveSession = action({
       throw new Error(`PR merge failed: ${mergeResponse.status} ${errorText}`);
     }
 
+    // Sync new content to database (adds new pages/sections without overwriting admin edits)
+    try {
+      await ctx.runMutation(internal.siteSeed.syncNewContent, {});
+    } catch {
+      // Non-critical — new content can be synced manually via admin
+    }
+
     // Delete branch (best-effort)
     await fetch(
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/git/refs/heads/${result.branchName}`,

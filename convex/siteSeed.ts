@@ -48,40 +48,87 @@ export function makeContent(
   };
 }
 
+/** DESTRUCTIVE seed — clears all existing content and re-seeds. Use only for initial setup. */
 export const seed = internalMutation({
   args: {},
   handler: async (ctx) => {
-    // Clear existing data
     const existingPages = await ctx.db.query("sitePages").collect();
-    for (const page of existingPages) {
-      await ctx.db.delete(page._id);
-    }
+    for (const page of existingPages) await ctx.db.delete(page._id);
     const existingContent = await ctx.db.query("siteContent").collect();
-    for (const content of existingContent) {
-      await ctx.db.delete(content._id);
-    }
+    for (const content of existingContent) await ctx.db.delete(content._id);
 
     const now = Date.now();
     const pages: PageSeed[] = [
-      seedSetContent(),
-      seedCstContent(),
-      seedBoekContent(),
-      seedSprekerContent(),
-      seedOverOnsContent(),
+      seedSetContent(), seedCstContent(), seedBoekContent(),
+      seedSprekerContent(), seedOverOnsContent(),
     ];
 
     for (const page of pages) {
       await ctx.db.insert("sitePages", {
-        slug: page.slug,
-        title: page.title,
-        sections: page.sections,
-        createdAt: now,
-        updatedAt: now,
+        slug: page.slug, title: page.title, sections: page.sections,
+        createdAt: now, updatedAt: now,
       });
+      for (const entry of page.content) await ctx.db.insert("siteContent", entry);
+    }
+  },
+});
 
-      for (const entry of page.content) {
-        await ctx.db.insert("siteContent", entry);
+/** SAFE sync — adds new pages/sections without overwriting existing admin edits. */
+export const syncNewContent = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const pages: PageSeed[] = [
+      seedSetContent(), seedCstContent(), seedBoekContent(),
+      seedSprekerContent(), seedOverOnsContent(),
+    ];
+
+    let added = 0;
+    for (const page of pages) {
+      // Check if page exists
+      const existing = await ctx.db.query("sitePages")
+        .filter((q) => q.eq(q.field("slug"), page.slug))
+        .first();
+
+      if (!existing) {
+        // New page — create it with all content
+        await ctx.db.insert("sitePages", {
+          slug: page.slug, title: page.title, sections: page.sections,
+          createdAt: now, updatedAt: now,
+        });
+        for (const entry of page.content) {
+          await ctx.db.insert("siteContent", entry);
+        }
+        added++;
+      } else {
+        // Page exists — check for new sections only
+        const existingSections = existing.sections.map((s: { id: string }) => s.id);
+        const newSections = page.sections.filter((s) => !existingSections.includes(s.id));
+
+        if (newSections.length > 0) {
+          // Add new sections to the page
+          await ctx.db.patch(existing._id, {
+            sections: [...existing.sections, ...newSections],
+            updatedAt: now,
+          });
+
+          // Add content entries for new sections only
+          for (const entry of page.content) {
+            if (newSections.some((s) => s.id === entry.sectionId)) {
+              const contentExists = await ctx.db.query("siteContent")
+                .withIndex("by_page_section", (q) =>
+                  q.eq("pageSlug", entry.pageSlug).eq("sectionId", entry.sectionId).eq("lang", entry.lang as "nl" | "en" | "de"),
+                )
+                .first();
+              if (!contentExists) {
+                await ctx.db.insert("siteContent", entry);
+                added++;
+              }
+            }
+          }
+        }
       }
     }
+    return added;
   },
 });
