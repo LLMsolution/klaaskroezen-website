@@ -346,7 +346,14 @@ function PreviewPanel({ previewUrl, status, viewport, onViewportChange }: {
   return (
     <div className="flex-1 flex flex-col bg-warm/10">
       <div className="px-5 py-3 border-b border-rule flex items-center justify-between">
-        <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40">Preview</p>
+        <div className="flex items-center gap-2">
+          <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40">Preview</p>
+          {previewUrl && (
+            <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-copper hover:text-copper-light transition-colors">
+              Open in nieuw tab ↗
+            </a>
+          )}
+        </div>
         <div className="flex items-center gap-1">
           {(["desktop", "tablet", "mobile"] as ViewportSize[]).map((size) => (
             <button key={size} onClick={() => onViewportChange(size)}
