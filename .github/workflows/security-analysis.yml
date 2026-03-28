@@ -129,7 +129,7 @@ jobs:
       with:
         node-version: '22'
         cache: 'npm'
-        cache-dependency-path: '**/package-lock.json'
+        cache-dependency-path: 'package-lock.json'
 
     - name: Install dependencies and security plugins
       if: steps.detect.outputs.found == 'true'
