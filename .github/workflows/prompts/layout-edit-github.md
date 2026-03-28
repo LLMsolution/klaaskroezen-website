@@ -63,15 +63,12 @@ You are making visual/layout changes to a Next.js website. Follow these rules st
 - The props interface is the contract with the database — NEVER change prop types
 - You may change how props are rendered (styling, layout) but not what props exist
 
-### Validation (HARD GATE — must pass before committing)
+### Validation (HARD GATE — must pass before finishing)
 Run these checks. If they fail, fix and retry (max 2 attempts):
 1. `npx next lint` — must pass with 0 errors
 2. `npx tsc --noEmit` — must pass with 0 errors
 
-### Git
-1. Stage only the files you changed
-2. Commit with message: "ai(layout): [brief description of change]"
-3. Push to the branch: $BRANCH_NAME
-
-### After pushing
-The callback will be handled by the workflow. Just focus on making the code changes.
+### IMPORTANT: Do NOT commit or push
+Do NOT run any git commands (no git add, git commit, or git push).
+The workflow will handle committing and pushing your changes automatically.
+Just make the code changes and ensure validation passes.

@@ -264,12 +264,19 @@ jobs:
         run: |
           git config user.name "Claude Code"
           git config user.email "noreply@anthropic.com"
-          if git diff --quiet && git diff --cached --quiet; then
-            echo "No changes to commit"
-          else
+
+          # Check for uncommitted changes (Claude may not have committed)
+          if ! git diff --quiet || ! git diff --cached --quiet; then
             git add -A
             git commit -m "ai(layout): automated changes" || true
-            git push origin "$BRANCH_NAME" || true
+          fi
+
+          # Push branch if it has commits ahead of origin/main
+          COMMITS_AHEAD=$(git rev-list --count origin/main..HEAD 2>/dev/null || echo "0")
+          if [ "$COMMITS_AHEAD" -gt "0" ]; then
+            git push origin "$BRANCH_NAME" || git push --force-with-lease origin "$BRANCH_NAME" || true
+          else
+            echo "No changes to push"
           fi
 
       - name: Send success callback
