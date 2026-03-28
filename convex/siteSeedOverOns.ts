@@ -103,6 +103,7 @@ export function seedOverOnsContent(): PageSeed {
         { name: "Tim Lind", role: "Rechterhand van Klaas", image: "/images/about/tim-lind.png", description: "Samen bouwen we de app, verbeteren we continu de trainingen, werkboeken, presentaties en video's." },
         { name: "Joost Wammes", role: "Customer Success Manager", image: "/images/about/joost-wammes.png", description: "Zocht zelf een salestraining en was zó enthousiast dat hij nu deel uitmaakt van het team." },
         { name: "Sanne Bakker", role: "Klantenservice & administratie", image: "/images/about/sanne-bakker.png", description: "Al meer dan 20 jaar werkzaam bij Klaas. Verzorgt de klantenservice en administratie." },
+        { name: "Naam invullen", role: "Functie invullen", image: "", description: "Beschrijving toevoegen." },
       ],
     }),
     makeContent(SLUG, "team", "team", "en", {
@@ -113,6 +114,7 @@ export function seedOverOnsContent(): PageSeed {
         { name: "Tim Lind", role: "Klaas's right hand", image: "/images/about/tim-lind.png", description: "Together we build the app and continuously improve the trainings, workbooks, presentations and videos." },
         { name: "Joost Wammes", role: "Customer Success Manager", image: "/images/about/joost-wammes.png", description: "Was looking for a sales training himself and was so enthusiastic that he is now part of the team." },
         { name: "Sanne Bakker", role: "Customer service & administration", image: "/images/about/sanne-bakker.png", description: "Has been working with Klaas for over 20 years. Handles customer service and administration." },
+        { name: "Fill in name", role: "Fill in role", image: "", description: "Add description." },
       ],
     }),
     // ── Office ──
