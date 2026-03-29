@@ -164,6 +164,26 @@ export const processSequenceStep = internalAction({
       if (stepIndex + 1 < fallbackSteps.length) nextDelay = fallbackSteps[stepIndex + 1].delayDays;
     }
 
+    // Resolve template variables ({{name}}, {{firstName}}, {{product}}, {{training}})
+    const purchase = await ctx.runQuery(internal.emailSequences.getPurchase, { purchaseId: seq.purchaseId });
+    const buyerName = purchase?.buyerEmail
+      ? (await ctx.runQuery(internal.emailSequences.getContactName, { email: purchase.buyerEmail }))
+      : null;
+    const name = buyerName?.firstName
+      ? [buyerName.firstName, buyerName.lastName].filter(Boolean).join(" ")
+      : (purchase?.buyerEmail?.split("@")[0] ?? "");
+    const firstName = buyerName?.firstName ?? name.split(" ")[0] ?? "";
+
+    html = html
+      .replaceAll("{{name}}", name)
+      .replaceAll("{{firstName}}", firstName)
+      .replaceAll("{{product}}", seq.product)
+      .replaceAll("{{training}}", seq.product);
+    subject = subject
+      .replaceAll("{{name}}", name)
+      .replaceAll("{{firstName}}", firstName)
+      .replaceAll("{{product}}", seq.product);
+
     // Send via core sendEmail in emails.ts
     await ctx.runAction(internal.emails.sendEmail, {
       to: seq.email,
@@ -237,6 +257,25 @@ export const getSequence = internalQuery({
   args: { sequenceId: v.id("emailSequences") },
   handler: async (ctx, { sequenceId }) => {
     return await ctx.db.get(sequenceId);
+  },
+});
+
+export const getPurchase = internalQuery({
+  args: { purchaseId: v.id("purchases") },
+  handler: async (ctx, { purchaseId }) => {
+    return await ctx.db.get(purchaseId);
+  },
+});
+
+export const getContactName = internalQuery({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const contact = await ctx.db
+      .query("contacts")
+      .withIndex("by_email", (q) => q.eq("email", email.toLowerCase()))
+      .first();
+    if (contact) return { firstName: contact.firstName, lastName: contact.lastName };
+    return null;
   },
 });
 
