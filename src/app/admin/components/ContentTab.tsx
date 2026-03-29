@@ -203,6 +203,7 @@ function PageSections({ slug }: { slug: string }) {
                   <ContentFieldRenderer
                     fields={schema.fields}
                     data={editData as Record<string, unknown>}
+                    displayData={(entry as { displayContent?: Record<string, unknown> }).displayContent}
                     onChange={setEditData}
                   />
                 )}

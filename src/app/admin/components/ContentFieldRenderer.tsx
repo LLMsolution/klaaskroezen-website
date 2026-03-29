@@ -6,6 +6,7 @@ import { AdminImageUpload } from "./AdminImageUpload";
 type Props = {
   fields: FieldSchema[];
   data: Record<string, unknown>;
+  displayData?: Record<string, unknown>; // Resolved URLs for image previews
   onChange: (data: Record<string, unknown>) => void;
   prefix?: string;
 };
@@ -15,7 +16,7 @@ const labelClass =
 const inputClass =
   "w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]";
 
-export function ContentFieldRenderer({ fields, data, onChange, prefix = "" }: Props) {
+export function ContentFieldRenderer({ fields, data, displayData, onChange, prefix = "" }: Props) {
   function updateField(key: string, value: unknown) {
     onChange({ ...data, [key]: value });
   }
@@ -43,11 +44,13 @@ export function ContentFieldRenderer({ fields, data, onChange, prefix = "" }: Pr
 
         // ── Image path with upload + preview ──
         if (field.type === "image-path") {
+          const displayValue = displayData?.[field.key] as string | undefined;
           return (
             <ContentImageField
               key={fieldKey}
               label={field.label}
               value={(value as string) ?? ""}
+              resolvedUrl={displayValue}
               onChange={(v) => updateField(field.key, v)}
             />
           );
@@ -91,6 +94,7 @@ export function ContentFieldRenderer({ fields, data, onChange, prefix = "" }: Pr
               <ContentFieldRenderer
                 fields={field.fields}
                 data={(value as Record<string, unknown>) ?? {}}
+                displayData={displayData?.[field.key] as Record<string, unknown> | undefined}
                 onChange={(newVal) => updateField(field.key, newVal)}
                 prefix={fieldKey}
               />
@@ -155,6 +159,7 @@ export function ContentFieldRenderer({ fields, data, onChange, prefix = "" }: Pr
                           <ContentFieldRenderer
                             fields={field.itemFields!}
                             data={(item as Record<string, unknown>) ?? {}}
+                            displayData={((displayData?.[field.key] as unknown[]) ?? [])[idx] as Record<string, unknown> | undefined}
                             onChange={(newItem) => {
                               const updated = [...items];
                               updated[idx] = newItem;
@@ -223,14 +228,16 @@ export function ContentFieldRenderer({ fields, data, onChange, prefix = "" }: Pr
 function ContentImageField({
   label,
   value,
+  resolvedUrl,
   onChange,
 }: {
   label: string;
   value: string;
+  resolvedUrl?: string;
   onChange: (v: string) => void;
 }) {
-  // Resolve display URL: static paths stay as-is, convex:storageId needs resolution
-  const displayUrl = value && !value.startsWith("convex:") ? value : undefined;
+  // Use resolved URL (from displayData) or static path
+  const displayUrl = resolvedUrl || (value && !value.startsWith("convex:") ? value : undefined);
 
   return (
     <div>

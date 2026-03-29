@@ -4,6 +4,31 @@ import { internal, api } from "./_generated/api";
 import { requireAdmin } from "./adminAuth";
 import { langValidator } from "./schema";
 
+// ── Helpers ──
+
+/** Recursively resolve "convex:<storageId>" values to signed URLs */
+async function resolveConvexUrls(
+  ctx: { storage: { getUrl: (id: string) => Promise<string | null> } },
+  obj: unknown,
+): Promise<unknown> {
+  if (typeof obj === "string" && obj.startsWith("convex:")) {
+    const storageId = obj.slice(7);
+    const url = await ctx.storage.getUrl(storageId);
+    return url ?? obj;
+  }
+  if (Array.isArray(obj)) {
+    return Promise.all(obj.map((item) => resolveConvexUrls(ctx, item)));
+  }
+  if (obj && typeof obj === "object") {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      result[key] = await resolveConvexUrls(ctx, value);
+    }
+    return result;
+  }
+  return obj;
+}
+
 // ── Public queries ──
 
 /** Get a page definition with its section list */
@@ -37,7 +62,8 @@ export const getPageContent = query({
     for (const entry of filtered) {
       const key = lang ? entry.sectionId : `${entry.sectionId}_${entry.lang}`;
       try {
-        result[key] = JSON.parse(entry.content);
+        const parsed = JSON.parse(entry.content);
+        result[key] = await resolveConvexUrls(ctx, parsed) as Record<string, unknown>;
       } catch {
         result[key] = {};
       }
@@ -95,17 +121,22 @@ export const getPageContentAdmin = query({
       .withIndex("by_page", (q) => q.eq("pageSlug", slug))
       .collect();
 
-    return entries.map((entry) => {
+    const resolved = [];
+    for (const entry of entries) {
       try {
-        return {
+        const raw = JSON.parse(entry.content);
+        const display = await resolveConvexUrls(ctx, raw);
+        resolved.push({
           ...entry,
-          parsedContent: JSON.parse(entry.content),
+          parsedContent: raw,       // Raw data with convex: refs (for saving)
+          displayContent: display,  // Resolved URLs (for admin previews)
           parsedSchema: JSON.parse(entry.schema),
-        };
+        });
       } catch {
-        return { ...entry, parsedContent: {}, parsedSchema: {} };
+        resolved.push({ ...entry, parsedContent: {}, displayContent: {}, parsedSchema: {} });
       }
-    });
+    }
+    return resolved;
   },
 });
 
