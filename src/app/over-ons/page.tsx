@@ -30,6 +30,7 @@ export default async function OverOnsPage() {
     "about/tim-lind.png",
     "about/joost-wammes.png",
     "about/sanne-bakker.png",
+    "about/teamlid-4.png",
   ]);
   const imageUrls: Record<string, string> = {};
   for (const key of Object.keys(img)) {
@@ -186,7 +187,7 @@ export default async function OverOnsPage() {
             </h2>
           </FadeIn>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-rule border border-rule">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-rule border border-rule">
             {(team.members ?? []).map((member: { name: string; role: string; image: string; description: string }) => (
               <div key={member.name} className="bg-paper">
                 <div className="relative aspect-square overflow-hidden bg-warm">
@@ -195,7 +196,7 @@ export default async function OverOnsPage() {
                     alt={member.name}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 640px) 100vw, 33vw"
+                    sizes="(max-width: 640px) 100vw, 50vw"
                     loading="lazy"
                   />
                 </div>
