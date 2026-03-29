@@ -5,6 +5,7 @@ import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { Loading } from "./shared";
+import { resizeImage, renderMarkdown } from "./layoutEditorHelpers";
 
 
 export function LayoutEditorTab() {
@@ -245,7 +246,7 @@ function StartScreen({ pages, selectedPage, onPageChange, onStart, revertable, o
 /* ─── Chat panel (left) ─── */
 
 function ChatPanel({ session, inputText, sending, onInputChange, onSend, onBuild, onApprove, onReject, onBack, messagesEndRef }: {
-  session: { _id: string; targetPage: string; status: string; plan?: string; messages: { role: string; text: string; createdAt: number }[]; errorMessage?: string };
+  session: { _id: string; targetPage: string; status: string; plan?: string; messages: { role: string; text: string; createdAt: number }[]; errorMessage?: string; uploadedImages?: { storageId: string; url: string; fileName: string }[] };
   inputText: string;
   sending: boolean;
   onInputChange: (v: string) => void;
@@ -256,10 +257,42 @@ function ChatPanel({ session, inputText, sending, onInputChange, onSend, onBuild
   onBack: () => void;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
 }) {
+  const generateUploadUrl = useMutation(api.layoutEditor.generateImageUploadUrl);
+  const addImageToSession = useMutation(api.layoutEditor.addImageToSession);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const isPlanning = session.status === "planning";
   const isPreview = session.status === "preview";
   const canChat = session.status === "chatting";
   const hasPlan = !!session.plan;
+
+  async function handleImageUpload(file: File) {
+    if (!file.type.startsWith("image/")) return;
+    setUploading(true);
+    try {
+      // Resize to max 1920px WebP
+      const resized = await resizeImage(file);
+      // Upload to Convex
+      const uploadUrl = await generateUploadUrl();
+      const result = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": "image/webp" },
+        body: resized,
+      });
+      const { storageId } = await result.json();
+      // Save to session
+      await addImageToSession({
+        sessionId: session._id as Id<"layoutSessions">,
+        storageId,
+        fileName: file.name.replace(/\.[^.]+$/, ".webp"),
+      });
+    } catch {
+      alert("Afbeelding uploaden mislukt.");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   return (
     <div className="w-[40%] min-w-[320px] border-r border-rule flex flex-col">
@@ -312,6 +345,18 @@ function ChatPanel({ session, inputText, sending, onInputChange, onSend, onBuild
         </div>
       )}
 
+      {/* Uploaded images */}
+      {session.uploadedImages && session.uploadedImages.length > 0 && (
+        <div className="px-5 py-2 border-t border-rule flex gap-2 flex-wrap">
+          {session.uploadedImages.map((img, i) => (
+            <div key={i} className="relative group">
+              <img src={img.url} alt={img.fileName} className="w-12 h-12 object-cover rounded-[2px] border border-rule" />
+              <p className="text-[9px] text-ink/40 truncate max-w-[48px]">{img.fileName}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Input + build button */}
       <div className="px-5 py-4 border-t border-rule space-y-2">
         <div className="flex gap-2">
@@ -324,6 +369,26 @@ function ChatPanel({ session, inputText, sending, onInputChange, onSend, onBuild
             disabled={!canChat || sending}
             className="flex-1 border border-rule px-3 py-2.5 text-[13px] text-ink placeholder:text-ink/30 focus:border-copper focus:outline-none rounded-[2px] disabled:opacity-40"
           />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              const files = e.target.files;
+              if (files) Array.from(files).forEach(handleImageUpload);
+              e.target.value = "";
+            }}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={!canChat || uploading}
+            className="border border-rule px-2.5 py-2.5 text-[14px] text-ink/40 hover:text-ink hover:border-ink/30 transition-colors rounded-[2px] cursor-pointer disabled:opacity-40"
+            title="Afbeelding uploaden"
+          >
+            {uploading ? "..." : "+"}
+          </button>
           <button onClick={onSend} disabled={!canChat || sending || !inputText.trim()}
             className="bg-copper text-paper px-4 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer disabled:opacity-40">
             {sending ? "..." : "Stuur"}
@@ -460,24 +525,3 @@ function MessageBubble({ message }: { message: { role: string; text: string; cre
   );
 }
 
-/** Simple markdown → HTML renderer for plan and chat */
-function renderMarkdown(md: string): string {
-  return md
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    // Headings
-    .replace(/^### (.+)$/gm, '<h4 style="font-size:13px;font-weight:700;color:#0E0C0A;margin:12px 0 4px;">$1</h4>')
-    .replace(/^## (.+)$/gm, '<h3 style="font-size:14px;font-weight:700;color:#0E0C0A;margin:16px 0 6px;">$1</h3>')
-    .replace(/^# (.+)$/gm, '<h2 style="font-size:16px;font-weight:700;color:#0E0C0A;margin:20px 0 8px;">$1</h2>')
-    // Bold + italic
-    .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#0E0C0A;">$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    // Inline code
-    .replace(/`([^`]+)`/g, '<code style="background:#EDE9E2;padding:1px 4px;border-radius:2px;font-size:12px;">$1</code>')
-    // List items
-    .replace(/^[*\-] (.+)$/gm, '<div style="padding-left:16px;margin:2px 0;">• $1</div>')
-    // Line breaks
-    .replace(/\n\n/g, '<div style="height:8px;"></div>')
-    .replace(/\n/g, '<br />');
-}

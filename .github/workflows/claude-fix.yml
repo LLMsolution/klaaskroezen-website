@@ -226,6 +226,23 @@ jobs:
           export CALLBACK_SECRET="${{ github.event.client_payload.callbackSecret }}"
           export REPO="${{ github.repository }}"
 
+          # Build uploaded images list
+          IMAGES_JSON='${{ toJSON(github.event.client_payload.uploadedImages) }}'
+          if [ "$IMAGES_JSON" != "null" ] && [ "$IMAGES_JSON" != "" ]; then
+            UPLOADED_IMAGES=$(echo "$IMAGES_JSON" | python3 -c "
+          import sys, json
+          imgs = json.load(sys.stdin)
+          if imgs:
+              for img in imgs:
+                  print(f\"- {img['fileName']}: {img['url']}\")
+          else:
+              print('Geen afbeeldingen geüpload.')
+          " 2>/dev/null || echo "Geen afbeeldingen geüpload.")
+          else
+            UPLOADED_IMAGES="Geen afbeeldingen geüpload."
+          fi
+          export UPLOADED_IMAGES
+
           TEMPLATE=$(echo "$TEMPLATE" | awk '{
             gsub(/\$TARGET_PAGE/, ENVIRON["TARGET_PAGE"])
             gsub(/\$USER_PROMPT/, ENVIRON["USER_PROMPT"])
@@ -234,6 +251,7 @@ jobs:
             gsub(/\$CALLBACK_URL/, ENVIRON["CALLBACK_URL"])
             gsub(/\$CALLBACK_SECRET/, ENVIRON["CALLBACK_SECRET"])
             gsub(/\$REPOSITORY/, ENVIRON["REPO"])
+            gsub(/\$UPLOADED_IMAGES/, ENVIRON["UPLOADED_IMAGES"])
             print
           }')
 

@@ -54,6 +54,10 @@ export const triggerPlanUpdate = action({
             chatHistory,
             currentPlan: session.plan || "",
             targetPage,
+            uploadedImages: (session.uploadedImages ?? []).map((img: { url: string; fileName: string }) => ({
+              url: img.url,
+              fileName: img.fileName,
+            })),
             callbackUrl: `${convexUrl}/plan-callback`,
             callbackSecret,
           },
@@ -132,6 +136,10 @@ export const triggerBuild = action({
             callbackUrl,
             callbackSecret,
             sessionId,
+            uploadedImages: (session?.uploadedImages ?? []).map((img: { url: string; fileName: string }) => ({
+              url: img.url,
+              fileName: img.fileName,
+            })),
           },
         }),
       },

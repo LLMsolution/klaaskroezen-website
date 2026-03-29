@@ -298,6 +298,42 @@ export const resetStuckSessions = mutation({
   },
 });
 
+/** Generate upload URL for layout editor images */
+export const generateImageUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+/** Save uploaded image to session */
+export const addImageToSession = mutation({
+  args: {
+    sessionId: v.id("layoutSessions"),
+    storageId: v.id("_storage"),
+    fileName: v.string(),
+  },
+  handler: async (ctx, { sessionId, storageId, fileName }) => {
+    await requireAdmin(ctx);
+    const session = await ctx.db.get(sessionId);
+    if (!session) throw new Error("Sessie niet gevonden.");
+
+    const url = await ctx.storage.getUrl(storageId);
+    if (!url) throw new Error("Afbeelding niet gevonden in storage.");
+
+    const images = session.uploadedImages ?? [];
+    images.push({ storageId, url, fileName });
+
+    await ctx.db.patch(sessionId, {
+      uploadedImages: images,
+      lastActivityAt: Date.now(),
+    });
+
+    return url;
+  },
+});
+
 /** Get recent sessions (history, admin only) */
 export const listSessions = query({
   args: {},

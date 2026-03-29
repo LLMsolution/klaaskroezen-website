@@ -9,6 +9,9 @@
 ## User Request
 $USER_PROMPT
 
+## Uploaded Images
+$UPLOADED_IMAGES
+
 ## Instructions
 
 You are making visual/layout changes to a Next.js website. Follow these rules strictly:
@@ -41,12 +44,12 @@ You are making visual/layout changes to a Next.js website. Follow these rules st
 
 ### Images
 - Legacy images exist in `/public/images/` — OK to reference for existing sections
-- NEW images should use Convex storage (uploaded via admin drag-drop)
-- For new sections: create an image prop (string) that accepts both static paths AND Convex URLs
-- The admin replaces images via the Content tab (AdminImageUpload component with auto-resizing to WebP)
+- If the user uploaded images (see "Uploaded Images" section above), use those exact URLs in the content
+- For images without an upload: use a placeholder image prop so the admin can add one later via the Content tab
 - ALWAYS use `next/image` (import Image from "next/image") — never `<img>`
 - For aspect ratio changes: use Tailwind classes like `aspect-[16/9]` + `object-cover`
 - NEVER hardcode image paths in component JSX — always receive via props so admin can change them
+- Image props accept both static paths (`/images/...`) and Convex URLs (`https://...`)
 
 ### Content & Database Sync (CRITICAL)
 When you change content (add team members, change fields, add sections), you MUST update BOTH:

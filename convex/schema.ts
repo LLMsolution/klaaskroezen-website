@@ -964,6 +964,12 @@ export default defineSchema({
       }),
     ),
     errorMessage: v.optional(v.string()),
+    // Uploaded images for AI to use in layout
+    uploadedImages: v.optional(v.array(v.object({
+      storageId: v.id("_storage"),
+      url: v.string(),
+      fileName: v.string(),
+    }))),
     // Revert data (stored at approval, used for one-version-back undo)
     mergeCommitSha: v.optional(v.string()),
     sectionSnapshot: v.optional(v.string()), // JSON of page sections before sync
