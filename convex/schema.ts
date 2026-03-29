@@ -399,6 +399,8 @@ export default defineSchema({
     phone: v.optional(v.string()),
     company: v.optional(v.string()),
     jobTitle: v.optional(v.string()),
+    website: v.optional(v.string()),
+    linkedin: v.optional(v.string()),
     userId: v.optional(v.id("users")),
     // Scoring
     engagementScore: v.number(), // email opens, clicks

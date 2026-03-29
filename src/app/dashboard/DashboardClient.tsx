@@ -6,6 +6,7 @@ import { api } from "../../../convex/_generated/api";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import type { Lang } from "@/lib/i18n";
+import { ProfileEditor } from "./ProfileEditor";
 
 type LocalizedStr = { nl: string; en: string; de?: string };
 function loc(obj: LocalizedStr, lang: Lang): string {
@@ -48,9 +49,9 @@ export function DashboardClient() {
   const myTrainings = useQuery(api.trainingProgress.getMyTrainings);
   const { signOut } = useAuthActions();
 
-  const updateProfile = useMutation(api.users.updateProfile);
-  const [editingName, setEditingName] = useState(false);
-  const [nameValue, setNameValue] = useState("");
+  const profile = useQuery(api.users.getMyProfile);
+  const updateMyProfile = useMutation(api.users.updateMyProfile);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [lang, setLang] = useState<Lang>("nl");
 
   useEffect(() => {
@@ -121,61 +122,6 @@ export function DashboardClient() {
           </button>
         </div>
       </div>
-
-      {/* Account info */}
-      <section className="mb-12 border border-rule rounded-[2px] p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50">
-            Account
-          </h2>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <p className="text-[12px] text-ink/40 mb-1">Naam</p>
-            {editingName ? (
-              <form
-                className="flex gap-2"
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  await updateProfile({ name: nameValue });
-                  setEditingName(false);
-                }}
-              >
-                <input
-                  type="text"
-                  value={nameValue}
-                  onChange={(e) => setNameValue(e.target.value)}
-                  className="flex-1 bg-transparent border border-rule px-3 py-1.5 text-[14px] text-ink focus:border-copper focus:outline-none rounded-[2px]"
-                  autoFocus
-                />
-                <button
-                  type="submit"
-                  className="text-[12px] text-copper font-medium cursor-pointer"
-                >
-                  Opslaan
-                </button>
-              </form>
-            ) : (
-              <div className="flex items-center gap-2">
-                <p className="text-[15px] text-ink">{user.name || "—"}</p>
-                <button
-                  onClick={() => {
-                    setNameValue(user.name || "");
-                    setEditingName(true);
-                  }}
-                  className="text-[11px] text-ink/30 hover:text-copper transition-colors cursor-pointer"
-                >
-                  Wijzig
-                </button>
-              </div>
-            )}
-          </div>
-          <div>
-            <p className="text-[12px] text-ink/40 mb-1">E-mail</p>
-            <p className="text-[15px] text-ink">{user.email}</p>
-          </div>
-        </div>
-      </section>
 
       {/* Mijn trainingen */}
       {myTrainings && myTrainings.filter((t) => t.type !== "audiobook").length > 0 && (
@@ -401,6 +347,34 @@ export function DashboardClient() {
           </div>
         </section>
       )}
+
+      {/* Profile / Account (collapsible, bottom) */}
+      <section className="mb-12">
+        <button
+          onClick={() => setProfileOpen(!profileOpen)}
+          className="flex items-center justify-between w-full text-left cursor-pointer"
+        >
+          <h2 className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40">
+            Mijn gegevens
+          </h2>
+          <svg
+            width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+            className={`text-ink/30 transition-transform ${profileOpen ? "rotate-180" : ""}`}
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+
+        {profileOpen && (
+          <ProfileEditor
+            email={user.email}
+            profile={profile}
+            onSave={async (data) => {
+              await updateMyProfile(data);
+            }}
+          />
+        )}
+      </section>
     </div>
   );
 }

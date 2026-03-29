@@ -197,3 +197,65 @@ export const completeRegistration = mutation({
     });
   },
 });
+
+/** Get profile data from CRM contact (for dashboard) */
+export const getMyProfile = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) return null;
+
+    const contact = await ctx.db
+      .query("contacts")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+
+    if (!contact) return null;
+    return {
+      firstName: contact.firstName,
+      lastName: contact.lastName,
+      phone: contact.phone,
+      company: contact.company,
+      website: contact.website,
+      linkedin: contact.linkedin,
+    };
+  },
+});
+
+/** Update profile fields on CRM contact (from dashboard) */
+export const updateMyProfile = mutation({
+  args: {
+    firstName: v.string(),
+    lastName: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    company: v.optional(v.string()),
+    website: v.optional(v.string()),
+    linkedin: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Niet ingelogd.");
+
+    // Update user name
+    const fullName = [args.firstName, args.lastName].filter(Boolean).join(" ");
+    await ctx.db.patch(userId, { name: fullName });
+
+    // Update CRM contact
+    const contact = await ctx.db
+      .query("contacts")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+
+    if (contact) {
+      await ctx.db.patch(contact._id, {
+        firstName: args.firstName,
+        lastName: args.lastName,
+        phone: args.phone,
+        company: args.company,
+        website: args.website,
+        linkedin: args.linkedin,
+        lastActivityAt: Date.now(),
+      });
+    }
+  },
+});
