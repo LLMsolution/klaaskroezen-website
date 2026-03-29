@@ -135,7 +135,7 @@ export const startSession = mutation({
     }
 
     const now = Date.now();
-    const branchName = `ai/layout-${Math.floor(now / 1000)}`;
+    const branchName = `ai/l-${Math.floor(now / 1000).toString(36)}`;
 
     const sessionId = await ctx.db.insert("layoutSessions", {
       status: "chatting",
