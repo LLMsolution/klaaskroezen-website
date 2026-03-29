@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, action } from "./_generated/server";
+import { internal, api } from "./_generated/api";
 import { requireAdmin } from "./adminAuth";
 import { langValidator } from "./schema";
 
@@ -204,5 +205,15 @@ export const toggleSection = mutation({
       sections,
       updatedAt: Date.now(),
     });
+  },
+});
+
+/** Sync a page's content from seed data (admin only) */
+export const syncFromSeed = action({
+  args: { pageSlug: v.string() },
+  handler: async (ctx, { pageSlug }): Promise<number> => {
+    await ctx.runMutation(api.layoutEditor.verifyAdmin);
+    const result: number = await ctx.runMutation(internal.siteSeed.syncPageContentFull, { pageSlug });
+    return result;
   },
 });

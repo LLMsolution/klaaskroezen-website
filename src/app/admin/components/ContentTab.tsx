@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Loading, EmptyState } from "./shared";
 import { ContentFieldRenderer } from "./ContentFieldRenderer";
@@ -43,6 +43,7 @@ export function ContentTab() {
         >
           Bekijk pagina
         </a>
+        <SyncButton slug={slug} />
       </div>
 
       {/* Section editor */}
@@ -231,5 +232,31 @@ function PageSections({ slug }: { slug: string }) {
         );
       })}
     </div>
+  );
+}
+
+function SyncButton({ slug }: { slug: string }) {
+  const syncFromSeed = useAction(api.siteContent.syncFromSeed);
+  const [syncing, setSyncing] = useState(false);
+
+  return (
+    <button
+      onClick={async () => {
+        if (!confirm("Content herladen vanuit de code? Dit overschrijft je huidige bewerkingen voor deze pagina.")) return;
+        setSyncing(true);
+        try {
+          await syncFromSeed({ pageSlug: slug });
+          alert("Content is gesynchroniseerd.");
+        } catch (err) {
+          alert(err instanceof Error ? err.message : "Sync mislukt.");
+        } finally {
+          setSyncing(false);
+        }
+      }}
+      disabled={syncing}
+      className="text-[12px] text-ink/30 hover:text-ink transition-colors cursor-pointer disabled:opacity-40"
+    >
+      {syncing ? "Synchroniseren..." : "Sync vanuit code"}
+    </button>
   );
 }

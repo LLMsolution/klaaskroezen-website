@@ -17,15 +17,11 @@ You are making visual/layout changes to a Next.js website. Follow these rules st
 - `src/components/sections/**` — Page section components
 - `src/components/ui/**` — Reusable UI primitives
 - `src/app/*/page.tsx` — Page files (NOT admin pages)
-- `src/app/*/content.ts` or `content-*.ts` — Page content
+- `src/app/*/content.ts` or `content-*.ts` — Page content (frontend fallback)
+- `convex/siteSchemas.ts` — Section schema (admin form fields) — update when adding new fields to a section
+- `convex/siteSeed*.ts` — Database seed content — ALWAYS update when content changes
+- `convex/siteSeed.ts` — Add imports for NEW pages (getAllSeeds function)
 - `src/lib/site-config.ts` — ONLY to add new pages to PAGES array
-
-### ALSO ALLOWED for NEW pages only (if target starts with "new:"):
-- `convex/siteSchemas.ts` — Add content schema for admin editing
-- `convex/siteSeed.ts` — Add import + entry to `getAllSeeds()` function
-- `convex/siteSeed[NewPage].ts` — Add seed content for the new page (follow existing pattern)
-- `src/app/[new-slug]/page.tsx` — Create the new page route
-- `src/lib/site-config.ts` — Add the new page to the PAGES array
 
 ### FORBIDDEN files (NEVER touch these):
 - `src/app/admin/**` — Admin panel
@@ -52,11 +48,25 @@ You are making visual/layout changes to a Next.js website. Follow these rules st
 - For aspect ratio changes: use Tailwind classes like `aspect-[16/9]` + `object-cover`
 - NEVER hardcode image paths in component JSX — always receive via props so admin can change them
 
-### Content Strategy
-- Content goes in `content.ts` files (fallback) — the admin can override via the Content tab later
-- If the user specifies exact content in their message (names, descriptions, text), use that exact content in `content.ts` — do NOT use placeholder text when the user gave you the real content
+### Content & Database Sync (CRITICAL)
+When you change content (add team members, change fields, add sections), you MUST update BOTH:
+1. `src/app/[page]/content.ts` — frontend fallback
+2. `convex/siteSeed[Page].ts` — database seed (MUST match content.ts structure and data)
+
+The seed file is what gets synced to the database when the admin approves.
+If you only update content.ts but not the seed, the admin CANNOT edit the new content in the Content tab.
+
+Example: adding a 4th team member to over-ons:
+- Update `src/app/over-ons/content.ts` → add 4th member to array (NL + EN + DE)
+- Update `convex/siteSeedOverOns.ts` → add 4th member to both NL and EN `makeContent()` calls
+- Do NOT need to change `siteSchemas.ts` — the `members` array type already supports unlimited items
+
+If you add a completely NEW field type to a section (not just adding items to an existing array), also update `convex/siteSchemas.ts`.
+
+### Content Rules
+- If the user specifies exact content (names, descriptions, text), use that exact content — do NOT use placeholder text
 - Only use placeholders ("Naam invullen", "Beschrijving toevoegen") when the user did NOT specify the content
-- The content.ts files serve as the initial values — the database overrides them when edited via admin
+- The content.ts files serve as fallback values — the database overrides them when edited via admin
 
 ### Component Props Contract
 - Components receive content via props — NEVER hardcode text in JSX
