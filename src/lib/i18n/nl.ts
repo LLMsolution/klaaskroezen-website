@@ -265,6 +265,28 @@ export const nl = {
     errorLogin: "Onjuist e-mailadres of wachtwoord.",
   },
 
+  // ─── Registration ───
+  register: {
+    title: "Account aanmaken",
+    subtitle: "Maak een account aan om toegang te krijgen tot je trainingen en materialen.",
+    firstNameLabel: "Voornaam *",
+    firstNamePlaceholder: "Je voornaam",
+    lastNameLabel: "Achternaam",
+    lastNamePlaceholder: "Je achternaam",
+    phoneLabel: "Telefoon",
+    phonePlaceholder: "+31 6 ...",
+    companyLabel: "Bedrijf",
+    companyPlaceholder: "Bedrijfsnaam",
+    websiteLabel: "Website",
+    websitePlaceholder: "https://...",
+    linkedinLabel: "LinkedIn",
+    linkedinPlaceholder: "https://linkedin.com/in/...",
+    submitCta: "Account aanmaken",
+    sending: "Versturen...",
+    hasAccount: "Al een account? ",
+    loginLink: "Inloggen",
+  },
+
   // ─── Training (marketing pages + platform) ───
   training: {
     // Marketing page keys

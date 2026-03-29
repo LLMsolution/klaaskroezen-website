@@ -14,7 +14,7 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 // Routes that authenticated users should be redirected away from
-const isAuthRoute = createRouteMatcher(["/login"]);
+const isAuthRoute = createRouteMatcher(["/login", "/registreren"]);
 
 // Case-sensitive redirects (Kajabi legacy URLs)
 const caseSensitiveRedirects: Record<string, string> = {

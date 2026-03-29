@@ -265,6 +265,28 @@ export const de = {
     errorLogin: "Falsche E-Mail-Adresse oder falsches Passwort.",
   },
 
+  // ─── Registration ───
+  register: {
+    title: "Konto erstellen",
+    subtitle: "Erstellen Sie ein Konto, um auf Ihre Trainings und Materialien zuzugreifen.",
+    firstNameLabel: "Vorname *",
+    firstNamePlaceholder: "Ihr Vorname",
+    lastNameLabel: "Nachname",
+    lastNamePlaceholder: "Ihr Nachname",
+    phoneLabel: "Telefon",
+    phonePlaceholder: "+31 6 ...",
+    companyLabel: "Unternehmen",
+    companyPlaceholder: "Firmenname",
+    websiteLabel: "Website",
+    websitePlaceholder: "https://...",
+    linkedinLabel: "LinkedIn",
+    linkedinPlaceholder: "https://linkedin.com/in/...",
+    submitCta: "Konto erstellen",
+    sending: "Wird gesendet...",
+    hasAccount: "Bereits ein Konto? ",
+    loginLink: "Anmelden",
+  },
+
   // ─── Training (marketing pages + platform) ───
   training: {
     // Marketing page keys

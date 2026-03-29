@@ -1,7 +1,9 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { auth } from "./auth";
 import { isAdminEmail } from "./adminAuth";
+import { langValidator } from "./schema";
 
 /**
  * Get the currently authenticated user with their email.
@@ -148,5 +150,50 @@ export const updateProfile = mutation({
     if (!userId) throw new Error("Niet ingelogd.");
 
     await ctx.db.patch(userId, { name });
+  },
+});
+
+/** Complete registration: save profile + create CRM contact */
+export const completeRegistration = mutation({
+  args: {
+    firstName: v.string(),
+    lastName: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    company: v.optional(v.string()),
+    website: v.optional(v.string()),
+    linkedin: v.optional(v.string()),
+    lang: langValidator,
+  },
+  handler: async (ctx, args) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Niet ingelogd.");
+
+    // Save name on user record
+    const fullName = [args.firstName, args.lastName].filter(Boolean).join(" ");
+    await ctx.db.patch(userId, { name: fullName });
+
+    // Get email from auth accounts
+    const accounts = await ctx.db
+      .query("authAccounts")
+      .filter((q) => q.eq(q.field("userId"), userId))
+      .collect();
+    const emailAccount = accounts.find(
+      (a: { providerAccountId?: string }) => a.providerAccountId?.includes("@"),
+    );
+    const email = emailAccount?.providerAccountId ?? "";
+    if (!email) return;
+
+    // Create CRM contact
+    await ctx.scheduler.runAfter(0, internal.crmHooks.registrationCompleted, {
+      userId,
+      email,
+      firstName: args.firstName,
+      lastName: args.lastName,
+      phone: args.phone,
+      company: args.company,
+      website: args.website,
+      linkedin: args.linkedin,
+      lang: args.lang,
+    });
   },
 });

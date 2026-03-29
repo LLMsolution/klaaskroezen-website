@@ -75,6 +75,7 @@ export default defineSchema({
     userId: v.optional(v.id("users")),
     molliePaymentId: v.optional(v.string()),
     remindersSent: v.number(),
+    crmNotified: v.optional(v.boolean()), // true after first CRM contact creation from draft
     convertedAt: v.optional(v.number()),
     abandonedAt: v.optional(v.number()),
     createdAt: v.number(),
@@ -409,6 +410,7 @@ export default defineSchema({
       v.literal("contact_form"),
       v.literal("checkout"),
       v.literal("purchase"),
+      v.literal("registration"),
       v.literal("manual"),
       v.literal("import"),
       v.literal("referral"),

@@ -65,6 +65,108 @@ export const checkoutStarted = internalMutation({
   },
 });
 
+/** CRM: Create contact from checkout draft (first auto-save with email) */
+export const checkoutDraftSaved = internalMutation({
+  args: {
+    email: v.string(),
+    firstName: v.string(),
+    lastName: v.string(),
+    phone: v.optional(v.string()),
+    company: v.optional(v.string()),
+    product: v.string(),
+    lang: v.union(v.literal("nl"), v.literal("en"), v.literal("de")),
+  },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase().trim();
+    if (!email.includes("@")) return;
+    const now = Date.now();
+
+    const existing = await ctx.db
+      .query("contacts")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        lastActivityAt: now,
+        intentScore: existing.intentScore + 5,
+        ...(args.phone && !existing.phone ? { phone: args.phone } : {}),
+        ...(args.company && !existing.company ? { company: args.company } : {}),
+        ...(!existing.lastName && args.lastName ? { lastName: args.lastName } : {}),
+      });
+    } else {
+      await ctx.db.insert("contacts", {
+        email,
+        firstName: args.firstName,
+        lastName: args.lastName,
+        phone: args.phone,
+        company: args.company,
+        engagementScore: 0,
+        intentScore: 5,
+        lastActivityAt: now,
+        source: "checkout",
+        sourceDetail: `draft:${args.product}`,
+        tags: [],
+        unsubscribed: false,
+        lang: args.lang,
+        createdAt: now,
+      });
+    }
+  },
+});
+
+/** CRM: Create contact from account registration */
+export const registrationCompleted = internalMutation({
+  args: {
+    userId: v.id("users"),
+    email: v.string(),
+    firstName: v.string(),
+    lastName: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    company: v.optional(v.string()),
+    website: v.optional(v.string()),
+    linkedin: v.optional(v.string()),
+    lang: v.union(v.literal("nl"), v.literal("en"), v.literal("de")),
+  },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase().trim();
+    const now = Date.now();
+
+    const existing = await ctx.db
+      .query("contacts")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        lastActivityAt: now,
+        intentScore: existing.intentScore + 5,
+        userId: args.userId,
+        ...(args.phone && !existing.phone ? { phone: args.phone } : {}),
+        ...(args.company && !existing.company ? { company: args.company } : {}),
+        ...(!existing.lastName && args.lastName ? { lastName: args.lastName } : {}),
+      });
+    } else {
+      await ctx.db.insert("contacts", {
+        email,
+        firstName: args.firstName,
+        lastName: args.lastName,
+        phone: args.phone,
+        company: args.company,
+        userId: args.userId,
+        engagementScore: 0,
+        intentScore: 5,
+        lastActivityAt: now,
+        source: "registration",
+        tags: [],
+        unsubscribed: false,
+        lang: args.lang,
+        createdAt: now,
+      });
+    }
+  },
+});
+
 /** CRM: Log abandoned cart activity on contact */
 export const checkoutAbandoned = internalMutation({
   args: { orderId: v.id("pendingOrders") },

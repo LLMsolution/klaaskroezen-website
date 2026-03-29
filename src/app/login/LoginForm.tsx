@@ -127,6 +127,12 @@ export function LoginForm({ lang }: Props) {
       {error && (
         <p className="text-[13px] text-red-600 text-center">{error}</p>
       )}
+
+      {/* Link to registration */}
+      <p className="text-center text-[13px] text-ink/50">
+        {s.noAccount}
+        <a href="/registreren" className="text-copper hover:text-copper-light">{s.createAccount}</a>
+      </p>
     </div>
   );
 }

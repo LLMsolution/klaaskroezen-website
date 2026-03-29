@@ -9,7 +9,7 @@ import type { Id } from "./_generated/dataModel";
 import { rateLimiter } from "./rateLimits";
 import { langValidator } from "./schema";
 
-/** Lightweight draft save — no rate limit, no CRM hooks, no abandoned cart. */
+/** Lightweight draft save — creates CRM contact on first save with email. */
 export const saveDraft = mutation({
   args: {
     email: v.string(),
@@ -64,15 +64,46 @@ export const saveDraft = mutation({
         discountAmount: args.discountAmount,
         installments: args.installments,
       });
+
+      // CRM: create contact on first draft save (once per order)
+      if (!existing.crmNotified && args.email.includes("@")) {
+        await ctx.db.patch(existing._id, { crmNotified: true });
+        await ctx.scheduler.runAfter(0, internal.crmHooks.checkoutDraftSaved, {
+          email: args.email,
+          firstName: args.firstName,
+          lastName: args.lastName,
+          phone: args.phone,
+          company: args.company,
+          product: args.product,
+          lang: args.lang,
+        });
+      }
+
       return existing._id;
     }
 
-    return await ctx.db.insert("pendingOrders", {
+    const orderId = await ctx.db.insert("pendingOrders", {
       ...args,
       mailingOptIn: false,
+      crmNotified: !!args.email.includes("@"),
       remindersSent: 0,
       createdAt: Date.now(),
     });
+
+    // CRM: create contact for new draft
+    if (args.email.includes("@")) {
+      await ctx.scheduler.runAfter(0, internal.crmHooks.checkoutDraftSaved, {
+        email: args.email,
+        firstName: args.firstName,
+        lastName: args.lastName,
+        phone: args.phone,
+        company: args.company,
+        product: args.product,
+        lang: args.lang,
+      });
+    }
+
+    return orderId;
   },
 });
 

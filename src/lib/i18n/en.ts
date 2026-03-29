@@ -265,6 +265,28 @@ export const en = {
     errorLogin: "Incorrect email or password.",
   },
 
+  // ─── Registration ───
+  register: {
+    title: "Create account",
+    subtitle: "Create an account to access your trainings and materials.",
+    firstNameLabel: "First name *",
+    firstNamePlaceholder: "Your first name",
+    lastNameLabel: "Last name",
+    lastNamePlaceholder: "Your last name",
+    phoneLabel: "Phone",
+    phonePlaceholder: "+31 6 ...",
+    companyLabel: "Company",
+    companyPlaceholder: "Company name",
+    websiteLabel: "Website",
+    websitePlaceholder: "https://...",
+    linkedinLabel: "LinkedIn",
+    linkedinPlaceholder: "https://linkedin.com/in/...",
+    submitCta: "Create account",
+    sending: "Sending...",
+    hasAccount: "Already have an account? ",
+    loginLink: "Log in",
+  },
+
   // ─── Training (marketing pages + platform) ───
   training: {
     // Marketing page keys
