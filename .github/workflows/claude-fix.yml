@@ -294,12 +294,26 @@ jobs:
           PREVIEW_URL="https://klaaskroezen-website-git-${SAFE_BRANCH}-llm-solutions-projects.vercel.app"
 
           # Check if PR exists, if not create one
-          PR_NUM=$(gh pr list --head "$BRANCH_NAME" --json number -q '.[0].number' 2>/dev/null)
-          if [ -z "$PR_NUM" ]; then
-            gh pr create --head "$BRANCH_NAME" --base main --title "AI Layout: $TARGET_PAGE" --body "Layout wijziging via AI editor" 2>/dev/null || true
-            PR_NUM=$(gh pr list --head "$BRANCH_NAME" --json number -q '.[0].number' 2>/dev/null)
+          echo "Checking for existing PR on branch: $BRANCH_NAME"
+          PR_NUM=$(gh pr list --head "$BRANCH_NAME" --json number -q '.[0].number' 2>&1) || true
+          echo "PR list result: '$PR_NUM'"
+
+          if [ -z "$PR_NUM" ] || [ "$PR_NUM" = "null" ]; then
+            echo "No existing PR found. Creating new PR..."
+            PR_CREATE_OUTPUT=$(gh pr create --head "$BRANCH_NAME" --base main \
+              --title "AI Layout: $TARGET_PAGE" \
+              --body "Layout wijziging via AI editor" 2>&1) || true
+            echo "PR create output: $PR_CREATE_OUTPUT"
+
+            # Extract PR number from URL or re-list
+            PR_NUM=$(echo "$PR_CREATE_OUTPUT" | grep -oP '/pull/\K[0-9]+' || true)
+            if [ -z "$PR_NUM" ]; then
+              PR_NUM=$(gh pr list --head "$BRANCH_NAME" --json number -q '.[0].number' 2>&1) || true
+              echo "PR list retry result: '$PR_NUM'"
+            fi
           fi
           PR_NUM=${PR_NUM:-0}
+          echo "Final PR_NUM: $PR_NUM"
 
           if [ "$PR_NUM" = "0" ]; then
             # No PR created — report failure
