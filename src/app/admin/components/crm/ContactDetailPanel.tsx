@@ -23,11 +23,14 @@ export function ContactDetailPanel({ contactId, onClose }: Props) {
   const leads = useQuery(api.crmLeads.getLeadsForContact, { contactId });
 
   const updateContact = useMutation(api.crm.updateContact);
+  const deleteContact = useMutation(api.crm.deleteContact);
   const addTag = useMutation(api.crm.addTag);
   const removeTag = useMutation(api.crm.removeTag);
 
   const [newTag, setNewTag] = useState("");
   const [editMode, setEditMode] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   const [editFields, setEditFields] = useState({
     firstName: "", lastName: "", phone: "", company: "", jobTitle: "",
   });
@@ -233,6 +236,47 @@ export function ContactDetailPanel({ contactId, onClose }: Props) {
             </div>
           ) : (
             <p className="text-[13px] text-ink/30">Nog geen activiteit</p>
+          )}
+        </div>
+
+        {/* Delete */}
+        <div className="pt-2 border-t border-rule">
+          {showDeleteConfirm ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] text-red-600">Weet je het zeker?</span>
+                <button
+                  onClick={async () => {
+                    try {
+                      setDeleteError("");
+                      await deleteContact({ contactId });
+                      onClose();
+                    } catch (err) {
+                      setDeleteError(err instanceof Error ? err.message : "Verwijderen mislukt");
+                    }
+                  }}
+                  className="px-3 py-1 text-[12px] font-medium bg-red-600 text-white rounded-[2px] hover:bg-red-700 transition-colors cursor-pointer"
+                >
+                  Bevestig
+                </button>
+                <button
+                  onClick={() => { setShowDeleteConfirm(false); setDeleteError(""); }}
+                  className="px-3 py-1 text-[12px] text-ink/50 cursor-pointer"
+                >
+                  Annuleren
+                </button>
+              </div>
+              {deleteError && (
+                <p className="text-[12px] text-red-500">{deleteError}</p>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="text-[12px] text-red-500 hover:text-red-700 transition-colors cursor-pointer"
+            >
+              Contact verwijderen
+            </button>
           )}
         </div>
       </div>

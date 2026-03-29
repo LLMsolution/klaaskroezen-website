@@ -23,11 +23,13 @@ export function LeadDetailPanel({ leadId, onClose }: Props) {
   const winLead = useMutation(api.crmLeads.winLead);
   const loseLead = useMutation(api.crmLeads.loseLead);
   const updateLead = useMutation(api.crmLeads.updateLead);
+  const deleteLead = useMutation(api.crmLeads.deleteLead);
 
   const [showNoteForm, setShowNoteForm] = useState(false);
   const [nextAction, setNextAction] = useState("");
   const [lostReason, setLostReason] = useState("");
   const [showLostForm, setShowLostForm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   if (lead === undefined || stages === undefined) {
     return <SlideOver onClose={onClose}><Loading /></SlideOver>;
@@ -202,6 +204,37 @@ export function LeadDetailPanel({ leadId, onClose }: Props) {
           </button>
           {showNoteForm && (
             <AddNoteForm leadId={leadId} onDone={() => setShowNoteForm(false)} />
+          )}
+        </div>
+
+        {/* Delete */}
+        <div className="pt-2 border-t border-rule">
+          {showDeleteConfirm ? (
+            <div className="flex items-center gap-2">
+              <span className="text-[12px] text-red-600">Weet je het zeker?</span>
+              <button
+                onClick={async () => {
+                  await deleteLead({ leadId });
+                  onClose();
+                }}
+                className="px-3 py-1 text-[12px] font-medium bg-red-600 text-white rounded-[2px] hover:bg-red-700 transition-colors cursor-pointer"
+              >
+                Bevestig
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-3 py-1 text-[12px] text-ink/50 cursor-pointer"
+              >
+                Annuleren
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="text-[12px] text-red-500 hover:text-red-700 transition-colors cursor-pointer"
+            >
+              Verwijderen
+            </button>
           )}
         </div>
 

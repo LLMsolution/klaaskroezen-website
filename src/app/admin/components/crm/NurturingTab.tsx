@@ -291,10 +291,11 @@ function EnrollContactSection({ sequenceId }: { sequenceId: Id<"nurturingSequenc
 
   // Only search when we have a meaningful query (at least 3 chars)
   const shouldSearch = searchEmail.length >= 3;
-  const searchResults = useQuery(
+  const searchResultsData = useQuery(
     api.crm.getContacts,
     shouldSearch ? { search: searchEmail, limit: 5 } : "skip",
   );
+  const searchResults = searchResultsData?.contacts;
 
   async function handleEnroll(contactId: Id<"contacts">) {
     setEnrolling(true);

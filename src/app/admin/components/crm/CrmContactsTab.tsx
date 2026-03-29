@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
-import type { Id } from "../../../../../convex/_generated/dataModel";
+import type { Id, Doc } from "../../../../../convex/_generated/dataModel";
 import { Loading, EmptyState, Th } from "../shared";
 import { ScoreBadge, formatRelative } from "./shared";
 import { ContactDetailPanel } from "./ContactDetailPanel";
+
+const PAGE_SIZE = 100;
 
 export function CrmContactsTab() {
   const [search, setSearch] = useState("");
@@ -14,13 +16,47 @@ export function CrmContactsTab() {
   const [tagFilter, setTagFilter] = useState("");
   const [selectedContactId, setSelectedContactId] = useState<Id<"contacts"> | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
+  const [loadedPages, setLoadedPages] = useState<Doc<"contacts">[][]>([]);
 
-  const contacts = useQuery(api.crm.getContacts, {
+  const result = useQuery(api.crm.getContacts, {
     search: search || undefined,
     source: sourceFilter || undefined,
     tag: tagFilter || undefined,
-    limit: 200,
+    limit: PAGE_SIZE,
+    cursor,
   });
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCursor(undefined);
+    setLoadedPages([]);
+  }, [search, sourceFilter, tagFilter]);
+
+  // Append loaded pages when new results arrive for a cursor
+  useEffect(() => {
+    if (!result) return;
+    if (cursor === undefined) {
+      // First page — replace
+      setLoadedPages([result.contacts]);
+    } else {
+      // Subsequent page — append if not already added
+      setLoadedPages((prev) => {
+        const lastPage = prev[prev.length - 1];
+        if (lastPage?.[0]?._id === result.contacts[0]?._id) return prev;
+        return [...prev, result.contacts];
+      });
+    }
+  }, [result, cursor]);
+
+  const contacts = loadedPages.flat();
+  const nextCursor = result?.nextCursor ?? null;
+
+  const handleLoadMore = useCallback(() => {
+    if (nextCursor) {
+      setCursor(nextCursor);
+    }
+  }, [nextCursor]);
 
   const createContact = useMutation(api.crm.createContact);
 
@@ -49,11 +85,11 @@ export function CrmContactsTab() {
     setNewPhone("");
   }
 
-  if (contacts === undefined) return <Loading />;
+  if (result === undefined) return <Loading />;
 
   // Collect unique tags for filter dropdown
   const allTags = [...new Set(contacts.flatMap((c) => c.tags))].sort();
-  const sources = ["contact_form", "checkout", "purchase", "manual", "import", "referral"];
+  const sources = ["contact_form", "checkout", "purchase", "registration", "manual", "import", "referral"];
 
   return (
     <div className="space-y-6">
@@ -177,6 +213,18 @@ export function CrmContactsTab() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Load more */}
+      {nextCursor && (
+        <div className="flex justify-center pt-2">
+          <button
+            onClick={handleLoadMore}
+            className="px-5 py-2 text-[12px] font-medium tracking-[0.1em] uppercase bg-warm hover:bg-warm/70 rounded-[2px] transition-colors cursor-pointer"
+          >
+            Meer laden
+          </button>
         </div>
       )}
 

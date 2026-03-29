@@ -11,7 +11,8 @@ type Props = {
 
 export function AddLeadForm({ onClose }: Props) {
   const stages = useQuery(api.crmPipeline.getStages);
-  const contacts = useQuery(api.crm.getContacts, { limit: 500 });
+  const contactsResult = useQuery(api.crm.getContacts, { limit: 500 });
+  const contacts = contactsResult?.contacts;
   const createLead = useMutation(api.crmLeads.createLead);
   const createContact = useMutation(api.crm.createContact);
 

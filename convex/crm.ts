@@ -8,6 +8,7 @@ const CONTACT_SOURCE = v.union(
   v.literal("contact_form"),
   v.literal("checkout"),
   v.literal("purchase"),
+  v.literal("registration"),
   v.literal("manual"),
   v.literal("import"),
   v.literal("referral"),
@@ -23,8 +24,9 @@ export const getContacts = query({
     source: v.optional(v.string()),
     tag: v.optional(v.string()),
     limit: v.optional(v.number()),
+    cursor: v.optional(v.string()),
   },
-  handler: async (ctx, { search, source, tag, limit }) => {
+  handler: async (ctx, { search, source, tag, limit, cursor }) => {
     await requireAdmin(ctx);
 
     let contacts = await ctx.db.query("contacts").order("desc").collect();
@@ -48,7 +50,21 @@ export const getContacts = query({
       contacts = contacts.filter((c) => c.tags.includes(tag));
     }
 
-    return contacts.slice(0, limit ?? 100);
+    // Cursor-based pagination: skip past the cursor ID
+    if (cursor) {
+      const cursorIdx = contacts.findIndex((c) => c._id === cursor);
+      if (cursorIdx !== -1) {
+        contacts = contacts.slice(cursorIdx + 1);
+      }
+    }
+
+    const pageSize = limit ?? 100;
+    const page = contacts.slice(0, pageSize);
+    const nextCursor = page.length === pageSize && contacts.length > pageSize
+      ? page[page.length - 1]._id
+      : null;
+
+    return { contacts: page, nextCursor };
   },
 });
 
@@ -218,6 +234,36 @@ export const removeTag = mutation({
       title: `Tag "${normalized}" verwijderd`,
       createdAt: Date.now(),
     });
+  },
+});
+
+export const deleteContact = mutation({
+  args: { contactId: v.id("contacts") },
+  handler: async (ctx, { contactId }) => {
+    await requireAdmin(ctx);
+    const contact = await ctx.db.get(contactId);
+    if (!contact) throw new Error("Contact niet gevonden.");
+
+    // Check for open leads
+    const openLeads = await ctx.db
+      .query("leads")
+      .withIndex("by_contact", (q) => q.eq("contactId", contactId))
+      .collect();
+    const hasOpenLeads = openLeads.some((l) => l.status === "open");
+    if (hasOpenLeads) {
+      throw new Error("Contact heeft nog open leads");
+    }
+
+    // Delete all associated leadActivities
+    const activities = await ctx.db
+      .query("leadActivities")
+      .withIndex("by_contact", (q) => q.eq("contactId", contactId))
+      .collect();
+    for (const a of activities) {
+      await ctx.db.delete(a._id);
+    }
+
+    await ctx.db.delete(contactId);
   },
 });
 
