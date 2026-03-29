@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { internalMutation, internalAction } from "./_generated/server";
+import { internalMutation, internalAction, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 
 /** Execute the current step for an enrollment */
@@ -312,8 +312,8 @@ export const checkGoals = internalMutation({
   },
 });
 
-/** Send email from workflow step */
-export const sendWorkflowEmail = internalMutation({
+/** Send email from workflow step — looks up template, resolves variables, sends via Resend */
+export const sendWorkflowEmail = internalAction({
   args: {
     to: v.string(),
     templateKey: v.string(),
@@ -322,27 +322,60 @@ export const sendWorkflowEmail = internalMutation({
   },
   handler: async (ctx, { to, templateKey, contactId }) => {
     // Look up template from emailTemplates table
-    const template = await ctx.db.query("emailTemplates")
-      .withIndex("by_key", (q) => q.eq("templateKey", templateKey))
-      .first();
+    const template = await ctx.runQuery(internal.workflowEngine.getEmailTemplate, { templateKey });
+    if (!template) return;
 
-    if (!template) {
-      console.log(`[Workflow] Template not found: ${templateKey}`);
-      return;
+    // Look up contact for variable replacement
+    const contact = await ctx.runQuery(internal.workflowEngine.getContact, { contactId });
+    const name = contact
+      ? [contact.firstName, contact.lastName].filter(Boolean).join(" ")
+      : to.split("@")[0];
+    const firstName = contact?.firstName ?? name.split(" ")[0];
+    const lang = contact?.lang ?? "nl";
+    const isNl = lang === "nl";
+
+    // Get HTML and subject with variable replacement
+    let html = isNl ? template.htmlNl : (template.htmlEn || template.htmlNl);
+    let subject = isNl ? template.subjectNl : (template.subjectEn || template.subjectNl);
+
+    html = html
+      .replaceAll("{{name}}", name)
+      .replaceAll("{{firstName}}", firstName)
+      .replaceAll("{{email}}", to);
+    subject = subject
+      .replaceAll("{{name}}", name)
+      .replaceAll("{{firstName}}", firstName);
+
+    // Wrap in layout if not already a full HTML document
+    if (!html.includes("<html") && !html.includes("<!DOCTYPE")) {
+      const { layout } = await import("./emailHelpers");
+      html = layout(html, { lang: isNl ? "nl" : "en" });
     }
 
-    // Insert into email log for tracking
-    await ctx.db.insert("emailLog", {
+    // Send via the core email sender (includes tracking pixel + click tracking)
+    await ctx.runAction(internal.emails.sendEmail, {
       to,
-      subject: template.subjectNl,
+      subject,
+      html,
       template: templateKey,
-      status: "queued",
-      createdAt: Date.now(),
     });
+  },
+});
 
-    // The actual email sending would be handled by the email system
-    // For now, schedule via the existing sendEmail function
-    console.log(`[Workflow] Email queued: ${templateKey} → ${to}`);
+/** Query helpers for sendWorkflowEmail action */
+export const getEmailTemplate = internalQuery({
+  args: { templateKey: v.string() },
+  handler: async (ctx, { templateKey }) => {
+    return await ctx.db.query("emailTemplates")
+      .withIndex("by_key", (q) => q.eq("templateKey", templateKey))
+      .first();
+  },
+});
+
+export const getContact = internalQuery({
+  args: { contactId: v.id("contacts") },
+  handler: async (ctx, { contactId }) => {
+    return await ctx.db.get(contactId);
   },
 });
 
