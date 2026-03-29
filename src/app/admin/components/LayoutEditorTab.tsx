@@ -6,12 +6,6 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { Loading } from "./shared";
 
-type ViewportSize = "desktop" | "tablet" | "mobile";
-const VIEWPORT_WIDTHS: Record<ViewportSize, string> = {
-  desktop: "100%",
-  tablet: "768px",
-  mobile: "375px",
-};
 
 export function LayoutEditorTab() {
   const pages = useQuery(api.siteContent.listPages);
@@ -28,7 +22,6 @@ export function LayoutEditorTab() {
   const [selectedPage, setSelectedPage] = useState("");
   const [inputText, setInputText] = useState("");
   const [sending, setSending] = useState(false);
-  const [viewport, setViewport] = useState<ViewportSize>("desktop");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -160,7 +153,7 @@ export function LayoutEditorTab() {
       />
       {/* Right: Plan or Preview */}
       {showPreview ? (
-        <PreviewPanel previewUrl={previewUrl} status={session.status} viewport={viewport} onViewportChange={setViewport} />
+        <PreviewPanel previewUrl={previewUrl} status={session.status} />
       ) : (
         <PlanPanel plan={session.plan} planVersion={session.planVersion} status={session.status} />
       )}
@@ -389,40 +382,41 @@ function PlanPanel({ plan, planVersion, status }: { plan?: string; planVersion?:
 
 /* ─── Preview panel (right, shown during build/preview) ─── */
 
-function PreviewPanel({ previewUrl, status, viewport, onViewportChange }: {
+function PreviewPanel({ previewUrl, status }: {
   previewUrl: string | null;
   status: string;
-  viewport: ViewportSize;
-  onViewportChange: (v: ViewportSize) => void;
 }) {
   return (
     <div className="flex-1 flex flex-col bg-warm/10">
-      <div className="px-5 py-3 border-b border-rule flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40">Preview</p>
-          {previewUrl && (
-            <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-copper hover:text-copper-light transition-colors">
-              Open in nieuw tab ↗
-            </a>
-          )}
-        </div>
-        <div className="flex items-center gap-1">
-          {(["desktop", "tablet", "mobile"] as ViewportSize[]).map((size) => (
-            <button key={size} onClick={() => onViewportChange(size)}
-              className={`text-[11px] px-2.5 py-1 rounded-[2px] cursor-pointer transition-colors ${viewport === size ? "bg-copper text-paper" : "text-ink/40 hover:text-ink hover:bg-ink/5"}`}>
-              {size === "desktop" ? "Desktop" : size === "tablet" ? "Tablet" : "Mobile"}
-            </button>
-          ))}
-        </div>
+      <div className="px-5 py-3 border-b border-rule">
+        <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40">Preview</p>
       </div>
-      <div className="flex-1 flex items-start justify-center p-4 overflow-auto">
+      <div className="flex-1 flex items-center justify-center p-8">
         {previewUrl ? (
-          <iframe id="preview-frame" src={previewUrl} style={{ width: VIEWPORT_WIDTHS[viewport], height: "100%" }}
-            className="border border-rule rounded-[2px] bg-white transition-all duration-300" />
+          <div className="text-center max-w-[400px]">
+            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-green-50 flex items-center justify-center">
+              <svg className="w-8 h-8 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="font-display text-[18px] font-bold text-ink mb-2">Preview is klaar</h3>
+            <p className="text-[13px] text-ink/50 leading-[1.7] mb-6">
+              De wijziging staat op een preview URL. Bekijk het resultaat en keur goed of af.
+            </p>
+            <a
+              href={previewUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-copper text-paper px-8 py-3 text-[13px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px]"
+            >
+              Preview bekijken ↗
+            </a>
+            <p className="text-[11px] text-ink/30 mt-4 break-all">{previewUrl}</p>
+          </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-ink/30 text-[14px]">
+          <div className="text-center text-ink/30 text-[14px]">
             {status === "building" ? (
-              <div className="text-center">
+              <div>
                 <div className="inline-block w-5 h-5 border-2 border-copper/30 border-t-copper rounded-full animate-spin mb-3" />
                 <p>Build wordt uitgevoerd...</p>
                 <p className="text-[12px] text-ink/20 mt-1">Dit duurt 3-5 minuten</p>
