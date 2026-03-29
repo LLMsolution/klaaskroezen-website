@@ -75,14 +75,11 @@ export function LayoutEditorTab() {
     }
   }
 
-  async function handleApprove(syncContent: boolean) {
+  async function handleApprove() {
     if (!session) return;
-    const msg = syncContent
-      ? "Goedkeuren en AI-content overnemen in de database?"
-      : "Goedkeuren? Je kunt de content later zelf invullen via het Content tabblad.";
-    if (!confirm(msg)) return;
+    if (!confirm("Goedkeuren en live zetten? De content wordt na ~5 min bewerkbaar in het Content tabblad.")) return;
     try {
-      await approveSession({ sessionId: session._id, syncContent });
+      await approveSession({ sessionId: session._id, syncContent: true });
     } catch (err) {
       alert(err instanceof Error ? err.message : "Fout bij goedkeuren.");
     }
@@ -254,7 +251,7 @@ function ChatPanel({ session, inputText, sending, onInputChange, onSend, onBuild
   onInputChange: (v: string) => void;
   onSend: () => void;
   onBuild: () => void;
-  onApprove: (syncContent: boolean) => void;
+  onApprove: () => void;
   onReject: () => void;
   onBack: () => void;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
@@ -305,16 +302,11 @@ function ChatPanel({ session, inputText, sending, onInputChange, onSend, onBuild
 
       {/* Action buttons */}
       {isPreview && (
-        <div className="px-5 py-3 border-t border-rule space-y-2">
-          <div className="flex gap-2">
-            <button onClick={() => onApprove(false)} className="flex-1 bg-green-700 text-white px-3 py-2.5 text-[11px] font-medium tracking-[0.05em] uppercase hover:bg-green-800 transition-colors rounded-[2px] cursor-pointer">
-              Goedkeuren (zelf invullen)
-            </button>
-            <button onClick={() => onApprove(true)} className="flex-1 bg-copper text-paper px-3 py-2.5 text-[11px] font-medium tracking-[0.05em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer">
-              Goedkeuren (data overnemen)
-            </button>
-          </div>
-          <button onClick={onReject} className="w-full bg-ink/10 text-ink px-4 py-2 text-[11px] font-medium tracking-[0.1em] uppercase hover:bg-ink/20 transition-colors rounded-[2px] cursor-pointer">
+        <div className="px-5 py-3 border-t border-rule flex gap-2">
+          <button onClick={onApprove} className="flex-1 bg-green-700 text-white px-4 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-green-800 transition-colors rounded-[2px] cursor-pointer">
+            Goedkeuren
+          </button>
+          <button onClick={onReject} className="flex-1 bg-ink/10 text-ink px-4 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-ink/20 transition-colors rounded-[2px] cursor-pointer">
             Afkeuren
           </button>
         </div>
