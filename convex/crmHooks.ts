@@ -283,6 +283,24 @@ export const bolOrderCompleted = internalMutation({
       await ctx.db.patch(lead._id, { status: "won", closedAt: now });
     }
 
+    // Create pipeline lead (Bol.com = always "boek" tag)
+    const defaultStage = await ctx.db
+      .query("pipelineStages")
+      .filter((q) => q.eq(q.field("isDefault"), true))
+      .first();
+    if (defaultStage) {
+      await ctx.db.insert("leads", {
+        contactId,
+        stageId: defaultStage._id,
+        title: `${args.firstName} ${args.lastName} — boek (Bol.com)`,
+        valueCents: args.amountCents,
+        probability: defaultStage.defaultProbability,
+        status: "open",
+        source: "bol.com",
+        createdAt: now,
+      });
+    }
+
     // Fire automation triggers
     await ctx.scheduler.runAfter(0, internal.crmAutomation.evaluateRules, {
       trigger: "purchase",
@@ -396,5 +414,48 @@ export const purchaseCompleted = internalMutation({
         purchaseId,
       }),
     });
+
+    // Add purchaseTag from product config + create pipeline lead
+    const productData = await ctx.db
+      .query("checkoutProducts")
+      .withIndex("by_slug", (q) => q.eq("slug", order.product))
+      .first();
+
+    if (productData?.purchaseTag) {
+      // Add tag to contact
+      const tags = contact.tags || [];
+      if (!tags.includes(productData.purchaseTag)) {
+        await ctx.db.patch(contact._id, { tags: [...tags, productData.purchaseTag] });
+      }
+
+      // Create pipeline lead if no open leads exist
+      const hasOpenLead = openLeads.some((l) => l.status === "open");
+      if (!hasOpenLead) {
+        const defaultStage = await ctx.db
+          .query("pipelineStages")
+          .filter((q) => q.eq(q.field("isDefault"), true))
+          .first();
+        if (defaultStage) {
+          const leadId = await ctx.db.insert("leads", {
+            contactId: contact._id,
+            stageId: defaultStage._id,
+            title: `${order.firstName} ${order.lastName} — ${productData.purchaseTag}`,
+            valueCents: amountCents,
+            probability: defaultStage.defaultProbability,
+            status: "open",
+            source: "checkout",
+            purchaseId,
+            createdAt: now,
+          });
+          await ctx.db.insert("leadActivities", {
+            leadId,
+            contactId: contact._id,
+            type: "lead_created",
+            title: `Lead aangemaakt via aankoop (${productData.purchaseTag})`,
+            createdAt: now,
+          });
+        }
+      }
+    }
   },
 });

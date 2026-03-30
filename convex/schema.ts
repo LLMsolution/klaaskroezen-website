@@ -745,6 +745,7 @@ export default defineSchema({
       ),
     ),
     requiresShipping: v.boolean(),
+    purchaseTag: v.optional(v.string()), // Tag for CRM contact + pipeline lead on purchase (empty = no pipeline)
     mockupType: v.optional(
       v.union(v.literal("tablet"), v.literal("phone"), v.literal("audio")),
     ),

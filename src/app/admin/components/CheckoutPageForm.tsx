@@ -34,6 +34,7 @@ interface ProductData {
   installments?: { count: number; amountPerTermCents: number };
   quantityTiers?: QtyTier[];
   requiresShipping: boolean;
+  purchaseTag?: string;
   mockupType?: MockupType;
 }
 
@@ -92,6 +93,7 @@ export function CheckoutPageForm({ product, onBack }: Props) {
   const [bumps, setBumps] = useState<string[]>(product?.bumps ?? []);
   const [bumpOverrides, setBumpOverrides] = useState<BumpOverride[]>(product?.bumpPriceOverrides ?? []);
   const [requiresShipping, setRequiresShipping] = useState(product?.requiresShipping ?? false);
+  const [purchaseTag, setPurchaseTag] = useState(product?.purchaseTag ?? "");
   const [mockupType, setMockupType] = useState<MockupType | "">(product?.mockupType ?? "");
   const [hasInstallments, setHasInstallments] = useState(!!product?.installments);
   const [instCount, setInstCount] = useState(product?.installments?.count ?? 3);
@@ -125,6 +127,7 @@ export function CheckoutPageForm({ product, onBack }: Props) {
       installments: hasInstallments ? { count: instCount, amountPerTermCents: instAmount } : undefined,
       quantityTiers: hasTiers ? tiers.filter((t) => t.quantity > 0) : undefined,
       requiresShipping,
+      purchaseTag: purchaseTag || undefined,
       mockupType: mockupType || undefined,
     };
     try {
@@ -232,6 +235,11 @@ export function CheckoutPageForm({ product, onBack }: Props) {
                   <option value="audio">Audio</option>
                 </select>
               </div>
+            </div>
+            <div>
+              <label className={L}>CRM tag bij aankoop</label>
+              <input type="text" value={purchaseTag} onChange={(e) => setPurchaseTag(e.target.value)} placeholder="Leeg = geen pipeline lead" className={I} />
+              <p className="text-[10px] text-ink/30 mt-1">Bijv. &quot;boek&quot; of &quot;training-set&quot;. Contact krijgt deze tag + wordt als lead in de pipeline gezet.</p>
             </div>
           </div>
         </div>

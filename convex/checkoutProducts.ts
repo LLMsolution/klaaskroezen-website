@@ -195,6 +195,7 @@ const productFields = {
     ),
   ),
   requiresShipping: v.boolean(),
+  purchaseTag: v.optional(v.string()),
   mockupType: v.optional(
     v.union(v.literal("tablet"), v.literal("phone"), v.literal("audio")),
   ),
