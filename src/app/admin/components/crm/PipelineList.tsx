@@ -3,6 +3,7 @@
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import { Th } from "../shared";
 import { StageBadge, AssigneeBadge, LeadStatusBadge, formatPrice, formatDate } from "./shared";
+import { applyPipelineFilters, type PipelineFilterState } from "./PipelineFilters";
 
 type StageWithLeads = {
   _id: Id<"pipelineStages">;
@@ -12,7 +13,9 @@ type StageWithLeads = {
     _id: Id<"leads">;
     title: string;
     valueCents?: number;
+    probability: number;
     assignedTo?: string;
+    source?: string;
     status: "open" | "won" | "lost";
     nextAction?: string;
     nextActionAt?: number;
@@ -30,11 +33,11 @@ type StageWithLeads = {
 
 type Props = {
   stages: StageWithLeads[];
-  filterAssignee: string;
+  filters: PipelineFilterState;
   onSelectLead: (id: Id<"leads">) => void;
 };
 
-export function PipelineList({ stages, filterAssignee, onSelectLead }: Props) {
+export function PipelineList({ stages, filters, onSelectLead }: Props) {
   // Flatten all leads from all stages
   const allLeads = stages.flatMap((stage) =>
     stage.leads.map((lead) => ({
@@ -44,12 +47,8 @@ export function PipelineList({ stages, filterAssignee, onSelectLead }: Props) {
     })),
   );
 
-  // Apply filter
-  const filtered = filterAssignee
-    ? allLeads.filter((l) =>
-        l.assignedTo?.toLowerCase().includes(filterAssignee.toLowerCase()),
-      )
-    : allLeads;
+  // Apply filters
+  const filtered = applyPipelineFilters(allLeads, filters);
 
   // Sort by creation date desc
   const sorted = [...filtered].sort((a, b) => b.createdAt - a.createdAt);
@@ -102,14 +101,14 @@ export function PipelineList({ stages, filterAssignee, onSelectLead }: Props) {
                     </p>
                   </div>
                 ) : (
-                  <span className="text-[12px] text-ink/30">—</span>
+                  <span className="text-[12px] text-ink/30">--</span>
                 )}
               </td>
               <td className="px-4 py-3">
                 <StageBadge name={lead.stageName} color={lead.stageColor} />
               </td>
               <td className="px-4 py-3 text-[13px]">
-                {lead.valueCents ? formatPrice(lead.valueCents) : "—"}
+                {lead.valueCents ? formatPrice(lead.valueCents) : "--"}
               </td>
               <td className="px-4 py-3">
                 <AssigneeBadge email={lead.assignedTo} />

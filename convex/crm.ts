@@ -187,6 +187,7 @@ export const updateContact = mutation({
     company: v.optional(v.string()),
     jobTitle: v.optional(v.string()),
     lang: v.optional(langValidator),
+    customFields: v.optional(v.array(v.object({ key: v.string(), value: v.string() }))),
   },
   handler: async (ctx, { contactId, ...fields }) => {
     await requireAdmin(ctx);
@@ -197,6 +198,19 @@ export const updateContact = mutation({
     if (Object.keys(patch).length > 0) {
       await ctx.db.patch(contactId, patch);
     }
+  },
+});
+
+export const updateCustomFields = mutation({
+  args: {
+    contactId: v.id("contacts"),
+    customFields: v.array(v.object({ key: v.string(), value: v.string() })),
+  },
+  handler: async (ctx, { contactId, customFields }) => {
+    await requireAdmin(ctx);
+    const contact = await ctx.db.get(contactId);
+    if (!contact) throw new Error("Contact niet gevonden.");
+    await ctx.db.patch(contactId, { customFields });
   },
 });
 

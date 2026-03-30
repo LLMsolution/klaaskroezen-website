@@ -9,12 +9,13 @@ import { PipelineKanban } from "./PipelineKanban";
 import { PipelineList } from "./PipelineList";
 import { LeadDetailPanel } from "./LeadDetailPanel";
 import { AddLeadForm } from "./AddLeadForm";
+import { PipelineFilters, defaultFilters, type PipelineFilterState } from "./PipelineFilters";
 
 export function PipelineTab() {
   const [view, setView] = useState<"kanban" | "list">("kanban");
   const [selectedLeadId, setSelectedLeadId] = useState<Id<"leads"> | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [filterAssignee, setFilterAssignee] = useState<string>("");
+  const [filters, setFilters] = useState<PipelineFilterState>(defaultFilters);
 
   const stages = useQuery(api.crmLeads.getLeadsByStage);
   const stats = useQuery(api.crmPipeline.getPipelineStats);
@@ -72,13 +73,6 @@ export function PipelineTab() {
           >
             Lijst
           </button>
-          <input
-            type="text"
-            placeholder="Filter op eigenaar..."
-            value={filterAssignee}
-            onChange={(e) => setFilterAssignee(e.target.value)}
-            className="ml-4 px-3 py-1.5 text-[12px] border border-rule rounded-[2px] bg-transparent w-[200px]"
-          />
         </div>
         <button
           onClick={() => setShowAddForm(true)}
@@ -88,17 +82,20 @@ export function PipelineTab() {
         </button>
       </div>
 
+      {/* Filters */}
+      <PipelineFilters filters={filters} onChange={setFilters} />
+
       {/* Content */}
       {view === "kanban" ? (
         <PipelineKanban
           stages={stages}
-          filterAssignee={filterAssignee}
+          filters={filters}
           onSelectLead={setSelectedLeadId}
         />
       ) : (
         <PipelineList
           stages={stages}
-          filterAssignee={filterAssignee}
+          filters={filters}
           onSelectLead={setSelectedLeadId}
         />
       )}

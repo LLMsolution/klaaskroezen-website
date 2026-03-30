@@ -5,6 +5,7 @@ import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import { useState } from "react";
 import { AssigneeBadge, ScoreBadge, formatPrice, formatRelative } from "./shared";
+import { applyPipelineFilters, type PipelineFilterState } from "./PipelineFilters";
 
 type StageWithLeads = {
   _id: Id<"pipelineStages">;
@@ -17,7 +18,9 @@ type StageWithLeads = {
     _id: Id<"leads">;
     title: string;
     valueCents?: number;
+    probability: number;
     assignedTo?: string;
+    source?: string;
     nextAction?: string;
     nextActionAt?: number;
     createdAt: number;
@@ -34,11 +37,11 @@ type StageWithLeads = {
 
 type Props = {
   stages: StageWithLeads[];
-  filterAssignee: string;
+  filters: PipelineFilterState;
   onSelectLead: (id: Id<"leads">) => void;
 };
 
-export function PipelineKanban({ stages, filterAssignee, onSelectLead }: Props) {
+export function PipelineKanban({ stages, filters, onSelectLead }: Props) {
   const moveLead = useMutation(api.crmLeads.moveLead);
   const [dragOverStage, setDragOverStage] = useState<Id<"pipelineStages"> | null>(null);
 
@@ -72,11 +75,7 @@ export function PipelineKanban({ stages, filterAssignee, onSelectLead }: Props) 
   return (
     <div className="flex gap-4 pb-4 min-h-[500px]">
       {activeStages.map((stage) => {
-        const filteredLeads = filterAssignee
-          ? stage.leads.filter((l) =>
-              l.assignedTo?.toLowerCase().includes(filterAssignee.toLowerCase()),
-            )
-          : stage.leads;
+        const filteredLeads = applyPipelineFilters(stage.leads, filters);
 
         return (
           <div

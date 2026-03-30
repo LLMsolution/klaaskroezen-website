@@ -429,6 +429,7 @@ export default defineSchema({
     tags: v.array(v.string()),
     unsubscribed: v.boolean(),
     lang: langValidator,
+    customFields: v.optional(v.array(v.object({ key: v.string(), value: v.string() }))),
     createdAt: v.number(),
   })
     .index("by_email", ["email"])

@@ -9,6 +9,8 @@ import {
   StageBadge, LeadStatusBadge, ActivityIcon,
   formatPrice, formatDate, formatRelative,
 } from "./shared";
+import { MergeContactSearch } from "./MergeContactSearch";
+import { CustomFieldsEditor } from "./CustomFieldsEditor";
 
 type Props = {
   contactId: Id<"contacts">;
@@ -31,6 +33,7 @@ export function ContactDetailPanel({ contactId, onClose }: Props) {
   const [editMode, setEditMode] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [showMerge, setShowMerge] = useState(false);
   const [editFields, setEditFields] = useState({
     firstName: "", lastName: "", phone: "", company: "", jobTitle: "",
   });
@@ -119,7 +122,14 @@ export function ContactDetailPanel({ contactId, onClose }: Props) {
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[13px]">
           {contact.company && <InfoRow label="Bedrijf" value={contact.company} />}
           {contact.jobTitle && <InfoRow label="Functie" value={contact.jobTitle} />}
-          {contact.phone && <InfoRow label="Telefoon" value={contact.phone} />}
+          {contact.phone && (
+            <>
+              <span className="text-ink/40">Telefoon</span>
+              <a href={`tel:${contact.phone}`} className="text-copper hover:text-copper-light transition-colors">
+                {contact.phone}
+              </a>
+            </>
+          )}
           <InfoRow label="Bron" value={contact.source.replace("_", " ")} />
           <InfoRow label="Taal" value={contact.lang.toUpperCase()} />
           <InfoRow label="Aangemaakt" value={formatDate(contact.createdAt)} />
@@ -216,6 +226,12 @@ export function ContactDetailPanel({ contactId, onClose }: Props) {
           </div>
         )}
 
+        {/* Custom fields */}
+        <CustomFieldsEditor
+          contactId={contactId}
+          fields={contact.customFields ?? []}
+        />
+
         {/* Timeline */}
         <div>
           <p className="text-[10px] font-medium tracking-[0.15em] uppercase text-ink/40 mb-3">Timeline</p>
@@ -236,6 +252,25 @@ export function ContactDetailPanel({ contactId, onClose }: Props) {
             </div>
           ) : (
             <p className="text-[13px] text-ink/30">Nog geen activiteit</p>
+          )}
+        </div>
+
+        {/* Merge */}
+        <div className="pt-2 border-t border-rule">
+          {showMerge ? (
+            <MergeContactSearch
+              currentContactId={contactId}
+              currentName={`${contact.firstName} ${contact.lastName ?? ""}`}
+              onMerged={onClose}
+              onCancel={() => setShowMerge(false)}
+            />
+          ) : (
+            <button
+              onClick={() => setShowMerge(true)}
+              className="text-[12px] text-ink/50 hover:text-copper transition-colors cursor-pointer"
+            >
+              Samenvoegen met duplicaat
+            </button>
           )}
         </div>
 

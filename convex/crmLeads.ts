@@ -1,9 +1,9 @@
 import { v } from "convex/values";
 import { query, mutation, internalMutation } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { requireAdmin } from "./adminAuth";
 
 // ── Queries ──
-
 export const getLeads = query({
   args: {
     status: v.optional(v.union(v.literal("open"), v.literal("won"), v.literal("lost"))),
@@ -142,8 +142,6 @@ export const getLeadsByMonth = query({
   args: {},
   handler: async (ctx) => {
     await requireAdmin(ctx);
-
-    // Build 5 month buckets: current month + 4 ahead
     const now = new Date();
     const months: { key: string; label: string; start: number; end: number }[] = [];
     for (let i = 0; i < 5; i++) {
@@ -156,24 +154,16 @@ export const getLeadsByMonth = query({
         end: nextMonth.getTime(),
       });
     }
-
-    // Get all open leads with expectedCloseAt set
-    const leads = await ctx.db
-      .query("leads")
-      .withIndex("by_status", (q) => q.eq("status", "open"))
-      .collect();
-
+    const leads = await ctx.db.query("leads")
+      .withIndex("by_status", (q) => q.eq("status", "open")).collect();
     const prospects = leads.filter(
       (l) => l.expectedCloseAt !== undefined && l.valueCents !== undefined,
     );
-
     const result = [];
     for (const month of months) {
       const monthLeads = prospects.filter(
         (l) => l.expectedCloseAt! >= month.start && l.expectedCloseAt! < month.end,
       );
-
-      // Enrich with contact data
       const enrichedLeads = [];
       for (const lead of monthLeads) {
         const contact = await ctx.db.get(lead.contactId);
@@ -187,30 +177,20 @@ export const getLeadsByMonth = query({
           stageColor: stage?.color ?? "#999",
         });
       }
-
       const totalValue = monthLeads.reduce((sum, l) => sum + (l.valueCents ?? 0), 0);
       const weightedValue = monthLeads.reduce(
-        (sum, l) => sum + Math.round((l.valueCents ?? 0) * l.probability / 100),
-        0,
+        (sum, l) => sum + Math.round((l.valueCents ?? 0) * l.probability / 100), 0,
       );
-
       result.push({
-        key: month.key,
-        label: month.label,
-        start: month.start,
-        leads: enrichedLeads,
-        totalValue,
-        weightedValue,
-        count: enrichedLeads.length,
+        key: month.key, label: month.label, start: month.start,
+        leads: enrichedLeads, totalValue, weightedValue, count: enrichedLeads.length,
       });
     }
-
     return result;
   },
 });
 
 // ── Mutations ──
-
 export const createLead = mutation({
   args: {
     contactId: v.id("contacts"),
@@ -312,6 +292,18 @@ export const moveLead = mutation({
       title: `Stage: ${oldStage?.name ?? "?"} → ${newStage?.name ?? "?"}`,
       performedBy: email,
       createdAt: Date.now(),
+    });
+
+    // Fire workflow triggers for stage change
+    await ctx.scheduler.runAfter(0, internal.crmAutomation.evaluateRules, {
+      trigger: "stage_change",
+      contactId: lead.contactId,
+      metadata: JSON.stringify({ fromStage: oldStage?.name ?? "", toStage: newStage?.name ?? "" }),
+    });
+    await ctx.scheduler.runAfter(0, internal.workflows.evaluateTrigger, {
+      trigger: "stage_change",
+      contactId: lead.contactId,
+      metadata: JSON.stringify({ fromStage: oldStage?.name ?? "", toStage: newStage?.name ?? "" }),
     });
   },
 });
@@ -472,7 +464,6 @@ export const addNote = mutation({
 });
 
 // ── Internal ──
-
 export const createLeadInternal = internalMutation({
   args: {
     contactId: v.id("contacts"),
@@ -498,15 +489,10 @@ export const createLeadInternal = internalMutation({
       status: "open",
       createdAt: now,
     });
-
     await ctx.db.insert("leadActivities", {
-      leadId,
-      contactId: args.contactId,
-      type: "lead_created",
-      title: `Lead "${args.title}" automatisch aangemaakt`,
-      createdAt: now,
+      leadId, contactId: args.contactId, type: "lead_created",
+      title: `Lead "${args.title}" automatisch aangemaakt`, createdAt: now,
     });
-
     return leadId;
   },
 });

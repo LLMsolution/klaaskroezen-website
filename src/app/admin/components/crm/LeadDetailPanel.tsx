@@ -122,7 +122,11 @@ export function LeadDetailPanel({ leadId, onClose }: Props) {
           <div className="border border-rule rounded-[2px] p-4">
             <p className="text-[10px] font-medium tracking-[0.15em] uppercase text-ink/40 mb-2">Contact</p>
             <p className="text-[13px]">{lead.contact.email}</p>
-            {lead.contact.phone && <p className="text-[13px] text-ink/60">{lead.contact.phone}</p>}
+            {lead.contact.phone && (
+              <a href={`tel:${lead.contact.phone}`} className="text-[13px] text-copper hover:text-copper-light transition-colors">
+                {lead.contact.phone}
+              </a>
+            )}
           </div>
         )}
 
