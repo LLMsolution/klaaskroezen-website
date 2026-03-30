@@ -69,23 +69,22 @@ async function fetchLinkedInSpend(
   accountId: string,
   dateRange: { start: string; end: string },
 ): Promise<{ date: string; spend: number; impressions: number; clicks: number }[]> {
-  const url = new URL("https://api.linkedin.com/rest/adAnalytics");
-  url.searchParams.set("q", "analytics");
-  url.searchParams.set("pivot", "CAMPAIGN");
-  url.searchParams.set("dateRange.start.day", String(new Date(dateRange.start).getUTCDate()));
-  url.searchParams.set("dateRange.start.month", String(new Date(dateRange.start).getUTCMonth() + 1));
-  url.searchParams.set("dateRange.start.year", String(new Date(dateRange.start).getUTCFullYear()));
-  url.searchParams.set("dateRange.end.day", String(new Date(dateRange.end).getUTCDate()));
-  url.searchParams.set("dateRange.end.month", String(new Date(dateRange.end).getUTCMonth() + 1));
-  url.searchParams.set("dateRange.end.year", String(new Date(dateRange.end).getUTCFullYear()));
-  url.searchParams.set("timeGranularity", "DAILY");
-  url.searchParams.set("accounts", `urn:li:sponsoredAccount:${accountId}`);
-  url.searchParams.set("fields", "costInLocalCurrency,impressions,clicks,dateRange");
+  const s = new Date(dateRange.start);
+  const e = new Date(dateRange.end);
+  // LinkedIn REST API uses RestLI tuple format for nested params
+  const params = [
+    "q=analytics",
+    "pivot=CAMPAIGN",
+    `dateRange=(start:(day:${s.getUTCDate()},month:${s.getUTCMonth() + 1},year:${s.getUTCFullYear()}),end:(day:${e.getUTCDate()},month:${e.getUTCMonth() + 1},year:${e.getUTCFullYear()}))`,
+    "timeGranularity=DAILY",
+    `accounts=List(${encodeURIComponent(`urn:li:sponsoredAccount:${accountId}`)})`,
+    "fields=costInLocalCurrency,impressions,clicks,dateRange",
+  ].join("&");
 
-  const res = await fetch(url.toString(), {
+  const res = await fetch(`https://api.linkedin.com/rest/adAnalytics?${params}`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
-      "LinkedIn-Version": "202401",
+      "LinkedIn-Version": "202601",
       "X-Restli-Protocol-Version": "2.0.0",
     },
   });
