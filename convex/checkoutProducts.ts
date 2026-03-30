@@ -238,6 +238,31 @@ export const deactivateProduct = mutation({
   },
 });
 
+export const activateProduct = mutation({
+  args: { id: v.id("checkoutProducts") },
+  handler: async (ctx, { id }) => {
+    await requireAdmin(ctx);
+    await ctx.db.patch(id, { active: true });
+  },
+});
+
+export const deleteProduct = mutation({
+  args: { id: v.id("checkoutProducts") },
+  handler: async (ctx, { id }) => {
+    await requireAdmin(ctx);
+    const product = await ctx.db.get(id);
+    if (!product) throw new Error("Product niet gevonden.");
+    if (product.active) throw new Error("Deactiveer het product eerst voordat je het verwijdert.");
+    // Check if any orders reference this product
+    const order = await ctx.db
+      .query("pendingOrders")
+      .filter((q) => q.eq(q.field("product"), product.slug))
+      .first();
+    if (order?.convertedAt) throw new Error("Dit product heeft bestaande bestellingen en kan niet verwijderd worden.");
+    await ctx.db.delete(id);
+  },
+});
+
 export const duplicateProduct = mutation({
   args: { id: v.id("checkoutProducts") },
   handler: async (ctx, { id }) => {

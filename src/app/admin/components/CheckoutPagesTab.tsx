@@ -13,6 +13,8 @@ type View = "list" | "edit" | "create" | "reviews";
 export function CheckoutPagesTab() {
   const products = useQuery(api.checkoutProducts.listAll);
   const deactivate = useMutation(api.checkoutProducts.deactivateProduct);
+  const activate = useMutation(api.checkoutProducts.activateProduct);
+  const deleteProduct = useMutation(api.checkoutProducts.deleteProduct);
   const duplicate = useMutation(api.checkoutProducts.duplicateProduct);
 
   const [view, setView] = useState<View>("list");
@@ -124,7 +126,15 @@ export function CheckoutPagesTab() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <a
+                        href={`/checkout/${product.slug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] text-ink/30 hover:text-ink cursor-pointer"
+                      >
+                        Preview
+                      </a>
                       <button
                         onClick={() => { setEditId(product._id); setView("edit"); }}
                         className="text-[11px] text-copper hover:text-copper-light cursor-pointer"
@@ -137,7 +147,7 @@ export function CheckoutPagesTab() {
                       >
                         Kloon
                       </button>
-                      {product.active && (
+                      {product.active ? (
                         <button
                           onClick={() => {
                             if (confirm("Product deactiveren? Bestaande orders blijven werken.")) {
@@ -148,6 +158,28 @@ export function CheckoutPagesTab() {
                         >
                           Deactiveer
                         </button>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => activate({ id: product._id })}
+                            className="text-[11px] text-green-600 hover:text-green-700 cursor-pointer"
+                          >
+                            Activeer
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (!confirm("Product definitief verwijderen? Dit kan niet ongedaan worden.")) return;
+                              try {
+                                await deleteProduct({ id: product._id });
+                              } catch (err) {
+                                alert(err instanceof Error ? err.message : "Verwijderen mislukt.");
+                              }
+                            }}
+                            className="text-[11px] text-red-500 hover:text-red-700 cursor-pointer"
+                          >
+                            Verwijder
+                          </button>
+                        </>
                       )}
                     </div>
                   </td>
