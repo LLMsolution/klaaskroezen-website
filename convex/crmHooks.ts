@@ -211,11 +211,17 @@ export const bolOrderCompleted = internalMutation({
     company: v.optional(v.string()),
     product: v.string(),
     amountCents: v.number(),
+    street: v.optional(v.string()),
+    houseNumber: v.optional(v.string()),
+    postalCode: v.optional(v.string()),
+    city: v.optional(v.string()),
+    countryCode: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const email = args.email.toLowerCase().trim();
     if (!email.includes("@")) return;
     const now = Date.now();
+    const fullStreet = [args.street, args.houseNumber].filter(Boolean).join(" ");
 
     const existing = await ctx.db
       .query("contacts")
@@ -230,6 +236,10 @@ export const bolOrderCompleted = internalMutation({
         ...(args.phone && !existing.phone ? { phone: args.phone } : {}),
         ...(args.company && !existing.company ? { company: args.company } : {}),
         ...(!existing.lastName && args.lastName ? { lastName: args.lastName } : {}),
+        ...(fullStreet && !existing.street ? { street: fullStreet } : {}),
+        ...(args.postalCode && !existing.postalCode ? { postalCode: args.postalCode } : {}),
+        ...(args.city && !existing.city ? { city: args.city } : {}),
+        ...(args.countryCode && !existing.countryCode ? { countryCode: args.countryCode } : {}),
       });
       contactId = existing._id;
     } else {
@@ -239,6 +249,10 @@ export const bolOrderCompleted = internalMutation({
         lastName: args.lastName,
         phone: args.phone,
         company: args.company,
+        street: fullStreet || undefined,
+        postalCode: args.postalCode,
+        city: args.city,
+        countryCode: args.countryCode,
         engagementScore: 0,
         intentScore: 50,
         lastActivityAt: now,

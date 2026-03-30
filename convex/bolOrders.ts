@@ -131,7 +131,7 @@ export const insertOrder = internalMutation({
       importedAt: Date.now(),
     });
 
-    // CRM: create contact + start email sequence
+    // CRM: create contact with all available info
     if (args.email.includes("@")) {
       await ctx.scheduler.runAfter(0, internal.crmHooks.bolOrderCompleted, {
         email: args.email,
@@ -141,6 +141,11 @@ export const insertOrder = internalMutation({
         company: args.company,
         product: args.product,
         amountCents: args.amountCents,
+        street: args.street,
+        houseNumber: args.houseNumber,
+        postalCode: args.postalCode,
+        city: args.city,
+        countryCode: args.countryCode,
       });
     }
   },

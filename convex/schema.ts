@@ -402,6 +402,11 @@ export default defineSchema({
     jobTitle: v.optional(v.string()),
     website: v.optional(v.string()),
     linkedin: v.optional(v.string()),
+    // Address (from checkout / Bol.com)
+    street: v.optional(v.string()),
+    postalCode: v.optional(v.string()),
+    city: v.optional(v.string()),
+    countryCode: v.optional(v.string()),
     userId: v.optional(v.id("users")),
     // Scoring
     engagementScore: v.number(), // email opens, clicks
