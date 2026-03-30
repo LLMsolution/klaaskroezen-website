@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import Link from "next/link";
+import { ExportButtons } from "./ExportButtons";
 import {
   PRODUCT_NAMES,
   formatPrice,
@@ -56,8 +57,23 @@ function OrdersList() {
   if (!orders) return <Loading />;
   if (orders.length === 0) return <EmptyState text="Nog geen bestellingen." />;
 
+  const exportData = orders.map((o) => ({
+    paidAt: o.paidAt ? new Date(o.paidAt).toISOString() : "",
+    product: PRODUCT_NAMES[o.product] || o.product,
+    quantity: 1,
+    amount: o.amount,
+    firstName: o.userName?.split(" ")[0] ?? "",
+    lastName: o.userName?.split(" ").slice(1).join(" ") ?? "",
+    email: o.userEmail ?? "",
+    source: "mollie",
+  }));
+
   return (
-    <div className="border border-rule rounded-[2px] overflow-x-auto">
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <ExportButtons orders={exportData} />
+      </div>
+      <div className="border border-rule rounded-[2px] overflow-x-auto">
       <table className="w-full min-w-[700px]">
         <thead>
           <tr className="border-b border-rule bg-warm/30">
@@ -106,6 +122,7 @@ function OrdersList() {
         </tbody>
       </table>
     </div>
+    </div>
   );
 }
 
@@ -132,6 +149,27 @@ function BolcomOrdersList() {
           <p className="text-[11px] text-ink/40">{stats.monthOrders} orders</p>
         </div>
       </div>
+
+      {orders.length > 0 && (
+        <div className="flex justify-end">
+          <ExportButtons orders={orders.map((o) => ({
+            paidAt: o.paidAt,
+            product: o.product,
+            quantity: o.quantity,
+            amount: o.amountWithTaxCents,
+            company: o.company,
+            firstName: o.firstName,
+            lastName: o.lastName,
+            email: o.email,
+            street: o.street,
+            houseNumber: o.houseNumber,
+            postalCode: o.postalCode,
+            city: o.city,
+            countryCode: o.countryCode,
+            source: "bolcom",
+          }))} />
+        </div>
+      )}
 
       {orders.length === 0 ? (
         <EmptyState text="Nog geen Bol.com orders. De sync draait elke 5 minuten." />
