@@ -43,6 +43,20 @@ crons.interval(
   internal.layoutEditorOps.cleanupExpiredSessions,
 );
 
+// Ad Spend: Sync LinkedIn daily spend every hour
+crons.interval(
+  "adspend-linkedin-sync",
+  { hours: 1 },
+  internal.adSpend.syncLinkedIn,
+);
+
+// Ad Spend: Sync Meta daily spend every 6 hours
+crons.interval(
+  "adspend-meta-sync",
+  { hours: 6 },
+  internal.adSpend.syncMeta,
+);
+
 // Bol.com: Sync new orders every 5 minutes
 crons.interval(
   "bolcom-sync-orders",

@@ -647,6 +647,19 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_next_run", ["status", "nextRunAt"]),
 
+  // ── Ad Spend ──
+  // Daily ad spend per platform (LinkedIn, Meta)
+  adSpendDaily: defineTable({
+    platform: v.union(v.literal("linkedin"), v.literal("meta")),
+    date: v.string(),
+    spend: v.number(), // EUR cents
+    impressions: v.number(),
+    clicks: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_platform_date", ["platform", "date"])
+    .index("by_date", ["date"]),
+
   // ── Bol.com Orders ──
   // Orders imported from Bol.com Retailer API
   bolOrders: defineTable({

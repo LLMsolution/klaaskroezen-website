@@ -18,6 +18,7 @@ type Tab =
   | "broadcasts"
   | "email-activity"
   | "crm-workflows"
+  | "ad-spend"
   | "crm-pipeline"
   | "crm-contacts"
   | "crm-reports"
@@ -90,6 +91,9 @@ const NAV: SectionOrItem[] = [
     )},
     { key: "crm-workflows", label: "Workflows", icon: (
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M4 2v4l4 2 4-2V2" /><path d="M8 8v6" /><circle cx="4" cy="2" r="1" /><circle cx="12" cy="2" r="1" /><circle cx="8" cy="14" r="1" /></svg>
+    )},
+    { key: "ad-spend", label: "Ad Spend", icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><polyline points="2 12 5 8 8 10 14 4" /><polyline points="10 4 14 4 14 8" /></svg>
     )},
   ]},
 
