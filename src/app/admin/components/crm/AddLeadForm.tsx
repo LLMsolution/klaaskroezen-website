@@ -23,6 +23,7 @@ export function AddLeadForm({ onClose }: Props) {
   const [valueCents, setValueCents] = useState("");
   const [source, setSource] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
+  const [expectedCloseMonth, setExpectedCloseMonth] = useState("");
   const [contactSearch, setContactSearch] = useState("");
 
   // New contact fields
@@ -75,6 +76,9 @@ export function AddLeadForm({ onClose }: Props) {
         source: source || undefined,
         assignedTo: assignedTo || undefined,
         stageId: stageId ? (stageId as Id<"pipelineStages">) : undefined,
+        expectedCloseAt: expectedCloseMonth
+          ? new Date(expectedCloseMonth + "-01T00:00:00Z").getTime()
+          : undefined,
       });
 
       onClose();
@@ -262,6 +266,16 @@ export function AddLeadForm({ onClose }: Props) {
                   className="w-full px-3 py-2 text-[13px] border border-rule rounded-[2px] bg-transparent"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="text-[11px] font-medium text-ink/50 block mb-1">Verwachte sluiting</label>
+              <input
+                type="month"
+                value={expectedCloseMonth}
+                onChange={(e) => setExpectedCloseMonth(e.target.value)}
+                className="w-full px-3 py-2 text-[13px] border border-rule rounded-[2px] bg-transparent"
+              />
             </div>
 
             {/* Actions */}

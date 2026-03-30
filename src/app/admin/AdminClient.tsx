@@ -20,6 +20,7 @@ import { CheckoutPagesTab } from "./components/CheckoutPagesTab";
 import { ContentTab } from "./components/ContentTab";
 import { TrainingsTab } from "./components/TrainingsTab";
 import { PipelineTab } from "./components/crm/PipelineTab";
+import { ProspectsTab } from "./components/crm/ProspectsTab";
 import { CrmContactsTab } from "./components/crm/CrmContactsTab";
 import { CrmReportsTab } from "./components/crm/CrmReportsTab";
 import { WorkflowsTab } from "./components/WorkflowsTab";
@@ -48,6 +49,7 @@ const TAB_LABELS: Record<AdminTab, string> = {
   "crm-workflows": "Workflows",
   "ad-spend": "Ad Spend",
   "crm-pipeline": "Pipeline",
+  "crm-prospects": "Prospects",
   "crm-contacts": "Contacten",
   "crm-reports": "Rapportages",
   settings: "Instellingen",
@@ -148,6 +150,7 @@ export function AdminClient() {
           {activeTab === "crm-workflows" && <WorkflowsTab />}
           {activeTab === "ad-spend" && <AdSpendTab />}
           {activeTab === "crm-pipeline" && <PipelineTab />}
+          {activeTab === "crm-prospects" && <ProspectsTab />}
           {activeTab === "crm-contacts" && <CrmContactsTab />}
           {activeTab === "crm-reports" && <CrmReportsTab />}
           {activeTab === "settings" && <SettingsTab />}

@@ -2,9 +2,7 @@ import { v } from "convex/values";
 import { query, mutation, internalMutation } from "./_generated/server";
 import { requireAdmin } from "./adminAuth";
 
-/* ═══════════════════════════════════════════
-   QUERIES
-   ═══════════════════════════════════════════ */
+// ── Queries ──
 
 export const getLeads = query({
   args: {
@@ -140,9 +138,78 @@ export const getLeadsForContact = query({
   },
 });
 
-/* ═══════════════════════════════════════════
-   MUTATIONS
-   ═══════════════════════════════════════════ */
+export const getLeadsByMonth = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+
+    // Build 5 month buckets: current month + 4 ahead
+    const now = new Date();
+    const months: { key: string; label: string; start: number; end: number }[] = [];
+    for (let i = 0; i < 5; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() + i + 1, 1);
+      months.push({
+        key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+        label: d.toLocaleDateString("nl-NL", { month: "long", year: "numeric" }),
+        start: d.getTime(),
+        end: nextMonth.getTime(),
+      });
+    }
+
+    // Get all open leads with expectedCloseAt set
+    const leads = await ctx.db
+      .query("leads")
+      .withIndex("by_status", (q) => q.eq("status", "open"))
+      .collect();
+
+    const prospects = leads.filter(
+      (l) => l.expectedCloseAt !== undefined && l.valueCents !== undefined,
+    );
+
+    const result = [];
+    for (const month of months) {
+      const monthLeads = prospects.filter(
+        (l) => l.expectedCloseAt! >= month.start && l.expectedCloseAt! < month.end,
+      );
+
+      // Enrich with contact data
+      const enrichedLeads = [];
+      for (const lead of monthLeads) {
+        const contact = await ctx.db.get(lead.contactId);
+        const stage = await ctx.db.get(lead.stageId);
+        enrichedLeads.push({
+          ...lead,
+          contact: contact
+            ? { firstName: contact.firstName, lastName: contact.lastName, email: contact.email, company: contact.company }
+            : null,
+          stageName: stage?.name ?? "Onbekend",
+          stageColor: stage?.color ?? "#999",
+        });
+      }
+
+      const totalValue = monthLeads.reduce((sum, l) => sum + (l.valueCents ?? 0), 0);
+      const weightedValue = monthLeads.reduce(
+        (sum, l) => sum + Math.round((l.valueCents ?? 0) * l.probability / 100),
+        0,
+      );
+
+      result.push({
+        key: month.key,
+        label: month.label,
+        start: month.start,
+        leads: enrichedLeads,
+        totalValue,
+        weightedValue,
+        count: enrichedLeads.length,
+      });
+    }
+
+    return result;
+  },
+});
+
+// ── Mutations ──
 
 export const createLead = mutation({
   args: {
@@ -152,6 +219,7 @@ export const createLead = mutation({
     source: v.optional(v.string()),
     assignedTo: v.optional(v.string()),
     stageId: v.optional(v.id("pipelineStages")),
+    expectedCloseAt: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const { email } = await requireAdmin(ctx);
@@ -178,6 +246,7 @@ export const createLead = mutation({
       probability: stage?.defaultProbability ?? 10,
       assignedTo: args.assignedTo,
       source: args.source,
+      expectedCloseAt: args.expectedCloseAt,
       status: "open",
       createdAt: now,
     });
@@ -204,6 +273,7 @@ export const updateLead = mutation({
     assignedTo: v.optional(v.string()),
     nextAction: v.optional(v.string()),
     nextActionAt: v.optional(v.number()),
+    expectedCloseAt: v.optional(v.number()),
   },
   handler: async (ctx, { leadId, ...fields }) => {
     await requireAdmin(ctx);
@@ -240,6 +310,30 @@ export const moveLead = mutation({
       contactId: lead.contactId,
       type: "stage_change",
       title: `Stage: ${oldStage?.name ?? "?"} → ${newStage?.name ?? "?"}`,
+      performedBy: email,
+      createdAt: Date.now(),
+    });
+  },
+});
+
+export const moveLeadToMonth = mutation({
+  args: {
+    leadId: v.id("leads"),
+    expectedCloseAt: v.number(),
+  },
+  handler: async (ctx, { leadId, expectedCloseAt }) => {
+    const { email } = await requireAdmin(ctx);
+    const lead = await ctx.db.get(leadId);
+    if (!lead) throw new Error("Lead niet gevonden.");
+
+    await ctx.db.patch(leadId, { expectedCloseAt });
+
+    const monthLabel = new Date(expectedCloseAt).toLocaleDateString("nl-NL", { month: "long", year: "numeric" });
+    await ctx.db.insert("leadActivities", {
+      leadId,
+      contactId: lead.contactId,
+      type: "note",
+      title: `Verwachte sluitingsdatum gewijzigd naar ${monthLabel}`,
       performedBy: email,
       createdAt: Date.now(),
     });
@@ -377,9 +471,7 @@ export const addNote = mutation({
   },
 });
 
-/* ═══════════════════════════════════════════
-   INTERNAL — used by integrations
-   ═══════════════════════════════════════════ */
+// ── Internal ──
 
 export const createLeadInternal = internalMutation({
   args: {

@@ -456,6 +456,7 @@ export default defineSchema({
     nextActionAt: v.optional(v.number()),
     purchaseId: v.optional(v.id("purchases")),
     lostReason: v.optional(v.string()),
+    expectedCloseAt: v.optional(v.number()), // timestamp ms — first day of expected close month
     createdAt: v.number(),
     closedAt: v.optional(v.number()),
   })
@@ -463,7 +464,8 @@ export default defineSchema({
     .index("by_stage", ["stageId"])
     .index("by_assigned", ["assignedTo"])
     .index("by_status", ["status"])
-    .index("by_next_action", ["nextActionAt"]),
+    .index("by_next_action", ["nextActionAt"])
+    .index("by_expected_close", ["expectedCloseAt"]),
 
   // ── CRM: Pipeline Stages ──
   // Configurable pipeline phases

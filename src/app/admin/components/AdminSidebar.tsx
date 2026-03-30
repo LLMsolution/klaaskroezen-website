@@ -20,6 +20,7 @@ type Tab =
   | "crm-workflows"
   | "ad-spend"
   | "crm-pipeline"
+  | "crm-prospects"
   | "crm-contacts"
   | "crm-reports"
   | "settings";
@@ -100,6 +101,9 @@ const NAV: SectionOrItem[] = [
   // CRM
   { type: "section", label: "CRM", items: [
     { key: "crm-pipeline", label: "Pipeline", icon: I("M2 3h3v10H2zM6.5 5h3v8h-3zM11 7h3v6h-3z") },
+    { key: "crm-prospects", label: "Prospects", icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><polyline points="2 12 5 8 8 10 14 4" /><polyline points="10 4 14 4 14 8" /></svg>
+    )},
     { key: "crm-contacts", label: "Contacten", icon: (
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><circle cx="6" cy="5" r="2.5" /><path d="M2 13c0-2.2 1.8-4 4-4s4 1.8 4 4" /><circle cx="11.5" cy="5.5" r="2" /><path d="M10 13c0-1.7 1-3.1 2.5-3.7" /></svg>
     )},

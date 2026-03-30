@@ -27,6 +27,7 @@ export function LeadDetailPanel({ leadId, onClose }: Props) {
 
   const [showNoteForm, setShowNoteForm] = useState(false);
   const [nextAction, setNextAction] = useState("");
+  const [nextActionDate, setNextActionDate] = useState("");
   const [lostReason, setLostReason] = useState("");
   const [showLostForm, setShowLostForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -86,6 +87,28 @@ export function LeadDetailPanel({ leadId, onClose }: Props) {
               </InfoItem>
             </>
           )}
+          <InfoItem label="Verwachte sluiting">
+            {lead.status === "open" ? (
+              <input
+                type="month"
+                value={lead.expectedCloseAt
+                  ? (() => { const d = new Date(lead.expectedCloseAt); return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`; })()
+                  : ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  updateLead({
+                    leadId,
+                    expectedCloseAt: val ? new Date(val + "-01T00:00:00Z").getTime() : undefined,
+                  });
+                }}
+                className="text-[13px] border border-rule rounded-[2px] px-2 py-1 bg-transparent w-full"
+              />
+            ) : (
+              <span className="text-[13px]">
+                {lead.expectedCloseAt ? new Date(lead.expectedCloseAt).toLocaleDateString("nl-NL", { month: "long", year: "numeric" }) : "—"}
+              </span>
+            )}
+          </InfoItem>
           <InfoItem label="Aangemaakt">{formatDate(lead.createdAt)}</InfoItem>
           {lead.nextAction && (
             <InfoItem label="Volgende actie">
@@ -130,29 +153,40 @@ export function LeadDetailPanel({ leadId, onClose }: Props) {
             </div>
 
             {/* Next action */}
-            <div className="flex gap-2">
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Volgende actie..."
+                  value={nextAction}
+                  onChange={(e) => setNextAction(e.target.value)}
+                  className="flex-1 px-3 py-2 text-[13px] border border-rule rounded-[2px] bg-transparent"
+                />
+                <button
+                  onClick={() => {
+                    if (nextAction.trim()) {
+                      updateLead({
+                        leadId,
+                        nextAction: nextAction.trim(),
+                        nextActionAt: nextActionDate
+                          ? new Date(nextActionDate).getTime()
+                          : Date.now() + 7 * 24 * 60 * 60 * 1000,
+                      });
+                      setNextAction("");
+                      setNextActionDate("");
+                    }
+                  }}
+                  className="px-3 py-2 text-[12px] bg-warm hover:bg-warm/80 rounded-[2px] transition-colors cursor-pointer"
+                >
+                  Opslaan
+                </button>
+              </div>
               <input
-                type="text"
-                placeholder="Volgende actie..."
-                value={nextAction}
-                onChange={(e) => setNextAction(e.target.value)}
-                className="flex-1 px-3 py-2 text-[13px] border border-rule rounded-[2px] bg-transparent"
+                type="date"
+                value={nextActionDate}
+                onChange={(e) => setNextActionDate(e.target.value)}
+                className="px-3 py-2 text-[12px] border border-rule rounded-[2px] bg-transparent w-[180px]"
               />
-              <button
-                onClick={() => {
-                  if (nextAction.trim()) {
-                    updateLead({
-                      leadId,
-                      nextAction: nextAction.trim(),
-                      nextActionAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
-                    });
-                    setNextAction("");
-                  }
-                }}
-                className="px-3 py-2 text-[12px] bg-warm hover:bg-warm/80 rounded-[2px] transition-colors cursor-pointer"
-              >
-                Opslaan
-              </button>
             </div>
 
             {/* Win / Lose buttons */}
