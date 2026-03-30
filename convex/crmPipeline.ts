@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 import { requireAdmin } from "./adminAuth";
 
 /* ═══════════════════════════════════════════

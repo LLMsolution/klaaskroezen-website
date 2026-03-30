@@ -60,11 +60,10 @@ type TrainingData = {
 
 export function AudiobookOverview({
   training,
-  slug,
   lang,
 }: {
   training: TrainingData;
-  slug: string;
+  slug?: string;
   lang: Lang;
 }) {
   const s = audiobookI18n[lang];

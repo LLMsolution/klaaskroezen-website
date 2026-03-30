@@ -210,7 +210,6 @@ type ModDel = ReturnType<typeof useMutation<typeof api.trainingModules.deleteMod
 type GenUrl = ReturnType<typeof useMutation<typeof api.trainings.generateUploadUrl>>;
 type AudioSave = ReturnType<typeof useMutation<typeof api.trainingModules.saveAudio>>;
 type AudioRm = ReturnType<typeof useMutation<typeof api.trainingModules.removeAudio>>;
-type AudioOps = { generateUploadUrl: GenUrl; saveAudio: AudioSave; removeAudio: AudioRm };
 
 function AudiobookChapterList({ chapters, addingChapter, formTitle, saving, onToggleAdd, onFormTitleChange, onAddChapter, onCancelAdd, onUpdateModule, onDeleteModule, generateUploadUrl, saveAudio, removeAudio }: {
   chapters: Mod[]; addingChapter: boolean; formTitle: string; saving: boolean;

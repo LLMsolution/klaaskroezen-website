@@ -386,6 +386,7 @@ function ChatPanel({ session, inputText, sending, onInputChange, onSend, onBuild
         <div className="px-5 py-2 border-t border-rule flex gap-2 flex-wrap">
           {session.uploadedImages.map((img, i) => (
             <div key={i} className="relative group">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={img.url} alt={img.fileName} className="w-12 h-12 object-cover rounded-[2px] border border-rule" />
               <p className="text-[9px] text-ink/40 truncate max-w-[48px]">{img.fileName}</p>
             </div>

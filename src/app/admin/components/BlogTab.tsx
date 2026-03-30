@@ -7,7 +7,6 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { Loading, EmptyState, formatDate } from "./shared";
 import { AdminImageUpload } from "./AdminImageUpload";
-import { DeepLButton } from "./DeepLButton";
 
 /** Convert plain text with markdown-light syntax to HTML */
 function plainTextToHtml(text: string): string {
