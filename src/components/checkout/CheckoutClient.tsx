@@ -292,12 +292,11 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
         experimentVariant: experimentVariant || undefined,
       });
 
-      // Free order: skip Mollie, process directly
+      // Free order (100% discount): skip Mollie, process directly, go to login
       if (totals.totalGross === 0) {
         const result = await processFreeOrder({ pendingOrderId: orderId });
         if (result.success) {
-          const params = new URLSearchParams({ email, product: productSlug, lang });
-          window.location.href = `/checkout/bedankt?${params.toString()}`;
+          window.location.href = `/login`;
         }
         return;
       }
