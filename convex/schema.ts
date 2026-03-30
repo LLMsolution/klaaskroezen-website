@@ -647,6 +647,16 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_next_run", ["status", "nextRunAt"]),
 
+  // ── OAuth Tokens ──
+  // Stored tokens for auto-refresh (LinkedIn, Meta, etc.)
+  oauthTokens: defineTable({
+    provider: v.string(), // "linkedin", "meta"
+    accessToken: v.string(),
+    refreshToken: v.optional(v.string()),
+    expiresAt: v.number(), // timestamp ms
+    updatedAt: v.number(),
+  }).index("by_provider", ["provider"]),
+
   // ── Ad Spend ──
   // Daily ad spend per platform (LinkedIn, Meta)
   adSpendDaily: defineTable({

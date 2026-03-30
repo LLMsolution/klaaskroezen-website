@@ -1,7 +1,66 @@
 import { v } from "convex/values";
-import { query, internalAction, internalMutation } from "./_generated/server";
+import { query, internalQuery, internalAction, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { requireAdmin } from "./adminAuth";
+
+// ── OAuth Token Management ──
+
+async function refreshLinkedInToken(
+  clientId: string,
+  clientSecret: string,
+  refreshToken: string,
+): Promise<{ accessToken: string; refreshToken: string; expiresIn: number }> {
+  const res = await fetch("https://www.linkedin.com/oauth/v2/accessToken", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: refreshToken,
+      client_id: clientId,
+      client_secret: clientSecret,
+    }),
+  });
+  if (!res.ok) throw new Error(`LinkedIn token refresh failed (${res.status})`);
+  const data = await res.json();
+  return {
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token ?? refreshToken,
+    expiresIn: data.expires_in ?? 5184000, // 60 days default
+  };
+}
+
+export const getOAuthToken = internalQuery({
+  args: { provider: v.string() },
+  handler: async (ctx, { provider }) => {
+    return await ctx.db.query("oauthTokens")
+      .withIndex("by_provider", (q) => q.eq("provider", provider))
+      .first();
+  },
+});
+
+export const saveOAuthToken = internalMutation({
+  args: {
+    provider: v.string(),
+    accessToken: v.string(),
+    refreshToken: v.optional(v.string()),
+    expiresAt: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db.query("oauthTokens")
+      .withIndex("by_provider", (q) => q.eq("provider", args.provider))
+      .first();
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        accessToken: args.accessToken,
+        refreshToken: args.refreshToken ?? existing.refreshToken,
+        expiresAt: args.expiresAt,
+        updatedAt: Date.now(),
+      });
+    } else {
+      await ctx.db.insert("oauthTokens", { ...args, updatedAt: Date.now() });
+    }
+  },
+});
 
 // ── LinkedIn API ──
 
@@ -84,9 +143,51 @@ async function fetchMetaSpend(
 export const syncLinkedIn = internalAction({
   args: {},
   handler: async (ctx) => {
-    const token = process.env.LINKEDIN_ACCESS_TOKEN;
     const accountId = process.env.LINKEDIN_AD_ACCOUNT_ID;
-    if (!token || !accountId) return;
+    if (!accountId) return;
+
+    // Get token: try DB first (auto-refreshed), fall back to env var
+    let token = "";
+    const stored = await ctx.runQuery(internal.adSpend.getOAuthToken, { provider: "linkedin" });
+
+    if (stored) {
+      // Check if token needs refresh (5 min buffer)
+      if (stored.expiresAt < Date.now() + 300_000 && stored.refreshToken) {
+        const clientId = process.env.LINKEDIN_CLIENT_ID;
+        const clientSecret = process.env.LINKEDIN_CLIENT_SECRET;
+        if (clientId && clientSecret) {
+          try {
+            const refreshed = await refreshLinkedInToken(clientId, clientSecret, stored.refreshToken);
+            await ctx.runMutation(internal.adSpend.saveOAuthToken, {
+              provider: "linkedin",
+              accessToken: refreshed.accessToken,
+              refreshToken: refreshed.refreshToken,
+              expiresAt: Date.now() + refreshed.expiresIn * 1000,
+            });
+            token = refreshed.accessToken;
+          } catch {
+            token = stored.accessToken; // Try existing token anyway
+          }
+        } else {
+          token = stored.accessToken;
+        }
+      } else {
+        token = stored.accessToken;
+      }
+    } else {
+      // First run: use env var and store it
+      token = process.env.LINKEDIN_ACCESS_TOKEN ?? "";
+      if (token) {
+        await ctx.runMutation(internal.adSpend.saveOAuthToken, {
+          provider: "linkedin",
+          accessToken: token,
+          refreshToken: process.env.LINKEDIN_REFRESH_TOKEN,
+          expiresAt: Date.now() + 60 * 24 * 60 * 60 * 1000, // assume 60 days
+        });
+      }
+    }
+
+    if (!token) return;
 
     const end = new Date();
     const start = new Date();
