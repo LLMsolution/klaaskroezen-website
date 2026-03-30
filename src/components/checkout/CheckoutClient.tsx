@@ -52,6 +52,7 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
   const [recovered, setRecovered] = useState(false);
   const [isBusiness, setIsBusiness] = useState(false);
   const [company, setCompany] = useState("");
+  const [companyWebsite, setCompanyWebsite] = useState("");
   const [vatNumber, setVatNumber] = useState("");
   const [street, setStreet] = useState("");
   const [houseNumber, setHouseNumber] = useState("");
@@ -126,6 +127,7 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
       setCountry(order.country);
       setIsBusiness(order.isBusiness);
       if (order.company) setCompany(order.company);
+      if ((order as Record<string, unknown>).companyWebsite) setCompanyWebsite((order as Record<string, unknown>).companyWebsite as string);
       if (order.vatNumber) setVatNumber(order.vatNumber);
       if (order.street) setStreet(order.street);
       if (order.houseNumber) setHouseNumber(order.houseNumber);
@@ -175,7 +177,7 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
       saveDraft({
         email, firstName, lastName, phone: phone || undefined,
         product: productSlug, country, lang,
-        isBusiness, company: company || undefined, vatNumber: vatNumber || undefined,
+        isBusiness, company: company || undefined, companyWebsite: companyWebsite || undefined, vatNumber: vatNumber || undefined,
         street: street || undefined, houseNumber: houseNumber || undefined,
         postalCode: postalCode || undefined, city: city || undefined,
         quantity, bumps: selectedBumps, discountCode: discountCode || undefined,
@@ -183,7 +185,7 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
       }).catch(() => { /* silently fail */ });
     }, 3000);
     return () => { if (draftTimer.current) clearTimeout(draftTimer.current); };
-  }, [email, firstName, lastName, phone, country, isBusiness, company, vatNumber, street, houseNumber, postalCode, city, quantity, selectedBumps, discountCode, useInstallments]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [email, firstName, lastName, phone, country, isBusiness, company, companyWebsite, vatNumber, street, houseNumber, postalCode, city, quantity, selectedBumps, discountCode, useInstallments]); // eslint-disable-line react-hooks/exhaustive-deps
   // Tab title change on visibility
   useEffect(() => {
     const originalTitle = document.title;
@@ -274,6 +276,7 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
         phone: phone || undefined,
         product: productSlug, country, lang, isBusiness,
         company: isBusiness ? company : undefined,
+        companyWebsite: isBusiness && companyWebsite ? companyWebsite : undefined,
         vatNumber: isBusiness ? vatNumber : undefined,
         street: needsShipping ? street : undefined,
         houseNumber: needsShipping ? houseNumber : undefined,
@@ -404,6 +407,7 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
               country={country} setCountry={setCountry}
               isBusiness={isBusiness} setIsBusiness={setIsBusiness}
               company={company} setCompany={setCompany}
+              companyWebsite={companyWebsite} setCompanyWebsite={setCompanyWebsite}
               vatNumber={vatNumber} setVatNumber={setVatNumber}
               street={street} setStreet={setStreet}
               houseNumber={houseNumber} setHouseNumber={setHouseNumber}

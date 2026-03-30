@@ -31,6 +31,8 @@ interface Props {
   setIsBusiness: (v: boolean) => void;
   company: string;
   setCompany: (v: string) => void;
+  companyWebsite: string;
+  setCompanyWebsite: (v: string) => void;
   vatNumber: string;
   setVatNumber: (v: string) => void;
   // Shipping
@@ -82,7 +84,7 @@ export function CheckoutForm(props: Props) {
     firstName, setFirstName, lastName, setLastName,
     email, setEmail, phone, setPhone,
     country, setCountry,
-    isBusiness, setIsBusiness, company, setCompany, vatNumber, setVatNumber,
+    isBusiness, setIsBusiness, company, setCompany, companyWebsite, setCompanyWebsite, vatNumber, setVatNumber,
     street, setStreet, houseNumber, setHouseNumber, postalCode, setPostalCode, city, setCity,
     selectedBumps, onToggleBump,
     useInstallments, setUseInstallments,
@@ -180,6 +182,10 @@ export function CheckoutForm(props: Props) {
           <div>
             <label htmlFor="company" className={labelClass}>{i18n.companyName}</label>
             <input id="company" name="organization" autoComplete="organization" type="text" required={isBusiness} value={company} onChange={(e) => setCompany(e.target.value)} placeholder={i18n.companyPlaceholder} className={fieldClass(company)} />
+          </div>
+          <div>
+            <label htmlFor="companyWebsite" className={labelClass}>{i18n.companyWebsite ?? "Website"}</label>
+            <input id="companyWebsite" name="url" autoComplete="url" type="url" value={companyWebsite} onChange={(e) => setCompanyWebsite(e.target.value)} placeholder="https://..." className={fieldClass(companyWebsite)} />
           </div>
           <div>
             <label htmlFor="vatNumber" className={labelClass}>{i18n.vatNumber}</label>

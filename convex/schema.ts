@@ -60,6 +60,7 @@ export default defineSchema({
     lang: langValidator,
     isBusiness: v.boolean(),
     company: v.optional(v.string()),
+    companyWebsite: v.optional(v.string()),
     vatNumber: v.optional(v.string()),
     // Shipping address (required for physical products)
     street: v.optional(v.string()),
