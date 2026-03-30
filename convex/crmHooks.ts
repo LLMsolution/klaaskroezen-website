@@ -273,32 +273,35 @@ export const bolOrderCompleted = internalMutation({
       createdAt: now,
     });
 
-    // Mark open leads as won
-    const openLeads = await ctx.db
+    // Handle pipeline: win existing open leads or create new one
+    const allLeads = await ctx.db
       .query("leads")
       .withIndex("by_contact", (q) => q.eq("contactId", contactId))
-      .filter((q) => q.eq(q.field("status"), "open"))
       .collect();
-    for (const lead of openLeads) {
-      await ctx.db.patch(lead._id, { status: "won", closedAt: now });
-    }
+    const openLeads = allLeads.filter((l) => l.status === "open");
 
-    // Create pipeline lead (Bol.com = always "boek" tag)
-    const defaultStage = await ctx.db
-      .query("pipelineStages")
-      .filter((q) => q.eq(q.field("isDefault"), true))
-      .first();
-    if (defaultStage) {
-      await ctx.db.insert("leads", {
-        contactId,
-        stageId: defaultStage._id,
-        title: `${args.firstName} ${args.lastName} — boek (Bol.com)`,
-        valueCents: args.amountCents,
-        probability: defaultStage.defaultProbability,
-        status: "open",
-        source: "bol.com",
-        createdAt: now,
-      });
+    if (openLeads.length > 0) {
+      for (const lead of openLeads) {
+        await ctx.db.patch(lead._id, { status: "won", closedAt: now });
+      }
+    } else {
+      // No open leads → create new one
+      const defaultStage = await ctx.db
+        .query("pipelineStages")
+        .filter((q) => q.eq(q.field("isDefault"), true))
+        .first();
+      if (defaultStage) {
+        await ctx.db.insert("leads", {
+          contactId,
+          stageId: defaultStage._id,
+          title: `${args.firstName} ${args.lastName} — boek (Bol.com)`,
+          valueCents: args.amountCents,
+          probability: defaultStage.defaultProbability,
+          status: "open",
+          source: "bol.com",
+          createdAt: now,
+        });
+      }
     }
 
     // Fire automation triggers
@@ -372,90 +375,84 @@ export const purchaseCompleted = internalMutation({
       createdAt: now,
     });
 
-    // Mark any open lead for this contact as won
-    const openLeads = await ctx.db
-      .query("leads")
-      .withIndex("by_contact", (q) => q.eq("contactId", contact!._id))
-      .collect();
-
-    for (const lead of openLeads.filter((l) => l.status === "open")) {
-      await ctx.db.patch(lead._id, {
-        status: "won",
-        probability: 100,
-        purchaseId,
-        closedAt: now,
-      });
-      await ctx.db.insert("leadActivities", {
-        leadId: lead._id,
-        contactId: contact!._id,
-        type: "lead_won",
-        title: `Lead "${lead.title}" gewonnen via aankoop`,
-        purchaseId,
-        createdAt: now,
-      });
-    }
-
-    // Evaluate automation rules for purchase (legacy + new workflows)
-    await ctx.scheduler.runAfter(0, internal.crmAutomation.evaluateRules, {
-      trigger: "purchase",
-      contactId: contact._id,
-      metadata: JSON.stringify({
-        product: order.product,
-        amountCents,
-        purchaseId,
-      }),
-    });
-    await ctx.scheduler.runAfter(0, internal.workflows.evaluateTrigger, {
-      trigger: "purchase",
-      contactId: contact._id,
-      metadata: JSON.stringify({
-        product: order.product,
-        amountCents,
-        purchaseId,
-      }),
-    });
-
-    // Add purchaseTag from product config + create pipeline lead
+    // Look up product config for purchaseTag
     const productData = await ctx.db
       .query("checkoutProducts")
       .withIndex("by_slug", (q) => q.eq("slug", order.product))
       .first();
+    const purchaseTag = productData?.purchaseTag;
 
-    if (productData?.purchaseTag) {
-      // Add tag to contact
+    // Add tag to contact if configured
+    if (purchaseTag) {
       const tags = contact.tags || [];
-      if (!tags.includes(productData.purchaseTag)) {
-        await ctx.db.patch(contact._id, { tags: [...tags, productData.purchaseTag] });
-      }
-
-      // Create pipeline lead if no open leads exist
-      const hasOpenLead = openLeads.some((l) => l.status === "open");
-      if (!hasOpenLead) {
-        const defaultStage = await ctx.db
-          .query("pipelineStages")
-          .filter((q) => q.eq(q.field("isDefault"), true))
-          .first();
-        if (defaultStage) {
-          const leadId = await ctx.db.insert("leads", {
-            contactId: contact._id,
-            stageId: defaultStage._id,
-            title: `${order.firstName} ${order.lastName} — ${productData.purchaseTag}`,
-            valueCents: amountCents,
-            probability: defaultStage.defaultProbability,
-            status: "open",
-            source: "checkout",
-            purchaseId,
-            createdAt: now,
-          });
-          await ctx.db.insert("leadActivities", {
-            leadId,
-            contactId: contact._id,
-            type: "lead_created",
-            title: `Lead aangemaakt via aankoop (${productData.purchaseTag})`,
-            createdAt: now,
-          });
-        }
+      if (!tags.includes(purchaseTag)) {
+        await ctx.db.patch(contact._id, { tags: [...tags, purchaseTag] });
       }
     }
+
+    // Handle pipeline leads: win existing or create new
+    const allLeads = await ctx.db
+      .query("leads")
+      .withIndex("by_contact", (q) => q.eq("contactId", contact!._id))
+      .collect();
+    const openLeads = allLeads.filter((l) => l.status === "open");
+
+    if (openLeads.length > 0) {
+      // Win existing open leads
+      for (const lead of openLeads) {
+        await ctx.db.patch(lead._id, {
+          status: "won",
+          probability: 100,
+          purchaseId,
+          closedAt: now,
+        });
+        await ctx.db.insert("leadActivities", {
+          leadId: lead._id,
+          contactId: contact!._id,
+          type: "lead_won",
+          title: `Lead "${lead.title}" gewonnen via aankoop`,
+          purchaseId,
+          createdAt: now,
+        });
+      }
+    } else if (purchaseTag) {
+      // No open leads + tag configured → create new lead
+      const defaultStage = await ctx.db
+        .query("pipelineStages")
+        .filter((q) => q.eq(q.field("isDefault"), true))
+        .first();
+      if (defaultStage) {
+        const leadId = await ctx.db.insert("leads", {
+          contactId: contact._id,
+          stageId: defaultStage._id,
+          title: `${order.firstName} ${order.lastName} — ${purchaseTag}`,
+          valueCents: amountCents,
+          probability: defaultStage.defaultProbability,
+          status: "open",
+          source: "checkout",
+          purchaseId,
+          createdAt: now,
+        });
+        await ctx.db.insert("leadActivities", {
+          leadId,
+          contactId: contact._id,
+          type: "lead_created",
+          title: `Lead aangemaakt via aankoop (${purchaseTag})`,
+          createdAt: now,
+        });
+      }
+    }
+
+    // Evaluate automation rules for purchase
+    await ctx.scheduler.runAfter(0, internal.crmAutomation.evaluateRules, {
+      trigger: "purchase",
+      contactId: contact._id,
+      metadata: JSON.stringify({ product: order.product, amountCents, purchaseId }),
+    });
+    await ctx.scheduler.runAfter(0, internal.workflows.evaluateTrigger, {
+      trigger: "purchase",
+      contactId: contact._id,
+      metadata: JSON.stringify({ product: order.product, amountCents, purchaseId }),
+    });
   },
 });
