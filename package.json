@@ -19,10 +19,12 @@
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "convex": "^1.33.1",
+    "date-fns": "^4.1.0",
     "jose": "^6.2.1",
-"next": "15.3.8",
+    "next": "15.3.8",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "recharts": "^3.8.1",
     "resend": "^6.9.3",
     "standardwebhooks": "^1.0.0",
     "svix": "^1.88.0"

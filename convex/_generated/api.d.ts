@@ -9,6 +9,7 @@
  */
 
 import type * as abtest from "../abtest.js";
+import type * as adSpend from "../adSpend.js";
 import type * as admin from "../admin.js";
 import type * as adminAuth from "../adminAuth.js";
 import type * as adminBroadcasts from "../adminBroadcasts.js";
@@ -21,6 +22,7 @@ import type * as blog from "../blog.js";
 import type * as blogSeed from "../blogSeed.js";
 import type * as blogSeedArchive from "../blogSeedArchive.js";
 import type * as blogTranslate from "../blogTranslate.js";
+import type * as bolOrders from "../bolOrders.js";
 import type * as bookmarks from "../bookmarks.js";
 import type * as checkout from "../checkout.js";
 import type * as checkoutProductSeed from "../checkoutProductSeed.js";
@@ -88,6 +90,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   abtest: typeof abtest;
+  adSpend: typeof adSpend;
   admin: typeof admin;
   adminAuth: typeof adminAuth;
   adminBroadcasts: typeof adminBroadcasts;
@@ -100,6 +103,7 @@ declare const fullApi: ApiFromModules<{
   blogSeed: typeof blogSeed;
   blogSeedArchive: typeof blogSeedArchive;
   blogTranslate: typeof blogTranslate;
+  bolOrders: typeof bolOrders;
   bookmarks: typeof bookmarks;
   checkout: typeof checkout;
   checkoutProductSeed: typeof checkoutProductSeed;

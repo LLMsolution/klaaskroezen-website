@@ -12,6 +12,8 @@
 // ── Orders, Stats, Discounts, Cohorts ──
 export {
   getStats,
+  getDailyRevenue,
+  getRevenueBreakdown,
   getOrders,
   getPendingCarts,
   getInvoices,
