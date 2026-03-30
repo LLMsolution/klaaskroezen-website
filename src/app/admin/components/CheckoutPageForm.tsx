@@ -317,6 +317,16 @@ export function CheckoutPageForm({ product, onBack }: Props) {
 
       {/* Features / Content */}
       <Section title="Features" open={openSections.content} onToggle={() => toggle("content")}>
+        <div className="mb-3">
+          <DeepLButton
+            sourceText={featuresNl.filter(f => f.trim()).join("\n---\n")}
+            label="Vertaal alle features"
+            onTranslated={(t) => {
+              if (t.en) setFeaturesEn(t.en.split("\n---\n").map(s => s.trim()).filter(Boolean));
+              if (t.de) setFeaturesDe(t.de.split("\n---\n").map(s => s.trim()).filter(Boolean));
+            }}
+          />
+        </div>
         <div className="grid grid-cols-3 gap-4">
           <div>
             <p className={L}>NL</p>
