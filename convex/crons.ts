@@ -43,6 +43,13 @@ crons.interval(
   internal.layoutEditorOps.cleanupExpiredSessions,
 );
 
+// Ad Spend: Cleanup hourly data older than 7 days (daily at 04:00 UTC)
+crons.daily(
+  "adspend-hourly-cleanup",
+  { hourUTC: 4, minuteUTC: 0 },
+  internal.adSpend.cleanupOldHourly,
+);
+
 // Ad Spend: Sync LinkedIn daily spend every hour
 crons.interval(
   "adspend-linkedin-sync",

@@ -128,7 +128,6 @@ export const getRevenueBreakdown = query({
 
     const trainingRevenue = purchases.filter((p) => p.productType === "training").reduce((sum, p) => sum + p.amount, 0);
     const bookRevenue = purchases.filter((p) => p.productType === "book").reduce((sum, p) => sum + p.amount, 0);
-    const eventRevenue = purchases.filter((p) => p.productType === "event").reduce((sum, p) => sum + p.amount, 0);
 
     return {
       bySource: [
@@ -138,7 +137,6 @@ export const getRevenueBreakdown = query({
       byType: [
         { name: "Trainingen", revenue: trainingRevenue, orders: purchases.filter((p) => p.productType === "training").length, color: "#B5622A" },
         { name: "Boeken", revenue: bookRevenue + bolcomRevenue, orders: purchases.filter((p) => p.productType === "book").length + bolcomOrders, color: "#10B981" },
-        { name: "Events", revenue: eventRevenue, orders: purchases.filter((p) => p.productType === "event").length, color: "#8B5CF6" },
       ],
       total: mollieRevenue + bolcomRevenue,
     };

@@ -197,6 +197,10 @@ export const syncLinkedIn = internalAction({
       end: end.toISOString().slice(0, 10),
     });
 
+    const now = new Date();
+    const todayStr = now.toISOString().slice(0, 10);
+    const currentHour = now.getUTCHours();
+
     for (const day of data) {
       await ctx.runMutation(internal.adSpend.upsertDaily, {
         platform: "linkedin",
@@ -205,6 +209,18 @@ export const syncLinkedIn = internalAction({
         impressions: day.impressions,
         clicks: day.clicks,
       });
+
+      // Save hourly snapshot for today (cumulative totals at this hour)
+      if (day.date === todayStr) {
+        await ctx.runMutation(internal.adSpend.upsertHourly, {
+          platform: "linkedin",
+          date: day.date,
+          hour: currentHour,
+          spend: day.spend,
+          impressions: day.impressions,
+          clicks: day.clicks,
+        });
+      }
     }
   },
 });
@@ -225,6 +241,10 @@ export const syncMeta = internalAction({
       end: end.toISOString().slice(0, 10),
     });
 
+    const now = new Date();
+    const todayStr = now.toISOString().slice(0, 10);
+    const currentHour = now.getUTCHours();
+
     for (const day of data) {
       await ctx.runMutation(internal.adSpend.upsertDaily, {
         platform: "meta",
@@ -233,6 +253,17 @@ export const syncMeta = internalAction({
         impressions: day.impressions,
         clicks: day.clicks,
       });
+
+      if (day.date === todayStr) {
+        await ctx.runMutation(internal.adSpend.upsertHourly, {
+          platform: "meta",
+          date: day.date,
+          hour: currentHour,
+          spend: day.spend,
+          impressions: day.impressions,
+          clicks: day.clicks,
+        });
+      }
     }
   },
 });
@@ -269,7 +300,71 @@ export const upsertDaily = internalMutation({
   },
 });
 
+export const upsertHourly = internalMutation({
+  args: {
+    platform: v.union(v.literal("linkedin"), v.literal("meta")),
+    date: v.string(),
+    hour: v.number(),
+    spend: v.number(),
+    impressions: v.number(),
+    clicks: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("adSpendHourly")
+      .withIndex("by_platform_date", (q) => q.eq("platform", args.platform).eq("date", args.date))
+      .filter((q) => q.eq(q.field("hour"), args.hour))
+      .first();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        spend: args.spend,
+        impressions: args.impressions,
+        clicks: args.clicks,
+        capturedAt: Date.now(),
+      });
+    } else {
+      await ctx.db.insert("adSpendHourly", { ...args, capturedAt: Date.now() });
+    }
+  },
+});
+
+/** Remove hourly data older than 7 days (called by cron daily) */
+export const cleanupOldHourly = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 7);
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
+
+    const old = await ctx.db.query("adSpendHourly").collect();
+    let deleted = 0;
+    for (const row of old) {
+      if (row.date < cutoffStr) {
+        await ctx.db.delete(row._id);
+        deleted++;
+      }
+    }
+    return deleted;
+  },
+});
+
 // ── Admin queries ──
+
+export const getHourlySpend = query({
+  args: { days: v.optional(v.number()) },
+  handler: async (ctx, { days }) => {
+    await requireAdmin(ctx);
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - (days ?? 7));
+    const cutoffStr = cutoff.toISOString().slice(0, 10);
+
+    const all = await ctx.db.query("adSpendHourly").collect();
+    return all
+      .filter((r) => r.date >= cutoffStr)
+      .sort((a, b) => a.date === b.date ? a.hour - b.hour : a.date.localeCompare(b.date));
+  },
+});
 
 export const getDailySpend = query({
   args: {

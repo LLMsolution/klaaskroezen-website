@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Loading } from "./shared";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 function formatEur(cents: number): string {
   return `\u20AC ${(cents / 100).toFixed(2).replace(".", ",")}`;
@@ -19,6 +20,7 @@ export function AdSpendTab() {
   const [platform, setPlatform] = useState<"all" | "linkedin" | "meta">("all");
   const summary = useQuery(api.adSpend.getSpendSummary);
   const daily = useQuery(api.adSpend.getDailySpend, { days, platform });
+  const hourly = useQuery(api.adSpend.getHourlySpend, { days: 7 });
 
   if (!summary || !daily) return <Loading />;
 
@@ -31,6 +33,9 @@ export function AdSpendTab() {
         <Card label="Totaal deze maand" value={formatEur(summary.combined.thisMonth)} sub={`Vorige maand: ${formatEur(summary.combined.lastMonth)}`} accent />
         <Card label="CPC gemiddeld" value={formatCpc(summary.linkedin.total + summary.meta.total, summary.linkedin.clicks + summary.meta.clicks)} sub={`LinkedIn: ${formatCpc(summary.linkedin.total, summary.linkedin.clicks)} · Meta: ${formatCpc(summary.meta.total, summary.meta.clicks)}`} />
       </div>
+
+      {/* Hourly chart (last 7 days) */}
+      {hourly && hourly.length > 0 && <HourlyChart data={hourly} />}
 
       {/* Filters */}
       <div className="flex items-center gap-3">
@@ -110,4 +115,50 @@ function Card({ label, value, sub, accent }: { label: string; value: string; sub
 
 function Th({ children, align }: { children: React.ReactNode; align?: "right" }) {
   return <th className={`px-4 py-2.5 text-[10px] font-medium tracking-[0.15em] uppercase text-ink/40 ${align === "right" ? "text-right" : "text-left"}`}>{children}</th>;
+}
+
+type HourlyRow = { platform: string; date: string; hour: number; spend: number; impressions: number; clicks: number };
+
+function HourlyChart({ data }: { data: HourlyRow[] }) {
+  // Aggregate by hour across all days (average spend per hour)
+  const byHour: Record<number, { spend: number; clicks: number; count: number }> = {};
+  for (const row of data) {
+    const h = row.hour;
+    if (!byHour[h]) byHour[h] = { spend: 0, clicks: 0, count: 0 };
+    byHour[h].spend += row.spend;
+    byHour[h].clicks += row.clicks;
+    byHour[h].count++;
+  }
+
+  const chartData = Array.from({ length: 24 }, (_, h) => ({
+    hour: `${String(h).padStart(2, "0")}:00`,
+    spend: byHour[h] ? Math.round(byHour[h].spend / byHour[h].count) : 0,
+    clicks: byHour[h] ? Math.round(byHour[h].clicks / byHour[h].count) : 0,
+  }));
+
+  return (
+    <div className="border border-rule rounded-[2px] p-5">
+      <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40 mb-4">
+        Gemiddelde ad spend per uur (7 dagen)
+      </p>
+      <div className="h-[220px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
+            <XAxis dataKey="hour" tick={{ fontSize: 9, fill: "#0E0C0A", opacity: 0.3 }} tickLine={false} axisLine={false} interval={2} />
+            <YAxis tick={{ fontSize: 10, fill: "#0E0C0A", opacity: 0.3 }} tickLine={false} axisLine={false} tickFormatter={(v) => `${(Number(v) / 100).toFixed(0)}`} width={35} />
+            <Tooltip
+              contentStyle={{ fontSize: 12, border: "1px solid #EDE9E2", borderRadius: 2, background: "#F7F4EF" }}
+              formatter={(value, name) => [
+                name === "spend" ? `\u20AC ${(Number(value) / 100).toFixed(2).replace(".", ",")}` : String(value),
+                name === "spend" ? "Spend" : "Clicks",
+              ]}
+            />
+            <Legend wrapperStyle={{ fontSize: 11 }} />
+            <Bar dataKey="spend" name="Spend" fill="#B5622A" radius={[2, 2, 0, 0]} />
+            <Bar dataKey="clicks" name="Clicks" fill="#3B82F6" radius={[2, 2, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
 }

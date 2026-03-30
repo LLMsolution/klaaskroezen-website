@@ -663,6 +663,19 @@ export default defineSchema({
   }).index("by_provider", ["provider"]),
 
   // ── Ad Spend ──
+  // Hourly snapshots (last 7 days, then cleaned up to daily)
+  adSpendHourly: defineTable({
+    platform: v.union(v.literal("linkedin"), v.literal("meta")),
+    date: v.string(),     // YYYY-MM-DD
+    hour: v.number(),     // 0-23
+    spend: v.number(),    // EUR cents (cumulative for the day at this hour)
+    impressions: v.number(),
+    clicks: v.number(),
+    capturedAt: v.number(),
+  })
+    .index("by_platform_date", ["platform", "date"])
+    .index("by_date_hour", ["date", "hour"]),
+
   // Daily ad spend per platform (LinkedIn, Meta)
   adSpendDaily: defineTable({
     platform: v.union(v.literal("linkedin"), v.literal("meta")),
