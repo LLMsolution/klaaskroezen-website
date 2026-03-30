@@ -382,6 +382,59 @@ export const storeRevertData = internalMutation({
 });
 
 /** Internal: restore page sections from snapshot (used by revert) */
+/** Schedule deploy status check after merge */
+export const scheduleDeployCheck = internalMutation({
+  args: {
+    sessionId: v.id("layoutSessions"),
+    mergeCommitSha: v.string(),
+    delayMs: v.optional(v.number()),
+  },
+  handler: async (ctx, { sessionId, mergeCommitSha, delayMs }) => {
+    await ctx.db.patch(sessionId, { deployStatus: "pending" });
+    await ctx.scheduler.runAfter(
+      delayMs ?? 300_000, // 5 min default
+      internal.layoutEditorOps.checkDeployStatus,
+      { sessionId, mergeCommitSha },
+    );
+  },
+});
+
+/** Update deploy status on session */
+export const updateDeployStatus = internalMutation({
+  args: {
+    sessionId: v.id("layoutSessions"),
+    deployStatus: v.union(v.literal("pending"), v.literal("success"), v.literal("failed")),
+    deployError: v.optional(v.string()),
+  },
+  handler: async (ctx, { sessionId, deployStatus, deployError }) => {
+    const patch: Record<string, unknown> = { deployStatus };
+    if (deployError !== undefined) patch.deployError = deployError;
+    await ctx.db.patch(sessionId, patch);
+  },
+});
+
+/** Get session with deploy failure (for admin notification) */
+export const getDeployFailure = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    const session = await ctx.db
+      .query("layoutSessions")
+      .withIndex("by_status")
+      .filter((q) => q.eq(q.field("status"), "approved"))
+      .order("desc")
+      .first();
+
+    if (!session || session.deployStatus !== "failed") return null;
+    return {
+      _id: session._id,
+      targetPage: session.targetPage,
+      deployError: session.deployError,
+      completedAt: session.completedAt,
+    };
+  },
+});
+
 export const restorePageSections = internalMutation({
   args: {
     pageSlug: v.string(),

@@ -12,6 +12,7 @@ export function LayoutEditorTab() {
   const pages = useQuery(api.siteContent.listPages);
   const activeSession = useQuery(api.layoutEditor.getActiveSession);
   const revertableSession = useQuery(api.layoutEditor.getRevertableSession);
+  const deployFailure = useQuery(api.layoutEditor.getDeployFailure);
   const startSession = useMutation(api.layoutEditor.startSession);
   const addMessage = useMutation(api.layoutEditor.addMessage);
   const triggerPlanUpdate = useAction(api.layoutEditorActions.triggerPlanUpdate);
@@ -19,6 +20,7 @@ export function LayoutEditorTab() {
   const approveSession = useAction(api.layoutEditorActions.approveSession);
   const rejectSession = useAction(api.layoutEditorActions.rejectSession);
   const revertSessionAction = useAction(api.layoutEditorActions.revertSession);
+  const triggerAutoFix = useAction(api.layoutEditorOps.triggerAutoFix);
 
   const [selectedPage, setSelectedPage] = useState("");
   const [inputText, setInputText] = useState("");
@@ -113,6 +115,14 @@ export function LayoutEditorTab() {
         selectedPage={selectedPage}
         onPageChange={setSelectedPage}
         onStart={handleStartSession}
+        deployFailure={deployFailure ?? null}
+        onAutoFix={async (id) => {
+          try {
+            await triggerAutoFix({ sessionId: id });
+          } catch (err) {
+            alert(err instanceof Error ? err.message : "Fix starten mislukt.");
+          }
+        }}
         revertable={revertableSession ?? null}
         onRevert={async (id) => {
           if (!confirm("Weet je zeker dat je de laatste layout wijziging wilt terugdraaien? Dit kan niet ongedaan worden.")) return;
@@ -161,11 +171,13 @@ export function LayoutEditorTab() {
 
 /* ─── Start screen ─── */
 
-function StartScreen({ pages, selectedPage, onPageChange, onStart, revertable, onRevert }: {
+function StartScreen({ pages, selectedPage, onPageChange, onStart, deployFailure, onAutoFix, revertable, onRevert }: {
   pages: { slug: string; title: { nl: string; en: string } }[];
   selectedPage: string;
   onPageChange: (v: string) => void;
   onStart: () => void;
+  deployFailure: { _id: Id<"layoutSessions">; targetPage: string; deployError?: string } | null;
+  onAutoFix: (sessionId: Id<"layoutSessions">) => void;
   revertable: { _id: Id<"layoutSessions">; targetPage: string; completedAt?: number; userEmail: string; plan?: string } | null;
   onRevert: (sessionId: Id<"layoutSessions">) => void;
 }) {
@@ -178,6 +190,30 @@ function StartScreen({ pages, selectedPage, onPageChange, onStart, revertable, o
       <p className="text-[14px] text-ink/60 leading-[1.7] mb-8">
         Chat met de AI over welke wijzigingen je wilt maken. Het plan wordt automatisch bijgewerkt. Als je tevreden bent, klik je op &quot;Bouwen&quot; om de code te laten schrijven.
       </p>
+
+      {/* Deploy failure alert */}
+      {deployFailure && (
+        <div className="mb-8 border border-red-200 bg-red-50 rounded-[2px] p-5">
+          <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-red-600 mb-2">Deploy mislukt</p>
+          <p className="text-[13px] text-red-800 mb-1">Pagina: <strong>{deployFailure.targetPage}</strong></p>
+          <p className="text-[12px] text-red-600/70 mb-4 font-mono break-all">{deployFailure.deployError}</p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => onAutoFix(deployFailure._id)}
+              className="bg-copper text-paper px-5 py-2 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer"
+            >
+              Fix probleem
+            </button>
+            <button
+              onClick={() => onRevert(deployFailure._id)}
+              className="text-[12px] text-red-600 font-medium tracking-[0.1em] uppercase hover:text-red-700 cursor-pointer"
+            >
+              Terugdraaien
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-4">
         <div>
           <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40 mb-2 block">Pagina</label>

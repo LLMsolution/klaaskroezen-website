@@ -249,6 +249,16 @@ export const approveSession = action({
       // Non-critical
     }
 
+    // Schedule deploy status check after 5 min
+    if (mergeCommitSha) {
+      try {
+        await ctx.runMutation(internal.layoutEditor.scheduleDeployCheck, {
+          sessionId,
+          mergeCommitSha,
+        });
+      } catch { /* non-critical */ }
+    }
+
     // Delete branch (best-effort)
     await fetch(
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/git/refs/heads/${result.branchName}`,
@@ -262,9 +272,7 @@ export const approveSession = action({
     );
 
     // Add system message
-    const syncMsg = syncContent
-      ? "Goedgekeurd! PR is gemerged. Content wordt over ~3 minuten gesynchroniseerd na de deploy."
-      : "Goedgekeurd! PR is gemerged. Je kunt de content invullen via het Content tabblad.";
+    const syncMsg = "Goedgekeurd! PR is gemerged. Deploy wordt gemonitord.";
 
     await ctx.runMutation(internal.layoutEditor.addMessageInternal, {
       sessionId,
@@ -389,44 +397,4 @@ export const revertSession = action({
   },
 });
 
-/** Cleanup expired sessions (called by cron) */
-export const cleanupExpiredSessions = internalAction({
-  args: {},
-  handler: async (ctx) => {
-    // Get config for timeout (internal query — no auth needed)
-    const config = await ctx.runQuery(internal.layoutEditor.getConfigInternal);
-    const timeoutMs = (config?.sessionTimeoutMinutes ?? 120) * 60 * 1000;
-    const cutoff = Date.now() - timeoutMs;
 
-    // Get active sessions (internal query — no auth needed)
-    const sessions = await ctx.runQuery(internal.layoutEditor.listActiveSessions);
-
-    for (const session of sessions) {
-      if (session.lastActivityAt < cutoff) {
-        // Expire the session
-        await ctx.runMutation(internal.layoutEditor.updateSessionStatus, {
-          sessionId: session._id,
-          status: "failed",
-          errorMessage: "Sessie verlopen door inactiviteit.",
-        });
-
-        // Try to delete the branch (best-effort)
-        const githubToken = process.env.GITHUB_PAT;
-        if (githubToken) {
-          await fetch(
-            `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/git/refs/heads/${session.branchName}`,
-            {
-              method: "DELETE",
-              headers: {
-                Authorization: `Bearer ${githubToken}`,
-                Accept: "application/vnd.github.v3+json",
-              },
-            },
-          ).catch(() => {
-            // Ignore errors — branch might not exist
-          });
-        }
-      }
-    }
-  },
-});

@@ -40,7 +40,7 @@ crons.interval(
 crons.interval(
   "layout-session-cleanup",
   { minutes: 30 },
-  internal.layoutEditorActions.cleanupExpiredSessions,
+  internal.layoutEditorOps.cleanupExpiredSessions,
 );
 
 export default crons;

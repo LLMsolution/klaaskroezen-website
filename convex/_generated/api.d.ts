@@ -53,6 +53,7 @@ import type * as invoices from "../invoices.js";
 import type * as layoutEditor from "../layoutEditor.js";
 import type * as layoutEditorActions from "../layoutEditorActions.js";
 import type * as layoutEditorConfig from "../layoutEditorConfig.js";
+import type * as layoutEditorOps from "../layoutEditorOps.js";
 import type * as mollie from "../mollie.js";
 import type * as payments from "../payments.js";
 import type * as presence from "../presence.js";
@@ -131,6 +132,7 @@ declare const fullApi: ApiFromModules<{
   layoutEditor: typeof layoutEditor;
   layoutEditorActions: typeof layoutEditorActions;
   layoutEditorConfig: typeof layoutEditorConfig;
+  layoutEditorOps: typeof layoutEditorOps;
   mollie: typeof mollie;
   payments: typeof payments;
   presence: typeof presence;

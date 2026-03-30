@@ -2,7 +2,7 @@ name: Claude Code Fix (Write Access)
 
 on:
   repository_dispatch:
-    types: [layout-plan, layout-edit, layout-revert, email-generate]
+    types: [layout-plan, layout-edit, layout-revert, layout-fix, email-generate]
   issue_comment:
     types: [created]
   pull_request_review_comment:
@@ -376,6 +376,74 @@ jobs:
           git config user.email "noreply@anthropic.com"
           git revert --no-edit "$COMMIT_SHA"
           git push origin main
+
+  layout-fix:
+    if: github.event_name == 'repository_dispatch' && github.event.action == 'layout-fix'
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Run Claude Code to fix deploy error
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          DEPLOY_ERROR: ${{ github.event.client_payload.deployError }}
+          TARGET_PAGE: ${{ github.event.client_payload.targetPage }}
+        run: |
+          cat > /tmp/fix-prompt.txt << FIXEOF
+          # Fix Deploy Error
+
+          The Vercel deploy failed after a layout editor change to page "$TARGET_PAGE".
+
+          ## Error
+          $DEPLOY_ERROR
+
+          ## Instructions
+          1. Read the error message carefully
+          2. Find and fix the root cause in the code
+          3. Run \`npx next lint\` and \`npx tsc --noEmit\` to verify the fix
+          4. Do NOT run any git commands — the workflow handles that
+
+          Only fix the error. Do not make any other changes.
+          FIXEOF
+
+          claude --max-turns 10 --allowedTools "Write,Read,Edit,Bash,Glob,Grep" -p "$(cat /tmp/fix-prompt.txt)" || true
+
+      - name: Commit and push fix
+        run: |
+          git config user.name "Claude Code"
+          git config user.email "noreply@anthropic.com"
+          if ! git diff --quiet || ! git diff --cached --quiet; then
+            git add -A
+            git commit -m "fix: auto-fix deploy error for ${{ github.event.client_payload.targetPage }}"
+            git push origin main
+          fi
+
+      - name: Send callback
+        if: always()
+        env:
+          SESSION_ID: ${{ github.event.client_payload.sessionId }}
+          CALLBACK_URL: ${{ github.event.client_payload.callbackUrl }}
+          CALLBACK_SECRET: ${{ github.event.client_payload.callbackSecret }}
+        run: |
+          if git diff --quiet HEAD~1; then
+            STATUS="failed"
+            MSG="Auto-fix kon geen wijzigingen maken."
+          else
+            STATUS="preview"
+            MSG=""
+          fi
+          curl -s -X POST "$CALLBACK_URL" \
+            -H "Content-Type: application/json" \
+            -H "X-Callback-Secret: $CALLBACK_SECRET" \
+            -d "{\"sessionId\":\"$SESSION_ID\",\"status\":\"$STATUS\",\"errorMessage\":\"$MSG\"}" || true
 
   email-generate:
     if: github.event_name == 'repository_dispatch' && github.event.action == 'email-generate'

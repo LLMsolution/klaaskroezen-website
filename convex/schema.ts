@@ -974,6 +974,9 @@ export default defineSchema({
       url: v.string(),
       fileName: v.string(),
     }))),
+    // Deploy monitoring (checked after merge)
+    deployStatus: v.optional(v.union(v.literal("pending"), v.literal("success"), v.literal("failed"))),
+    deployError: v.optional(v.string()),
     // Revert data (stored at approval, used for one-version-back undo)
     mergeCommitSha: v.optional(v.string()),
     sectionSnapshot: v.optional(v.string()), // JSON of page sections before sync
