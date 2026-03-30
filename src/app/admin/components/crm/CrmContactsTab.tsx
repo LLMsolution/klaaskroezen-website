@@ -89,7 +89,7 @@ export function CrmContactsTab() {
 
   // Collect unique tags for filter dropdown
   const allTags = [...new Set(contacts.flatMap((c) => c.tags))].sort();
-  const sources = ["contact_form", "checkout", "purchase", "registration", "manual", "import", "referral"];
+  const sources = ["contact_form", "checkout", "purchase", "registration", "bolcom", "manual", "import", "referral"];
 
   return (
     <div className="space-y-6">

@@ -14,38 +14,38 @@ import {
   EmptyState,
 } from "./shared";
 
-type SubTab = "orders" | "carts";
+type SubTab = "orders" | "bolcom" | "carts";
 
 export function OrdersTab() {
   const [subTab, setSubTab] = useState<SubTab>("orders");
+
+  const tabs: { key: SubTab; label: string }[] = [
+    { key: "orders", label: "Bestellingen" },
+    { key: "bolcom", label: "Bol.com" },
+    { key: "carts", label: "Winkelmandjes" },
+  ];
 
   return (
     <div className="space-y-4">
       {/* Subtab toggle */}
       <div className="flex gap-2">
-        <button
-          onClick={() => setSubTab("orders")}
-          className={`text-[12px] px-3 py-1.5 rounded-[2px] cursor-pointer ${
-            subTab === "orders"
-              ? "bg-copper text-paper"
-              : "border border-rule text-ink/50 hover:text-ink"
-          }`}
-        >
-          Bestellingen
-        </button>
-        <button
-          onClick={() => setSubTab("carts")}
-          className={`text-[12px] px-3 py-1.5 rounded-[2px] cursor-pointer ${
-            subTab === "carts"
-              ? "bg-copper text-paper"
-              : "border border-rule text-ink/50 hover:text-ink"
-          }`}
-        >
-          Winkelmandjes
-        </button>
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setSubTab(tab.key)}
+            className={`text-[12px] px-3 py-1.5 rounded-[2px] cursor-pointer ${
+              subTab === tab.key
+                ? "bg-copper text-paper"
+                : "border border-rule text-ink/50 hover:text-ink"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {subTab === "orders" && <OrdersList />}
+      {subTab === "bolcom" && <BolcomOrdersList />}
       {subTab === "carts" && <CartsList />}
     </div>
   );
@@ -105,6 +105,71 @@ function OrdersList() {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function BolcomOrdersList() {
+  const orders = useQuery(api.bolOrders.list, { limit: 100 });
+  const stats = useQuery(api.bolOrders.getStats);
+  if (!orders || !stats) return <Loading />;
+
+  return (
+    <div className="space-y-4">
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="border border-rule rounded-[2px] p-4">
+          <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40">Totaal orders</p>
+          <p className="text-[20px] font-bold text-ink tabular-nums">{stats.totalOrders}</p>
+        </div>
+        <div className="border border-rule rounded-[2px] p-4">
+          <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40">Omzet (incl. BTW)</p>
+          <p className="text-[20px] font-bold text-ink tabular-nums">{formatPrice(stats.totalRevenue)}</p>
+        </div>
+        <div className="border border-rule rounded-[2px] p-4">
+          <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40">Deze maand</p>
+          <p className="text-[20px] font-bold text-ink tabular-nums">{formatPrice(stats.monthRevenue)}</p>
+          <p className="text-[11px] text-ink/40">{stats.monthOrders} orders</p>
+        </div>
+      </div>
+
+      {orders.length === 0 ? (
+        <EmptyState text="Nog geen Bol.com orders. De sync draait elke 5 minuten." />
+      ) : (
+        <div className="border border-rule rounded-[2px] overflow-x-auto">
+          <table className="w-full min-w-[700px]">
+            <thead>
+              <tr className="border-b border-rule bg-warm/30">
+                <Th>Klant</Th>
+                <Th>Product</Th>
+                <Th>Aantal</Th>
+                <Th>Bedrag</Th>
+                <Th>Stad</Th>
+                <Th>Datum</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((order) => (
+                <tr key={order._id} className="border-b border-rule last:border-b-0 hover:bg-warm/20 transition-colors">
+                  <td className="px-4 py-3">
+                    <p className="text-[13px] font-medium text-ink">{order.firstName} {order.lastName}</p>
+                    <p className="text-[11px] text-ink/40">{order.email}</p>
+                    {order.company && <p className="text-[11px] text-ink/30">{order.company}</p>}
+                  </td>
+                  <td className="px-4 py-3">
+                    <p className="text-[13px] text-ink">{order.product}</p>
+                    <p className="text-[11px] text-ink/30 font-mono">{order.sku}</p>
+                  </td>
+                  <td className="px-4 py-3 text-[13px] text-ink tabular-nums">{order.quantity}</td>
+                  <td className="px-4 py-3 text-[13px] text-ink tabular-nums">{formatPrice(order.amountWithTaxCents)}</td>
+                  <td className="px-4 py-3 text-[12px] text-ink/50">{order.city}</td>
+                  <td className="px-4 py-3 text-[12px] text-ink/50">{new Date(order.paidAt).toLocaleDateString("nl-NL")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

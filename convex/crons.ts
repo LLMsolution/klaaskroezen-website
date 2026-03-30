@@ -43,4 +43,11 @@ crons.interval(
   internal.layoutEditorOps.cleanupExpiredSessions,
 );
 
+// Bol.com: Sync new orders every 5 minutes
+crons.interval(
+  "bolcom-sync-orders",
+  { minutes: 5 },
+  internal.bolOrders.syncOrders,
+);
+
 export default crons;

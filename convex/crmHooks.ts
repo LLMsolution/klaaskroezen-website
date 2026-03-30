@@ -201,6 +201,88 @@ export const checkoutAbandoned = internalMutation({
   },
 });
 
+/** CRM: Create contact from Bol.com order */
+export const bolOrderCompleted = internalMutation({
+  args: {
+    email: v.string(),
+    firstName: v.string(),
+    lastName: v.string(),
+    phone: v.optional(v.string()),
+    company: v.optional(v.string()),
+    product: v.string(),
+    amountCents: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase().trim();
+    if (!email.includes("@")) return;
+    const now = Date.now();
+
+    const existing = await ctx.db
+      .query("contacts")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+
+    let contactId;
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        lastActivityAt: now,
+        intentScore: existing.intentScore + 50,
+        ...(args.phone && !existing.phone ? { phone: args.phone } : {}),
+        ...(args.company && !existing.company ? { company: args.company } : {}),
+        ...(!existing.lastName && args.lastName ? { lastName: args.lastName } : {}),
+      });
+      contactId = existing._id;
+    } else {
+      contactId = await ctx.db.insert("contacts", {
+        email,
+        firstName: args.firstName,
+        lastName: args.lastName,
+        phone: args.phone,
+        company: args.company,
+        engagementScore: 0,
+        intentScore: 50,
+        lastActivityAt: now,
+        source: "bolcom",
+        sourceDetail: args.product,
+        tags: ["bol.com", "boek"],
+        unsubscribed: false,
+        lang: "nl",
+        createdAt: now,
+      });
+    }
+
+    // Log activity
+    await ctx.db.insert("leadActivities", {
+      contactId,
+      type: "purchase",
+      title: `Bol.com aankoop: ${args.product}`,
+      createdAt: now,
+    });
+
+    // Mark open leads as won
+    const openLeads = await ctx.db
+      .query("leads")
+      .withIndex("by_contact", (q) => q.eq("contactId", contactId))
+      .filter((q) => q.eq(q.field("status"), "open"))
+      .collect();
+    for (const lead of openLeads) {
+      await ctx.db.patch(lead._id, { status: "won", closedAt: now });
+    }
+
+    // Fire automation triggers
+    await ctx.scheduler.runAfter(0, internal.crmAutomation.evaluateRules, {
+      trigger: "purchase",
+      contactId,
+      metadata: JSON.stringify({ product: args.product, source: "bolcom", amountCents: args.amountCents }),
+    });
+    await ctx.scheduler.runAfter(0, internal.workflows.evaluateTrigger, {
+      trigger: "purchase",
+      contactId,
+      metadata: JSON.stringify({ product: args.product, source: "bolcom" }),
+    });
+  },
+});
+
 /** CRM: Update contact score, log purchase, mark lead as won */
 export const purchaseCompleted = internalMutation({
   args: {

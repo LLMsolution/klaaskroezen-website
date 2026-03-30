@@ -414,6 +414,7 @@ export default defineSchema({
       v.literal("checkout"),
       v.literal("purchase"),
       v.literal("registration"),
+      v.literal("bolcom"),
       v.literal("manual"),
       v.literal("import"),
       v.literal("referral"),
@@ -645,6 +646,34 @@ export default defineSchema({
     .index("by_contact", ["contactId"])
     .index("by_status", ["status"])
     .index("by_next_run", ["status", "nextRunAt"]),
+
+  // ── Bol.com Orders ──
+  // Orders imported from Bol.com Retailer API
+  bolOrders: defineTable({
+    orderId: v.string(),
+    product: v.string(),
+    sku: v.string(),
+    quantity: v.number(),
+    company: v.optional(v.string()),
+    firstName: v.string(),
+    lastName: v.string(),
+    email: v.string(),
+    phone: v.optional(v.string()),
+    street: v.string(),
+    houseNumber: v.string(),
+    postalCode: v.string(),
+    city: v.string(),
+    countryCode: v.string(),
+    amountCents: v.number(),
+    amountWithTaxCents: v.number(),
+    vatRate: v.number(),
+    shippingCostsCents: v.number(),
+    paidAt: v.string(),
+    crmNotified: v.boolean(),
+    importedAt: v.number(),
+  })
+    .index("by_orderId", ["orderId"])
+    .index("by_paidAt", ["paidAt"]),
 
   // ── Checkout Products ──
   // Single source of truth for all checkout product data
