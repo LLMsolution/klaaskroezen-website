@@ -56,7 +56,6 @@ export function seedOverOnsContent(): PageSeed {
         { period: "2022", title: "Bedrijf verkocht", text: "Na de verkoop van WUA besloot ik mijn ervaring in te zetten voor anderen. Niet als consultant, maar als trainer." },
         { period: "2025", title: "Bestseller auteur", text: "Sales, Oprecht en Ontspannen werd #1 bij Managementboek. 2.500+ exemplaren verkocht in de eerste maanden." },
         { period: "Nu", title: "Trainer & spreker", text: "Volledig gericht op het begeleiden van directies, teams en professionals. Omdat iedereen die klantcontact heeft, het verschil maakt." },
-        { period: "Toekomst", title: "Ik wordt het geitje", text: "Van trainer naar het bewijs. Mijn doel: laten zien dat oprecht en ontspannen verkopen de standaard wordt — in elk team dat klantcontact heeft." },
       ],
     }),
     makeContent(SLUG, "journey", "journey", "en", {
@@ -68,7 +67,6 @@ export function seedOverOnsContent(): PageSeed {
         { period: "2022", title: "Company sold", text: "After selling WUA, I decided to use my experience to help others. Not as a consultant, but as a trainer." },
         { period: "2025", title: "Bestselling author", text: "Sales, Genuine and Relaxed became #1 at Managementboek. 2,500+ copies sold in the first months." },
         { period: "Now", title: "Trainer & speaker", text: "Fully focused on guiding executives, teams and professionals. Because everyone with customer contact makes the difference." },
-        { period: "Future", title: "I become the GOAT", text: "From trainer to proof. My goal: show that genuine and relaxed selling becomes the standard — in every team with customer contact." },
       ],
     }),
     // ── Mission ──

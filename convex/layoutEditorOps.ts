@@ -42,7 +42,9 @@ export const checkDeployStatus = internalAction({
           errorMsg = vercelCheck.output?.summary || "Vercel deploy mislukt.";
         } else if (vercelCheck.conclusion === "success") {
           await ctx.runMutation(internal.layoutEditor.updateDeployStatus, { sessionId, deployStatus: "success" });
-          await ctx.runMutation(internal.layoutEditor.addMessageInternal, { sessionId, role: "system", text: "Deploy gelukt! De wijziging is live." });
+          // Deploy is klaar — NU syncen (Convex heeft de nieuwe code)
+          await ctx.runMutation(internal.layoutEditor.syncAfterDeploy, { sessionId });
+          await ctx.runMutation(internal.layoutEditor.addMessageInternal, { sessionId, role: "system", text: "Deploy gelukt! Content is gesynchroniseerd." });
           return;
         }
       }
@@ -63,7 +65,9 @@ export const checkDeployStatus = internalAction({
     } else if (data.state === "pending") {
       await ctx.runMutation(internal.layoutEditor.scheduleDeployCheck, { sessionId, mergeCommitSha, delayMs: 120_000 });
     } else {
+      // Assume success — sync content
       await ctx.runMutation(internal.layoutEditor.updateDeployStatus, { sessionId, deployStatus: "success" });
+      await ctx.runMutation(internal.layoutEditor.syncAfterDeploy, { sessionId });
     }
   },
 });

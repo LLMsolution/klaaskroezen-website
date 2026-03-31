@@ -258,22 +258,33 @@ export const closeSession = mutation({
   },
 });
 
-/** Schedule content sync after Convex redeploy (called from approveSession action) */
+/** Schedule content sync — now just a fallback, main sync happens via deploy check */
 export const scheduleSync = internalMutation({
   args: {
     pageSlug: v.optional(v.string()),
     overwriteContent: v.boolean(),
   },
-  handler: async (ctx, { pageSlug, overwriteContent }) => {
-    const delayMs = 300_000; // 5 min — wait for Convex redeploy after PR merge
+  handler: async (ctx, { pageSlug }) => {
+    // Fallback sync at 12 min (in case deploy check doesn't fire)
+    const delayMs = 720_000;
+    await ctx.scheduler.runAfter(delayMs, internal.siteSeed.syncNewContent, {});
+    if (pageSlug) {
+      await ctx.scheduler.runAfter(delayMs + 5000, internal.siteSeed.syncPageContentFull, { pageSlug });
+    }
+  },
+});
 
-    // Sync with multiple retries — Convex deploy timing varies
-    // Try at 5 min, 8 min, and 12 min to ensure we get the new code
-    for (const delay of [delayMs, delayMs + 180_000, delayMs + 420_000]) {
-      await ctx.scheduler.runAfter(delay, internal.siteSeed.syncNewContent, {});
-      if (pageSlug) {
-        await ctx.scheduler.runAfter(delay + 5000, internal.siteSeed.syncPageContentFull, { pageSlug });
-      }
+/** Sync content immediately after deploy success (called from checkDeployStatus) */
+export const syncAfterDeploy = internalMutation({
+  args: { sessionId: v.id("layoutSessions") },
+  handler: async (ctx, { sessionId }) => {
+    const session = await ctx.db.get(sessionId);
+    if (!session) return;
+
+    // Sync structure + page content now that deploy is confirmed
+    await ctx.scheduler.runAfter(0, internal.siteSeed.syncNewContent, {});
+    if (session.targetPage) {
+      await ctx.scheduler.runAfter(2000, internal.siteSeed.syncPageContentFull, { pageSlug: session.targetPage });
     }
   },
 });
