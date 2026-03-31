@@ -149,6 +149,18 @@ export const getMyDownloads = query({
 /**
  * Update user profile name.
  */
+/** Check if an email has an existing account */
+export const checkEmailExists = query({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const account = await ctx.db
+      .query("authAccounts")
+      .filter((q) => q.eq(q.field("providerAccountId"), email.toLowerCase()))
+      .first();
+    return !!account;
+  },
+});
+
 export const updateProfile = mutation({
   args: { name: v.string() },
   handler: async (ctx, { name }) => {

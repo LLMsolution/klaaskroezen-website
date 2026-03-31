@@ -17,7 +17,13 @@ export function RegisterForm({ lang }: { lang: Lang }) {
   const { isAuthenticated } = useConvexAuth();
   const completeRegistration = useMutation(api.users.completeRegistration);
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("email") ?? "";
+    }
+    return "";
+  });
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");

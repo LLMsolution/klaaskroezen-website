@@ -20,7 +20,7 @@ export function ModuleVideoField({
   if (!editing) {
     return (
       <div>
-        <p className="text-[11px] text-ink/50 mb-1">Vimeo Video ID</p>
+        <p className="text-[11px] text-ink/50 mb-1">Vimeo Video</p>
         <div className="flex items-center gap-3">
           <p className="text-[13px] text-ink">
             {currentVideoId || <span className="text-ink/30">Niet ingesteld</span>}
@@ -44,19 +44,24 @@ export function ModuleVideoField({
 
   return (
     <div>
-      <p className="text-[11px] text-ink/50 mb-1">Vimeo Video ID</p>
+      <p className="text-[11px] text-ink/50 mb-1">Vimeo Video URL of ID</p>
       <div className="flex items-center gap-2">
         <input
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder="123456789"
-          className="bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px] w-48"
+          placeholder="https://vimeo.com/123456789 of 123456789"
+          className="bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px] flex-1"
         />
         <button
           onClick={async () => {
             setSaving(true);
-            await onSave(value.trim());
+            // Extract video ID from full URL or use as-is
+            const input = value.trim();
+            const match = input.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+            const videoId = match ? match[1] : input.replace(/\D/g, "");
+            await onSave(videoId);
+            setValue(videoId);
             setSaving(false);
             setEditing(false);
           }}

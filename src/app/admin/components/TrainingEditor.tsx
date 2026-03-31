@@ -474,7 +474,6 @@ function LessonCard({ lesson, label, onUpdateModule, onUploadAudio, onRemoveAudi
           <EditableField label="Titel" value={lesson.title.nl} onSave={async (v) => { await onUpdateModule({ id: lesson._id, title: { nl: v, en: lesson.title.en ?? v } }); }} />
           <EditableField label="Beschrijving" value={lesson.description.nl} onSave={async (v) => { await onUpdateModule({ id: lesson._id, description: { nl: v, en: v } }); }} multiline />
           <ModuleVideoField moduleId={lesson._id} currentVideoId={lesson.vimeoVideoId} onSave={async (videoId) => { await onUpdateModule({ id: lesson._id, vimeoVideoId: videoId }); }} />
-          <ModuleAudioField moduleId={lesson._id} hasAudio={hasAudio} fileName={audioFile} onUpload={onUploadAudio} onRemove={onRemoveAudio} />
           <div className="flex items-center gap-3 pt-2">
             <button onClick={onEditQuiz} className="text-[12px] text-copper hover:text-copper-light cursor-pointer">Quiz</button>
             <button onClick={onDelete} className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer">Verwijder</button>

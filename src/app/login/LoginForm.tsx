@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { t, type Lang } from "@/lib/i18n";
 
 interface Props {
@@ -37,9 +39,21 @@ export function LoginForm({ lang }: Props) {
     }
   }
 
+  const emailExists = useQuery(
+    api.users.checkEmailExists,
+    email.includes("@") ? { email } : "skip",
+  );
+
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+
+    // Check if account exists — redirect to registration if not
+    if (emailExists === false) {
+      window.location.href = `/registreren?email=${encodeURIComponent(email)}`;
+      return;
+    }
+
     setLoading(true);
     try {
       await signIn("resend", { email, lang });
