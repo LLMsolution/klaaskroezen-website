@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useQuery } from "convex/react";
 import Link from "next/link";
 import Image from "next/image";
@@ -15,7 +15,7 @@ const CATEGORIES = [
   { key: "persoonlijk", nl: "Persoonlijk", en: "Personal", de: "Persönlich" },
 ];
 
-const LOAD_MORE = { nl: "Meer laden", en: "Load more", de: "Mehr laden" };
+const PER_PAGE = 12;
 const NO_ARTICLES = { nl: "Geen artikelen gevonden.", en: "No articles found.", de: "Keine Artikel gefunden." };
 
 function formatDate(ts: number, lang: Lang) {
@@ -24,62 +24,26 @@ function formatDate(ts: number, lang: Lang) {
   });
 }
 
-type Post = { _id: string; slug: string; title: string; excerpt: string; imageUrl?: string; videoUrl?: string; category: string; publishedAt: number; likes: number; autoTranslated?: boolean };
-
 export function BlogList({ lang }: { lang: Lang }) {
   const [category, setCategory] = useState("all");
-  const [cursor, setCursor] = useState<string | undefined>(undefined);
-  const [allPosts, setAllPosts] = useState<Post[]>([]);
-  const [loadedInitial, setLoadedInitial] = useState(false);
+  const [page, setPage] = useState(0);
 
+  // Fetch all posts (no cursor — we need total count for pages)
   const result = useQuery(api.blog.listPublished, {
     category: category === "all" ? undefined : category,
     lang,
-    cursor,
-    limit: 12,
+    limit: 500, // Get all for pagination
   });
 
-  // Append new posts when result changes
-  const processResult = useCallback(() => {
-    if (!result) return;
-    if (!loadedInitial) {
-      setAllPosts(result.posts as Post[]);
-      setLoadedInitial(true);
-    } else if (cursor && result.posts.length > 0) {
-      setAllPosts((prev) => {
-        const ids = new Set(prev.map((p) => p._id));
-        const newPosts = (result.posts as Post[]).filter((p) => !ids.has(p._id));
-        return [...prev, ...newPosts];
-      });
-    }
-  }, [result, cursor, loadedInitial]);
-  if (result && !loadedInitial) processResult();
+  const allPosts = result?.posts ?? [];
+  const totalPages = Math.ceil(allPosts.length / PER_PAGE);
+  const pagePosts = allPosts.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
+  const isLoading = result === undefined;
 
   function handleCategoryChange(cat: string) {
     setCategory(cat);
-    setCursor(undefined);
-    setAllPosts([]);
-    setLoadedInitial(false);
+    setPage(0);
   }
-
-  function handleLoadMore() {
-    if (result?.nextCursor) {
-      setCursor(result.nextCursor);
-      // Will trigger new query, append results
-      const ids = new Set(allPosts.map((p) => p._id));
-      if (result.posts.length > 0) {
-        const newPosts = (result.posts as Post[]).filter((p) => !ids.has(p._id));
-        if (newPosts.length === 0 && result.nextCursor) {
-          // Already have these, use the cursor
-        }
-      }
-    }
-  }
-
-  // Use result.posts for display after initial load is handled
-  const displayPosts = loadedInitial ? allPosts : [];
-  const isLoading = result === undefined;
-  const hasMore = result?.nextCursor != null;
 
   return (
     <div>
@@ -104,14 +68,14 @@ export function BlogList({ lang }: { lang: Lang }) {
       {isLoading && <SkeletonGrid />}
 
       {/* Empty state */}
-      {!isLoading && displayPosts.length === 0 && (
+      {!isLoading && allPosts.length === 0 && (
         <div className="text-center py-20 text-ink/30 text-[14px]">{NO_ARTICLES[lang]}</div>
       )}
 
       {/* Posts grid */}
-      {displayPosts.length > 0 && (
+      {pagePosts.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-rule border border-rule">
-          {displayPosts.map((post, idx) => (
+          {pagePosts.map((post, idx) => (
             <Link
               key={post._id}
               href={`/nieuws/${post.slug}`}
@@ -123,7 +87,7 @@ export function BlogList({ lang }: { lang: Lang }) {
                     src={post.imageUrl}
                     alt={post.title}
                     fill
-                    loading={idx < 3 ? "eager" : "lazy"}
+                    loading={idx < 3 && page === 0 ? "eager" : "lazy"}
                     className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />
@@ -131,10 +95,11 @@ export function BlogList({ lang }: { lang: Lang }) {
               )}
               {!post.imageUrl && post.videoUrl && (
                 <div className="relative aspect-[16/10] mb-4 overflow-hidden rounded-[2px] bg-ink flex items-center justify-center">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="white" opacity={0.7}>
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="white" opacity={0.7}><path d="M8 5v14l11-7z" /></svg>
                 </div>
+              )}
+              {!post.imageUrl && !post.videoUrl && (
+                <div className="relative aspect-[16/10] mb-4 overflow-hidden rounded-[2px] bg-warm/50" />
               )}
               <div className="flex items-center gap-3 mb-2 flex-wrap">
                 <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper">
@@ -153,9 +118,7 @@ export function BlogList({ lang }: { lang: Lang }) {
               <p className="text-[13px] text-ink/55 leading-[1.65] line-clamp-2">{post.excerpt}</p>
               {post.likes > 0 && (
                 <div className="flex items-center gap-1.5 mt-3 text-[11px] text-ink/30">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
-                  </svg>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" /></svg>
                   {post.likes}
                 </div>
               )}
@@ -164,15 +127,32 @@ export function BlogList({ lang }: { lang: Lang }) {
         </div>
       )}
 
-      {/* Load more */}
-      {hasMore && (
-        <div className="text-center mt-10">
-          <button
-            onClick={handleLoadMore}
-            className="border border-rule px-8 py-3 text-[13px] font-medium text-ink/60 hover:text-ink hover:border-ink/30 transition-colors rounded-[2px] cursor-pointer"
-          >
-            {LOAD_MORE[lang]}
-          </button>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-1 mt-10">
+          {page > 0 && (
+            <button onClick={() => { setPage(page - 1); window.scrollTo(0, 0); }}
+              className="text-[12px] px-3 py-2 text-ink/40 hover:text-ink cursor-pointer">
+              ←
+            </button>
+          )}
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => { setPage(i); window.scrollTo(0, 0); }}
+              className={`text-[13px] w-9 h-9 rounded-[2px] cursor-pointer transition-colors ${
+                page === i ? "bg-copper text-paper" : "text-ink/40 hover:text-ink hover:bg-warm/50"
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+          {page < totalPages - 1 && (
+            <button onClick={() => { setPage(page + 1); window.scrollTo(0, 0); }}
+              className="text-[12px] px-3 py-2 text-ink/40 hover:text-ink cursor-pointer">
+              →
+            </button>
+          )}
         </div>
       )}
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Label } from "@/components/ui/Label";
 import { FadeIn } from "@/components/ui/FadeIn";
@@ -80,6 +80,14 @@ export function BookPreview({ lang, pages, coverImage }: BookPreviewProps) {
   const touchStartX = useRef(0);
   const s = content[lang];
 
+  // Preload all pages in the background on mount
+  useEffect(() => {
+    PAGES.forEach((src) => {
+      const img = new window.Image();
+      img.src = src;
+    });
+  }, [PAGES]);
+
   const prev = useCallback(() => {
     setCurrent((c) => (c === 0 ? PAGES.length - 1 : c - 1));
   }, [PAGES.length]);
@@ -154,13 +162,6 @@ export function BookPreview({ lang, pages, coverImage }: BookPreviewProps) {
                 priority={current === 0}
                 loading={current === 0 ? "eager" : "lazy"}
               />
-              {/* Preload adjacent pages */}
-              {current + 1 < PAGES.length && (
-                <link rel="prefetch" href={PAGES[current + 1]} />
-              )}
-              {current - 1 >= 0 && (
-                <link rel="prefetch" href={PAGES[current - 1]} />
-              )}
             </div>
 
             {/* Controls — fixed width to prevent jumping */}

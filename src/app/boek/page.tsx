@@ -71,10 +71,9 @@ export default async function BoekPage() {
     "book/preview/page-132.png",
   ];
   const coverKey = "book/sales-oprecht-ontspannen-cover.png";
-  // Only fetch cover + first 2 pages server-side for fast initial load
+  // Fetch cover + first 2 pages server-side, rest use static paths (preloaded client-side)
   const initialKeys = [coverKey, ...previewKeys.slice(0, 2)];
   const bookImages = await loadSiteImages(initialKeys);
-  // Build full page URLs: first 2 from server, rest as static fallback paths
   const previewPages = previewKeys.map((k, i) =>
     i < 2 ? imgUrl(bookImages, k) : `/images/${k}`,
   );
