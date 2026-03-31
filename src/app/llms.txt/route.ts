@@ -17,9 +17,9 @@ export async function GET() {
   let blogPosts: Array<{ slug: string; title: string; excerpt: string }> = [];
   let trainingList: Array<{ slug: string; title: { nl: string }; description: { nl: string } }> = [];
   try {
-    const posts = await fetchQuery(api.blog.listPublished, {});
-    blogPosts = (posts ?? [])
-      .filter((p: Record<string, unknown>) => (p.lang as string) === "nl" && !(p.sourcePostId))
+    const result = await fetchQuery(api.blog.listPublished, { lang: "nl", limit: 20 });
+    blogPosts = (result?.posts ?? [])
+      .filter((p: Record<string, unknown>) => !(p.sourcePostId))
       .slice(0, 20)
       .map((p: Record<string, unknown>) => ({
         slug: p.slug as string,

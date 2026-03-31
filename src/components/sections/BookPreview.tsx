@@ -152,7 +152,15 @@ export function BookPreview({ lang, pages, coverImage }: BookPreviewProps) {
                 className="object-contain"
                 sizes="(max-width: 1024px) 90vw, 40vw"
                 priority={current === 0}
+                loading={current === 0 ? "eager" : "lazy"}
               />
+              {/* Preload adjacent pages */}
+              {current + 1 < PAGES.length && (
+                <link rel="prefetch" href={PAGES[current + 1]} />
+              )}
+              {current - 1 >= 0 && (
+                <link rel="prefetch" href={PAGES[current - 1]} />
+              )}
             </div>
 
             {/* Controls — fixed width to prevent jumping */}

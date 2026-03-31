@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQuery } from "convex/react";
 import Link from "next/link";
 import Image from "next/image";
@@ -15,20 +15,71 @@ const CATEGORIES = [
   { key: "persoonlijk", nl: "Persoonlijk", en: "Personal", de: "Persönlich" },
 ];
 
+const LOAD_MORE = { nl: "Meer laden", en: "Load more", de: "Mehr laden" };
+const NO_ARTICLES = { nl: "Geen artikelen gevonden.", en: "No articles found.", de: "Keine Artikel gefunden." };
+
 function formatDate(ts: number, lang: Lang) {
   return new Date(ts).toLocaleDateString({ nl: "nl-NL", en: "en-GB", de: "de-DE" }[lang], {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+    year: "numeric", month: "long", day: "numeric",
   });
 }
 
+type Post = { _id: string; slug: string; title: string; excerpt: string; imageUrl?: string; videoUrl?: string; category: string; publishedAt: number; likes: number; autoTranslated?: boolean };
+
 export function BlogList({ lang }: { lang: Lang }) {
   const [category, setCategory] = useState("all");
-  const posts = useQuery(api.blog.listPublished, {
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
+  const [allPosts, setAllPosts] = useState<Post[]>([]);
+  const [loadedInitial, setLoadedInitial] = useState(false);
+
+  const result = useQuery(api.blog.listPublished, {
     category: category === "all" ? undefined : category,
     lang,
+    cursor,
+    limit: 12,
   });
+
+  // Append new posts when result changes
+  const processResult = useCallback(() => {
+    if (!result) return;
+    if (!loadedInitial) {
+      setAllPosts(result.posts as Post[]);
+      setLoadedInitial(true);
+    } else if (cursor && result.posts.length > 0) {
+      setAllPosts((prev) => {
+        const ids = new Set(prev.map((p) => p._id));
+        const newPosts = (result.posts as Post[]).filter((p) => !ids.has(p._id));
+        return [...prev, ...newPosts];
+      });
+    }
+  }, [result, cursor, loadedInitial]);
+  if (result && !loadedInitial) processResult();
+
+  function handleCategoryChange(cat: string) {
+    setCategory(cat);
+    setCursor(undefined);
+    setAllPosts([]);
+    setLoadedInitial(false);
+  }
+
+  function handleLoadMore() {
+    if (result?.nextCursor) {
+      setCursor(result.nextCursor);
+      // Will trigger new query, append results
+      const ids = new Set(allPosts.map((p) => p._id));
+      if (result.posts.length > 0) {
+        const newPosts = (result.posts as Post[]).filter((p) => !ids.has(p._id));
+        if (newPosts.length === 0 && result.nextCursor) {
+          // Already have these, use the cursor
+        }
+      }
+    }
+  }
+
+  // Use result.posts for display after initial load is handled
+  const displayPosts = loadedInitial ? allPosts : [];
+  const isLoading = result === undefined;
+  const hasMore = result?.nextCursor != null;
 
   return (
     <div>
@@ -37,7 +88,7 @@ export function BlogList({ lang }: { lang: Lang }) {
         {CATEGORIES.map((cat) => (
           <button
             key={cat.key}
-            onClick={() => setCategory(cat.key)}
+            onClick={() => handleCategoryChange(cat.key)}
             className={`text-[12px] px-4 py-2 rounded-[2px] cursor-pointer transition-colors ${
               category === cat.key
                 ? "bg-copper text-paper"
@@ -49,28 +100,30 @@ export function BlogList({ lang }: { lang: Lang }) {
         ))}
       </div>
 
+      {/* Skeleton loading */}
+      {isLoading && <SkeletonGrid />}
+
+      {/* Empty state */}
+      {!isLoading && displayPosts.length === 0 && (
+        <div className="text-center py-20 text-ink/30 text-[14px]">{NO_ARTICLES[lang]}</div>
+      )}
+
       {/* Posts grid */}
-      {posts === undefined ? (
-        <div className="text-center py-20 text-ink/30 text-[14px]">Laden...</div>
-      ) : posts.length === 0 ? (
-        <div className="text-center py-20 text-ink/30 text-[14px]">
-          {{ nl: "Geen artikelen gevonden.", en: "No articles found.", de: "Keine Artikel gefunden." }[lang]}
-        </div>
-      ) : (
+      {displayPosts.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-rule border border-rule">
-          {posts.map((post) => (
+          {displayPosts.map((post, idx) => (
             <Link
               key={post._id}
               href={`/nieuws/${post.slug}`}
               className="bg-paper p-6 hover:bg-warm/30 transition-colors group block"
             >
-              {/* Image or video thumbnail */}
               {post.imageUrl && (
                 <div className="relative aspect-[16/10] mb-4 overflow-hidden rounded-[2px] bg-warm">
                   <Image
                     src={post.imageUrl}
                     alt={post.title}
                     fill
+                    loading={idx < 3 ? "eager" : "lazy"}
                     className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />
@@ -83,8 +136,6 @@ export function BlogList({ lang }: { lang: Lang }) {
                   </svg>
                 </div>
               )}
-
-              {/* Category + date + auto-translated badge */}
               <div className="flex items-center gap-3 mb-2 flex-wrap">
                 <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper">
                   {CATEGORIES.find((c) => c.key === post.category)?.[lang] ?? post.category}
@@ -96,18 +147,10 @@ export function BlogList({ lang }: { lang: Lang }) {
                   </span>
                 )}
               </div>
-
-              {/* Title */}
               <h2 className="font-display text-[17px] font-bold leading-[1.3] tracking-[-0.01em] mb-2 group-hover:text-copper transition-colors">
                 {post.title}
               </h2>
-
-              {/* Excerpt */}
-              <p className="text-[13px] text-ink/55 leading-[1.65] line-clamp-2">
-                {post.excerpt}
-              </p>
-
-              {/* Likes */}
+              <p className="text-[13px] text-ink/55 leading-[1.65] line-clamp-2">{post.excerpt}</p>
               {post.likes > 0 && (
                 <div className="flex items-center gap-1.5 mt-3 text-[11px] text-ink/30">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
@@ -120,6 +163,34 @@ export function BlogList({ lang }: { lang: Lang }) {
           ))}
         </div>
       )}
+
+      {/* Load more */}
+      {hasMore && (
+        <div className="text-center mt-10">
+          <button
+            onClick={handleLoadMore}
+            className="border border-rule px-8 py-3 text-[13px] font-medium text-ink/60 hover:text-ink hover:border-ink/30 transition-colors rounded-[2px] cursor-pointer"
+          >
+            {LOAD_MORE[lang]}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SkeletonGrid() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-rule border border-rule">
+      {Array.from({ length: 12 }).map((_, i) => (
+        <div key={i} className="bg-paper p-6">
+          <div className="aspect-[16/10] mb-4 rounded-[2px] bg-warm animate-pulse" />
+          <div className="h-3 w-20 bg-warm animate-pulse rounded-[2px] mb-3" />
+          <div className="h-5 w-4/5 bg-warm animate-pulse rounded-[2px] mb-2" />
+          <div className="h-4 w-full bg-warm/60 animate-pulse rounded-[2px] mb-1" />
+          <div className="h-4 w-3/4 bg-warm/60 animate-pulse rounded-[2px]" />
+        </div>
+      ))}
     </div>
   );
 }

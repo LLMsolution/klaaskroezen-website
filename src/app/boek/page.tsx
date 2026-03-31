@@ -50,7 +50,7 @@ export default async function BoekPage() {
   const faq = sectionOr(db, "faq", fallback.faq);
   const cta = sectionOr(db, "cta", fallback.cta);
 
-  // Load book preview images from Convex (with /images/ fallback)
+  // Load only cover + first 2 preview pages server-side (rest lazy-loaded client-side)
   const previewKeys = [
     "book/preview/page-5.png",
     "book/preview/page-6.png",
@@ -71,8 +71,13 @@ export default async function BoekPage() {
     "book/preview/page-132.png",
   ];
   const coverKey = "book/sales-oprecht-ontspannen-cover.png";
-  const bookImages = await loadSiteImages([...previewKeys, coverKey]);
-  const previewPages = previewKeys.map((k) => imgUrl(bookImages, k));
+  // Only fetch cover + first 2 pages server-side for fast initial load
+  const initialKeys = [coverKey, ...previewKeys.slice(0, 2)];
+  const bookImages = await loadSiteImages(initialKeys);
+  // Build full page URLs: first 2 from server, rest as static fallback paths
+  const previewPages = previewKeys.map((k, i) =>
+    i < 2 ? imgUrl(bookImages, k) : `/images/${k}`,
+  );
   const coverUrl = imgUrl(bookImages, coverKey);
 
   return (

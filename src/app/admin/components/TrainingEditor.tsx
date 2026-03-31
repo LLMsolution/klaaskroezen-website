@@ -192,9 +192,6 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
           onCancelAddLesson={() => setAddingLessonFor(null)}
           onUpdateModule={updateModule}
           onDeleteModule={deleteModule}
-          generateUploadUrl={generateUploadUrl}
-          saveAudio={saveAudio}
-          removeAudio={removeAudio}
           onEditQuiz={setEditingQuizModule}
         />
       )}
@@ -356,13 +353,13 @@ function AudiobookChapterExpanded({ chapter, hasAudio, audioFile, onUpdateModule
 
 /* ─── Training module hierarchy ─── */
 
-function TrainingModuleList({ topModules, lessonMap, expandedModuleId, addingModule, addingLessonFor, formTitle, saving, onToggleExpand, onToggleAddModule, onFormTitleChange, onAddModule, onCancelAddModule, onStartAddLesson, onAddLesson, onCancelAddLesson, onUpdateModule, onDeleteModule, generateUploadUrl, saveAudio, removeAudio, onEditQuiz }: {
+function TrainingModuleList({ topModules, lessonMap, expandedModuleId, addingModule, addingLessonFor, formTitle, saving, onToggleExpand, onToggleAddModule, onFormTitleChange, onAddModule, onCancelAddModule, onStartAddLesson, onAddLesson, onCancelAddLesson, onUpdateModule, onDeleteModule, onEditQuiz }: {
   topModules: Mod[]; lessonMap: Map<string, Mod[]>; isAudiobook: boolean;
   expandedModuleId: string | null; addingModule: boolean; addingLessonFor: string | null; formTitle: string; saving: boolean;
   onToggleExpand: (id: string) => void; onToggleAddModule: () => void; onFormTitleChange: (v: string) => void;
   onAddModule: () => void; onCancelAddModule: () => void; onStartAddLesson: (id: string) => void;
   onAddLesson: (parentId: Id<"trainingModules">) => Promise<void>; onCancelAddLesson: () => void;
-  onUpdateModule: ModMut; onDeleteModule: ModDel; generateUploadUrl: GenUrl; saveAudio: AudioSave; removeAudio: AudioRm;
+  onUpdateModule: ModMut; onDeleteModule: ModDel;
   onEditQuiz: (id: Id<"trainingModules">) => void;
 }) {
   return (
@@ -409,13 +406,6 @@ function TrainingModuleList({ topModules, lessonMap, expandedModuleId, addingMod
                       lesson={lesson}
                       label={`${modIdx + 1}.${lessonIdx + 1}`}
                       onUpdateModule={onUpdateModule}
-                      onUploadAudio={async (file) => {
-                        const url = await generateUploadUrl();
-                        const res = await fetch(url, { method: "POST", headers: { "Content-Type": file.type }, body: file });
-                        const { storageId } = await res.json();
-                        await saveAudio({ moduleId: lesson._id, storageId, fileName: file.name });
-                      }}
-                      onRemoveAudio={async () => { await removeAudio({ moduleId: lesson._id }); }}
                       onDelete={async () => { if (confirm(`Training "${lesson.title.nl}" verwijderen?`)) await onDeleteModule({ id: lesson._id }); }}
                       onEditQuiz={() => onEditQuiz(lesson._id)}
                     />
@@ -449,14 +439,12 @@ function TrainingModuleList({ topModules, lessonMap, expandedModuleId, addingMod
 
 /* ─── Lesson card within a training module ─── */
 
-function LessonCard({ lesson, label, onUpdateModule, onUploadAudio, onRemoveAudio, onDelete, onEditQuiz }: {
+function LessonCard({ lesson, label, onUpdateModule, onDelete, onEditQuiz }: {
   lesson: Mod & { vimeoVideoId?: string; quizRequired?: boolean }; label: string;
-  onUpdateModule: ModMut; onUploadAudio: (file: File) => Promise<void>; onRemoveAudio: () => Promise<void>;
+  onUpdateModule: ModMut;
   onDelete: () => Promise<void>; onEditQuiz: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const hasAudio = !!(lesson as Record<string, unknown>).audioStorageId;
-  const audioFile = (lesson as Record<string, unknown>).audioFileName as string | undefined;
 
   return (
     <div className="border border-rule/60 rounded-[2px] bg-paper overflow-hidden">
@@ -465,7 +453,6 @@ function LessonCard({ lesson, label, onUpdateModule, onUploadAudio, onRemoveAudi
         <span className="text-[12px] font-medium text-ink/25 w-8">{label}</span>
         <p className="text-[13px] font-medium text-ink flex-1">{lesson.title.nl}</p>
         {lesson.vimeoVideoId && <span className="text-[10px] text-ink/30">Video</span>}
-        {hasAudio && <span className="text-[10px] text-ink/30">Audio</span>}
         <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className={`text-ink/20 transition-transform ${expanded ? "rotate-180" : ""}`}><path d="M4 6l4 4 4-4" /></svg>
       </button>
 

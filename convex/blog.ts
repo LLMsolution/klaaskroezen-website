@@ -12,36 +12,47 @@ export const listPublished = query({
   args: {
     category: v.optional(v.string()),
     limit: v.optional(v.number()),
+    cursor: v.optional(v.string()),
     lang: v.optional(langValidator),
   },
-  handler: async (ctx, { category, limit, lang }) => {
+  handler: async (ctx, { category, limit: rawLimit, cursor, lang }) => {
+    const limit = rawLimit ?? 12;
     let posts = await ctx.db
       .query("blogPosts")
       .withIndex("by_published", (q) => q.eq("published", true))
       .order("desc")
       .collect();
 
-    // Filter by language (default: show all if no lang specified)
-    if (lang) {
-      posts = posts.filter((p) => p.lang === lang);
+    if (lang) posts = posts.filter((p) => p.lang === lang);
+    if (category) posts = posts.filter((p) => p.category === category);
+
+    // Cursor-based pagination: skip past cursor ID
+    let startIdx = 0;
+    if (cursor) {
+      const idx = posts.findIndex((p) => p._id === cursor);
+      if (idx >= 0) startIdx = idx + 1;
     }
 
-    if (category) {
-      posts = posts.filter((p) => p.category === category);
-    }
+    const page = posts.slice(startIdx, startIdx + limit);
+    const nextCursor = page.length === limit && startIdx + limit < posts.length
+      ? page[page.length - 1]._id
+      : null;
 
-    return (limit ? posts.slice(0, limit) : posts).map((p) => ({
-      _id: p._id,
-      slug: p.slug,
-      title: p.title,
-      excerpt: p.excerpt,
-      imageUrl: p.imageUrl,
-      videoUrl: p.videoUrl,
-      category: p.category,
-      publishedAt: p.publishedAt,
-      likes: p.likes,
-      autoTranslated: p.autoTranslated,
-    }));
+    return {
+      posts: page.map((p) => ({
+        _id: p._id,
+        slug: p.slug,
+        title: p.title,
+        excerpt: p.excerpt,
+        imageUrl: p.imageUrl,
+        videoUrl: p.videoUrl,
+        category: p.category,
+        publishedAt: p.publishedAt,
+        likes: p.likes,
+        autoTranslated: p.autoTranslated,
+      })),
+      nextCursor,
+    };
   },
 });
 
