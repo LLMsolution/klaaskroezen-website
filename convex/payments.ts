@@ -119,20 +119,31 @@ export const processSuccessfulPayment = internalMutation({
 
     // 6. Grant access rights for digital products
     if (userId) {
+      // Look up product for access duration
+      const productData = await ctx.db
+        .query("checkoutProducts")
+        .withIndex("by_slug", (q) => q.eq("slug", order.product))
+        .first();
+      const expiresAt = productData?.accessDurationDays
+        ? now + productData.accessDurationDays * 24 * 60 * 60 * 1000
+        : undefined;
+
       await ctx.db.insert("accessRights", {
         userId,
         purchaseId,
         resource: order.product,
         grantedAt: now,
+        expiresAt,
       });
 
-      // Also grant access for bumps
+      // Also grant access for bumps (inherit main product duration)
       for (const bump of order.bumps) {
         await ctx.db.insert("accessRights", {
           userId,
           purchaseId,
           resource: bump,
           grantedAt: now,
+          expiresAt,
         });
       }
     }

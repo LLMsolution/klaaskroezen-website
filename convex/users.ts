@@ -65,11 +65,15 @@ export const getMyAccessRights = query({
     const userId = await auth.getUserId(ctx);
     if (!userId) return [];
 
-    return await ctx.db
+    const now = Date.now();
+    const all = await ctx.db
       .query("accessRights")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .filter((q) => q.eq(q.field("revokedAt"), undefined))
       .collect();
+
+    // Filter out expired access
+    return all.filter((r) => !r.expiresAt || r.expiresAt > now);
   },
 });
 
@@ -110,11 +114,13 @@ export const getMyDownloads = query({
     const userId = await auth.getUserId(ctx);
     if (!userId) return [];
 
-    const accessRights = await ctx.db
+    const now = Date.now();
+    const allRights = await ctx.db
       .query("accessRights")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .filter((q) => q.eq(q.field("revokedAt"), undefined))
       .collect();
+    const accessRights = allRights.filter((r) => !r.expiresAt || r.expiresAt > now);
 
     const downloads = [];
     for (const right of accessRights) {

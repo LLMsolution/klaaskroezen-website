@@ -43,6 +43,7 @@ export default defineSchema({
     circleSpaceId: v.optional(v.string()),
     resource: v.string(), // e.g. "sales-excellence-training", "customer-success-training"
     grantedAt: v.number(),
+    expiresAt: v.optional(v.number()), // When access expires (empty = forever)
     revokedAt: v.optional(v.number()),
   })
     .index("by_user", ["userId"])
@@ -762,6 +763,7 @@ export default defineSchema({
     ),
     requiresShipping: v.boolean(),
     purchaseTag: v.optional(v.string()), // Tag for CRM contact + pipeline lead on purchase (empty = no pipeline)
+    accessDurationDays: v.optional(v.number()), // Days of access after purchase (empty = forever)
     mockupType: v.optional(
       v.union(v.literal("tablet"), v.literal("phone"), v.literal("audio")),
     ),
