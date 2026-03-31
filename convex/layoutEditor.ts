@@ -267,12 +267,13 @@ export const scheduleSync = internalMutation({
   handler: async (ctx, { pageSlug, overwriteContent }) => {
     const delayMs = 300_000; // 5 min — wait for Convex redeploy after PR merge
 
-    // Always sync structure (new pages/sections)
-    await ctx.scheduler.runAfter(delayMs, internal.siteSeed.syncNewContent, {});
-
-    // Always sync target page content — admin needs new fields in DB to edit them
-    if (pageSlug) {
-      await ctx.scheduler.runAfter(delayMs + 5000, internal.siteSeed.syncPageContentFull, { pageSlug });
+    // Sync with multiple retries — Convex deploy timing varies
+    // Try at 5 min, 8 min, and 12 min to ensure we get the new code
+    for (const delay of [delayMs, delayMs + 180_000, delayMs + 420_000]) {
+      await ctx.scheduler.runAfter(delay, internal.siteSeed.syncNewContent, {});
+      if (pageSlug) {
+        await ctx.scheduler.runAfter(delay + 5000, internal.siteSeed.syncPageContentFull, { pageSlug });
+      }
     }
   },
 });
