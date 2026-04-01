@@ -142,15 +142,21 @@ function ImageCard({
     directUpload(blob, uploadLang, width, height);
   }
 
+  // Calculate aspect ratio for live preview
+  const previewAspect = spec
+    ? spec.displayWidth / spec.displayHeight
+    : 4 / 3;
+  const previewPadding = `${(1 / previewAspect) * 100}%`;
+
   return (
     <div className="border border-rule rounded-[2px] overflow-hidden group">
-      {/* Preview */}
-      <div className="aspect-[4/3] bg-warm/30 relative overflow-hidden">
+      {/* Live preview — uses actual display aspect ratio */}
+      <div className="bg-warm/30 relative overflow-hidden" style={{ paddingBottom: previewPadding }}>
         {img.url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={img.url} alt={img.alt || img.key} className="w-full h-full object-cover" />
+          <img src={img.url} alt={img.alt || img.key} className="absolute inset-0 w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-ink/20 text-[12px]">Geen preview</div>
+          <div className="absolute inset-0 w-full h-full flex items-center justify-center text-ink/20 text-[12px]">Geen preview</div>
         )}
         {/* Replace overlay */}
         <div className="absolute inset-0 bg-ink/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -166,6 +172,10 @@ function ImageCard({
             {spec.aspectRatio}
           </div>
         )}
+        {/* "Live preview" label */}
+        <div className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 bg-ink/50 rounded-[2px] text-[8px] text-paper/70 font-medium">
+          Live preview
+        </div>
       </div>
 
       {/* Info */}
