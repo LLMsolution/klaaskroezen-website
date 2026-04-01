@@ -18,10 +18,10 @@ export function ImagesTab() {
   const [editingAlt, setEditingAlt] = useState<string | null>(null);
   const [altValue, setAltValue] = useState("");
 
-  if (categories === undefined || images === undefined || allSpecs === undefined) return <Loading />;
+  if (categories === undefined || images === undefined) return <Loading />;
 
-  // Build specs lookup
-  const specsByKey = new Map(allSpecs.map((s) => [s.imageKey, s]));
+  // Build specs lookup (graceful — works even if specs query fails or is loading)
+  const specsByKey = new Map((allSpecs ?? []).map((s) => [s.imageKey, s]));
 
   return (
     <div>
