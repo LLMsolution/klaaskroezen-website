@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
+import { ImageCropper } from "@/components/ui/ImageCropper";
 
 const MAX_SIZE = 1920;
 const QUALITY = 0.85;
@@ -11,14 +12,16 @@ const QUALITY = 0.85;
 interface Props {
   /** Current image URL (from Convex storage or static) */
   currentUrl?: string;
-  /** Called with storageId after successful upload */
-  onUploaded: (storageId: Id<"_storage">) => void;
+  /** Called with storageId after successful upload (width/height from crop) */
+  onUploaded: (storageId: Id<"_storage">, width?: number, height?: number) => void;
   /** Called when image is removed */
   onRemoved?: () => void;
   /** Alt text for preview */
   alt?: string;
   /** Compact mode for small slots like avatars */
   compact?: boolean;
+  /** Image key for looking up specs (optional — enables crop tool) */
+  imageKey?: string;
 }
 
 /**
@@ -67,37 +70,63 @@ export function AdminImageUpload({
   onRemoved,
   alt = "Afbeelding",
   compact = false,
+  imageKey,
 }: Props) {
   const generateUploadUrl = useMutation(api.trainings.generateUploadUrl);
+  const spec = useQuery(
+    api.imageSpecs.getSpecForKey,
+    imageKey ? { imageKey } : "skip",
+  );
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const handleUpload = useCallback(async (file: File) => {
-    if (!file.type.startsWith("image/")) return;
+  const uploadBlob = useCallback(async (blob: Blob, width?: number, height?: number) => {
     setUploading(true);
     try {
-      // Resize & convert to WebP
-      const resized = await resizeImage(file);
-
-      // Upload to Convex
       const url = await generateUploadUrl();
       const result = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "image/webp" },
-        body: resized,
+        body: blob,
       });
       const { storageId } = await result.json();
-
-      onUploaded(storageId);
-      setPreview(URL.createObjectURL(resized));
+      onUploaded(storageId, width, height);
+      setPreview(URL.createObjectURL(blob));
     } catch {
       // silently fail — user can retry
     } finally {
       setUploading(false);
     }
   }, [generateUploadUrl, onUploaded]);
+
+  const handleUpload = useCallback(async (file: File) => {
+    if (!file.type.startsWith("image/")) return;
+
+    // If we have a spec with aspect ratio, show crop tool
+    if (spec && spec.displayWidth && spec.displayHeight) {
+      setCropFile(file);
+      return;
+    }
+
+    // No spec — direct resize + upload (legacy flow)
+    setUploading(true);
+    try {
+      const resized = await resizeImage(file);
+      await uploadBlob(resized);
+    } catch {
+      // silently fail
+    } finally {
+      setUploading(false);
+    }
+  }, [spec, uploadBlob]);
+
+  function handleCropComplete(blob: Blob, width: number, height: number) {
+    setCropFile(null);
+    uploadBlob(blob, width, height);
+  }
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
@@ -219,6 +248,23 @@ export function AdminImageUpload({
         </button>
       )}
       <input ref={fileRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+      {/* Spec badge */}
+      {spec && spec.displayWidth && spec.displayHeight && (
+        <p className="text-[10px] text-ink/30 mt-1">
+          Aanbevolen: {spec.displayWidth}x{spec.displayHeight}px · {spec.aspectRatio}
+        </p>
+      )}
+      {/* Crop modal */}
+      {cropFile && spec && (
+        <ImageCropper
+          file={cropFile}
+          aspectRatio={spec.displayWidth / spec.displayHeight}
+          targetWidth={spec.displayWidth}
+          targetHeight={spec.displayHeight}
+          onCrop={handleCropComplete}
+          onCancel={() => setCropFile(null)}
+        />
+      )}
     </div>
   );
 }

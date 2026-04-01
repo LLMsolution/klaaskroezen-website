@@ -1,33 +1,78 @@
 import { v } from "convex/values";
 import { query, mutation, internalMutation } from "./_generated/server";
 import { requireAdmin } from "./adminAuth";
+import { langValidator } from "./schema";
 
 // ── Public queries (no auth — images are public) ──
 
-/** Get a single image by key */
+/** Get a single image by key, with optional lang fallback */
 export const getByKey = query({
-  args: { key: v.string() },
-  handler: async (ctx, { key }) => {
+  args: { key: v.string(), lang: v.optional(langValidator) },
+  handler: async (ctx, { key, lang }) => {
+    // Try language-specific first
+    if (lang) {
+      const langImg = await ctx.db
+        .query("siteImages")
+        .withIndex("by_key_lang", (q) => q.eq("key", key).eq("lang", lang))
+        .first();
+      if (langImg) {
+        const url = await ctx.storage.getUrl(langImg.storageId);
+        return { url, alt: langImg.alt, width: langImg.width, height: langImg.height, key: langImg.key, lang: langImg.lang };
+      }
+    }
+    // Fallback to universal (no lang)
     const img = await ctx.db
       .query("siteImages")
       .withIndex("by_key", (q) => q.eq("key", key))
       .first();
-    if (!img) return null;
+    if (!img || img.lang) {
+      // If the only match has a lang set, it's not universal — try finding one without lang
+      const all = await ctx.db
+        .query("siteImages")
+        .withIndex("by_key", (q) => q.eq("key", key))
+        .collect();
+      const universal = all.find((i) => !i.lang);
+      if (universal) {
+        const url = await ctx.storage.getUrl(universal.storageId);
+        return { url, alt: universal.alt, width: universal.width, height: universal.height, key: universal.key, lang: universal.lang };
+      }
+      // Last resort: return any match
+      if (img) {
+        const url = await ctx.storage.getUrl(img.storageId);
+        return { url, alt: img.alt, width: img.width, height: img.height, key: img.key, lang: img.lang };
+      }
+      return null;
+    }
     const url = await ctx.storage.getUrl(img.storageId);
-    return { url, alt: img.alt, width: img.width, height: img.height, key: img.key };
+    return { url, alt: img.alt, width: img.width, height: img.height, key: img.key, lang: img.lang };
   },
 });
 
-/** Batch get images by keys — efficient for pages with many images */
+/** Batch get images by keys — with optional lang fallback */
 export const getByKeys = query({
-  args: { keys: v.array(v.string()) },
-  handler: async (ctx, { keys }) => {
+  args: { keys: v.array(v.string()), lang: v.optional(langValidator) },
+  handler: async (ctx, { keys, lang }) => {
     const results: Record<string, { url: string; alt?: string; width?: number; height?: number }> = {};
     for (const key of keys) {
-      const img = await ctx.db
-        .query("siteImages")
-        .withIndex("by_key", (q) => q.eq("key", key))
-        .first();
+      let img = null;
+
+      // Try language-specific first
+      if (lang) {
+        img = await ctx.db
+          .query("siteImages")
+          .withIndex("by_key_lang", (q) => q.eq("key", key).eq("lang", lang))
+          .first();
+      }
+
+      // Fallback to universal
+      if (!img) {
+        const all = await ctx.db
+          .query("siteImages")
+          .withIndex("by_key", (q) => q.eq("key", key))
+          .collect();
+        img = all.find((i) => !i.lang) ?? all[0] ?? null;
+      }
+
       if (img) {
         const url = await ctx.storage.getUrl(img.storageId);
         if (url) results[key] = { url, alt: img.alt, width: img.width, height: img.height };
@@ -54,6 +99,7 @@ export const listAll = query({
         .map(async (img) => ({
           ...img,
           url: await ctx.storage.getUrl(img.storageId),
+          lang: img.lang ?? null,
         })),
     );
   },
@@ -71,7 +117,7 @@ export const listCategories = query({
 
 // ── Admin mutations ──
 
-/** Upload/replace an image */
+/** Upload/replace an image (optionally language-specific) */
 export const saveImage = mutation({
   args: {
     key: v.string(),
@@ -81,16 +127,21 @@ export const saveImage = mutation({
     alt: v.optional(v.string()),
     width: v.optional(v.number()),
     height: v.optional(v.number()),
+    lang: v.optional(langValidator),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
-    const existing = await ctx.db
+
+    // Find existing: match on key + lang
+    const all = await ctx.db
       .query("siteImages")
       .withIndex("by_key", (q) => q.eq("key", args.key))
-      .first();
+      .collect();
+    const existing = all.find((i) =>
+      args.lang ? i.lang === args.lang : !i.lang,
+    );
 
     if (existing) {
-      // Delete old file from storage
       await ctx.storage.delete(existing.storageId);
       await ctx.db.patch(existing._id, {
         storageId: args.storageId,
@@ -98,6 +149,7 @@ export const saveImage = mutation({
         alt: args.alt,
         width: args.width,
         height: args.height,
+        lang: args.lang,
       });
       return existing._id;
     }

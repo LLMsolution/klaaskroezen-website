@@ -32,6 +32,7 @@ Regels:
 - NIEUWE secties moeten een image-path prop hebben zodat de admin het via Convex storage kan vervangen
 - Voor aspect ratio wijzigingen: gebruik Tailwind classes (aspect-square, aspect-[4/5], aspect-[16/9]) + object-cover
 - Nooit afbeeldingspaden hardcoden in JSX — altijd via props
+- Bij wijziging van image dimensies: noteer welke image keys nieuwe dimensies krijgen in het plan (imageKey, displayWidth, displayHeight, aspectRatio, context) — dit wordt automatisch gesynchroniseerd naar de admin crop tool
 
 ## Tech stack
 - Next.js 15 (App Router), React 19, Tailwind CSS 4

@@ -51,6 +51,35 @@ You are making visual/layout changes to a Next.js website. Follow these rules st
 - NEVER hardcode image paths in component JSX — always receive via props so admin can change them
 - Image props accept both static paths (`/images/...`) and Convex URLs (`https://...`)
 
+### Image Spec Updates (IMPORTANT)
+When you change image display dimensions (aspect ratio, width, height, container sizes), you MUST include `imageSpecUpdates` in your callback payload. This keeps the admin crop tool in sync.
+
+For each image whose display dimensions changed, add an entry:
+```json
+{
+  "imageKey": "hero/sales-excellence-group.jpeg",
+  "displayWidth": 960,
+  "displayHeight": 540,
+  "aspectRatio": "16:9",
+  "context": "Hero section — beschrijving van gebruik"
+}
+```
+
+Rules for calculating dimensions:
+- `displayWidth`: the rendered width in pixels at desktop (use container max-width or column width)
+- `displayHeight`: calculated from displayWidth and the aspect ratio
+- `aspectRatio`: the Tailwind class value (e.g., `aspect-[16/9]` → "16:9", `aspect-square` → "1:1")
+- If image uses `fill` with a fixed-height container: use the container height and calculate width from aspect ratio
+- Multiply by 2 for retina if the image is small (< 400px displayed)
+
+**HOW TO REPORT**: If you changed any image dimensions, write a JSON file at `/tmp/image-spec-updates.json`:
+```json
+[
+  {"imageKey": "hero/example.jpeg", "displayWidth": 960, "displayHeight": 540, "aspectRatio": "16:9", "context": "Hero section"}
+]
+```
+If no image dimensions changed, do NOT create this file.
+
 ### Content & Database Sync (CRITICAL)
 When you change content (add team members, change fields, add sections), you MUST update BOTH:
 1. `src/app/[page]/content.ts` — frontend fallback

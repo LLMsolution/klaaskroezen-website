@@ -21,7 +21,7 @@ http.route({
     }
 
     const body = await request.json();
-    const { sessionId, status, previewUrl, prNumber, errorMessage } = body;
+    const { sessionId, status, previewUrl, prNumber, errorMessage, imageSpecUpdates } = body;
 
     if (!sessionId || !status) {
       return new Response("Missing sessionId or status", { status: 400 });
@@ -35,6 +35,14 @@ http.route({
       prNumber,
       errorMessage,
     });
+
+    // Store image spec updates if provided by AI
+    if (imageSpecUpdates && Array.isArray(imageSpecUpdates) && imageSpecUpdates.length > 0) {
+      await ctx.runMutation(internal.layoutEditor.storeImageSpecUpdates, {
+        sessionId,
+        imageSpecUpdates,
+      });
+    }
 
     // Add system message based on status
     let systemMessage = "";

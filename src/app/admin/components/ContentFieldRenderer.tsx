@@ -248,6 +248,9 @@ function ContentImageField({
         onRemoved={() => onChange("")}
         alt={label}
       />
+      <p className="text-[10px] text-ink/25 mt-1">
+        Gebruik de Images tab voor dimensie-informatie en bijsnijden.
+      </p>
     </div>
   );
 }
