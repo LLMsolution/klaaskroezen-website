@@ -51,6 +51,8 @@ import type * as emailTemplates from "../emailTemplates.js";
 import type * as emailTracking from "../emailTracking.js";
 import type * as emails from "../emails.js";
 import type * as http from "../http.js";
+import type * as imageSpecs from "../imageSpecs.js";
+import type * as imageSpecsSeed from "../imageSpecsSeed.js";
 import type * as invoices from "../invoices.js";
 import type * as layoutEditor from "../layoutEditor.js";
 import type * as layoutEditorActions from "../layoutEditorActions.js";
@@ -132,6 +134,8 @@ declare const fullApi: ApiFromModules<{
   emailTracking: typeof emailTracking;
   emails: typeof emails;
   http: typeof http;
+  imageSpecs: typeof imageSpecs;
+  imageSpecsSeed: typeof imageSpecsSeed;
   invoices: typeof invoices;
   layoutEditor: typeof layoutEditor;
   layoutEditorActions: typeof layoutEditorActions;
