@@ -286,6 +286,37 @@ export const syncAfterDeploy = internalMutation({
     if (session.targetPage) {
       await ctx.scheduler.runAfter(2000, internal.siteSeed.syncPageContentFull, { pageSlug: session.targetPage });
     }
+
+    // Sync image spec updates if the AI provided them
+    if (session.imageSpecUpdates && session.imageSpecUpdates.length > 0) {
+      const specsWithPage = session.imageSpecUpdates.map((s) => ({
+        ...s,
+        pageSlug: session.targetPage,
+      }));
+      await ctx.scheduler.runAfter(0, internal.imageSpecs.bulkUpsert, {
+        specs: specsWithPage,
+        force: true,
+      });
+    }
+  },
+});
+
+/** Store image spec updates from layout-edit AI on the session */
+export const storeImageSpecUpdates = internalMutation({
+  args: {
+    sessionId: v.id("layoutSessions"),
+    imageSpecUpdates: v.array(v.object({
+      imageKey: v.string(),
+      displayWidth: v.number(),
+      displayHeight: v.number(),
+      aspectRatio: v.string(),
+      context: v.string(),
+    })),
+  },
+  handler: async (ctx, { sessionId, imageSpecUpdates }) => {
+    const session = await ctx.db.get(sessionId);
+    if (!session) return;
+    await ctx.db.patch(sessionId, { imageSpecUpdates });
   },
 });
 

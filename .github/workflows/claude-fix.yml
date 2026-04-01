@@ -330,6 +330,12 @@ jobs:
           PREVIEW_URL="https://${SUBDOMAIN}.vercel.app"
           echo "Preview URL: $PREVIEW_URL"
 
+          # Check for image spec updates from AI
+          IMAGE_SPECS="[]"
+          if [ -f /tmp/image-spec-updates.json ]; then
+            IMAGE_SPECS=$(cat /tmp/image-spec-updates.json | jq -c '.' 2>/dev/null || echo "[]")
+          fi
+
           if [ "$PR_NUM" = "0" ]; then
             curl -X POST "$CALLBACK_URL" \
               -H "Content-Type: application/json" \
@@ -339,7 +345,7 @@ jobs:
             curl -X POST "$CALLBACK_URL" \
               -H "Content-Type: application/json" \
               -H "X-Callback-Secret: $CALLBACK_SECRET" \
-              -d "{\"sessionId\":\"$SESSION_ID\",\"status\":\"preview\",\"previewUrl\":\"$PREVIEW_URL\",\"prNumber\":$PR_NUM}"
+              -d "{\"sessionId\":\"$SESSION_ID\",\"status\":\"preview\",\"previewUrl\":\"$PREVIEW_URL\",\"prNumber\":$PR_NUM,\"imageSpecUpdates\":$IMAGE_SPECS}"
           fi
 
       - name: Send failure callback

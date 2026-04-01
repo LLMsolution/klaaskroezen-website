@@ -1010,10 +1010,26 @@ export default defineSchema({
     category: v.string(),
     width: v.optional(v.number()),
     height: v.optional(v.number()),
+    lang: v.optional(langValidator), // null = universal, "nl"/"en"/"de" = language-specific
     createdAt: v.number(),
   })
     .index("by_key", ["key"])
+    .index("by_key_lang", ["key", "lang"])
     .index("by_category", ["category"]),
+
+  // ── Image Specs ──
+  // Desired display dimensions per image key (used by admin crop tool)
+  imageSpecs: defineTable({
+    imageKey: v.string(),
+    displayWidth: v.number(),
+    displayHeight: v.number(),
+    aspectRatio: v.string(), // "16:9", "4:3", "1:1"
+    context: v.string(), // "TrainingHero — volledig scherm"
+    pageSlug: v.optional(v.string()),
+    updatedAt: v.number(),
+  })
+    .index("by_key", ["imageKey"])
+    .index("by_page", ["pageSlug"]),
 
   // ── Layout Editor ──
   // Sessions for AI-powered layout editing
@@ -1050,6 +1066,14 @@ export default defineSchema({
       storageId: v.id("_storage"),
       url: v.string(),
       fileName: v.string(),
+    }))),
+    // Image spec updates (sent by layout-edit AI when aspect ratios change)
+    imageSpecUpdates: v.optional(v.array(v.object({
+      imageKey: v.string(),
+      displayWidth: v.number(),
+      displayHeight: v.number(),
+      aspectRatio: v.string(),
+      context: v.string(),
     }))),
     // Deploy monitoring (checked after merge)
     deployStatus: v.optional(v.union(v.literal("pending"), v.literal("success"), v.literal("failed"))),
