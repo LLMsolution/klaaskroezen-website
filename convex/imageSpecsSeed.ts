@@ -1,3 +1,4 @@
+import { v } from "convex/values";
 import { internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 
@@ -41,9 +42,12 @@ const SPECS: SpecEntry[] = [
   { imageKey: "spreker/video-thumb-mindset.jpg", displayWidth: 960, displayHeight: 540, aspectRatio: "16:9", context: "Video thumbnail", pageSlug: "spreker" },
 
   // ── About / Over ons — portraits + team members ──
-  { imageKey: "about/klaas-over-mij.jpeg", displayWidth: 960, displayHeight: 1280, aspectRatio: "3:4", context: "Over ons hero portrait", pageSlug: "over-ons" },
-  { imageKey: "about/klaas-kroezen-portrait.jpeg", displayWidth: 960, displayHeight: 1280, aspectRatio: "3:4", context: "About Klaas portrait", pageSlug: "home" },
-  { imageKey: "about/klaas-kroezen-portrait-2.jpeg", displayWidth: 960, displayHeight: 1280, aspectRatio: "3:4", context: "Portrait (over-ons + contact)", pageSlug: "over-ons" },
+  // klaas-over-mij: over-ons hero — aspect-[3/4] mobile, lg:aspect-auto min-h-[calc(100vh-96px)] desktop
+  { imageKey: "about/klaas-over-mij.jpeg", displayWidth: 590, displayHeight: 787, aspectRatio: "3:4", context: "Over ons hero (full height desktop)", pageSlug: "over-ons" },
+  // klaas-kroezen-portrait: AboutKlaas section — min-h-[300px] sm:min-h-[340px] in 50vw col, landscape crop
+  { imageKey: "about/klaas-kroezen-portrait.jpeg", displayWidth: 590, displayHeight: 340, aspectRatio: "16:9", context: "About Klaas banner (landscape crop)", pageSlug: "home" },
+  // klaas-kroezen-portrait-2: over-ons mission — aspect-[4/3] mobile, lg:min-h-[560px] desktop
+  { imageKey: "about/klaas-kroezen-portrait-2.jpeg", displayWidth: 590, displayHeight: 560, aspectRatio: "~1:1", context: "Over ons mission + contact portrait", pageSlug: "over-ons" },
   { imageKey: "about/kantoor-administratie.jpg", displayWidth: 1180, displayHeight: 664, aspectRatio: "16:9", context: "Kantoor foto", pageSlug: "over-ons" },
   { imageKey: "about/tim-lind.png", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member portrait", pageSlug: "over-ons" },
   { imageKey: "about/joost-wammes.png", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member portrait", pageSlug: "over-ons" },
@@ -96,13 +100,13 @@ const SPECS: SpecEntry[] = [
   { imageKey: "hero/og-image.jpeg", displayWidth: 1200, displayHeight: 630, aspectRatio: "1200:630", context: "OpenGraph image" },
 ];
 
-/** Seed all image specs — run once from admin or CLI */
+/** Seed all image specs. Use force=true to overwrite existing specs. */
 export const seedImageSpecs = internalMutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { force: v.optional(v.boolean()) },
+  handler: async (ctx, { force }) => {
     await ctx.runMutation(internal.imageSpecs.bulkUpsert, {
       specs: SPECS,
-      force: false,
+      force: force ?? false,
     });
   },
 });
