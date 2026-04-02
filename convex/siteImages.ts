@@ -217,6 +217,26 @@ export const generateUploadUrl = mutation({
   },
 });
 
+// ── Internal queries (no auth — used by migration scripts) ──
+
+import { internalQuery } from "./_generated/server";
+
+/** List all images without auth (for migration scripts) */
+export const listAllInternal = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("siteImages").collect();
+  },
+});
+
+/** Update storageId for a specific image (migration) */
+export const updateStorageId = internalMutation({
+  args: { id: v.id("siteImages"), storageId: v.id("_storage") },
+  handler: async (ctx, { id, storageId }) => {
+    await ctx.db.patch(id, { storageId });
+  },
+});
+
 // ── Migration helper (internal, no auth) ──
 
 export const bulkInsert = internalMutation({

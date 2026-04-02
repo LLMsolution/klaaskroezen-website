@@ -221,3 +221,58 @@ export const migrateAllFromSite = action({
     return { uploaded, skipped };
   },
 });
+
+/**
+ * Migrate images from dev Convex to production.
+ * Run on PRODUCTION: Functions → siteImagesMigration:migrateFromDev → Run
+ * Args: { "devUrl": "https://hardy-jaguar-483.convex.cloud" }
+ */
+export const migrateFromDev = action({
+  args: { devUrl: v.string() },
+  handler: async (ctx, { devUrl }): Promise<{ uploaded: number; skipped: number; errors: string[] }> => {
+    const existingImages = await ctx.runQuery(internal.siteImages.listAllInternal);
+    let uploaded = 0;
+    let skipped = 0;
+    const errors: string[] = [];
+
+    for (const img of existingImages) {
+      const existingUrl = await ctx.storage.getUrl(img.storageId);
+      if (existingUrl) { skipped++; continue; }
+
+      try {
+        const devRes = await fetch(`${devUrl}/api/query`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path: "siteImages:getByKey", args: { key: img.key }, format: "json" }),
+        });
+        if (!devRes.ok) { errors.push(`${img.key}: dev API ${devRes.status}`); continue; }
+
+        const devData = await devRes.json();
+        const devImageUrl = devData?.value?.url;
+        if (!devImageUrl) { errors.push(`${img.key}: no URL from dev`); continue; }
+
+        const imageRes = await fetch(devImageUrl);
+        if (!imageRes.ok) { errors.push(`${img.key}: download failed`); continue; }
+
+        const blob = await imageRes.blob();
+        const contentType = imageRes.headers.get("content-type") || "image/webp";
+
+        const uploadUrl = await ctx.storage.generateUploadUrl();
+        const uploadRes = await fetch(uploadUrl, {
+          method: "POST",
+          headers: { "Content-Type": contentType },
+          body: blob,
+        });
+        if (!uploadRes.ok) { errors.push(`${img.key}: upload failed`); continue; }
+
+        const { storageId } = await uploadRes.json();
+        await ctx.runMutation(internal.siteImages.updateStorageId, { id: img._id, storageId });
+        uploaded++;
+      } catch (err) {
+        errors.push(`${img.key}: ${err instanceof Error ? err.message : "unknown"}`);
+      }
+    }
+
+    return { uploaded, skipped, errors };
+  },
+});
