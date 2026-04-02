@@ -110,18 +110,17 @@ function ImageCard({
   const [uploading, setUploading] = useState(false);
   const [cropFile, setCropFile] = useState<File | null>(null);
   const [uploadLang, setUploadLang] = useState<Lang | undefined>(undefined);
+  const [showPreview, setShowPreview] = useState(false);
 
   const isBook = img.category === "book";
   const dimMatch = getDimStatus(img, spec);
 
   async function handleReplace(file: File, lang?: Lang) {
-    // If spec exists, show crop tool
     if (spec) {
       setUploadLang(lang);
       setCropFile(file);
       return;
     }
-    // Direct upload
     await directUpload(file, lang);
   }
 
@@ -142,27 +141,28 @@ function ImageCard({
     directUpload(blob, uploadLang, width, height);
   }
 
-  // Calculate aspect ratio for live preview
-  const previewAspect = spec
-    ? spec.displayWidth / spec.displayHeight
-    : 4 / 3;
-  const previewPadding = `${(1 / previewAspect) * 100}%`;
-
   return (
     <div className="border border-rule rounded-[2px] overflow-hidden group">
-      {/* Live preview — uses actual display aspect ratio */}
-      <div className="bg-warm/30 relative overflow-hidden" style={{ paddingBottom: previewPadding }}>
+      {/* Thumbnail — fixed 4:3 for consistent grid */}
+      <div className="aspect-[4/3] bg-warm/30 relative overflow-hidden">
         {img.url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={img.url} alt={img.alt || img.key} className="absolute inset-0 w-full h-full object-cover" />
+          <button
+            onClick={() => setShowPreview(true)}
+            className="w-full h-full cursor-pointer"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={img.url} alt={img.alt || img.key} className="w-full h-full object-cover" />
+          </button>
         ) : (
-          <div className="absolute inset-0 w-full h-full flex items-center justify-center text-ink/20 text-[12px]">Geen preview</div>
+          <div className="w-full h-full flex items-center justify-center text-ink/20 text-[12px]">Geen preview</div>
         )}
         {/* Replace overlay */}
-        <div className="absolute inset-0 bg-ink/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-          <ReplaceButton onReplace={(f) => handleReplace(f)} uploading={uploading} />
+        <div className="absolute inset-0 bg-ink/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+          <div className="pointer-events-auto">
+            <ReplaceButton onReplace={(f) => handleReplace(f)} uploading={uploading} />
+          </div>
         </div>
-        {/* Dimension status badge */}
+        {/* Aspect ratio badge */}
         {spec && (
           <div className={`absolute top-2 right-2 px-1.5 py-0.5 rounded-[2px] text-[9px] font-medium ${
             dimMatch === "match" ? "bg-green-100 text-green-700" :
@@ -172,10 +172,6 @@ function ImageCard({
             {spec.aspectRatio}
           </div>
         )}
-        {/* "Live preview" label */}
-        <div className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 bg-ink/50 rounded-[2px] text-[8px] text-paper/70 font-medium">
-          Live preview
-        </div>
       </div>
 
       {/* Info */}
@@ -263,6 +259,17 @@ function ImageCard({
         </button>
       </div>
 
+      {/* Preview modal — shows image at actual display aspect ratio */}
+      {showPreview && img.url && (
+        <ImagePreviewModal
+          url={img.url}
+          alt={img.alt || img.key}
+          imageKey={img.key}
+          spec={spec}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
+
       {/* Crop modal */}
       {cropFile && spec && (
         <ImageCropper
@@ -274,6 +281,66 @@ function ImageCard({
           onCancel={() => setCropFile(null)}
         />
       )}
+    </div>
+  );
+}
+
+/** Full-screen modal showing the image at its actual display aspect ratio */
+function ImagePreviewModal({ url, alt, imageKey, spec, onClose }: {
+  url: string;
+  alt: string;
+  imageKey: string;
+  spec?: SpecDoc;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70"
+      onClick={onClose}
+    >
+      <div
+        className="bg-paper border border-rule rounded-[2px] max-w-[900px] w-full mx-4 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-rule">
+          <div>
+            <p className="text-[13px] font-medium text-ink">{imageKey}</p>
+            {spec && (
+              <p className="text-[11px] text-ink/40 mt-0.5">
+                {spec.displayWidth}x{spec.displayHeight} · {spec.aspectRatio} · {spec.context}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={onClose}
+            className="text-[20px] text-ink/40 hover:text-ink cursor-pointer leading-none px-2"
+          >
+            &times;
+          </button>
+        </div>
+
+        {/* Image at actual ratio */}
+        <div className="p-5 flex justify-center bg-warm/20">
+          {spec ? (
+            <div
+              className="relative w-full overflow-hidden bg-warm/30 border border-rule rounded-[2px]"
+              style={{
+                maxWidth: `${Math.min(spec.displayWidth, 800)}px`,
+                aspectRatio: `${spec.displayWidth} / ${spec.displayHeight}`,
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt={alt} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="max-h-[70vh]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt={alt} className="max-h-[70vh] max-w-full object-contain" />
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
