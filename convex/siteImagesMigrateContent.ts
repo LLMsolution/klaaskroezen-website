@@ -274,3 +274,23 @@ export const cleanupDuplicates = internalMutation({
     return { deleted, renamed };
   },
 });
+
+/** Fix category and key for images that were registered with wrong category */
+export const fixCategories = internalMutation({
+  args: {},
+  handler: async (ctx): Promise<{ fixed: number }> => {
+    const allImages = await ctx.db.query("siteImages").collect();
+    let fixed = 0;
+
+    for (const img of allImages) {
+      // Derive correct category from key prefix
+      const keyCategory = img.key.split("/")[0];
+      if (keyCategory && keyCategory !== img.category) {
+        await ctx.db.patch(img._id, { category: keyCategory });
+        fixed++;
+      }
+    }
+
+    return { fixed };
+  },
+});

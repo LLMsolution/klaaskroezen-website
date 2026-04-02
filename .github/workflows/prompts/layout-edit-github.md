@@ -43,12 +43,15 @@ You are making visual/layout changes to a Next.js website. Follow these rules st
 - **Tracking labels**: `text-[10px] font-medium tracking-[0.2em] uppercase text-copper`
 
 ### Images
-- Legacy images exist in `/public/images/` — OK to reference for existing sections
+- Images are managed via the `siteImages` table in Convex with stable keys (e.g., `about/tim-lind.png`, `hero/sales-excellence-group.jpeg`)
+- Frontend loads images via `loadSiteImages(["key1", "key2"])` which returns Convex storage URLs with static fallback
 - If the user uploaded images (see "Uploaded Images" section above), use those exact URLs in the content
 - For images without an upload: use a placeholder image prop so the admin can add one later via the Content tab
 - ALWAYS use `next/image` (import Image from "next/image") — never `<img>`
 - For aspect ratio changes: use Tailwind classes like `aspect-[16/9]` + `object-cover`
-- NEVER hardcode image paths in component JSX — always receive via props so admin can change them
+- NEVER hardcode `/images/...` paths in seed files or content — use `loadSiteImages` keys instead
+- When adding NEW images to a section, use a key format matching existing keys: `category/descriptive-name.ext` (e.g., `about/new-member.png`, `team/workshop-photo.jpeg`)
+- NEVER rename existing image keys — the admin manages images by key, renaming breaks references
 - Image props accept both static paths (`/images/...`) and Convex URLs (`https://...`)
 
 ### Image Spec Updates (IMPORTANT)
