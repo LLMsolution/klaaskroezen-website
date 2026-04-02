@@ -9,50 +9,88 @@ import { ImageCropper } from "@/components/ui/ImageCropper";
 
 type Lang = "nl" | "en" | "de";
 
+const PAGE_LABELS: Record<string, string> = {
+  home: "Home",
+  "over-ons": "Over ons",
+  "sales-excellence-training": "Sales Excellence",
+  "customer-success-training": "Customer Success",
+  spreker: "Spreker",
+  boek: "Boek",
+  nieuws: "Nieuws",
+  contact: "Contact",
+};
+
 export function ImagesTab() {
-  const categories = useQuery(api.siteImages.listCategories);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const images = useQuery(api.siteImages.listAll, { category: selectedCategory ?? undefined });
+  const images = useQuery(api.siteImages.listAll, {});
   const allSpecs = useQuery(api.imageSpecs.listAllSpecs);
+  const [selectedPage, setSelectedPage] = useState<string | null>(null);
 
   const [editingAlt, setEditingAlt] = useState<string | null>(null);
   const [altValue, setAltValue] = useState("");
 
-  if (categories === undefined || images === undefined) return <Loading />;
+  if (images === undefined) return <Loading />;
 
-  // Build specs lookup (graceful — works even if specs query fails or is loading)
   const specsByKey = new Map((allSpecs ?? []).map((s) => [s.imageKey, s]));
+
+  // Group images by page (from specs), with "overig" for unassigned
+  const imagesByPage = new Map<string, typeof images>();
+  const pages: string[] = [];
+
+  for (const img of images) {
+    const spec = specsByKey.get(img.key);
+    const page = spec?.pageSlug || "overig";
+    if (!imagesByPage.has(page)) {
+      imagesByPage.set(page, []);
+      pages.push(page);
+    }
+    imagesByPage.get(page)!.push(img);
+  }
+
+  // Sort pages: known pages first (in order), then "overig" last
+  const pageOrder = Object.keys(PAGE_LABELS);
+  pages.sort((a, b) => {
+    const ai = pageOrder.indexOf(a);
+    const bi = pageOrder.indexOf(b);
+    if (ai === -1 && bi === -1) return a.localeCompare(b);
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  });
+
+  const filteredImages = selectedPage
+    ? imagesByPage.get(selectedPage) || []
+    : images;
 
   return (
     <div>
-      {/* Category filter */}
+      {/* Page filter */}
       <div className="flex items-center gap-2 mb-6 flex-wrap">
         <button
-          onClick={() => setSelectedCategory(null)}
+          onClick={() => setSelectedPage(null)}
           className={`text-[12px] px-3 py-1.5 rounded-[2px] border cursor-pointer transition-colors ${
-            !selectedCategory ? "border-copper bg-copper/10 text-copper font-medium" : "border-rule text-ink/40 hover:border-copper/30"
+            !selectedPage ? "border-copper bg-copper/10 text-copper font-medium" : "border-rule text-ink/40 hover:border-copper/30"
           }`}
         >
           Alles ({images.length})
         </button>
-        {categories.map((cat) => (
+        {pages.map((page) => (
           <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
+            key={page}
+            onClick={() => setSelectedPage(page)}
             className={`text-[12px] px-3 py-1.5 rounded-[2px] border cursor-pointer transition-colors ${
-              selectedCategory === cat ? "border-copper bg-copper/10 text-copper font-medium" : "border-rule text-ink/40 hover:border-copper/30"
+              selectedPage === page ? "border-copper bg-copper/10 text-copper font-medium" : "border-rule text-ink/40 hover:border-copper/30"
             }`}
           >
-            {cat}
+            {PAGE_LABELS[page] || page} ({imagesByPage.get(page)?.length || 0})
           </button>
         ))}
       </div>
 
-      {images.length === 0 ? (
-        <EmptyState text="Geen afbeeldingen gevonden. Voer het migratiescript uit of upload nieuwe afbeeldingen." />
+      {filteredImages.length === 0 ? (
+        <EmptyState text="Geen afbeeldingen gevonden voor deze pagina." />
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {images.map((img) => (
+          {filteredImages.map((img) => (
             <ImageCard
               key={img._id}
               img={img}
