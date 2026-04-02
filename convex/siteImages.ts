@@ -159,7 +159,8 @@ export const saveImage = mutation({
     );
 
     if (existing) {
-      await ctx.storage.delete(existing.storageId);
+      // Delete old file — ignore if already missing from storage
+      try { await ctx.storage.delete(existing.storageId); } catch { /* old file already gone */ }
       await ctx.db.patch(existing._id, {
         storageId: args.storageId,
         fileName: args.fileName,
