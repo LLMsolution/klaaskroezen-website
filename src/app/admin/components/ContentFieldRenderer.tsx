@@ -2,6 +2,7 @@
 
 import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
+import type { Id } from "../../../../convex/_generated/dataModel";
 import type { FieldSchema } from "../../../../convex/siteSchemas";
 import { AdminImageUpload } from "./AdminImageUpload";
 
@@ -263,7 +264,7 @@ function ContentImageField({
     if (imageKey) {
       try {
         const category = pageSlug || "content";
-        await registerImage({ key: imageKey, storageId: storageId as any, fileName: `${fieldKey}.webp`, category, alt: label, width, height });
+        await registerImage({ key: imageKey, storageId: storageId as Id<"_storage">, fileName: `${fieldKey}.webp`, category, alt: label, width, height });
       } catch { /* non-critical — image still works via convex: ref */ }
     }
   }
