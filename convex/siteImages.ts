@@ -158,6 +158,8 @@ export const saveImage = mutation({
       args.lang ? i.lang === args.lang : !i.lang,
     );
 
+    const oldStorageId = existing?.storageId;
+
     if (existing) {
       // Delete old file — ignore if already missing from storage
       try { await ctx.storage.delete(existing.storageId); } catch { /* old file already gone */ }
@@ -169,13 +171,29 @@ export const saveImage = mutation({
         height: args.height,
         lang: args.lang,
       });
-      return existing._id;
+    } else {
+      await ctx.db.insert("siteImages", {
+        ...args,
+        createdAt: Date.now(),
+      });
     }
 
-    return await ctx.db.insert("siteImages", {
-      ...args,
-      createdAt: Date.now(),
-    });
+    // Also update any siteContent entries that reference the old storageId
+    if (oldStorageId) {
+      const oldRef = `convex:${oldStorageId}`;
+      const newRef = `convex:${args.storageId}`;
+      const contentEntries = await ctx.db.query("siteContent").collect();
+      for (const entry of contentEntries) {
+        if (entry.content.includes(oldRef)) {
+          await ctx.db.patch(entry._id, {
+            content: entry.content.split(oldRef).join(newRef),
+            updatedAt: Date.now(),
+          });
+        }
+      }
+    }
+
+    return existing?._id ?? args.storageId;
   },
 });
 
