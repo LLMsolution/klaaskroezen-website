@@ -105,6 +105,23 @@ export const listAll = query({
   },
 });
 
+/** Debug: check image URL resolution for first 5 images */
+export const debugImageUrls = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    const images = await ctx.db.query("siteImages").take(5);
+    return Promise.all(
+      images.map(async (img) => ({
+        key: img.key,
+        storageId: img.storageId,
+        url: await ctx.storage.getUrl(img.storageId),
+        hasUrl: !!(await ctx.storage.getUrl(img.storageId)),
+      })),
+    );
+  },
+});
+
 /** List unique categories */
 export const listCategories = query({
   args: {},

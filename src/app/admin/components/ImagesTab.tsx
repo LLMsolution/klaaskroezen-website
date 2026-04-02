@@ -131,6 +131,9 @@ function ImageCard({
       const res = await fetch(url, { method: "POST", headers: { "Content-Type": fileOrBlob.type || "image/webp" }, body: fileOrBlob });
       const { storageId } = await res.json();
       await saveImage({ key: img.key, storageId, fileName: img.key.split("/").pop() || "image.webp", category: img.category, alt: img.alt, width, height, lang });
+    } catch (err) {
+      console.error("Image upload failed:", err);
+      alert(`Upload mislukt: ${err instanceof Error ? err.message : "Onbekende fout"}`);
     } finally {
       setUploading(false);
     }
