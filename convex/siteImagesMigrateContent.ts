@@ -294,3 +294,34 @@ export const fixCategories = internalMutation({
     return { fixed };
   },
 });
+
+/** Rename an image key and update all siteContent references */
+export const renameImageKey = internalMutation({
+  args: { oldKey: v.string(), newKey: v.string(), newCategory: v.string() },
+  handler: async (ctx, { oldKey, newKey, newCategory }) => {
+    const img = await ctx.db
+      .query("siteImages")
+      .withIndex("by_key", (q) => q.eq("key", oldKey))
+      .first();
+    if (!img) throw new Error(`Image ${oldKey} niet gevonden`);
+
+    // Update siteImages record
+    await ctx.db.patch(img._id, { key: newKey, category: newCategory });
+
+    // Update siteContent references: convex:<storageId> stays the same,
+    // but if any content has the old key as a string value, update it
+    const entries = await ctx.db.query("siteContent").collect();
+    let updated = 0;
+    for (const entry of entries) {
+      if (entry.content.includes(oldKey)) {
+        await ctx.db.patch(entry._id, {
+          content: entry.content.split(oldKey).join(newKey),
+          updatedAt: Date.now(),
+        });
+        updated++;
+      }
+    }
+
+    return { renamed: true, contentUpdated: updated };
+  },
+});
