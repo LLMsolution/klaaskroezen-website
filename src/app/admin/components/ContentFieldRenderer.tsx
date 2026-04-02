@@ -1,5 +1,7 @@
 "use client";
 
+import { useMutation } from "convex/react";
+import { api } from "../../../../convex/_generated/api";
 import type { FieldSchema } from "../../../../convex/siteSchemas";
 import { AdminImageUpload } from "./AdminImageUpload";
 
@@ -9,6 +11,8 @@ type Props = {
   displayData?: Record<string, unknown>; // Resolved URLs for image previews
   onChange: (data: Record<string, unknown>) => void;
   prefix?: string;
+  pageSlug?: string;
+  sectionId?: string;
 };
 
 const labelClass =
@@ -16,7 +20,7 @@ const labelClass =
 const inputClass =
   "w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]";
 
-export function ContentFieldRenderer({ fields, data, displayData, onChange, prefix = "" }: Props) {
+export function ContentFieldRenderer({ fields, data, displayData, onChange, prefix = "", pageSlug, sectionId }: Props) {
   function updateField(key: string, value: unknown) {
     onChange({ ...data, [key]: value });
   }
@@ -52,6 +56,9 @@ export function ContentFieldRenderer({ fields, data, displayData, onChange, pref
               value={(value as string) ?? ""}
               resolvedUrl={displayValue}
               onChange={(v) => updateField(field.key, v)}
+              fieldKey={field.key}
+              pageSlug={pageSlug}
+              sectionId={sectionId}
             />
           );
         }
@@ -230,27 +237,47 @@ function ContentImageField({
   value,
   resolvedUrl,
   onChange,
+  fieldKey,
+  pageSlug,
+  sectionId,
 }: {
   label: string;
   value: string;
   resolvedUrl?: string;
   onChange: (v: string) => void;
+  fieldKey: string;
+  pageSlug?: string;
+  sectionId?: string;
 }) {
-  // Use resolved URL (from displayData) or static path
+  const registerImage = useMutation(api.siteImages.saveImage);
   const displayUrl = resolvedUrl || (value && !value.startsWith("convex:") ? value : undefined);
+
+  // Derive a siteImages key from the context (e.g. "over-ons/team/image")
+  const imageKey = pageSlug && sectionId
+    ? `${pageSlug}/${sectionId}/${fieldKey}`
+    : undefined;
+
+  async function handleUploaded(storageId: string, width?: number, height?: number) {
+    onChange(`convex:${storageId}`);
+    // Also register in siteImages so it appears in the Images tab
+    if (imageKey) {
+      try {
+        const category = pageSlug || "content";
+        await registerImage({ key: imageKey, storageId: storageId as any, fileName: `${fieldKey}.webp`, category, alt: label, width, height });
+      } catch { /* non-critical — image still works via convex: ref */ }
+    }
+  }
 
   return (
     <div>
       <label className={labelClass}>{label}</label>
       <AdminImageUpload
         currentUrl={displayUrl}
-        onUploaded={(storageId) => onChange(`convex:${storageId}`)}
+        onUploaded={handleUploaded}
         onRemoved={() => onChange("")}
         alt={label}
+        imageKey={imageKey}
       />
-      <p className="text-[10px] text-ink/25 mt-1">
-        Gebruik de Images tab voor dimensie-informatie en bijsnijden.
-      </p>
     </div>
   );
 }

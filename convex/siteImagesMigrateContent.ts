@@ -109,3 +109,79 @@ export const migrateContentImages = internalMutation({
     return { updated, skipped, notFound, replacements };
   },
 });
+
+/**
+ * Register all convex: image references from siteContent into siteImages.
+ * This makes content-uploaded images visible in the Images tab.
+ *
+ * Run: Dashboard → Functions → siteImagesMigrateContent:registerContentImages
+ */
+export const registerContentImages = internalMutation({
+  args: {},
+  handler: async (ctx): Promise<{ registered: number; skipped: number }> => {
+    const entries = await ctx.db.query("siteContent").collect();
+    const existingImages = await ctx.db.query("siteImages").collect();
+    const existingKeys = new Set(existingImages.map((i) => i.key));
+
+    let registered = 0;
+    let skipped = 0;
+
+    for (const entry of entries) {
+      // Find all convex: references
+      const matches = entry.content.match(/convex:([\w]+)/g);
+      if (!matches) continue;
+
+      // Parse the JSON to find field names for the storageIds
+      let parsed: Record<string, unknown>;
+      try { parsed = JSON.parse(entry.content); } catch { continue; }
+
+      for (const [fieldName, fieldValue] of Object.entries(parsed)) {
+        if (typeof fieldValue === "string" && fieldValue.startsWith("convex:")) {
+          const storageId = fieldValue.slice(7);
+          const key = `${entry.pageSlug}/${entry.sectionId}/${fieldName}`;
+
+          if (existingKeys.has(key)) { skipped++; continue; }
+
+          await ctx.db.insert("siteImages", {
+            key,
+            storageId: storageId as any,
+            fileName: `${fieldName}.webp`,
+            category: entry.pageSlug,
+            createdAt: Date.now(),
+          });
+          existingKeys.add(key);
+          registered++;
+        }
+
+        // Also handle arrays of objects with image fields
+        if (Array.isArray(fieldValue)) {
+          for (let i = 0; i < fieldValue.length; i++) {
+            const item = fieldValue[i];
+            if (typeof item === "object" && item !== null) {
+              for (const [subKey, subVal] of Object.entries(item as Record<string, unknown>)) {
+                if (typeof subVal === "string" && subVal.startsWith("convex:")) {
+                  const storageId = subVal.slice(7);
+                  const key = `${entry.pageSlug}/${entry.sectionId}/${fieldName}-${i}/${subKey}`;
+
+                  if (existingKeys.has(key)) { skipped++; continue; }
+
+                  await ctx.db.insert("siteImages", {
+                    key,
+                    storageId: storageId as any,
+                    fileName: `${subKey}.webp`,
+                    category: entry.pageSlug,
+                    createdAt: Date.now(),
+                  });
+                  existingKeys.add(key);
+                  registered++;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return { registered, skipped };
+  },
+});

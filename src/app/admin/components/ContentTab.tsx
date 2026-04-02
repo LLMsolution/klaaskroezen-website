@@ -205,6 +205,8 @@ function PageSections({ slug }: { slug: string }) {
                     data={editData as Record<string, unknown>}
                     displayData={(entry as { displayContent?: Record<string, unknown> }).displayContent}
                     onChange={setEditData}
+                    pageSlug={slug}
+                    sectionId={section.id}
                   />
                 )}
 
