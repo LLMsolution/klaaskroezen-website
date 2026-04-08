@@ -254,7 +254,8 @@ export function AdminImageUpload({
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           disabled={uploading}
-          className={`w-full border-2 border-dashed rounded-[2px] py-8 flex flex-col items-center gap-2 cursor-pointer transition-colors disabled:opacity-50 ${
+          style={{ maxWidth: previewMaxWidth }}
+          className={`w-full border-2 border-dashed rounded-[2px] ${isSmallImage ? "py-3" : "py-8"} flex flex-col items-center gap-2 cursor-pointer transition-colors disabled:opacity-50 ${
             dragOver ? "border-copper bg-copper/5" : "border-rule hover:border-copper/40"
           }`}
         >
