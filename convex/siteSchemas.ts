@@ -427,7 +427,6 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
       { key: "slides", type: "array", label: "Slides", itemFields: [
         { key: "image", type: "image-path", label: "Afbeelding" },
         { key: "alt", type: "text", label: "Alt tekst" },
-        { key: "objectPosition", type: "text", label: "Image positie (bv. center 25%)" },
         { key: "quote", type: "textarea", label: "Quote" },
         { key: "author", type: "text", label: "Auteur" },
         { key: "role", type: "text", label: "Rol / functie" },

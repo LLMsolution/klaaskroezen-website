@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Hero } from "@/components/sections/Hero";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 import { StatsBand } from "@/components/sections/StatsBand";
 import { LogoBar } from "@/components/sections/LogoBar";
 import { TrainingCards } from "@/components/sections/TrainingCards";
