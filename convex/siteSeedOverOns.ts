@@ -46,6 +46,22 @@ export function seedOverOnsContent(): PageSeed {
         { label: "Book", value: "#1 Bestseller" },
       ],
     }),
+    makeContent(SLUG, "hero", "hero-about", "de", {
+      label: "Über Klaas",
+      title: "Aufrichtig und entspannt",
+      titleAccent: "ist kein Slogan.",
+      imageAlt: "Klaas Kroezen",
+      bio: [
+        "Ich stand 25 Jahre an vorderster Front als Unternehmer und CEO. Ich weiß, wie es sich anfühlt, wenn Vertrieb sich wie ein aussichtsloser Kampf anfühlt. Und ich weiß, wie es tatsächlich funktioniert.",
+        "Nicht mit Tricks oder Skripten, sondern mit einem Ansatz, der zu Menschen passt. Nach dem Verkauf meines Unternehmens im Jahr 2022 konzentriere ich mich vollständig darauf, Teams zu mehr Umsatz mit weniger Stress zu führen.",
+      ],
+      stats: [
+        { label: "Erfahrung", value: "25+ Jahre" },
+        { label: "Länder", value: "21" },
+        { label: "Bewertung", value: "9,1" },
+        { label: "Buch", value: "#1 Bestseller" },
+      ],
+    }),
     // ── Journey ──
     makeContent(SLUG, "journey", "journey", "nl", {
       label: "Het pad",
@@ -67,6 +83,17 @@ export function seedOverOnsContent(): PageSeed {
         { period: "2022", title: "Company sold", text: "After selling WUA, I decided to use my experience to help others. Not as a consultant, but as a trainer." },
         { period: "2025", title: "Bestselling author", text: "Sales, Genuine and Relaxed became #1 at Managementboek. 2,500+ copies sold in the first months." },
         { period: "Now", title: "Trainer & speaker", text: "Fully focused on guiding executives, teams and professionals. Because everyone with customer contact makes the difference." },
+      ],
+    }),
+    makeContent(SLUG, "journey", "journey", "de", {
+      label: "Der Weg",
+      title: "Vom Unternehmer",
+      titleAccent: "zum Trainer.",
+      items: [
+        { period: "1997 – 2022", title: "Unternehmer & CEO", text: "25 Jahre internationales B2B-Geschäft. Dutzende Millionen Euro Umsatz in 21 Ländern. Verkauft an Google, Samsung, Microsoft, Bol und ING." },
+        { period: "2022", title: "Unternehmen verkauft", text: "Nach dem Verkauf von WUA beschloss ich, meine Erfahrung für andere einzusetzen. Nicht als Berater, sondern als Trainer." },
+        { period: "2025", title: "Bestsellerautor", text: "Sales, Aufrichtig und Entspannt wurde #1 bei Managementboek. Über 2.500 Exemplare in den ersten Monaten verkauft." },
+        { period: "Jetzt", title: "Trainer & Redner", text: "Voll und ganz darauf ausgerichtet, Geschäftsführungen, Teams und Fachkräfte zu begleiten. Weil jeder mit Kundenkontakt den Unterschied macht." },
       ],
     }),
     // ── Mission ──
@@ -94,6 +121,18 @@ export function seedOverOnsContent(): PageSeed {
       ctaSales: "Sales Excellence",
       ctaSuccess: "Customer Success",
     }),
+    makeContent(SLUG, "mission", "mission", "de", {
+      label: "Die Mission",
+      title: "Eine Sprache.",
+      titleAccent: "Ein Ansatz.",
+      imageAlt: "Klaas Kroezen gibt ein Training",
+      paragraphs: [
+        "Wenn der Vertrieb hinterherhinkt und die Kundenzufriedenheit sinkt, ist Zersplitterung fatal. Deshalb arbeite ich mit zwei Trainings für alle, die Kundenkontakt haben.",
+        "Verkaufen sollte sich nicht unangenehm anfühlen. Es sollte etwas sein, das Sie mit Freude und Stolz tun. Weil es hilft. Weil es richtig ist.",
+      ],
+      ctaSales: "Sales Excellence",
+      ctaSuccess: "Customer Success",
+    }),
     // ── Team ──
     makeContent(SLUG, "team", "team", "nl", {
       label: "Het team",
@@ -117,6 +156,17 @@ export function seedOverOnsContent(): PageSeed {
         { name: "Yvon Kruger", role: "Role to be added", image: "/images/about/yvon-kruger.png", description: "Description to be added." },
       ],
     }),
+    makeContent(SLUG, "team", "team", "de", {
+      label: "Das Team",
+      title: "Kleines Team.",
+      titleAccent: "Große Reichweite.",
+      members: [
+        { name: "Tim Lind", role: "Rechte Hand von Klaas", image: "/images/about/tim-lind.png", description: "Gemeinsam entwickeln wir die App und verbessern kontinuierlich die Trainings, Arbeitsbücher, Präsentationen und Videos." },
+        { name: "Joost Wammes", role: "Customer Success Manager", image: "/images/about/joost-wammes.png", description: "Suchte selbst ein Vertriebstraining und war so begeistert, dass er jetzt Teil des Teams ist." },
+        { name: "Sanne Bakker", role: "Kundenservice & Verwaltung", image: "/images/about/sanne-bakker.png", description: "Arbeitet seit über 20 Jahren mit Klaas zusammen. Kümmert sich um den Kundenservice und die Verwaltung." },
+        { name: "Yvon Kruger", role: "Rolle hinzufügen", image: "/images/about/yvon-kruger.png", description: "Beschreibung hinzufügen." },
+      ],
+    }),
     // ── Office ──
     makeContent(SLUG, "office", "office", "nl", {
       label: "Ons kantoor",
@@ -134,6 +184,14 @@ export function seedOverOnsContent(): PageSeed {
       description: "A characteristic monumental building in Castricum, on the edge of the North Holland Dune Reserve. The pleasant atmosphere and the dynamic of entrepreneurs around us make this the perfect place.",
       address: "Oude Parklaan 111, Castricum · Room 0.11",
     }),
+    makeContent(SLUG, "office", "office", "de", {
+      label: "Unser Büro",
+      title: "Das Alte",
+      titleLine2: "Verwaltungsgebäude.",
+      imageAlt: "Das Alte Verwaltungsgebäude in Castricum",
+      description: "Ein charakteristisches denkmalgeschütztes Gebäude in Castricum, am Rande des Nordholland-Dünenreservats. Die angenehme Atmosphäre und die Dynamik der Unternehmer um uns herum machen dies zum perfekten Ort.",
+      address: "Oude Parklaan 111, Castricum · Zimmer 0.11",
+    }),
     // ── CTA ──
     makeContent(SLUG, "cta", "cta", "nl", {
       title: "Klaar om het anders te doen?",
@@ -149,11 +207,18 @@ export function seedOverOnsContent(): PageSeed {
       href: "/contact",
       ctaLabel: "Get in touch",
     }),
+    makeContent(SLUG, "cta", "cta", "de", {
+      title: "Bereit, es anders zu machen?",
+      titleAccent: "Nehmen Sie Kontakt auf.",
+      description: "Gemeinsam ermitteln wir, wo Sie stehen, wo Chancen liegen und welcher Ansatz Ihnen oder Ihrem Team am meisten bringt.",
+      href: "/contact",
+      ctaLabel: "Kontakt aufnehmen",
+    }),
   ];
 
   return {
     slug: SLUG,
-    title: { nl: "Over Ons", en: "About Us" },
+    title: { nl: "Over Ons", en: "About Us", de: "Über Uns" },
     sections,
     content,
   };

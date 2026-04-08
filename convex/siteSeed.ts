@@ -18,7 +18,7 @@ type SectionDef = {
 type ContentEntry = {
   pageSlug: string;
   sectionId: string;
-  lang: "nl" | "en";
+  lang: "nl" | "en" | "de";
   schema: string;
   content: string;
   updatedAt: number;
@@ -26,7 +26,7 @@ type ContentEntry = {
 
 export type PageSeed = {
   slug: string;
-  title: { nl: string; en: string };
+  title: { nl: string; en: string; de?: string };
   sections: SectionDef[];
   content: ContentEntry[];
 };
@@ -77,6 +77,31 @@ export const seed = internalMutation({
       });
       for (const entry of page.content) await ctx.db.insert("siteContent", entry);
     }
+  },
+});
+
+/** Sync missing language entries for existing sections (adds DE where only NL/EN exist). */
+export const syncMissingLangs = internalMutation({
+  args: {},
+  handler: async (ctx): Promise<number> => {
+    const pages = getAllSeeds();
+    let added = 0;
+
+    for (const page of pages) {
+      for (const entry of page.content) {
+        // Check if this exact (page, section, lang) already exists
+        const existing = await ctx.db.query("siteContent")
+          .withIndex("by_page_section", (q) =>
+            q.eq("pageSlug", entry.pageSlug).eq("sectionId", entry.sectionId).eq("lang", entry.lang as "nl" | "en" | "de"),
+          )
+          .first();
+        if (!existing) {
+          await ctx.db.insert("siteContent", entry);
+          added++;
+        }
+      }
+    }
+    return added;
   },
 });
 
