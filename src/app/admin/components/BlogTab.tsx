@@ -221,6 +221,7 @@ export function BlogTab() {
                 currentUrl={imageUrl || undefined}
                 onUploaded={async (storageId) => {
                   setImageStorageId(storageId);
+                  setImageUrl(""); // clear legacy URL so updatePost won't restore it
                   if (editId) await saveImage({ postId: editId, storageId });
                 }}
                 onRemoved={editId ? async () => {
