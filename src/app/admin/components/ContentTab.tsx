@@ -72,8 +72,13 @@ function PageSections({ slug }: { slug: string }) {
   );
 
   function getEntry(sectionId: string, lang: Lang) {
-    return contentEntries?.find(
+    // Try requested lang first, fallback to NL if missing (for DE sections not yet seeded)
+    const direct = contentEntries?.find(
       (e) => e.sectionId === sectionId && e.lang === lang,
+    );
+    if (direct) return direct;
+    return contentEntries?.find(
+      (e) => e.sectionId === sectionId && e.lang === "nl",
     );
   }
 

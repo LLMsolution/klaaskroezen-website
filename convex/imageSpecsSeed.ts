@@ -116,6 +116,13 @@ const SPECS: SpecEntry[] = [
   // Blog list uses aspect-[16/10], detail uses aspect-[16/9] → use 16:9 as primary
   // ══════════════════════════════════════
   { imageKey: "blog/post-image", displayWidth: 1360, displayHeight: 765, aspectRatio: "16:9", context: "Blog post afbeelding (lijst + detail)", pageSlug: "nieuws" },
+
+  // ══════════════════════════════════════
+  // CROSS-LINK sections — 16:9 landscape (CrossLink component 590x332)
+  // ══════════════════════════════════════
+  { imageKey: "cross-link/customer-success", displayWidth: 1180, displayHeight: 664, aspectRatio: "16:9", context: "Cross-link naar Customer Success", pageSlug: "sales-excellence-training" },
+  { imageKey: "cross-link/sales-excellence", displayWidth: 1180, displayHeight: 664, aspectRatio: "16:9", context: "Cross-link naar Sales Excellence", pageSlug: "customer-success-training" },
+  { imageKey: "cross-link/boek", displayWidth: 1180, displayHeight: 664, aspectRatio: "16:9", context: "Cross-link naar boek", pageSlug: "boek" },
 ];
 
 /** Seed all image specs. Use force=true to overwrite existing specs. */

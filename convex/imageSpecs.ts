@@ -20,9 +20,10 @@ const CONTENT_KEY_TO_SPEC: Record<string, string> = {
   "contact/hero/image": "contact/hero-portrait-2",
   // Training pages
   "sales-excellence-training/hero/image": "training/visma-youserve-session.jpg",
-  "sales-excellence-training/cross-link/image": "hero/customer-success-group.jpg",
+  "sales-excellence-training/cross-link/image": "cross-link/customer-success",
   "customer-success-training/hero/image": "hero/customer-success-hero.jpeg",
-  "customer-success-training/cross-link/image": "hero/sales-excellence-group.jpeg",
+  "customer-success-training/cross-link/image": "cross-link/sales-excellence",
+  "boek/cross-link/image": "cross-link/boek",
 };
 
 /** Get the display spec for a single image key */
