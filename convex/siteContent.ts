@@ -3,6 +3,7 @@ import { query, mutation, action } from "./_generated/server";
 import { internal, api } from "./_generated/api";
 import { requireAdmin } from "./adminAuth";
 import { langValidator } from "./schema";
+import { SECTION_SCHEMAS } from "./siteSchemas";
 
 // ── Helpers ──
 
@@ -121,16 +122,29 @@ export const getPageContentAdmin = query({
       .withIndex("by_page", (q) => q.eq("pageSlug", slug))
       .collect();
 
+    // Look up the page to find section types
+    const page = await ctx.db
+      .query("sitePages")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    const sectionTypeById = new Map<string, string>();
+    if (page) {
+      for (const s of page.sections) sectionTypeById.set(s.id, s.type);
+    }
+
     const resolved = [];
     for (const entry of entries) {
       try {
         const raw = JSON.parse(entry.content);
         const display = await resolveConvexUrls(ctx, raw);
+        // Use LIVE schema from SECTION_SCHEMAS instead of stale stored schema
+        const sectionType = sectionTypeById.get(entry.sectionId);
+        const liveSchema = sectionType ? SECTION_SCHEMAS[sectionType] : undefined;
         resolved.push({
           ...entry,
           parsedContent: raw,       // Raw data with convex: refs (for saving)
           displayContent: display,  // Resolved URLs (for admin previews)
-          parsedSchema: JSON.parse(entry.schema),
+          parsedSchema: liveSchema ?? JSON.parse(entry.schema),
         });
       } catch {
         resolved.push({ ...entry, parsedContent: {}, displayContent: {}, parsedSchema: {} });

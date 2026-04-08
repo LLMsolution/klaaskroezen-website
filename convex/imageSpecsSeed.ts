@@ -54,9 +54,9 @@ const SPECS: SpecEntry[] = [
   // ══════════════════════════════════════
   // Hero — aspect-[3/4] mobile, desktop fills ~590x900 (min-h-[calc(100vh-96px)]) → ~2:3
   { imageKey: "about/klaas-over-mij.jpeg", displayWidth: 1180, displayHeight: 1770, aspectRatio: "2:3", context: "Hero portrait (full height desktop)", pageSlug: "over-ons" },
-  // Mission — aspect-[4/3] mobile, lg:min-h-[560px] in 50vw col → ~590x560 = ~1.05:1 near square
-  // Also used on contact — same container type but lg:min-h-[480px] → ~590x480 = ~1.23:1
-  { imageKey: "about/klaas-kroezen-portrait-2.jpeg", displayWidth: 1180, displayHeight: 1120, aspectRatio: "~1.05:1", context: "Missie sectie (over-ons) + contact hero", pageSlug: "over-ons", pageSlugs: ["over-ons", "contact"] },
+  // Mission (over-ons) — aspect-[4/3] mobile, lg:min-h-[560px] in 50vw col → near square
+  // Contact — aspect-[3/4] mobile, lg:min-h-[640px] in 50vw col → portrait 3:4
+  { imageKey: "about/klaas-kroezen-portrait-2.jpeg", displayWidth: 1180, displayHeight: 1580, aspectRatio: "3:4", context: "Missie + contact hero (portrait)", pageSlug: "over-ons", pageSlugs: ["over-ons", "contact"] },
   // Team members — aspect-square in 4-col grid (25vw desktop = ~295px)
   { imageKey: "about/tim-lind.png", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member portrait", pageSlug: "over-ons" },
   { imageKey: "about/joost-wammes.png", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member portrait", pageSlug: "over-ons" },
