@@ -11,21 +11,90 @@ interface RadarAxis {
 }
 
 interface RadarModelProps {
-  eyebrow?: string;
-  title?: string;
-  titleAccent?: string;
-  description?: string;
   axes?: RadarAxis[];
+  lang?: "nl" | "en" | "de";
 }
 
-const DEFAULT_AXES: RadarAxis[] = [
-  { label: "Oprecht", score: 8 },
-  { label: "Ontspannen", score: 6 },
-  { label: "Overtuigingen", score: 5 },
-  { label: "Vorm", score: 7 },
-  { label: "Inhoud", score: 7 },
-  { label: "Proces", score: 4 },
-];
+type RadarI18n = {
+  eyebrow: string;
+  title: string;
+  titleAccent: string;
+  description: string;
+  scoresLabel: string;
+  scoresText: string;
+  growLabel: string;
+  growText: string;
+  growSuffix: string;
+  planLabel: string;
+  planText: string;
+  axes: RadarAxis[];
+};
+
+const RADAR_I18N: Record<"nl" | "en" | "de", RadarI18n> = {
+  nl: {
+    eyebrow: "Customer Experience Model",
+    title: "Van onzeker",
+    titleAccent: "naar inzicht.",
+    description: "Vooraf weet je niet precies waar je staat. Na de training heb je een helder beeld\u00a0\u2014 met scores op zes gebieden en een persoonlijk actieplan.",
+    scoresLabel: "Jouw scores",
+    scoresText: "Inzicht in zes gebieden van klantcontact",
+    growLabel: "Groeigebied",
+    growText: "Focus op",
+    growSuffix: "\u00a0— daar zit de meeste winst",
+    planLabel: "Actieplan",
+    planText: "Concrete stappen die je direct kunt toepassen",
+    axes: [
+      { label: "Oprecht", score: 8 },
+      { label: "Ontspannen", score: 6 },
+      { label: "Overtuigingen", score: 5 },
+      { label: "Vorm", score: 7 },
+      { label: "Inhoud", score: 7 },
+      { label: "Proces", score: 4 },
+    ],
+  },
+  en: {
+    eyebrow: "Customer Experience Model",
+    title: "From uncertain",
+    titleAccent: "to insight.",
+    description: "Before the training you don't know exactly where you stand. Afterwards you have a clear picture\u00a0\u2014 with scores on six areas and a personal action plan.",
+    scoresLabel: "Your scores",
+    scoresText: "Insight into six areas of customer contact",
+    growLabel: "Growth area",
+    growText: "Focus on",
+    growSuffix: "\u00a0— that's where the biggest gain is",
+    planLabel: "Action plan",
+    planText: "Concrete steps you can apply immediately",
+    axes: [
+      { label: "Genuine", score: 8 },
+      { label: "Relaxed", score: 6 },
+      { label: "Beliefs", score: 5 },
+      { label: "Form", score: 7 },
+      { label: "Content", score: 7 },
+      { label: "Process", score: 4 },
+    ],
+  },
+  de: {
+    eyebrow: "Customer Experience Model",
+    title: "Von unsicher",
+    titleAccent: "zu Einsicht.",
+    description: "Vorher weißt du nicht genau, wo du stehst. Nach dem Training hast du ein klares Bild\u00a0\u2014 mit Scores in sechs Bereichen und einem persönlichen Aktionsplan.",
+    scoresLabel: "Deine Scores",
+    scoresText: "Einblick in sechs Bereiche des Kundenkontakts",
+    growLabel: "Wachstumsbereich",
+    growText: "Fokus auf",
+    growSuffix: "\u00a0— da liegt der größte Gewinn",
+    planLabel: "Aktionsplan",
+    planText: "Konkrete Schritte, die du sofort anwenden kannst",
+    axes: [
+      { label: "Ehrlich", score: 8 },
+      { label: "Entspannt", score: 6 },
+      { label: "Überzeugungen", score: 5 },
+      { label: "Form", score: 7 },
+      { label: "Inhalt", score: 7 },
+      { label: "Prozess", score: 4 },
+    ],
+  },
+};
 
 const CX = 250;
 const CY = 250;
@@ -132,7 +201,7 @@ function QuestionMarkSvg() {
   );
 }
 
-function RadarSvg({ axes }: { axes: RadarAxis[] }) {
+function RadarSvg({ axes, t }: { axes: RadarAxis[]; t: RadarI18n }) {
   const total = axes.length;
   const lowest = axes.reduce(
     (min, a, i) => (a.score < min.score ? { ...a, idx: i } : min),
@@ -163,26 +232,26 @@ function RadarSvg({ axes }: { axes: RadarAxis[] }) {
       <div className="grid grid-cols-3 gap-px bg-rule border-t border-rule">
         <div className="bg-paper p-4 sm:p-5">
           <span className="block text-[10px] font-medium tracking-[0.15em] uppercase text-copper mb-1.5">
-            Jouw scores
+            {t.scoresLabel}
           </span>
           <span className="block text-[12px] sm:text-[13px] text-ink/70 leading-[1.5]">
-            Inzicht in zes gebieden van klantcontact
+            {t.scoresText}
           </span>
         </div>
         <div className="bg-paper p-4 sm:p-5">
           <span className="block text-[10px] font-medium tracking-[0.15em] uppercase text-copper mb-1.5">
-            Groeigebied
+            {t.growLabel}
           </span>
           <span className="block text-[12px] sm:text-[13px] text-ink/70 leading-[1.5]">
-            Focus op <strong className="font-semibold text-ink">{lowest.label}</strong> — daar zit de meeste winst
+            {t.growText} <strong className="font-semibold text-ink">{lowest.label}</strong>{t.growSuffix}
           </span>
         </div>
         <div className="bg-paper p-4 sm:p-5">
           <span className="block text-[10px] font-medium tracking-[0.15em] uppercase text-copper mb-1.5">
-            Actieplan
+            {t.planLabel}
           </span>
           <span className="block text-[12px] sm:text-[13px] text-ink/70 leading-[1.5]">
-            Concrete stappen die je direct kunt toepassen
+            {t.planText}
           </span>
         </div>
       </div>
@@ -191,12 +260,12 @@ function RadarSvg({ axes }: { axes: RadarAxis[] }) {
 }
 
 export function RadarModel({
-  eyebrow = "Customer Experience Model",
-  title = "Van onzeker",
-  titleAccent = "naar inzicht.",
-  description = "Vooraf weet je niet precies waar je staat. Na de training heb je een helder beeld\u00a0\u2014 met scores op zes gebieden en een persoonlijk actieplan.",
-  axes = DEFAULT_AXES,
+  axes,
+  lang = "nl",
 }: RadarModelProps) {
+  const i18n = RADAR_I18N[lang];
+  const { eyebrow, title, titleAccent, description } = i18n;
+  const actualAxes = axes || i18n.axes;
   const [position, setPosition] = useState(50);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
@@ -256,10 +325,10 @@ export function RadarModel({
           {/* Labels */}
           <div className="flex justify-between mb-2 sm:mb-3 px-1">
             <span className="text-[10px] sm:text-[12px] font-medium tracking-[0.12em] sm:tracking-[0.15em] uppercase text-ink/50">
-              Voor de training
+              {lang === "en" ? "Before training" : lang === "de" ? "Vor dem Training" : "Voor de training"}
             </span>
             <span className="text-[10px] sm:text-[12px] font-medium tracking-[0.12em] sm:tracking-[0.15em] uppercase text-copper">
-              Na de training
+              {lang === "en" ? "After training" : lang === "de" ? "Nach dem Training" : "Na de training"}
             </span>
           </div>
 
@@ -275,7 +344,7 @@ export function RadarModel({
               className="absolute inset-0"
               style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
             >
-              <RadarSvg axes={axes} />
+              <RadarSvg axes={actualAxes} t={i18n} />
             </div>
 
             {/* Divider line + handle */}

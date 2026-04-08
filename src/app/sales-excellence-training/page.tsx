@@ -44,8 +44,7 @@ export default async function SalesExcellenceTrainingPage() {
 
   const hero = sectionOr(db, "hero", fallback.hero);
   const painPoints = sectionOr(db, "pain-points", fallback.painPoints);
-  const transformation = sectionOr(db, "transformation", { items: fallback.transformation }) as { items: Array<{ label: string; before: string; after: string }>; eyebrow?: string; title?: string; titleAccent?: string; beforeLabel?: string; afterLabel?: string };
-  const radar = sectionOr(db, "radar", {}) as { eyebrow?: string; title?: string; titleAccent?: string; description?: string };
+  const transformation = sectionOr(db, "transformation", { items: fallback.transformation });
   const audiences = sectionOr(db, "audiences", { items: fallback.audiences });
   const program = sectionOr(db, "program", fallback.program);
   const reviews = sectionOr(db, "reviews", { items: fallback.reviews });
@@ -76,14 +75,7 @@ export default async function SalesExcellenceTrainingPage() {
         points={painPoints.points}
       />
 
-      <TransformationSlider
-        items={transformation.items}
-        eyebrow={transformation.eyebrow}
-        title={transformation.title}
-        titleAccent={transformation.titleAccent}
-        beforeLabel={transformation.beforeLabel}
-        afterLabel={transformation.afterLabel}
-      />
+      <TransformationSlider items={transformation.items} lang={lang} />
 
       <ForWhom lang={lang} audiences={audiences.items} />
 
@@ -97,12 +89,7 @@ export default async function SalesExcellenceTrainingPage() {
 
       <LogoBar />
 
-      <RadarModel
-        eyebrow={radar.eyebrow}
-        title={radar.title}
-        titleAccent={radar.titleAccent}
-        description={radar.description}
-      />
+      <RadarModel lang={lang} />
 
       <TrainingReviews reviews={reviews.items} />
 

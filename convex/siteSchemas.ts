@@ -140,27 +140,11 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
     type: "transformation",
     label: "Transformatie",
     fields: [
-      { key: "eyebrow", type: "text", label: "Eyebrow" },
-      { key: "title", type: "text", label: "Titel" },
-      { key: "titleAccent", type: "text", label: "Titel accent" },
-      { key: "beforeLabel", type: "text", label: "Label voor (linkerkant)" },
-      { key: "afterLabel", type: "text", label: "Label na (rechterkant)" },
       { key: "items", type: "array", label: "Items", itemFields: [
         { key: "label", type: "text", label: "Label" },
         { key: "before", type: "text", label: "Voor" },
         { key: "after", type: "text", label: "Na" },
       ]},
-    ],
-  },
-
-  radar: {
-    type: "radar",
-    label: "Radar model (Van onzeker naar inzicht)",
-    fields: [
-      { key: "eyebrow", type: "text", label: "Eyebrow" },
-      { key: "title", type: "text", label: "Titel" },
-      { key: "titleAccent", type: "text", label: "Titel accent" },
-      { key: "description", type: "textarea", label: "Beschrijving" },
     ],
   },
 

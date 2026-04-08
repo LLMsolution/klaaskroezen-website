@@ -9,12 +9,11 @@ export function seedCstContent(): PageSeed {
     { id: "transformation", type: "transformation", active: true, sortOrder: 2 },
     { id: "audiences", type: "audiences", active: true, sortOrder: 3 },
     { id: "program", type: "program", active: true, sortOrder: 4 },
-    { id: "radar", type: "radar", active: true, sortOrder: 5 },
-    { id: "reviews", type: "reviews", active: true, sortOrder: 6 },
-    { id: "pricing", type: "pricing", active: true, sortOrder: 7 },
-    { id: "cross-link", type: "cross-link", active: true, sortOrder: 8 },
-    { id: "faq", type: "faq", active: true, sortOrder: 9 },
-    { id: "cta", type: "cta", active: true, sortOrder: 10 },
+    { id: "reviews", type: "reviews", active: true, sortOrder: 5 },
+    { id: "pricing", type: "pricing", active: true, sortOrder: 6 },
+    { id: "cross-link", type: "cross-link", active: true, sortOrder: 7 },
+    { id: "faq", type: "faq", active: true, sortOrder: 8 },
+    { id: "cta", type: "cta", active: true, sortOrder: 9 },
   ];
 
   const content = [
@@ -62,11 +61,6 @@ export function seedCstContent(): PageSeed {
     }),
     // ── Transformation ──
     makeContent(SLUG, "transformation", "transformation", "nl", {
-      eyebrow: "De transformatie",
-      title: "Klaar voor?",
-      titleAccent: "Schuif en ontdek het verschil.",
-      beforeLabel: "Voor de training",
-      afterLabel: "Na de training",
       items: [
         { label: "Retentie", before: "Klanten vertrekken zonder dat je weet waarom", after: "Je ziet signalen vroeg en handelt proactief" },
         { label: "Klantcontact", before: "Onbenut potentieel in bestaand klantcontact", after: "Elk gesprek draagt bij aan groei en retentie" },
@@ -77,11 +71,6 @@ export function seedCstContent(): PageSeed {
       ],
     }),
     makeContent(SLUG, "transformation", "transformation", "en", {
-      eyebrow: "The transformation",
-      title: "Ready?",
-      titleAccent: "Slide and discover the difference.",
-      beforeLabel: "Before training",
-      afterLabel: "After training",
       items: [
         { label: "Retention", before: "Customers leave without you knowing why", after: "You spot signals early and act proactively" },
         { label: "Customer contact", before: "Untapped potential in existing customer interactions", after: "Every conversation contributes to growth and retention" },
@@ -90,19 +79,6 @@ export function seedCstContent(): PageSeed {
         { label: "Value", before: "Difficulty discussing added value", after: "You discuss value in a natural, relaxed way" },
         { label: "Team", before: "Your team is engaged, but lacks the commercial skills", after: "Everyone knows how customer contact contributes to commercial success" },
       ],
-    }),
-    // ── Radar (Customer Experience Model) ──
-    makeContent(SLUG, "radar", "radar", "nl", {
-      eyebrow: "Customer Experience Model",
-      title: "Van onzeker",
-      titleAccent: "naar inzicht.",
-      description: "Vooraf weet je niet precies waar je staat. Na de training heb je een helder beeld — met scores op zes gebieden en een persoonlijk actieplan.",
-    }),
-    makeContent(SLUG, "radar", "radar", "en", {
-      eyebrow: "Customer Experience Model",
-      title: "From uncertain",
-      titleAccent: "to insight.",
-      description: "Before the training you don't know exactly where you stand. Afterwards you have a clear picture — with scores on six areas and a personal action plan.",
     }),
     // ── Audiences ──
     makeContent(SLUG, "audiences", "audiences", "nl", {

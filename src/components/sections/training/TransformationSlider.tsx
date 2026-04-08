@@ -12,13 +12,15 @@ interface TransformationItem {
 }
 
 interface TransformationSliderProps {
-  eyebrow?: string;
-  title?: string;
-  titleAccent?: string;
-  beforeLabel?: string;
-  afterLabel?: string;
   items: TransformationItem[];
+  lang?: "nl" | "en" | "de";
 }
+
+const TRANSLATIONS = {
+  nl: { eyebrow: "De transformatie", title: "Klaar voor?", titleAccent: "Schuif en ontdek het verschil.", beforeLabel: "Voor de training", afterLabel: "Na de training" },
+  en: { eyebrow: "The transformation", title: "Ready?", titleAccent: "Slide and discover the difference.", beforeLabel: "Before training", afterLabel: "After training" },
+  de: { eyebrow: "Die Transformation", title: "Bereit?", titleAccent: "Schieben und den Unterschied entdecken.", beforeLabel: "Vor dem Training", afterLabel: "Nach dem Training" },
+} as const;
 
 function ItemCard({
   label,
@@ -56,13 +58,10 @@ function ItemCard({
 }
 
 export function TransformationSlider({
-  eyebrow = "De transformatie",
-  title = "Klaar voor?",
-  titleAccent = "Schuif en ontdek het verschil.",
-  beforeLabel = "Voor de training",
-  afterLabel = "Na de training",
   items,
+  lang = "nl",
 }: TransformationSliderProps) {
+  const { eyebrow, title, titleAccent, beforeLabel, afterLabel } = TRANSLATIONS[lang];
   const [position, setPosition] = useState(50);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);

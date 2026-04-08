@@ -9,12 +9,11 @@ export function seedSetContent(): PageSeed {
     { id: "transformation", type: "transformation", active: true, sortOrder: 2 },
     { id: "audiences", type: "audiences", active: true, sortOrder: 3 },
     { id: "program", type: "program", active: true, sortOrder: 4 },
-    { id: "radar", type: "radar", active: true, sortOrder: 5 },
-    { id: "reviews", type: "reviews", active: true, sortOrder: 6 },
-    { id: "pricing", type: "pricing", active: true, sortOrder: 7 },
-    { id: "cross-link", type: "cross-link", active: true, sortOrder: 8 },
-    { id: "faq", type: "faq", active: true, sortOrder: 9 },
-    { id: "cta", type: "cta", active: true, sortOrder: 10 },
+    { id: "reviews", type: "reviews", active: true, sortOrder: 5 },
+    { id: "pricing", type: "pricing", active: true, sortOrder: 6 },
+    { id: "cross-link", type: "cross-link", active: true, sortOrder: 7 },
+    { id: "faq", type: "faq", active: true, sortOrder: 8 },
+    { id: "cta", type: "cta", active: true, sortOrder: 9 },
   ];
 
   const content = [
@@ -75,11 +74,6 @@ export function seedSetContent(): PageSeed {
     }),
     // ── Transformation ──
     makeContent(SLUG, "transformation", "transformation", "nl", {
-      eyebrow: "De transformatie",
-      title: "Klaar voor?",
-      titleAccent: "Schuif en ontdek het verschil.",
-      beforeLabel: "Voor de training",
-      afterLabel: "Na de training",
       items: [
         { label: "Targets", before: "Sales loopt achter op target — de druk neemt toe", after: "Omzet groeit structureel en voorspelbaar" },
         { label: "Gesprekken", before: "Klantgesprekken voelen als duwen in plaats van verbinden", after: "Gesprekken voelen als oprechte verbinding" },
@@ -90,11 +84,6 @@ export function seedSetContent(): PageSeed {
       ],
     }),
     makeContent(SLUG, "transformation", "transformation", "en", {
-      eyebrow: "The transformation",
-      title: "Ready?",
-      titleAccent: "Slide and discover the difference.",
-      beforeLabel: "Before training",
-      afterLabel: "After training",
       items: [
         { label: "Targets", before: "Sales is behind on target — the pressure keeps rising", after: "Revenue grows structurally and predictably" },
         { label: "Conversations", before: "Customer conversations feel like pushing instead of connecting", after: "Conversations feel like genuine connection" },
@@ -103,19 +92,6 @@ export function seedSetContent(): PageSeed {
         { label: "Customers", before: "Existing customers leave, new ones are hard to win", after: "Customers stay longer and actively recommend you" },
         { label: "Results", before: "Motivation is inconsistent — one month good, the next not", after: "Consistent results through a proven approach" },
       ],
-    }),
-    // ── Radar (Customer Experience Model) ──
-    makeContent(SLUG, "radar", "radar", "nl", {
-      eyebrow: "Customer Experience Model",
-      title: "Van onzeker",
-      titleAccent: "naar inzicht.",
-      description: "Vooraf weet je niet precies waar je staat. Na de training heb je een helder beeld — met scores op zes gebieden en een persoonlijk actieplan.",
-    }),
-    makeContent(SLUG, "radar", "radar", "en", {
-      eyebrow: "Customer Experience Model",
-      title: "From uncertain",
-      titleAccent: "to insight.",
-      description: "Before the training you don't know exactly where you stand. Afterwards you have a clear picture — with scores on six areas and a personal action plan.",
     }),
     // ── Audiences ──
     makeContent(SLUG, "audiences", "audiences", "nl", {
