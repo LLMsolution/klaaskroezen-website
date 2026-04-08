@@ -16,9 +16,11 @@ const PAGE_LABELS: Record<string, string> = {
   "customer-success-training": "Customer Success",
   spreker: "Spreker",
   boek: "Boek",
-  nieuws: "Nieuws",
   contact: "Contact",
 };
+
+// All known pages always shown, even if empty (user can upload later)
+const ALL_PAGES = Object.keys(PAGE_LABELS);
 
 export function ImagesTab() {
   const images = useQuery(api.siteImages.listAll, {});
@@ -32,30 +34,30 @@ export function ImagesTab() {
 
   const specsByKey = new Map((allSpecs ?? []).map((s) => [s.imageKey, s]));
 
-  // Group images by page (from specs), with "overig" for unassigned
+  // Group images by page — one image can belong to multiple pages via pageSlugs
   const imagesByPage = new Map<string, typeof images>();
-  const pages: string[] = [];
+  for (const page of ALL_PAGES) imagesByPage.set(page, []);
+  imagesByPage.set("overig", []);
 
   for (const img of images) {
     const spec = specsByKey.get(img.key);
-    const page = spec?.pageSlug || "overig";
-    if (!imagesByPage.has(page)) {
-      imagesByPage.set(page, []);
-      pages.push(page);
+    // Use pageSlugs array if available, otherwise fall back to pageSlug
+    const pageList = spec?.pageSlugs && spec.pageSlugs.length > 0
+      ? spec.pageSlugs
+      : spec?.pageSlug
+        ? [spec.pageSlug]
+        : ["overig"];
+
+    for (const page of pageList) {
+      if (!imagesByPage.has(page)) imagesByPage.set(page, []);
+      imagesByPage.get(page)!.push(img);
     }
-    imagesByPage.get(page)!.push(img);
   }
 
-  // Sort pages: known pages first (in order), then "overig" last
-  const pageOrder = Object.keys(PAGE_LABELS);
-  pages.sort((a, b) => {
-    const ai = pageOrder.indexOf(a);
-    const bi = pageOrder.indexOf(b);
-    if (ai === -1 && bi === -1) return a.localeCompare(b);
-    if (ai === -1) return 1;
-    if (bi === -1) return -1;
-    return ai - bi;
-  });
+  // Build page list in fixed order, only showing pages with images
+  const pages = [...ALL_PAGES, "overig"].filter(
+    (p) => (imagesByPage.get(p)?.length ?? 0) > 0,
+  );
 
   const filteredImages = selectedPage
     ? imagesByPage.get(selectedPage) || []

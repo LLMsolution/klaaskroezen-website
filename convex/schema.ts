@@ -1025,7 +1025,8 @@ export default defineSchema({
     displayHeight: v.number(),
     aspectRatio: v.string(), // "16:9", "4:3", "1:1"
     context: v.string(), // "TrainingHero — volledig scherm"
-    pageSlug: v.optional(v.string()),
+    pageSlug: v.optional(v.string()), // primary page (legacy)
+    pageSlugs: v.optional(v.array(v.string())), // all pages that use this image
     updatedAt: v.number(),
   })
     .index("by_key", ["imageKey"])

@@ -49,6 +49,7 @@ export const upsertSpec = mutation({
     aspectRatio: v.string(),
     context: v.string(),
     pageSlug: v.optional(v.string()),
+    pageSlugs: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
@@ -64,6 +65,7 @@ export const upsertSpec = mutation({
         aspectRatio: args.aspectRatio,
         context: args.context,
         pageSlug: args.pageSlug,
+        pageSlugs: args.pageSlugs,
         updatedAt: Date.now(),
       });
       return existing._id;

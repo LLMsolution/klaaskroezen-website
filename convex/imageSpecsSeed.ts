@@ -9,6 +9,7 @@ type SpecEntry = {
   aspectRatio: string;
   context: string;
   pageSlug?: string;
+  pageSlugs?: string[];
 };
 
 /**
@@ -53,8 +54,8 @@ const SPECS: SpecEntry[] = [
   // ══════════════════════════════════════
   // Hero — aspect-[3/4] mobile, full-height 50vw desktop
   { imageKey: "about/klaas-over-mij.jpeg", displayWidth: 590, displayHeight: 900, aspectRatio: "2:3", context: "Hero portrait (full height)", pageSlug: "over-ons" },
-  // Mission — aspect-[4/3] mobile, lg:min-h-[560px] in 50vw col
-  { imageKey: "about/klaas-kroezen-portrait-2.jpeg", displayWidth: 590, displayHeight: 560, aspectRatio: "~1:1", context: "Missie sectie portrait", pageSlug: "over-ons" },
+  // Mission — aspect-[4/3] mobile, lg:min-h-[560px] in 50vw col — also used on /contact
+  { imageKey: "about/klaas-kroezen-portrait-2.jpeg", displayWidth: 590, displayHeight: 560, aspectRatio: "~1:1", context: "Missie sectie portrait + contact hero", pageSlug: "over-ons", pageSlugs: ["over-ons", "contact"] },
   // Team members — aspect-square in 4-col grid
   { imageKey: "about/tim-lind.png", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member", pageSlug: "over-ons" },
   { imageKey: "about/joost-wammes.png", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member", pageSlug: "over-ons" },
@@ -105,14 +106,8 @@ const SPECS: SpecEntry[] = [
     };
   }),
 
-  // ══════════════════════════════════════
-  // CONTACT (only uses about/klaas-kroezen-portrait-2.jpeg, shared with over-ons)
-  // ══════════════════════════════════════
-
-  // ══════════════════════════════════════
-  // NIEUWS (blog) — aspect-[16/9] hero, aspect-[16/10] cards
-  // ══════════════════════════════════════
-  { imageKey: "training/chris-laarman-thumb.jpg", displayWidth: 960, displayHeight: 540, aspectRatio: "16:9", context: "Video thumbnail", pageSlug: "nieuws" },
+  // NOTE: Contact page shares about/klaas-kroezen-portrait-2.jpeg with over-ons (see pageSlugs)
+  // NOTE: Blog/nieuws images are managed via the Blog tab (blogPosts table), not siteImages
 ];
 
 /** Seed all image specs. Use force=true to overwrite existing specs. */
