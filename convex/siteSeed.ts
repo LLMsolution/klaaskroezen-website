@@ -36,7 +36,7 @@ export function makeContent(
   pageSlug: string,
   sectionId: string,
   type: string,
-  lang: "nl" | "en",
+  lang: "nl" | "en" | "de",
   data: Record<string, unknown>,
 ): ContentEntry {
   const schema = SECTION_SCHEMAS[type];
