@@ -34,7 +34,7 @@ export default async function ContactPage() {
       {/* Hero — photo + heading */}
       <section className="border-b border-rule">
         <div className="grid grid-cols-1 lg:grid-cols-2">
-          <div className="relative aspect-[4/5] lg:aspect-auto lg:min-h-[520px] overflow-hidden bg-warm">
+          <div className="relative aspect-[4/5] overflow-hidden bg-warm">
             <Image
               src={hero.image || imgUrl(img, "about/klaas-kroezen-portrait-2.jpeg")}
               alt={hero.imageAlt || s.imageAlt}

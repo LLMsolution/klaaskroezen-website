@@ -81,6 +81,7 @@ export function AdminImageUpload({
   const [preview, setPreview] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [cropFile, setCropFile] = useState<File | null>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const uploadBlob = useCallback(async (blob: Blob, width?: number, height?: number) => {
@@ -218,6 +219,13 @@ export function AdminImageUpload({
           <div className="flex gap-2 mt-2">
             <button
               type="button"
+              onClick={() => setShowPreviewModal(true)}
+              className="text-[11px] text-copper hover:text-copper-light cursor-pointer"
+            >
+              Preview
+            </button>
+            <button
+              type="button"
               onClick={() => fileRef.current?.click()}
               className="text-[11px] text-copper hover:text-copper-light cursor-pointer"
             >
@@ -272,6 +280,52 @@ export function AdminImageUpload({
           onCrop={handleCropComplete}
           onCancel={() => setCropFile(null)}
         />
+      )}
+      {/* Preview modal — shows image at actual display ratio */}
+      {showPreviewModal && displayUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70"
+          onClick={() => setShowPreviewModal(false)}
+        >
+          <div
+            className="bg-paper border border-rule rounded-[2px] max-w-[900px] w-full mx-4 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-3 border-b border-rule">
+              <div>
+                <p className="text-[13px] font-medium text-ink">Preview</p>
+                {spec && (
+                  <p className="text-[11px] text-ink/40 mt-0.5">
+                    {spec.displayWidth}x{spec.displayHeight} · {spec.aspectRatio} · {spec.context}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={() => setShowPreviewModal(false)}
+                className="text-[20px] text-ink/40 hover:text-ink cursor-pointer leading-none px-2"
+              >
+                &times;
+              </button>
+            </div>
+            <div className="p-5 flex justify-center bg-warm/20">
+              {spec ? (
+                <div
+                  className="relative w-full overflow-hidden bg-warm/30 border border-rule rounded-[2px]"
+                  style={{
+                    maxWidth: `${Math.min(spec.displayWidth, 800)}px`,
+                    aspectRatio: `${spec.displayWidth} / ${spec.displayHeight}`,
+                  }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={displayUrl} alt={alt} className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={displayUrl} alt={alt} className="max-h-[70vh] max-w-full object-contain" />
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
