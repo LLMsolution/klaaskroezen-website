@@ -8,10 +8,30 @@ import { requireAdmin } from "./adminAuth";
 export const getSpecForKey = query({
   args: { imageKey: v.string() },
   handler: async (ctx, { imageKey }) => {
-    return await ctx.db
+    // Direct lookup
+    const direct = await ctx.db
       .query("imageSpecs")
       .withIndex("by_key", (q) => q.eq("imageKey", imageKey))
       .first();
+    if (direct) return direct;
+
+    // Fallback: derive from siteImages lookup (key might be a storageId-derived key)
+    const siteImg = await ctx.db
+      .query("siteImages")
+      .withIndex("by_key", (q) => q.eq("key", imageKey))
+      .first();
+    if (!siteImg) return null;
+
+    // Try to find spec by width/height match
+    if (siteImg.width && siteImg.height) {
+      const allSpecs = await ctx.db.query("imageSpecs").collect();
+      const match = allSpecs.find(
+        (s) => s.displayWidth === siteImg.width && s.displayHeight === siteImg.height,
+      );
+      if (match) return match;
+    }
+
+    return null;
   },
 });
 

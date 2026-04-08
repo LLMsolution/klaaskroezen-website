@@ -325,3 +325,68 @@ export const renameImageKey = internalMutation({
     return { renamed: true, contentUpdated: updated };
   },
 });
+
+/**
+ * Populate empty image fields in existing siteContent with convex: refs
+ * derived from the siteImages table. This fills in missing images for the
+ * new image-path fields added to hero-about, mission, office, content-block, hero-book.
+ *
+ * Run: Dashboard → Functions → siteImagesMigrateContent:populateMissingImages
+ */
+export const populateMissingImages = internalMutation({
+  args: {},
+  handler: async (ctx): Promise<{ updated: number; skipped: number }> => {
+    // Map: pageSlug → sectionId → siteImages key to inject
+    const IMAGE_MAP: Record<string, Record<string, string>> = {
+      "over-ons": {
+        hero: "about/klaas-over-mij.jpeg",
+        mission: "about/klaas-kroezen-portrait-2.jpeg",
+        office: "about/kantoor-administratie.jpg",
+      },
+      spreker: {
+        "content-block": "spreker/klaas-flipchart.jpeg",
+      },
+      boek: {
+        hero: "book/sales-oprecht-ontspannen-cover.png",
+      },
+    };
+
+    const siteImages = await ctx.db.query("siteImages").collect();
+    const keyToStorageId = new Map<string, string>();
+    for (const img of siteImages) {
+      if (!img.lang) keyToStorageId.set(img.key, img.storageId);
+    }
+
+    let updated = 0;
+    let skipped = 0;
+
+    const entries = await ctx.db.query("siteContent").collect();
+    for (const entry of entries) {
+      const pageMap = IMAGE_MAP[entry.pageSlug];
+      if (!pageMap) { skipped++; continue; }
+      const imgKey = pageMap[entry.sectionId];
+      if (!imgKey) { skipped++; continue; }
+
+      const storageId = keyToStorageId.get(imgKey);
+      if (!storageId) { skipped++; continue; }
+
+      let parsed: Record<string, unknown>;
+      try { parsed = JSON.parse(entry.content); } catch { skipped++; continue; }
+
+      // Only inject if image field is empty/missing
+      if (parsed.image && typeof parsed.image === "string" && parsed.image.length > 0) {
+        skipped++;
+        continue;
+      }
+
+      parsed.image = `convex:${storageId}`;
+      await ctx.db.patch(entry._id, {
+        content: JSON.stringify(parsed),
+        updatedAt: Date.now(),
+      });
+      updated++;
+    }
+
+    return { updated, skipped };
+  },
+});

@@ -195,16 +195,24 @@ export function AdminImageUpload({
     );
   }
 
+  // Calculate preview container style based on spec (or default landscape)
+  const previewAspect = spec && spec.displayWidth && spec.displayHeight
+    ? `${spec.displayWidth} / ${spec.displayHeight}`
+    : "4 / 3";
+
   return (
     <div>
       {displayUrl ? (
         <div className="relative group">
-          <div className="border border-rule rounded-[2px] overflow-hidden bg-warm/30">
+          <div
+            className="border border-rule rounded-[2px] overflow-hidden bg-warm/30 max-w-[320px]"
+            style={{ aspectRatio: previewAspect }}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={displayUrl}
               alt={alt}
-              className="object-contain w-full h-[140px]"
+              className="w-full h-full object-cover"
             />
           </div>
           <div className="flex gap-2 mt-2">

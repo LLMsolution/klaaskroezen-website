@@ -8,6 +8,7 @@ import { JsonLd, contactPageJsonLd } from "@/components/seo/JsonLd";
 import { t } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n/server";
 import { loadSiteImages, imgUrl } from "@/lib/site-images";
+import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLocale();
@@ -24,6 +25,8 @@ export default async function ContactPage() {
   const img = await loadSiteImages([
     "about/klaas-kroezen-portrait-2.jpeg",
   ]);
+  const db = await loadPageContent("contact", lang);
+  const hero = sectionOr(db, "hero", { image: "", imageAlt: s.imageAlt }) as { image?: string; imageAlt?: string };
 
   return (
     <>
@@ -33,8 +36,8 @@ export default async function ContactPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2">
           <div className="relative aspect-[4/3] lg:aspect-auto lg:min-h-[480px] overflow-hidden bg-warm">
             <Image
-              src={imgUrl(img, "about/klaas-kroezen-portrait-2.jpeg")}
-              alt={s.imageAlt}
+              src={hero.image || imgUrl(img, "about/klaas-kroezen-portrait-2.jpeg")}
+              alt={hero.imageAlt || s.imageAlt}
               fill
               className="object-cover object-top"
               sizes="(max-width: 1024px) 100vw, 50vw"
