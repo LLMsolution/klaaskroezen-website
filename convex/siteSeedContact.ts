@@ -31,11 +31,22 @@ export function seedContactContent(): PageSeed {
       ],
       stats: [],
     }),
+    makeContent(SLUG, "hero", "hero-about", "de", {
+      label: "Kontakt",
+      title: "Nehmen wir",
+      titleAccent: "Kontakt auf.",
+      image: "/images/about/klaas-kroezen-portrait-2.jpeg",
+      imageAlt: "Klaas Kroezen",
+      bio: [
+        { value: "Fordern Sie weitere Informationen an, vereinbaren Sie ein Kennenlerngespräch oder stellen Sie Ihre Frage über das untenstehende Formular." },
+      ],
+      stats: [],
+    }),
   ];
 
   return {
     slug: SLUG,
-    title: { nl: "Contact", en: "Contact" },
+    title: { nl: "Contact", en: "Contact", de: "Kontakt" },
     sections,
     content,
   };

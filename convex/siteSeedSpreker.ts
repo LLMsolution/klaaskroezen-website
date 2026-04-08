@@ -195,11 +195,97 @@ export function seedSprekerContent(): PageSeed {
       href: "/contact",
       ctaLabel: "Get in touch",
     }),
+    // ── DE content ──
+    makeContent(SLUG, "hero", "hero", "de", {
+      eyebrow: "Redner & Keynote",
+      titleLine1: "Inspirieren Sie",
+      titleLine2: "Ihr Team.",
+      description: "Eine Inspirationssitzung, in der ich Teams erleben lasse, wie man mit weniger Anspannung mehr Kunden in Fans verwandelt. Keine Theorie, sondern Energie und Einsichten, die haften bleiben.",
+      image: "/images/spreker/klaas-hero.jpeg",
+      imageAlt: "Klaas Kroezen als Redner auf der Bühne",
+      imagePosition: "center 25%",
+      glassItems: [
+        { label: "Keynotes & Workshops", text: "Von 30 Minuten Inspiration bis zu einem ganztägigen Workshop. Maßgeschneidert für Ihr Event oder Ihren Teamtag." },
+        { label: "25+ Jahre Erfahrung", text: "International B2B bei Google, Samsung, Microsoft, ING und Vodafone. Eigenes Unternehmen 2022 verkauft." },
+        { label: "Bewährte Wirkung", text: "Teams gehen mit Energie, Einsichten und einem konkreten Ansatz nach Hause, den sie sofort anwenden können." },
+      ],
+    }),
+    makeContent(SLUG, "audiences", "audiences", "de", {
+      items: ["Vertriebsteams", "Kick-offs", "Teamtage", "Konferenzen", "Management-Events", "Kunden-Events"],
+    }),
+    makeContent(SLUG, "content-block", "content-block", "de", {
+      eyebrow: "Über die Sitzung",
+      title: "Vertrieb scheitert oft an Leistungsdruck.",
+      titleAccent: "Es geht auch anders.",
+      imageAlt: "Klaas Kroezen leitet einen Workshop am Flipchart",
+      paragraphs: [
+        "Durch Ziele, Zahlen und Erwartungen wird Verkaufen verkrampft. Menschen werden angespannt, zweifeln, verlieren sich selbst — und das Ergebnis sinkt. Das kostet Energie, Frustration, Vertrauen und Geld.",
+        "Mit 25 Jahren Erfahrung im Vertrieb und Kundenerlebnis, vom Scale-up bis zum Boardroom, helfe ich Teams, aus aufrichtiger Verbindung zu wachsen. Nicht aus Tricks.",
+        "Ich stand selbst jahrelang an vorderster Front als CEO und Eigentümer einer internationalen Marktforschungsagentur. Ich weiß, wie es sich anfühlt, wenn Vertrieb wie ein aussichtsloser Kampf wirkt. Und ich weiß, wie es tatsächlich funktioniert.",
+      ],
+    }),
+    makeContent(SLUG, "benefits-grid", "benefits-grid", "de", {
+      items: [
+        { icon: "✓", text: "Energie und Inspiration, die Sie in Ihre Arbeit mitnehmen" },
+        { icon: "✓", text: "Klare Einsichten für nachhaltiges kommerzielles Wachstum" },
+        { icon: "✓", text: "Geschichten und Übungen, die Menschen in Bewegung setzen" },
+        { icon: "✓", text: "Keine Tricks. Keine Skripte. Aufrichtiger und entspannter Vertrieb." },
+      ],
+    }),
+    makeContent(SLUG, "videos", "videos", "de", {
+      eyebrow: "Auf der Bühne",
+      title: "Sehen Sie Ausschnitte.",
+      titleAccent: "Aufrichtig und entspannt in Aktion.",
+      items: [
+        { title: "Rede bei der Buchvorstellung", thumbnail: "/images/spreker/video-thumb-speech.jpg", embedUrl: "https://www.youtube.com/embed/F6io8l_VYww", duration: "3:35" },
+        { title: "Vertriebs- und kundenorientierte Denkweise in Ihrem Team", thumbnail: "/images/spreker/video-thumb-mindset.jpg", embedUrl: "https://www.youtube.com/embed/placeholder-mindset", duration: "1:46" },
+      ],
+    }),
+    makeContent(SLUG, "logo-bar", "logo-bar", "de", { label: "Unter anderem gearbeitet mit" }),
+    makeContent(SLUG, "coaching", "coaching", "de", {
+      sectionEyebrow: "Coaching & Begleitung",
+      sectionTitle1: "Persönlich oder",
+      sectionTitle2: "als Team.",
+      individual: {
+        label: "Individuell",
+        title: "1-zu-1 Coaching",
+        description: "Persönliche Begleitung für Vertriebsprofis und Führungskräfte, die wachsen wollen. In Ihrem Tempo, auf Ihre Herausforderungen zugeschnitten.",
+        features: ["Maßgeschneidertes individuelles Programm", "Persönliches Sparring & Feedback", "Fokus auf Ihre spezifischen Herausforderungen", "Flexible Terminplanung"],
+        price: "Auf Anfrage",
+        cta: "Kontakt aufnehmen →",
+      },
+      team: {
+        label: "Teams",
+        title: "Team-Coaching",
+        description: "Begleiten Sie Ihr Team zu einer gemeinsamen kommerziellen Denkweise. Von Bewusstsein bis Implementierung — gemeinsam wachsen in Kundenorientierung.",
+        features: ["Gemeinsamer Kick-off vor Ort", "Teamorientierte Übungen & Fälle", "Begleitung während der Implementierung", "Messbare Ergebnisse pro Teilnehmer"],
+        price: "Auf Anfrage",
+        cta: "Gespräch planen →",
+      },
+    }),
+    makeContent(SLUG, "faq", "faq", "de", {
+      title: "Praktische Infos.",
+      titleAccent: "Für Organisatoren.",
+      items: [
+        { question: "Wie lange dauert eine Keynote oder ein Workshop?", answer: "Eine Keynote dauert 30 bis 60 Minuten. Ein Workshop kann einen halben oder ganzen Tag umfassen. Alles kann je nach Programm und Zielsetzung maßgeschneidert werden." },
+        { question: "Wo hält Klaas seine Sitzungen?", answer: "Überall in den Niederlanden und Belgien, an Ihrem Standort. International ist auch möglich — Klaas hat Erfahrung in 21 Ländern und hält Sitzungen auf Niederländisch und Englisch." },
+        { question: "Was kostet eine Keynote oder ein Workshop?", answer: "Die Investition hängt von der Dauer, dem Standort und der Anzahl der Teilnehmer ab. Nehmen Sie Kontakt auf für ein unverbindliches maßgeschneidertes Angebot." },
+        { question: "Für welches Publikum ist Klaas geeignet?", answer: "Vertriebsteams, Management, Kundenservice, Kick-offs, Konferenzen und Kunden-Events. Von 10 bis 500 Teilnehmern. Die Botschaft ist immer: aufrichtig und entspannt kommerziell wachsen." },
+        { question: "Kann die Sitzung mit Coaching kombiniert werden?", answer: "Ja, eine Keynote oder ein Workshop kann mit 1-zu-1 Coaching oder Teambegleitung erweitert werden. So bleibt die Wirkung nicht auf den Tag selbst beschränkt." },
+      ],
+    }),
+    makeContent(SLUG, "cta", "cta", "de", {
+      title: "Buchen Sie Klaas.",
+      titleAccent: "Für Ihr Event.",
+      description: "Eine inspirierende Sitzung, die Teams in Bewegung setzt. Nehmen Sie Kontakt auf, um die Möglichkeiten zu besprechen.",
+      href: "/contact",
+      ctaLabel: "Kontakt aufnehmen",
+    }),
   ];
 
   return {
     slug: SLUG,
-    title: { nl: "Spreker — Klaas Kroezen", en: "Speaker — Klaas Kroezen" },
+    title: { nl: "Spreker — Klaas Kroezen", en: "Speaker — Klaas Kroezen", de: "Redner — Klaas Kroezen" },
     sections,
     content,
   };

@@ -217,11 +217,107 @@ export function seedCstContent(): PageSeed {
       description: "Higher customer satisfaction, more retention and customers who become ambassadors. Without sales pressure.",
       href: "#pricing",
     }),
+    // ── DE content ──
+    makeContent(SLUG, "hero", "hero", "de", {
+      eyebrow: "Customer Success Training",
+      titleLine1: "Vom Kunden",
+      titleLine2: "zum Fan.",
+      description: "Sie haben keine Vertriebsrolle — aber Sie bestimmen, ob ein Kunde bleibt, wächst und andere empfiehlt. Das ist kommerzielles Gold.",
+      image: "/images/hero/customer-success-group.jpg",
+      imageAlt: "Teilnehmer des Customer Success Trainings",
+      imagePosition: "center center",
+      glassItems: [
+        { label: "Kein Vertriebstraining", text: "Speziell für Fachkräfte im Kundenkontakt, Service und Delivery. Keine Verkaufstechniken, sondern Verbindungsfähigkeiten." },
+        { label: "Sofort anwendbar", text: "Praktische Tools und Frameworks, die Sie ab morgen in jedem Kundengespräch einsetzen können." },
+        { label: "Ergebnisgarantie", text: "10% bessere Kundenzufriedenheit oder Geld zurück. Gemessen über das Customer Experience Model." },
+      ],
+    }),
+    makeContent(SLUG, "pain-points", "pain-points", "de", {
+      eyebrow: "Sie machen keinen Vertrieb. Aber Sie sind kommerziell entscheidend.",
+      title: "Sie erkennen das.",
+      titleAccent: "Und Sie wollen es ändern.",
+      points: ["Kunden verlassen Sie, ohne dass Sie wissen warum", "Ungenutztes Potenzial im bestehenden Kundenkontakt", "Keine Struktur in Nachverfolgung und Beziehungsmanagement", "Ständiges Feuerlöschen statt proaktive Arbeit", "Schwierigkeiten, Mehrwert zu besprechen", "Ihr Team ist engagiert, aber es fehlt an kommerziellen Fähigkeiten"],
+    }),
+    makeContent(SLUG, "transformation", "transformation", "de", {
+      items: [
+        { label: "Bindung", before: "Kunden verlassen Sie, ohne dass Sie wissen warum", after: "Sie erkennen Signale früh und handeln proaktiv" },
+        { label: "Kundenkontakt", before: "Ungenutztes Potenzial im bestehenden Kundenkontakt", after: "Jedes Gespräch trägt zu Wachstum und Bindung bei" },
+        { label: "Prozess", before: "Keine Struktur in Nachverfolgung und Beziehungsmanagement", after: "Ein klarer Prozess vom Onboarding bis zum Botschafter" },
+        { label: "Arbeitsweise", before: "Ständiges Feuerlöschen statt proaktive Arbeit", after: "Ruhe und Überblick — Sie arbeiten vorwärts, nicht rückwärts" },
+        { label: "Wert", before: "Schwierigkeiten, Mehrwert zu besprechen", after: "Sie besprechen Wert auf natürliche, entspannte Weise" },
+        { label: "Team", before: "Ihr Team ist engagiert, aber es fehlt an kommerziellen Fähigkeiten", after: "Jeder weiß, wie Kundenkontakt zum kommerziellen Erfolg beiträgt" },
+      ],
+    }),
+    makeContent(SLUG, "audiences", "audiences", "de", {
+      items: ["Customer Success Manager", "Support-Teams", "Berater", "Account-Teams", "Delivery & Service", "Projektmanager"],
+    }),
+    makeContent(SLUG, "program", "program", "de", {
+      price: "€ 2.250",
+      modules: [
+        { number: "01", title: "Ihre Rolle im kommerziellen Ganzen", description: "Verstehen Sie, wie Ihr Kundenkontakt direkten Einfluss auf Umsatz, Bindung und Empfehlungen hat. Sie sind kein Verkäufer — aber unverzichtbar." },
+        { number: "02", title: "Aufrichtige Kundenfokussierung", description: "Lernen Sie, über die Oberfläche hinaus zuzuhören. Verstehen Sie, was Ihr Kunde wirklich braucht, und bauen Sie Beziehungen auf, die über das Projekt hinausgehen." },
+        { number: "03", title: "Signale erkennen", description: "Kunden geben kontinuierlich Signale — über Zufriedenheit, Chancen und Risiken. Lernen Sie, sie zu erkennen und entspannt darauf zu reagieren." },
+        { number: "04", title: "Schwierige Gespräche entspannt führen", description: "Preiserhöhungen, Erwartungsmanagement, Enttäuschung — lernen Sie, schwierige Themen zu besprechen, ohne die Beziehung zu beschädigen." },
+        { number: "05", title: "Chancen erkennen ohne zu 'verkaufen'", description: "Erkennen Sie natürliche Momente, um Mehrwert zu bieten. Keine Upsell-Tricks, sondern aufrichtige Vorschläge, die Ihrem Kunden weiterhelfen." },
+        { number: "06", title: "Vom Kunden zum Botschafter", description: "Zufriedene Kunden sind gut. Botschafter sind besser. Lernen Sie, Kundenkontakt in einen Wachstumsmotor für Ihre Organisation zu verwandeln." },
+      ],
+    }),
+    makeContent(SLUG, "reviews", "reviews", "de", {
+      items: [
+        { text: "Sofortige Ergebnisse. Klaas macht klar, dass jeder mit Kundenkontakt für den kommerziellen Erfolg entscheidend ist — und gibt Ihnen die Tools, das umzusetzen.", name: "Simon Kornblum", role: "Direktor Visma YouServe", avatar: "/images/reviews/simon-kornblum.jpg" },
+        { text: "Echter Vertrieb beginnt bei dem, wer Sie sind. Denkweise, Ruhe und aufrichtige Absicht führen zur Verbindung. Ein Muss für alle, die Kunden in Fans verwandeln wollen.", name: "Michael Pilarczyk", role: "Gründer MasterMind Academy", avatar: "/images/reviews/michael-pilarczyk.jpeg" },
+        { text: "Dieses Buch handelt überhaupt nicht von Vertrieb. Es handelt von Verhalten. Davon, wie Sie aufrichtige Verbindung herstellen.", name: "Roderick Göttgens", role: "Gründer Behavior Boost" },
+      ],
+    }),
+    makeContent(SLUG, "pricing", "pricing", "de", {
+      guarantee: "10% bessere Kundenzufriedenheit oder Geld zurück — gemessen über das Customer Experience Model.",
+      individual: {
+        tiers: [
+          { label: "Selbststudium", title: "Online", price: "€ 2.250", priceNote: "Zzgl. MwSt.", description: "Flexibel und im eigenen Tempo. Starten Sie sofort mit dem vollständigen Online-Training.", features: ["6 Module Online-Training", "Digitales Arbeitsbuch mit Aufgaben", "1 Jahr Zugang", "Inklusive Bestseller-Buch", "Zertifikat nach Abschluss"], cta: "Jetzt starten", href: "/checkout/cst-online" },
+          { label: "Am beliebtesten", title: "Training + Coaching", price: "€ 3.750", priceNote: "Zzgl. MwSt.", description: "Alles aus Online plus persönliche Begleitung von Kick-off bis Abschluss.", features: ["Alles aus Online", "Physisches Arbeitsbuch mit Aufgaben", "Persönliche Kick-off-Sitzung", "Präsentation mit Feedback von Klaas", "Maßgeschneiderter Aktionsplan"], cta: "Training kaufen", href: "/checkout/cst-coaching", featured: true },
+        ],
+      },
+      team: {
+        tiers: [
+          { label: "Kleine Teams", title: "Team-Training", price: "€ 2.250", priceNote: "Pro Teilnehmer · Zzgl. MwSt. · Ab 3 Personen", description: "Dasselbe Training, aber gemeinsam mit Ihrem Team. Inklusive gemeinsamem Kick-off und teamorientierten Übungen.", features: ["Alles aus Training + Coaching", "Physisches Arbeitsbuch pro Teilnehmer", "Gemeinsamer Kick-off vor Ort", "Gruppenpräsentationen mit Live-Feedback", "Zertifikat pro Teilnehmer"], cta: "Kontakt aufnehmen", href: "/contact", featured: true },
+          { label: "Maßgeschneidert", title: "Enterprise", price: "Auf Anfrage", description: "Für größere Organisationen. Vollständig maßgeschneidert, inklusive Team-Implementierung und persönlichem Coaching.", features: ["Alles aus Team-Training", "Vor Ort oder hybrid", "Vollständige Team-Implementierung", "Maßgeschneidert für Ihre Organisation", "Persönliches Coaching pro Teilnehmer", "Management-Berichterstattung"], cta: "Gespräch planen", href: "/contact" },
+        ],
+      },
+    }),
+    makeContent(SLUG, "cross-link", "cross-link", "de", {
+      eyebrow: "Auch interessant",
+      title: "Sales Excellence Training.",
+      titleAccent: "Mehr Umsatz, weniger Stress.",
+      description: "Für Verkäufer und Vertriebsteams, die wissen, dass mehr Potenzial vorhanden ist. Lernen Sie, mit Aufrichtigkeit und Gelassenheit strukturell besser zu verkaufen.",
+      image: "/images/hero/sales-excellence-group.jpeg",
+      imageAlt: "Teilnehmer des Sales Excellence Trainings mit Zertifikaten",
+      href: "/sales-excellence-training",
+      ctaLabel: "Training ansehen",
+      dark: "true",
+    }),
+    makeContent(SLUG, "faq", "faq", "de", {
+      title: "Noch Fragen?",
+      titleAccent: "Wir helfen gerne.",
+      items: [
+        { question: "Brauche ich einen Vertriebshintergrund?", answer: "Nein, ganz im Gegenteil. Dieses Training ist speziell für Menschen ohne Vertriebsrolle konzipiert, die aber Kundenkontakt haben: Customer Success Manager, Service-Desks, Accountmanager und Berater." },
+        { question: "Wie lange dauert das Training?", answer: "Das Online-Training besteht aus 6 Modulen, die Sie im eigenen Tempo durchgehen. Im Durchschnitt sind Sie 6 bis 8 Wochen beschäftigt. Die Variante mit Coaching umfasst zusätzlich persönliche Begleitung." },
+        { question: "Was, wenn es für mich nicht funktioniert?", answer: "Wir bieten eine 10%-Ergebnisgarantie. Wenn Sie nach Abschluss des vollständigen Trainings keine Verbesserung von mindestens 10% in der Kundenzufriedenheit oder Bindung erleben, erhalten Sie Ihr Geld zurück." },
+        { question: "Kann ich das Training auch für mein Team kaufen?", answer: "Ja, wir bieten eine maßgeschneiderte Inhouse-Variante an. Mit teamorientierten Übungen, Kundenfällen aus Ihrer eigenen Praxis und Begleitung während der Implementierung. Nehmen Sie Kontakt auf für ein Angebot." },
+        { question: "Erhalte ich nach dem Kauf sofort Zugang?", answer: "Ja, Sie erhalten unmittelbar nach Zahlung eine E-Mail mit Ihren Login-Daten. Sie können sofort mit dem ersten Modul beginnen." },
+        { question: "Was ist der Unterschied zum Sales Excellence Training?", answer: "Sales Excellence konzentriert sich auf die Gewinnung neuer Kunden. Customer Success geht um die Bindung und das Wachstum bestehender Kunden. Zusammen bilden sie eine Methode für kommerzielles Wachstum." },
+      ],
+    }),
+    makeContent(SLUG, "cta", "cta", "de", {
+      title: "Starten Sie heute.",
+      titleAccent: "Aufrichtig & entspannt.",
+      description: "Höhere Kundenzufriedenheit, mehr Bindung und Kunden, die Botschafter werden. Ohne Verkaufsdruck.",
+      href: "#pricing",
+    }),
   ];
 
   return {
     slug: SLUG,
-    title: { nl: "Customer Success Training", en: "Customer Success Training" },
+    title: { nl: "Customer Success Training", en: "Customer Success Training", de: "Customer Success Training" },
     sections,
     content,
   };

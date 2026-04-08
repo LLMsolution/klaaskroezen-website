@@ -228,11 +228,112 @@ export function seedSetContent(): PageSeed {
       description: "More revenue, less stress. No tricks, no pressure. Discover an approach that fits you — and keeps working.",
       href: "#pricing",
     }),
+    // ── DE content ──
+    makeContent(SLUG, "hero", "hero", "de", {
+      eyebrow: "Sales Excellence Training",
+      titleLine1: "Mehr Umsatz.",
+      titleLine2: "Weniger Stress.",
+      description: "Für Teams und Fachkräfte, die wissen, dass mehr Potenzial vorhanden ist. Keine Tricks, sondern ein bewährter Ansatz, der zu Ihnen passt.",
+      image: "/images/training/visma-youserve-session.jpg",
+      imageAlt: "Klaas Kroezen gibt das Sales Excellence Training an eine Gruppe von Fachkräften",
+      imagePosition: "center 25%",
+      glassItems: [
+        { label: "Durchschnittliche Bewertung", text: "9,1 — basierend auf Hunderten von Teilnehmern aus der Geschäftswelt." },
+        { label: "25+ Jahre Erfahrung", text: "International B2B bei Google, Samsung, Microsoft, ING und Vodafone. Unternehmen 2022 verkauft." },
+        { label: "Ergebnisgarantie", text: "10% besser im Vertrieb oder Geld zurück. Gemessen über das Customer Experience Model." },
+      ],
+    }),
+    makeContent(SLUG, "pain-points", "pain-points", "de", {
+      title: "Sie erkennen das.",
+      titleAccent: "Und Sie wollen es ändern.",
+      points: [
+        "Der Vertrieb hinkt dem Ziel hinterher — und der Druck steigt",
+        "Kundengespräche fühlen sich wie Drücken statt Verbinden an",
+        "Bestandskunden bleiben nicht, neue sind schwer zu gewinnen",
+        "Ihr Team arbeitet hart, aber ohne Struktur oder Energie",
+        "Rabatte geben ist zum Standard geworden, um Deals abzuschließen",
+        "Die Motivation ist schwankend — einen Monat gut, den nächsten nicht",
+      ],
+    }),
+    makeContent(SLUG, "transformation", "transformation", "de", {
+      items: [
+        { label: "Ziele", before: "Der Vertrieb hinkt dem Ziel hinterher — der Druck steigt", after: "Der Umsatz wächst strukturell und vorhersehbar" },
+        { label: "Gespräche", before: "Kundengespräche fühlen sich wie Drücken statt Verbinden an", after: "Gespräche fühlen sich wie aufrichtige Verbindung an" },
+        { label: "Deals", before: "Rabatte geben ist der Standard, um Deals abzuschließen", after: "Kunden wählen Sie auf Basis des Wertes" },
+        { label: "Team", before: "Ihr Team arbeitet hart, aber ohne Struktur oder Energie", after: "Energie und Stolz im Team — jeder weiß, was funktioniert" },
+        { label: "Kunden", before: "Bestandskunden bleiben nicht, neue sind schwer zu gewinnen", after: "Kunden bleiben länger und empfehlen Sie aktiv weiter" },
+        { label: "Ergebnis", before: "Die Motivation ist schwankend — einen Monat gut, den nächsten nicht", after: "Konsistente Ergebnisse durch einen bewährten Ansatz" },
+      ],
+    }),
+    makeContent(SLUG, "audiences", "audiences", "de", {
+      items: ["Accountmanager", "Vertriebsteams", "Unternehmer", "Direktoren", "Junior-Verkäufer", "Senior-Verkäufer"],
+    }),
+    makeContent(SLUG, "program", "program", "de", {
+      price: "€ 2.250",
+      modules: [
+        { number: "01", title: "Mindset & Identität", description: "Entdecken Sie, wie Überzeugungen Ihr Verkaufsergebnis bestimmen. Arbeiten Sie an der Denkweise für nachhaltigen Erfolg — ohne Maske, ohne Druck." },
+        { number: "02", title: "Aufrichtige Verbindung", description: "Lernen Sie, wie Sie vom ersten Moment an Vertrauen aufbauen. Nicht mit Skripten, sondern durch echtes Zuhören." },
+        { number: "03", title: "Die Kundenfrage hinter der Frage", description: "Kunden sagen selten sofort, was sie wirklich brauchen. Lernen Sie, das echte Bedürfnis ans Licht zu bringen — respektvoll und zielsicher." },
+        { number: "04", title: "Entspanntes Präsentieren & Pitchen", description: "Präsentieren Sie Ihr Angebot aus Ruhe und Überzeugung. Keine Verkaufsgespräche, sondern eine Geschichte, die resoniert und haften bleibt." },
+        { number: "05", title: "Einwände & Verhandlung", description: "Einwände sind keine Ablehnung — sie sind eine Einladung. Lernen Sie, entspannt damit umzugehen und bessere Deals ohne Rabatte abzuschließen." },
+        { number: "06", title: "Kunden die Fans werden", description: "Einen Deal abzuschließen ist der Anfang, nicht das Ende. Bauen Sie Beziehungen auf, die zu Wiederholungskäufen und Markenbotschaftern führen." },
+      ],
+    }),
+    makeContent(SLUG, "reviews", "reviews", "de", {
+      items: [
+        { text: "Sofortige Ergebnisse. Klaas hat unser Vertriebsteam grundlegend verändert — nicht mit Tricks, sondern mit einem Ansatz, der wirklich funktioniert und haften bleibt.", name: "Simon Kornblum", role: "Direktor Visma YouServe", avatar: "/images/reviews/simon-kornblum.jpg" },
+        { text: "Von 10 Leads wurden 1 bis 2 Kunden. Jetzt sind es 7 bis 8. Nicht durch stärkeren Druck, sondern durch aufrichtiges Interesse.", name: "Max de Weijer", role: "Unternehmer" },
+        { text: "Klaas zeigt, dass Verkaufen nicht um Tricks geht, sondern um echte Verbindungen. Ein Ansatz, der funktioniert — auch wenn Sie sich nicht als Verkäufer sehen.", name: "Mark Tigchelaar", role: "Psychologe · Focus AN/AUS", avatar: "/images/reviews/mark-tigchelaar.jpeg" },
+      ],
+    }),
+    makeContent(SLUG, "pricing", "pricing", "de", {
+      guarantee: "10% besser im Vertrieb oder Geld zurück — gemessen über das Customer Experience Model.",
+      individual: {
+        tiers: [
+          { label: "Selbststudium", title: "Online", price: "€ 2.250", priceNote: "Zzgl. MwSt.", description: "Flexibel und im eigenen Tempo. Starten Sie sofort mit dem vollständigen Online-Training.", features: ["6 Module Online-Training", "Digitales Arbeitsbuch mit Aufgaben", "1 Jahr Zugang", "Inklusive Bestseller-Buch", "Zertifikat nach Abschluss"], cta: "Jetzt starten", href: "/checkout/set-online" },
+          { label: "Am beliebtesten", title: "Training + Coaching", price: "€ 3.750", priceNote: "Zzgl. MwSt.", description: "Alles aus Online plus persönliche Begleitung von Kick-off bis Abschluss.", features: ["Alles aus Online", "Physisches Arbeitsbuch mit Aufgaben", "Persönliche Kick-off-Sitzung", "Präsentation mit Feedback von Klaas", "Maßgeschneiderter Aktionsplan"], cta: "Training kaufen", href: "/checkout/set-coaching", featured: true },
+        ],
+      },
+      team: {
+        tiers: [
+          { label: "Kleine Teams", title: "Team-Training", price: "€ 2.250", priceNote: "Pro Teilnehmer · Zzgl. MwSt. · Ab 3 Personen", description: "Dasselbe Training, aber gemeinsam mit Ihrem Team. Inklusive gemeinsamem Kick-off und teamorientierten Übungen.", features: ["Alles aus Training + Coaching", "Physisches Arbeitsbuch pro Teilnehmer", "Gemeinsamer Kick-off vor Ort", "Gruppenpräsentationen mit Live-Feedback", "Zertifikat pro Teilnehmer"], cta: "Kontakt aufnehmen", href: "/contact", featured: true },
+          { label: "Maßgeschneidert", title: "Enterprise", price: "Auf Anfrage", description: "Für größere Organisationen. Vollständig maßgeschneidert, inklusive Team-Implementierung und persönlichem Coaching.", features: ["Alles aus Team-Training", "Vor Ort oder hybrid", "Vollständige Team-Implementierung", "Maßgeschneidert für Ihre Organisation", "Persönliches Coaching pro Teilnehmer", "Management-Berichterstattung"], cta: "Gespräch planen", href: "/contact" },
+        ],
+      },
+    }),
+    makeContent(SLUG, "cross-link", "cross-link", "de", {
+      eyebrow: "Auch interessant",
+      title: "Customer Success Training.",
+      titleAccent: "Vom Kunden zum Fan.",
+      description: "Keine Vertriebsrolle, aber kommerziell entscheidend. Lernen Sie, wie Kundeninteraktionen zu Wachstum, Kundenbindung und Empfehlungen führen.",
+      image: "/images/hero/customer-success-group.jpg",
+      imageAlt: "Teilnehmer des Customer Success Trainings",
+      href: "/customer-success-training",
+      ctaLabel: "Training ansehen",
+    }),
+    makeContent(SLUG, "faq", "faq", "de", {
+      title: "Noch Fragen?",
+      titleAccent: "Wir helfen gerne.",
+      items: [
+        { question: "Für wen ist dieses Training gedacht?", answer: "Für alle mit einer kommerziellen Rolle: Vertriebsprofis, Accountmanager, Business Developer und Vertriebsmanager. Ob Sie 2 oder 20 Jahre Erfahrung haben — die Methode passt sich Ihrem Niveau an." },
+        { question: "Wie lange dauert das Training?", answer: "Das Online-Training besteht aus 6 Modulen, die Sie im eigenen Tempo durchgehen. Im Durchschnitt sind Sie 6 bis 8 Wochen beschäftigt. Die Variante mit Coaching umfasst zusätzlich persönliche Begleitung." },
+        { question: "Was, wenn es für mich nicht funktioniert?", answer: "Wir bieten eine 10%-Ergebnisgarantie. Wenn Sie nach Abschluss des vollständigen Trainings keine Verbesserung von mindestens 10% erleben, erhalten Sie Ihr Geld zurück. Kein Kleingedrucktes." },
+        { question: "Kann ich das Training auch für mein Team kaufen?", answer: "Ja, wir bieten eine maßgeschneiderte Inhouse-Variante an. Mit Gruppenübungen, teamorientierten Fällen und Begleitung vor Ort. Nehmen Sie Kontakt auf für ein Angebot." },
+        { question: "Erhalte ich nach dem Kauf sofort Zugang?", answer: "Ja, Sie erhalten unmittelbar nach Zahlung eine E-Mail mit Ihren Login-Daten. Sie können sofort mit dem ersten Modul beginnen." },
+        { question: "Was macht dieses Training anders als andere Vertriebstrainings?", answer: "Keine Skripte, keine Tricks, kein NLP. Wir arbeiten aus aufrichtiger Verbindung und Gelassenheit. Das Ergebnis: mehr Umsatz, der sich auch richtig anfühlt. Basierend auf 25+ Jahren Praxiserfahrung." },
+      ],
+    }),
+    makeContent(SLUG, "cta", "cta", "de", {
+      title: "Starten Sie heute.",
+      titleAccent: "Aufrichtig & entspannt.",
+      description: "Mehr Umsatz, weniger Stress. Keine Tricks, kein Druck. Entdecken Sie einen Ansatz, der zu Ihnen passt — und der weiterhin funktioniert.",
+      href: "#pricing",
+    }),
   ];
 
   return {
     slug: SLUG,
-    title: { nl: "Sales Excellence Training", en: "Sales Excellence Training" },
+    title: { nl: "Sales Excellence Training", en: "Sales Excellence Training", de: "Sales Excellence Training" },
     sections,
     content,
   };
