@@ -186,7 +186,7 @@ function PageSections({ slug }: { slug: string }) {
             {/* Expanded content editor */}
             {isExpanded && entry && editData && (
               <div className="border-t border-rule px-4 py-5 bg-warm/10">
-                {/* Lang toggle */}
+                {/* Lang toggle + translate button */}
                 <div className="flex items-center gap-2 mb-5">
                   {(["nl", "en", "de"] as const).map((lang) => (
                     <button
@@ -201,6 +201,22 @@ function PageSections({ slug }: { slug: string }) {
                       {lang.toUpperCase()}
                     </button>
                   ))}
+                  {activeLang !== "nl" && (
+                    <button
+                      onClick={() => {
+                        const nlEntry = contentEntries?.find(
+                          (e) => e.sectionId === section.id && e.lang === "nl",
+                        );
+                        if (nlEntry?.parsedContent) {
+                          setEditData({ ...(nlEntry.parsedContent as Record<string, unknown>) });
+                        }
+                      }}
+                      className="text-[11px] font-medium px-3 py-1.5 rounded-[2px] cursor-pointer bg-copper/10 text-copper hover:bg-copper/20 transition-colors ml-auto"
+                      title="Kopieer NL content om als basis voor vertaling te gebruiken"
+                    >
+                      ← Kopieer NL
+                    </button>
+                  )}
                 </div>
 
                 {/* Form fields */}
