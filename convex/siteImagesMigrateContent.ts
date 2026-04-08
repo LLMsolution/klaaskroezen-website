@@ -390,3 +390,53 @@ export const populateMissingImages = internalMutation({
     return { updated, skipped };
   },
 });
+
+/**
+ * Force-populate image fields in siteContent for specific page/section combos.
+ * Uses static /images/ paths as safe default (they always work via loadSiteImages fallback).
+ * Run: Dashboard → Functions → siteImagesMigrateContent:forceImageFields
+ */
+export const forceImageFields = internalMutation({
+  args: {},
+  handler: async (ctx): Promise<{ updated: number }> => {
+    const IMAGE_MAP: Record<string, Record<string, string>> = {
+      "over-ons": {
+        hero: "/images/about/klaas-over-mij.jpeg",
+        mission: "/images/about/klaas-kroezen-portrait-2.jpeg",
+        office: "/images/about/kantoor-administratie.jpg",
+      },
+      spreker: {
+        "content-block": "/images/spreker/klaas-flipchart.jpeg",
+      },
+      boek: {
+        hero: "/images/book/sales-oprecht-ontspannen-cover.png",
+      },
+      contact: {
+        hero: "/images/about/klaas-kroezen-portrait-2.jpeg",
+      },
+    };
+
+    let updated = 0;
+    const entries = await ctx.db.query("siteContent").collect();
+
+    for (const entry of entries) {
+      const pageMap = IMAGE_MAP[entry.pageSlug];
+      if (!pageMap) continue;
+      const imgPath = pageMap[entry.sectionId];
+      if (!imgPath) continue;
+
+      let parsed: Record<string, unknown>;
+      try { parsed = JSON.parse(entry.content); } catch { continue; }
+
+      // Force-set the image field (always overwrite to ensure it's there)
+      parsed.image = imgPath;
+      await ctx.db.patch(entry._id, {
+        content: JSON.stringify(parsed),
+        updatedAt: Date.now(),
+      });
+      updated++;
+    }
+
+    return { updated };
+  },
+});

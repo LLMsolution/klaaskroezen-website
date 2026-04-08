@@ -4,6 +4,19 @@ import { requireAdmin } from "./adminAuth";
 
 // ── Public queries ──
 
+/** Map of content section keys to their matching imageSpecs key */
+const CONTENT_KEY_TO_SPEC: Record<string, string> = {
+  "over-ons/hero/image": "about/klaas-over-mij.jpeg",
+  "over-ons/mission/image": "about/klaas-kroezen-portrait-2.jpeg",
+  "over-ons/office/image": "about/kantoor-administratie.jpg",
+  "spreker/content-block/image": "spreker/klaas-flipchart.jpeg",
+  "spreker/hero/image": "spreker/klaas-hero.jpeg",
+  "boek/hero/image": "book/sales-oprecht-ontspannen-cover.png",
+  "contact/hero/image": "about/klaas-kroezen-portrait-2.jpeg",
+  "sales-excellence-training/hero/image": "training/visma-youserve-session.jpg",
+  "customer-success-training/hero/image": "hero/customer-success-hero.jpeg",
+};
+
 /** Get the display spec for a single image key */
 export const getSpecForKey = query({
   args: { imageKey: v.string() },
@@ -15,15 +28,22 @@ export const getSpecForKey = query({
       .first();
     if (direct) return direct;
 
-    // Fallback: derive from siteImages lookup (key might be a storageId-derived key)
+    // Content key mapping: look up the real spec via the mapping
+    const mappedKey = CONTENT_KEY_TO_SPEC[imageKey];
+    if (mappedKey) {
+      const mapped = await ctx.db
+        .query("imageSpecs")
+        .withIndex("by_key", (q) => q.eq("imageKey", mappedKey))
+        .first();
+      if (mapped) return mapped;
+    }
+
+    // Fallback: derive from siteImages width/height
     const siteImg = await ctx.db
       .query("siteImages")
       .withIndex("by_key", (q) => q.eq("key", imageKey))
       .first();
-    if (!siteImg) return null;
-
-    // Try to find spec by width/height match
-    if (siteImg.width && siteImg.height) {
+    if (siteImg && siteImg.width && siteImg.height) {
       const allSpecs = await ctx.db.query("imageSpecs").collect();
       const match = allSpecs.find(
         (s) => s.displayWidth === siteImg.width && s.displayHeight === siteImg.height,
