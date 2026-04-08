@@ -72,7 +72,7 @@ export default async function SprekerPage() {
         eyebrow={contentBlock.eyebrow}
         title={contentBlock.title}
         titleAccent={contentBlock.titleAccent}
-        image={imgUrl(img, "spreker/klaas-flipchart.jpeg")}
+        image={(contentBlock as { image?: string }).image || imgUrl(img, "spreker/klaas-flipchart.jpeg")}
         imageAlt={contentBlock.imageAlt}
         objectPosition="center top"
         imagePosition="right"

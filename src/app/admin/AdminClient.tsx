@@ -25,7 +25,6 @@ import { CrmContactsTab } from "./components/crm/CrmContactsTab";
 import { CrmReportsTab } from "./components/crm/CrmReportsTab";
 import { WorkflowsTab } from "./components/WorkflowsTab";
 import { LayoutEditorTab } from "./components/LayoutEditorTab";
-import { ImagesTab } from "./components/ImagesTab";
 import { PopupTab } from "./components/PopupTab";
 import { AdSpendTab } from "./components/AdSpendTab";
 
@@ -40,7 +39,6 @@ const TAB_LABELS: Record<AdminTab, string> = {
   experiments: "Experimenten",
   content: "Pagina's",
   blog: "Blog / Nieuws",
-  images: "Afbeeldingen",
   popup: "Popup",
   "layout-editor": "Layout Editor",
   "email-templates": "E-mail templates",
@@ -141,7 +139,6 @@ export function AdminClient() {
           {activeTab === "experiments" && <ExperimentsTab />}
           {activeTab === "content" && <ContentTab />}
           {activeTab === "blog" && <BlogTab />}
-          {activeTab === "images" && <ImagesTab />}
           {activeTab === "popup" && <PopupTab />}
           {activeTab === "layout-editor" && <LayoutEditorTab />}
           {activeTab === "email-templates" && <EmailTemplatesTab />}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useMutation } from "convex/react";
+import { useState } from "react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import type { FieldSchema } from "../../../../convex/siteSchemas";
@@ -252,15 +253,21 @@ function ContentImageField({
 }) {
   const registerImage = useMutation(api.siteImages.saveImage);
   const displayUrl = resolvedUrl || (value && !value.startsWith("convex:") ? value : undefined);
+  const [showPreview, setShowPreview] = useState(false);
 
   // Derive a siteImages key from the context (e.g. "over-ons/team/image")
   const imageKey = pageSlug && sectionId
     ? `${pageSlug}/${sectionId}/${fieldKey}`
     : undefined;
 
+  // Look up spec for this image (used for preview ratio)
+  const spec = useQuery(
+    api.imageSpecs.getSpecForKey,
+    imageKey ? { imageKey } : "skip",
+  );
+
   async function handleUploaded(storageId: string, width?: number, height?: number) {
     onChange(`convex:${storageId}`);
-    // Also register in siteImages so it appears in the Images tab
     if (imageKey) {
       try {
         const category = pageSlug || "content";
@@ -279,6 +286,79 @@ function ContentImageField({
         alt={label}
         imageKey={imageKey}
       />
+      {displayUrl && (
+        <button
+          type="button"
+          onClick={() => setShowPreview(true)}
+          className="text-[10px] text-copper hover:text-copper-light cursor-pointer mt-1"
+        >
+          Bekijk preview op ware grootte
+        </button>
+      )}
+      {showPreview && displayUrl && (
+        <ContentImagePreviewModal
+          url={displayUrl}
+          alt={label}
+          imageKey={imageKey}
+          spec={spec ?? undefined}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Modal showing image at its actual display aspect ratio */
+function ContentImagePreviewModal({ url, alt, imageKey, spec, onClose }: {
+  url: string;
+  alt: string;
+  imageKey?: string;
+  spec?: { displayWidth: number; displayHeight: number; aspectRatio: string; context: string };
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70"
+      onClick={onClose}
+    >
+      <div
+        className="bg-paper border border-rule rounded-[2px] max-w-[900px] w-full mx-4 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 py-3 border-b border-rule">
+          <div>
+            <p className="text-[13px] font-medium text-ink">{imageKey || alt}</p>
+            {spec && (
+              <p className="text-[11px] text-ink/40 mt-0.5">
+                {spec.displayWidth}x{spec.displayHeight} · {spec.aspectRatio} · {spec.context}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={onClose}
+            className="text-[20px] text-ink/40 hover:text-ink cursor-pointer leading-none px-2"
+          >
+            &times;
+          </button>
+        </div>
+        <div className="p-5 flex justify-center bg-warm/20">
+          {spec ? (
+            <div
+              className="relative w-full overflow-hidden bg-warm/30 border border-rule rounded-[2px]"
+              style={{
+                maxWidth: `${Math.min(spec.displayWidth, 800)}px`,
+                aspectRatio: `${spec.displayWidth} / ${spec.displayHeight}`,
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt={alt} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={url} alt={alt} className="max-h-[70vh] max-w-full object-contain" />
+          )}
+        </div>
+      </div>
     </div>
   );
 }

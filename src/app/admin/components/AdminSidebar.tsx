@@ -11,7 +11,6 @@ type Tab =
   | "experiments"
   | "content"
   | "blog"
-  | "images"
   | "popup"
   | "layout-editor"
   | "email-templates"
@@ -72,9 +71,6 @@ const NAV: SectionOrItem[] = [
   { type: "section", label: "Content", items: [
     { key: "content", label: "Pagina's", icon: I("M3 2h10v12H3zM6 5h4M6 7h4M6 9h2M10 10l2 2") },
     { key: "blog", label: "Blog / Nieuws", icon: I("M3 2h10v12H3zM5 5h6M5 7.5h6M5 10h3") },
-    { key: "images", label: "Afbeeldingen", icon: (
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><rect x="2" y="2" width="12" height="12" rx="1" /><circle cx="6" cy="6" r="1.5" /><path d="M2 11l4-4 2 2 4-4" /></svg>
-    )},
     { key: "popup", label: "Popup", icon: I("M3 3h10v10H3zM3 7h10M7 7v6") },
     { key: "layout-editor", label: "Layout Editor", icon: (
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M2 12l3-3 2 2 4-4 3 3" /><rect x="2" y="2" width="12" height="12" rx="1" /></svg>
