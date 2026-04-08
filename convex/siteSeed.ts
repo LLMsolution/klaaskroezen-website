@@ -7,6 +7,7 @@ import { seedBoekContent } from "./siteSeedBoek";
 import { seedSprekerContent } from "./siteSeedSpreker";
 import { seedOverOnsContent } from "./siteSeedOverOns";
 import { seedContactContent } from "./siteSeedContact";
+import { seedHomeContent } from "./siteSeedHome";
 
 type SectionDef = {
   id: string;
@@ -53,7 +54,7 @@ export function makeContent(
 /** Central list of all page seeds — AI layout editor adds new imports + entries here */
 function getAllSeeds(): PageSeed[] {
   return [
-    seedSetContent(), seedCstContent(), seedBoekContent(),
+    seedHomeContent(), seedSetContent(), seedCstContent(), seedBoekContent(),
     seedSprekerContent(), seedOverOnsContent(), seedContactContent(),
   ];
 }

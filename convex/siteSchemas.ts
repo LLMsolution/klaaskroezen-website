@@ -396,6 +396,135 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
       ]},
     ],
   },
+
+  // ══════════════════════════════════════
+  // HOMEPAGE SCHEMAS
+  // ══════════════════════════════════════
+
+  "home-slideshow": {
+    type: "home-slideshow",
+    label: "Home — Hero slideshow",
+    fields: [
+      { key: "slides", type: "array", label: "Slides", itemFields: [
+        { key: "image", type: "image-path", label: "Afbeelding" },
+        { key: "alt", type: "text", label: "Alt tekst" },
+        { key: "objectPosition", type: "text", label: "Image positie (bv. center 25%)" },
+        { key: "quote", type: "textarea", label: "Quote" },
+        { key: "author", type: "text", label: "Auteur" },
+        { key: "role", type: "text", label: "Rol / functie" },
+        { key: "detail", type: "text", label: "Extra detail (optioneel)" },
+      ]},
+    ],
+  },
+
+  "home-logos": {
+    type: "home-logos",
+    label: "Home — Logo balk",
+    fields: [
+      { key: "label", type: "text", label: "Label" },
+      { key: "items", type: "array", label: "Logos", itemFields: [
+        { key: "image", type: "image-path", label: "Logo afbeelding" },
+        { key: "alt", type: "text", label: "Alt tekst" },
+        { key: "width", type: "number", label: "Breedte (px)" },
+        { key: "height", type: "number", label: "Hoogte (px)" },
+      ]},
+    ],
+  },
+
+  "home-training-cards": {
+    type: "home-training-cards",
+    label: "Home — Training cards",
+    fields: [
+      { key: "eyebrow", type: "text", label: "Eyebrow" },
+      { key: "title", type: "text", label: "Titel" },
+      { key: "titleAccent", type: "text", label: "Titel accent" },
+      { key: "items", type: "array", label: "Cards", itemFields: [
+        { key: "image", type: "image-path", label: "Afbeelding" },
+        { key: "imageAlt", type: "text", label: "Alt tekst" },
+        { key: "label", type: "text", label: "Label" },
+        { key: "title", type: "text", label: "Titel" },
+        { key: "description", type: "textarea", label: "Beschrijving" },
+        { key: "href", type: "text", label: "Link" },
+        { key: "ctaLabel", type: "text", label: "CTA tekst" },
+      ]},
+    ],
+  },
+
+  "home-stats": {
+    type: "home-stats",
+    label: "Home — Stats band",
+    fields: [
+      { key: "items", type: "array", label: "Stats", itemFields: [
+        { key: "value", type: "text", label: "Waarde" },
+        { key: "label", type: "text", label: "Label" },
+      ]},
+    ],
+  },
+
+  "home-team-photos": {
+    type: "home-team-photos",
+    label: "Home — Team foto's",
+    fields: [
+      { key: "eyebrow", type: "text", label: "Eyebrow" },
+      { key: "title", type: "text", label: "Titel" },
+      { key: "titleAccent", type: "text", label: "Titel accent" },
+      { key: "items", type: "array", label: "Foto's", itemFields: [
+        { key: "image", type: "image-path", label: "Afbeelding" },
+        { key: "caption", type: "text", label: "Bijschrift" },
+        { key: "featured", type: "text", label: "Uitgelicht (true/false)" },
+      ]},
+    ],
+  },
+
+  "home-reviews": {
+    type: "home-reviews",
+    label: "Home — Reviews",
+    fields: [
+      { key: "eyebrow", type: "text", label: "Eyebrow" },
+      { key: "title", type: "text", label: "Titel" },
+      { key: "titleAccent", type: "text", label: "Titel accent" },
+      { key: "items", type: "array", label: "Reviews", itemFields: [
+        { key: "text", type: "textarea", label: "Review tekst" },
+        { key: "name", type: "text", label: "Naam" },
+        { key: "role", type: "text", label: "Rol" },
+        { key: "avatar", type: "image-path", label: "Avatar (optioneel)" },
+        { key: "source", type: "text", label: "Bron (optioneel)" },
+      ]},
+    ],
+  },
+
+  "home-about-klaas": {
+    type: "home-about-klaas",
+    label: "Home — Over Klaas",
+    fields: [
+      { key: "image", type: "image-path", label: "Portret" },
+      { key: "imageAlt", type: "text", label: "Alt tekst" },
+      { key: "label", type: "text", label: "Label" },
+      { key: "name", type: "text", label: "Naam" },
+      { key: "subtitle", type: "text", label: "Subtitel" },
+      { key: "bio1", type: "textarea", label: "Bio deel 1 (voor vet)" },
+      { key: "bio1Bold", type: "text", label: "Vetgedrukt stuk" },
+      { key: "bio1End", type: "text", label: "Bio deel 1 (na vet)" },
+      { key: "bio2", type: "textarea", label: "Bio deel 2" },
+      { key: "ctaPrimary", type: "text", label: "Primary CTA tekst" },
+      { key: "ctaSecondary", type: "text", label: "Secondary CTA tekst" },
+    ],
+  },
+
+  "home-book-teaser": {
+    type: "home-book-teaser",
+    label: "Home — Boek teaser",
+    fields: [
+      { key: "image", type: "image-path", label: "Boek cover" },
+      { key: "imageAlt", type: "text", label: "Alt tekst" },
+      { key: "label", type: "text", label: "Label" },
+      { key: "title", type: "text", label: "Titel" },
+      { key: "titleAccent", type: "text", label: "Titel accent" },
+      { key: "description", type: "textarea", label: "Beschrijving" },
+      { key: "badges", type: "array", label: "Badges", itemFields: [{ key: "value", type: "text", label: "Badge" }] },
+      { key: "ctaLabel", type: "text", label: "CTA tekst" },
+    ],
+  },
 };
 
 /** Get the schema for a section type */

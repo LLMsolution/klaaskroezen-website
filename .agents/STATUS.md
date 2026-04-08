@@ -11,6 +11,7 @@
 | Admin Image Crop Tool | done | 2026-04-01 |
 | Inline Image Management | done | 2026-04-01 |
 | Homepage + Remaining Images | partial | 2026-04-01 |
+| Homepage Content Integration | in-progress | 2026-04-08 |
 
 ## Current Focus
 Homepage + Remaining Images — [plan](.agents/plans/homepage-and-remaining-images.md)
