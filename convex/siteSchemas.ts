@@ -383,6 +383,19 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
       { key: "address", type: "text", label: "Adres" },
     ],
   },
+
+  "book-preview": {
+    type: "book-preview",
+    label: "Boek preview pagina's",
+    fields: [
+      { key: "eyebrow", type: "text", label: "Eyebrow" },
+      { key: "title", type: "text", label: "Titel" },
+      { key: "pages", type: "array", label: "Preview pagina's", itemFields: [
+        { key: "image", type: "image-path", label: "Pagina afbeelding" },
+        { key: "pageNumber", type: "text", label: "Paginanummer" },
+      ]},
+    ],
+  },
 };
 
 /** Get the schema for a section type */

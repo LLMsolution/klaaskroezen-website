@@ -5,14 +5,20 @@ const SLUG = "boek";
 export function seedBoekContent(): PageSeed {
   const sections = [
     { id: "hero", type: "hero-book", active: true, sortOrder: 0 },
-    { id: "program", type: "program", active: true, sortOrder: 1 },
-    { id: "reviews", type: "reviews", active: true, sortOrder: 2 },
-    { id: "videos", type: "videos", active: true, sortOrder: 3 },
-    { id: "interview", type: "interview", active: true, sortOrder: 4 },
-    { id: "cross-link", type: "cross-link", active: true, sortOrder: 5 },
-    { id: "faq", type: "faq", active: true, sortOrder: 6 },
-    { id: "cta", type: "cta", active: true, sortOrder: 7 },
+    { id: "book-preview", type: "book-preview", active: true, sortOrder: 1 },
+    { id: "program", type: "program", active: true, sortOrder: 2 },
+    { id: "reviews", type: "reviews", active: true, sortOrder: 3 },
+    { id: "videos", type: "videos", active: true, sortOrder: 4 },
+    { id: "interview", type: "interview", active: true, sortOrder: 5 },
+    { id: "cross-link", type: "cross-link", active: true, sortOrder: 6 },
+    { id: "faq", type: "faq", active: true, sortOrder: 7 },
+    { id: "cta", type: "cta", active: true, sortOrder: 8 },
   ];
+
+  const previewPages = [5, 6, 7, 8, 9, 11, 14, 19, 21, 24, 25, 27, 28, 31, 33, 35, 39, 132].map((n) => ({
+    image: `/images/book/preview/page-${n}.png`,
+    pageNumber: String(n),
+  }));
 
   const content = [
     // ── Hero ──
@@ -43,6 +49,17 @@ export function seedBoekContent(): PageSeed {
       afterBold: ": creating true fans.",
       badges: ["Bestseller", "2nd edition · 2,500+", "#1 Management book"],
       cta: "Order now",
+    }),
+    // ── Book Preview ──
+    makeContent(SLUG, "book-preview", "book-preview", "nl", {
+      eyebrow: "Inkijken",
+      title: "Blader door het boek",
+      pages: previewPages,
+    }),
+    makeContent(SLUG, "book-preview", "book-preview", "en", {
+      eyebrow: "Preview",
+      title: "Browse the book",
+      pages: previewPages,
     }),
     // ── Program ──
     makeContent(SLUG, "program", "program", "nl", {

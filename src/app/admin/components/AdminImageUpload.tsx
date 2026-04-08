@@ -200,14 +200,17 @@ export function AdminImageUpload({
   const previewAspect = spec && spec.displayWidth && spec.displayHeight
     ? `${spec.displayWidth} / ${spec.displayHeight}`
     : "4 / 3";
+  // Small images (like avatars) get a compact preview
+  const isSmallImage = spec && spec.displayWidth && spec.displayWidth <= 200;
+  const previewMaxWidth = isSmallImage ? "120px" : "320px";
 
   return (
     <div>
       {displayUrl ? (
         <div className="relative group">
           <div
-            className="border border-rule rounded-[2px] overflow-hidden bg-warm/30 max-w-[320px]"
-            style={{ aspectRatio: previewAspect }}
+            className="border border-rule rounded-[2px] overflow-hidden bg-warm/30"
+            style={{ aspectRatio: previewAspect, maxWidth: previewMaxWidth }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
