@@ -34,9 +34,24 @@ export default async function HomePage() {
   const lang = await getLocale();
   const db = await loadPageContent("home", lang);
 
+  const hero = sectionOr(db, "hero", {} as Section) as {
+    eyebrow?: string;
+    line1?: string;
+    line2?: string;
+    line3?: string;
+    intro?: string;
+    introHighlight?: string;
+    introEnd?: string;
+    forSales?: string;
+    setSalesTitle?: string;
+    forCS?: string;
+    cstTitle?: string;
+    benefits?: Array<{ value: string }>;
+  };
   const slideshow = sectionOr(db, "slideshow", {} as Section) as { slides?: Array<{ image?: string; alt?: string; objectPosition?: string; quote?: string; author?: string; role?: string; detail?: string }> };
   const logos = sectionOr(db, "logos", {} as Section) as { label?: string; items?: Array<{ image?: string; alt?: string; width?: number; height?: number }> };
-  const trainingCards = sectionOr(db, "training-cards", {} as Section) as { eyebrow?: string; title?: string; titleAccent?: string; items?: Array<{ image?: string; imageAlt?: string; label?: string; title?: string; description?: string; href?: string; ctaLabel?: string }> };
+  const trainingCards = sectionOr(db, "training-cards", {} as Section) as { eyebrow?: string; title?: string; titleAccent?: string; introBold?: string; introEnd?: string; items?: Array<{ image?: string; imageAlt?: string; label?: string; title?: string; who?: string; description?: string; descriptionHighlight?: string; descriptionEnd?: string; points?: Array<{ value: string }>; href?: string; ctaLabel?: string }> };
+  const finaleCta = sectionOr(db, "finale-cta", {} as Section) as { eyebrow?: string; title?: string; titleAccent?: string; description?: string; ctaPrimary?: string; ctaSecondary?: string; guarantees?: Array<{ value: string }> };
   const stats = sectionOr(db, "stats", {} as Section) as { items?: Array<{ value?: string; label?: string }> };
   const teamPhotos = sectionOr(db, "team-photos", {} as Section) as { eyebrow?: string; title?: string; titleAccent?: string; items?: Array<{ image?: string; caption?: string; featured?: string }> };
   const reviews = sectionOr(db, "reviews", {} as Section) as { eyebrow?: string; title?: string; titleAccent?: string; items?: Array<{ text?: string; name?: string; role?: string; avatar?: string; source?: string }> };
@@ -67,7 +82,7 @@ export default async function HomePage() {
   return (
     <>
       <JsonLd data={websiteJsonLd} />
-      <Hero lang={lang} slides={slideshow.slides} />
+      <Hero lang={lang} slides={slideshow.slides} content={hero} />
       <LogoBar content={logos} />
       <TrainingCards lang={lang} content={trainingCards} />
       <StatsBand lang={lang} content={stats} />
@@ -75,7 +90,7 @@ export default async function HomePage() {
       <ReviewGrid lang={lang} content={reviews} />
       <AboutKlaas lang={lang} content={aboutKlaas} />
       <BookTeaser lang={lang} content={bookTeaser} />
-      <FinaleCta lang={lang} />
+      <FinaleCta lang={lang} content={finaleCta} />
     </>
   );
 }

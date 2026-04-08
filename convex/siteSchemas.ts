@@ -401,6 +401,25 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
   // HOMEPAGE SCHEMAS
   // ══════════════════════════════════════
 
+  "home-hero": {
+    type: "home-hero",
+    label: "Hero copy (rechterkant)",
+    fields: [
+      { key: "eyebrow", type: "text", label: "Eyebrow (bv. Oprecht. Ontspannen. Winnen.)" },
+      { key: "line1", type: "text", label: "Headline regel 1" },
+      { key: "line2", type: "text", label: "Headline regel 2 (italic copper)" },
+      { key: "line3", type: "text", label: "Headline regel 3" },
+      { key: "intro", type: "textarea", label: "Intro tekst (voor highlight)" },
+      { key: "introHighlight", type: "text", label: "Highlight tekst (bold)" },
+      { key: "introEnd", type: "text", label: "Intro tekst (na highlight)" },
+      { key: "forSales", type: "text", label: "Label verkopers" },
+      { key: "setSalesTitle", type: "text", label: "Titel Sales Excellence card" },
+      { key: "forCS", type: "text", label: "Label klantcontact" },
+      { key: "cstTitle", type: "text", label: "Titel Customer Success card" },
+      { key: "benefits", type: "array", label: "Trust items", itemFields: [{ key: "value", type: "text", label: "Item" }] },
+    ],
+  },
+
   "home-slideshow": {
     type: "home-slideshow",
     label: "Hero slideshow",
@@ -438,12 +457,18 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
       { key: "eyebrow", type: "text", label: "Eyebrow" },
       { key: "title", type: "text", label: "Titel" },
       { key: "titleAccent", type: "text", label: "Titel accent" },
+      { key: "introBold", type: "text", label: "Intro (bold stuk)" },
+      { key: "introEnd", type: "textarea", label: "Intro (na bold stuk)" },
       { key: "items", type: "array", label: "Cards", itemFields: [
         { key: "image", type: "image-path", label: "Afbeelding" },
         { key: "imageAlt", type: "text", label: "Alt tekst" },
         { key: "label", type: "text", label: "Label" },
         { key: "title", type: "text", label: "Titel" },
-        { key: "description", type: "textarea", label: "Beschrijving" },
+        { key: "who", type: "text", label: "Voor wie (bv. accountmanagers, ondernemers)" },
+        { key: "description", type: "textarea", label: "Beschrijving (voor bold)" },
+        { key: "descriptionHighlight", type: "text", label: "Beschrijving highlight (bold)" },
+        { key: "descriptionEnd", type: "textarea", label: "Beschrijving (na bold)" },
+        { key: "points", type: "array", label: "Voordelen", itemFields: [{ key: "value", type: "text", label: "Voordeel" }] },
         { key: "href", type: "text", label: "Link" },
         { key: "ctaLabel", type: "text", label: "CTA tekst" },
       ]},
@@ -523,6 +548,20 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
       { key: "description", type: "textarea", label: "Beschrijving" },
       { key: "badges", type: "array", label: "Badges", itemFields: [{ key: "value", type: "text", label: "Badge" }] },
       { key: "ctaLabel", type: "text", label: "CTA tekst" },
+    ],
+  },
+
+  "home-finale-cta": {
+    type: "home-finale-cta",
+    label: "Finale CTA",
+    fields: [
+      { key: "eyebrow", type: "text", label: "Eyebrow" },
+      { key: "title", type: "text", label: "Titel" },
+      { key: "titleAccent", type: "text", label: "Titel accent" },
+      { key: "description", type: "textarea", label: "Beschrijving" },
+      { key: "ctaPrimary", type: "text", label: "Primary CTA tekst" },
+      { key: "ctaSecondary", type: "text", label: "Secondary CTA tekst" },
+      { key: "guarantees", type: "array", label: "Garantie items", itemFields: [{ key: "value", type: "text", label: "Item" }] },
     ],
   },
 };

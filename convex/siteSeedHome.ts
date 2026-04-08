@@ -4,17 +4,54 @@ const SLUG = "home";
 
 export function seedHomeContent(): PageSeed {
   const sections = [
-    { id: "slideshow", type: "home-slideshow", active: true, sortOrder: 0 },
-    { id: "logos", type: "home-logos", active: true, sortOrder: 1 },
-    { id: "training-cards", type: "home-training-cards", active: true, sortOrder: 2 },
-    { id: "stats", type: "home-stats", active: true, sortOrder: 3 },
-    { id: "team-photos", type: "home-team-photos", active: true, sortOrder: 4 },
-    { id: "reviews", type: "home-reviews", active: true, sortOrder: 5 },
-    { id: "about-klaas", type: "home-about-klaas", active: true, sortOrder: 6 },
-    { id: "book-teaser", type: "home-book-teaser", active: true, sortOrder: 7 },
+    { id: "hero", type: "home-hero", active: true, sortOrder: 0 },
+    { id: "slideshow", type: "home-slideshow", active: true, sortOrder: 1 },
+    { id: "logos", type: "home-logos", active: true, sortOrder: 2 },
+    { id: "training-cards", type: "home-training-cards", active: true, sortOrder: 3 },
+    { id: "stats", type: "home-stats", active: true, sortOrder: 4 },
+    { id: "team-photos", type: "home-team-photos", active: true, sortOrder: 5 },
+    { id: "reviews", type: "home-reviews", active: true, sortOrder: 6 },
+    { id: "about-klaas", type: "home-about-klaas", active: true, sortOrder: 7 },
+    { id: "book-teaser", type: "home-book-teaser", active: true, sortOrder: 8 },
+    { id: "finale-cta", type: "home-finale-cta", active: true, sortOrder: 9 },
   ];
 
   const content = [
+    // ── Hero copy (NL) ──
+    makeContent(SLUG, "hero", "home-hero", "nl", {
+      eyebrow: "Oprecht. Ontspannen. Winnen.",
+      line1: "Meer omzet.",
+      line2: "Minder stress.",
+      line3: "Echte fans.",
+      intro: "Of je nu actief verkoopt of dagelijks klantcontact hebt —",
+      introHighlight: "oprecht en ontspannen",
+      introEnd: "is de snelste weg naar resultaat.",
+      forSales: "Voor verkopers",
+      setSalesTitle: "Sales Excellence Training",
+      forCS: "Voor klantcontact",
+      cstTitle: "Customer Success Training",
+      benefits: [
+        { value: "Direct online toegang" },
+        { value: "10% resultaat of geld terug" },
+        { value: "25+ jaar ervaring" },
+      ],
+    }),
+
+    // ── Finale CTA (NL) ──
+    makeContent(SLUG, "finale-cta", "home-finale-cta", "nl", {
+      eyebrow: "Klaar om te beginnen?",
+      title: "Start vandaag.",
+      titleAccent: "Oprecht & Ontspannen.",
+      description: "Eén methode, twee doelgroepen. Kies de training die bij jouw rol past.",
+      ctaPrimary: "Sales Excellence Training",
+      ctaSecondary: "Customer Success Training",
+      guarantees: [
+        { value: "Direct online toegang" },
+        { value: "10% resultaat of geld terug" },
+        { value: "25+ jaar ervaring" },
+      ],
+    }),
+
     // ── Slideshow (NL) ──
     makeContent(SLUG, "slideshow", "home-slideshow", "nl", {
       slides: [
@@ -48,9 +85,43 @@ export function seedHomeContent(): PageSeed {
       eyebrow: "Het aanbod",
       title: "Eén methode.",
       titleAccent: "Twee doelgroepen.",
+      introBold: "Dezelfde filosofie",
+      introEnd: "— oprecht en ontspannen — voor twee werelden die allebei essentieel zijn voor het succes van je organisatie.",
       items: [
-        { image: "/images/hero/sales-excellence-group.jpeg", imageAlt: "Deelnemers van de Sales Excellence Training met certificaten", label: "Voor verkopers", title: "Sales Excellence Training", description: "Meer omzet met minder druk. Je leert hoe je met oprechtheid en ontspanning structureel beter verkoopt — van eerste gesprek tot deal.", href: "/sales-excellence-training", ctaLabel: "Bekijk training" },
-        { image: "/images/hero/customer-success-group.jpg", imageAlt: "Deelnemers van de Customer Success Training", label: "Voor klantcontact", title: "Customer Success Training", description: "Maak van klanten fans. Je hebt geen salesfunctie — maar jij bepaalt wél of een klant blijft, groeit en anderen aanbeveelt.", href: "/customer-success-training", ctaLabel: "Bekijk training" },
+        {
+          image: "/images/hero/sales-excellence-group.jpeg",
+          imageAlt: "Deelnemers van de Sales Excellence Training met certificaten",
+          label: "Voor verkopers",
+          title: "Sales Excellence Training",
+          who: "accountmanagers, ondernemers, salesteams",
+          description: "Meer omzet met minder druk. Je leert hoe je met",
+          descriptionHighlight: "oprechtheid en ontspanning",
+          descriptionEnd: "structureel beter verkoopt — van eerste gesprek tot deal. Niet met trucjes, maar met een aanpak die bij jou past.",
+          points: [
+            { value: "Meer omzet, minder weerstand" },
+            { value: "Klanten die jou aanbevelen" },
+            { value: "Zelfvertrouwen in elk verkoopgesprek" },
+          ],
+          href: "/sales-excellence-training",
+          ctaLabel: "Bekijk training",
+        },
+        {
+          image: "/images/hero/customer-success-group.jpg",
+          imageAlt: "Deelnemers van de Customer Success Training",
+          label: "Voor klantcontact",
+          title: "Customer Success Training",
+          who: "CS, support, accountteams, service",
+          description: "Maak van klanten fans. Je hebt geen salesfunctie — maar jij bepaalt wél of een klant blijft, groeit en anderen aanbeveelt.",
+          descriptionHighlight: "Dat is commercieel goud.",
+          descriptionEnd: "Deze training leert je hoe je dat bewust en ontspannen doet.",
+          points: [
+            { value: "Hogere klanttevredenheid en retentie" },
+            { value: "Klanten die ambassadeurs worden" },
+            { value: "Meer plezier in klantcontact" },
+          ],
+          href: "/customer-success-training",
+          ctaLabel: "Bekijk training",
+        },
       ],
     }),
 
@@ -125,6 +196,37 @@ export function seedHomeContent(): PageSeed {
     // ══════════════════════════════════════
     // EN content
     // ══════════════════════════════════════
+    makeContent(SLUG, "hero", "home-hero", "en", {
+      eyebrow: "Honest. Relaxed. Winning.",
+      line1: "More revenue.",
+      line2: "Less stress.",
+      line3: "Real fans.",
+      intro: "Whether you're actively selling or have daily customer contact —",
+      introHighlight: "honest and relaxed",
+      introEnd: "is the fastest path to results.",
+      forSales: "For sales",
+      setSalesTitle: "Sales Excellence Training",
+      forCS: "For customer contact",
+      cstTitle: "Customer Success Training",
+      benefits: [
+        { value: "Instant online access" },
+        { value: "10% results or money back" },
+        { value: "25+ years of experience" },
+      ],
+    }),
+    makeContent(SLUG, "finale-cta", "home-finale-cta", "en", {
+      eyebrow: "Ready to start?",
+      title: "Start today.",
+      titleAccent: "Honest & Relaxed.",
+      description: "One method, two audiences. Choose the training that fits your role.",
+      ctaPrimary: "Sales Excellence Training",
+      ctaSecondary: "Customer Success Training",
+      guarantees: [
+        { value: "Instant online access" },
+        { value: "10% results or money back" },
+        { value: "25+ years of experience" },
+      ],
+    }),
     makeContent(SLUG, "slideshow", "home-slideshow", "en", {
       slides: [
         { image: "/images/hero/sales-excellence-group.jpeg", alt: "Group of participants after the Sales Excellence Training with certificates", objectPosition: "center 20%", quote: "Immediate results. The training fundamentally changed our sales team.", author: "Simon Kornblum", role: "Director Visma YouServe", detail: "30 participants" },
@@ -153,9 +255,43 @@ export function seedHomeContent(): PageSeed {
       eyebrow: "The offering",
       title: "One method.",
       titleAccent: "Two audiences.",
+      introBold: "The same philosophy",
+      introEnd: "— honest and relaxed — for two worlds that are both essential for your organisation's success.",
       items: [
-        { image: "/images/hero/sales-excellence-group.jpeg", imageAlt: "Participants of the Sales Excellence Training with certificates", label: "For sales", title: "Sales Excellence Training", description: "More revenue with less pressure. Learn how to sell structurally better with authenticity and ease — from first meeting to deal.", href: "/sales-excellence-training", ctaLabel: "View training" },
-        { image: "/images/hero/customer-success-group.jpg", imageAlt: "Participants of the Customer Success Training", label: "For customer contact", title: "Customer Success Training", description: "Turn customers into fans. You're not in sales — but you do determine whether a customer stays, grows and recommends others.", href: "/customer-success-training", ctaLabel: "View training" },
+        {
+          image: "/images/hero/sales-excellence-group.jpeg",
+          imageAlt: "Participants of the Sales Excellence Training with certificates",
+          label: "For sales",
+          title: "Sales Excellence Training",
+          who: "account managers, entrepreneurs, sales teams",
+          description: "More revenue with less pressure. Learn how to sell structurally better with",
+          descriptionHighlight: "honesty and ease",
+          descriptionEnd: "— from first meeting to deal. Not with tricks, but with an approach that fits who you are.",
+          points: [
+            { value: "More revenue, less resistance" },
+            { value: "Customers who recommend you" },
+            { value: "Confidence in every sales conversation" },
+          ],
+          href: "/sales-excellence-training",
+          ctaLabel: "View training",
+        },
+        {
+          image: "/images/hero/customer-success-group.jpg",
+          imageAlt: "Participants of the Customer Success Training",
+          label: "For customer contact",
+          title: "Customer Success Training",
+          who: "CS, support, account teams, service",
+          description: "Turn customers into fans. You're not in sales — but you do determine whether a customer stays, grows and recommends others.",
+          descriptionHighlight: "That's commercial gold.",
+          descriptionEnd: "This training teaches you how to do that consciously and with ease.",
+          points: [
+            { value: "Higher customer satisfaction and retention" },
+            { value: "Customers who become ambassadors" },
+            { value: "More joy in customer contact" },
+          ],
+          href: "/customer-success-training",
+          ctaLabel: "View training",
+        },
       ],
     }),
     makeContent(SLUG, "stats", "home-stats", "en", {
@@ -220,6 +356,37 @@ export function seedHomeContent(): PageSeed {
     // ══════════════════════════════════════
     // DE content
     // ══════════════════════════════════════
+    makeContent(SLUG, "hero", "home-hero", "de", {
+      eyebrow: "Aufrichtig. Entspannt. Gewinnen.",
+      line1: "Mehr Umsatz.",
+      line2: "Weniger Stress.",
+      line3: "Echte Fans.",
+      intro: "Ob Sie aktiv verkaufen oder täglich Kundenkontakt haben —",
+      introHighlight: "aufrichtig und entspannt",
+      introEnd: "ist der schnellste Weg zum Ergebnis.",
+      forSales: "Für Verkäufer",
+      setSalesTitle: "Sales Excellence Training",
+      forCS: "Für Kundenkontakt",
+      cstTitle: "Customer Success Training",
+      benefits: [
+        { value: "Sofortiger Online-Zugang" },
+        { value: "10% Ergebnis oder Geld zurück" },
+        { value: "25+ Jahre Erfahrung" },
+      ],
+    }),
+    makeContent(SLUG, "finale-cta", "home-finale-cta", "de", {
+      eyebrow: "Bereit anzufangen?",
+      title: "Starten Sie heute.",
+      titleAccent: "Aufrichtig & Entspannt.",
+      description: "Eine Methode, zwei Zielgruppen. Wählen Sie das Training, das zu Ihrer Rolle passt.",
+      ctaPrimary: "Sales Excellence Training",
+      ctaSecondary: "Customer Success Training",
+      guarantees: [
+        { value: "Sofortiger Online-Zugang" },
+        { value: "10% Ergebnis oder Geld zurück" },
+        { value: "25+ Jahre Erfahrung" },
+      ],
+    }),
     makeContent(SLUG, "slideshow", "home-slideshow", "de", {
       slides: [
         { image: "/images/hero/sales-excellence-group.jpeg", alt: "Gruppe von Teilnehmern nach dem Sales Excellence Training mit Zertifikaten", objectPosition: "center 20%", quote: "Sofortige Ergebnisse. Das Training hat unser Vertriebsteam grundlegend verändert.", author: "Simon Kornblum", role: "Direktor Visma YouServe", detail: "30 Teilnehmer" },
@@ -248,9 +415,43 @@ export function seedHomeContent(): PageSeed {
       eyebrow: "Das Angebot",
       title: "Eine Methode.",
       titleAccent: "Zwei Zielgruppen.",
+      introBold: "Dieselbe Philosophie",
+      introEnd: "— aufrichtig und entspannt — für zwei Welten, die beide für den Erfolg Ihrer Organisation essentiell sind.",
       items: [
-        { image: "/images/hero/sales-excellence-group.jpeg", imageAlt: "Teilnehmer des Sales Excellence Trainings mit Zertifikaten", label: "Für Verkäufer", title: "Sales Excellence Training", description: "Mehr Umsatz mit weniger Druck. Lernen Sie, mit Aufrichtigkeit und Gelassenheit strukturell besser zu verkaufen — vom ersten Gespräch bis zum Abschluss.", href: "/sales-excellence-training", ctaLabel: "Training ansehen" },
-        { image: "/images/hero/customer-success-group.jpg", imageAlt: "Teilnehmer des Customer Success Trainings", label: "Für Kundenkontakt", title: "Customer Success Training", description: "Verwandeln Sie Kunden in Fans. Sie haben keine Vertriebsrolle — aber Sie bestimmen, ob ein Kunde bleibt, wächst und andere empfiehlt.", href: "/customer-success-training", ctaLabel: "Training ansehen" },
+        {
+          image: "/images/hero/sales-excellence-group.jpeg",
+          imageAlt: "Teilnehmer des Sales Excellence Trainings mit Zertifikaten",
+          label: "Für Verkäufer",
+          title: "Sales Excellence Training",
+          who: "Accountmanager, Unternehmer, Vertriebsteams",
+          description: "Mehr Umsatz mit weniger Druck. Lernen Sie, mit",
+          descriptionHighlight: "Aufrichtigkeit und Gelassenheit",
+          descriptionEnd: "strukturell besser zu verkaufen — vom ersten Gespräch bis zum Abschluss. Nicht mit Tricks, sondern mit einem Ansatz, der zu Ihnen passt.",
+          points: [
+            { value: "Mehr Umsatz, weniger Widerstand" },
+            { value: "Kunden die Sie weiterempfehlen" },
+            { value: "Selbstvertrauen in jedem Verkaufsgespräch" },
+          ],
+          href: "/sales-excellence-training",
+          ctaLabel: "Training ansehen",
+        },
+        {
+          image: "/images/hero/customer-success-group.jpg",
+          imageAlt: "Teilnehmer des Customer Success Trainings",
+          label: "Für Kundenkontakt",
+          title: "Customer Success Training",
+          who: "CS, Support, Accountteams, Service",
+          description: "Verwandeln Sie Kunden in Fans. Sie haben keine Vertriebsrolle — aber Sie bestimmen, ob ein Kunde bleibt, wächst und andere empfiehlt.",
+          descriptionHighlight: "Das ist kommerzielles Gold.",
+          descriptionEnd: "Dieses Training lehrt Sie, wie Sie das bewusst und entspannt tun.",
+          points: [
+            { value: "Höhere Kundenzufriedenheit und Bindung" },
+            { value: "Kunden die Botschafter werden" },
+            { value: "Mehr Freude am Kundenkontakt" },
+          ],
+          href: "/customer-success-training",
+          ctaLabel: "Training ansehen",
+        },
       ],
     }),
     makeContent(SLUG, "stats", "home-stats", "de", {

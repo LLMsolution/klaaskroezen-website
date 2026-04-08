@@ -25,7 +25,11 @@ type TrainingCardItem = {
   imageAlt?: string;
   label?: string;
   title?: string;
+  who?: string;
   description?: string;
+  descriptionHighlight?: string;
+  descriptionEnd?: string;
+  points?: Array<{ value: string }>;
   href?: string;
   ctaLabel?: string;
 };
@@ -36,6 +40,8 @@ type TrainingCardsProps = {
     eyebrow?: string;
     title?: string;
     titleAccent?: string;
+    introBold?: string;
+    introEnd?: string;
     items?: TrainingCardItem[];
   };
 };
@@ -62,9 +68,17 @@ export async function TrainingCards({ lang, content }: TrainingCardsProps) {
       imageAlt: item.imageAlt || "",
       tag: item.label || "",
       title: item.title || "",
-      who: "",
-      description: item.description || "",
-      points: [],
+      who: item.who || "",
+      description: item.descriptionHighlight ? (
+        <>
+          {item.description}{" "}
+          <strong className="font-semibold text-ink">
+            {item.descriptionHighlight}
+          </strong>{" "}
+          {item.descriptionEnd}
+        </>
+      ) : (item.description || ""),
+      points: (item.points || []).map((p) => p.value),
       ctaLabel: item.ctaLabel,
     }));
   } else {
@@ -129,8 +143,8 @@ export async function TrainingCards({ lang, content }: TrainingCardsProps) {
             </em>
           </h2>
           <p className="text-[16px] sm:text-[17px] text-ink/80 max-w-[500px] mt-5 leading-[1.8]">
-            <strong className="font-semibold text-ink">{s.intro}</strong>{" "}
-            {s.introEnd}
+            <strong className="font-semibold text-ink">{content?.introBold || s.intro}</strong>{" "}
+            {content?.introEnd || s.introEnd}
           </p>
         </FadeIn>
 
