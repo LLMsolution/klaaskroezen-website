@@ -142,6 +142,7 @@ export const bulkUpsert = internalMutation({
         context: v.string(),
         pageSlug: v.optional(v.string()),
         pageSlugs: v.optional(v.array(v.string())),
+        objectPosition: v.optional(v.string()),
       }),
     ),
     force: v.optional(v.boolean()),
