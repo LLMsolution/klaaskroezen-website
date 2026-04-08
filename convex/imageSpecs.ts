@@ -16,8 +16,8 @@ const CONTENT_KEY_TO_SPEC: Record<string, string> = {
   // Boek
   "boek/hero/image": "book/sales-oprecht-ontspannen-cover.png",
   "boek/interview/image": "blog/klaas-managementboek-interview.jpg",
-  // Contact
-  "contact/hero/image": "about/klaas-kroezen-portrait-2.jpeg",
+  // Contact — uses its own spec (landscape crop, different from over-ons mission)
+  "contact/hero/image": "contact/hero-portrait-2",
   // Training pages
   "sales-excellence-training/hero/image": "training/visma-youserve-session.jpg",
   "sales-excellence-training/cross-link/image": "hero/customer-success-group.jpg",
