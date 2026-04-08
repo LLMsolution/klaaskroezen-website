@@ -13,6 +13,10 @@ interface TransformationItem {
 
 interface TransformationSliderProps {
   eyebrow?: string;
+  title?: string;
+  titleAccent?: string;
+  beforeLabel?: string;
+  afterLabel?: string;
   items: TransformationItem[];
 }
 
@@ -53,6 +57,10 @@ function ItemCard({
 
 export function TransformationSlider({
   eyebrow = "De transformatie",
+  title = "Klaar voor?",
+  titleAccent = "Schuif en ontdek het verschil.",
+  beforeLabel = "Voor de training",
+  afterLabel = "Na de training",
   items,
 }: TransformationSliderProps) {
   const [position, setPosition] = useState(50);
@@ -95,10 +103,10 @@ export function TransformationSlider({
         <FadeIn className="text-center mb-8 sm:mb-14">
           <Label className="mb-3">{eyebrow}</Label>
           <h2 className="font-display text-[clamp(24px,3.4vw,44px)] font-black leading-[0.97] tracking-[-0.03em]">
-            Klaar voor?
+            {title}
             <br />
             <em className="italic font-normal text-ink/40">
-              Schuif en ontdek het verschil.
+              {titleAccent}
             </em>
           </h2>
         </FadeIn>
@@ -106,10 +114,10 @@ export function TransformationSlider({
         {/* Labels above slider */}
         <div className="flex justify-between mb-2 sm:mb-3 px-1">
           <span className="text-[10px] sm:text-[12px] font-medium tracking-[0.12em] sm:tracking-[0.15em] uppercase text-ink/50">
-            Voor de training
+            {beforeLabel}
           </span>
           <span className="text-[10px] sm:text-[12px] font-medium tracking-[0.12em] sm:tracking-[0.15em] uppercase text-copper">
-            Na de training
+            {afterLabel}
           </span>
         </div>
 
