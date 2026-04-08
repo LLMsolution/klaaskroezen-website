@@ -66,11 +66,32 @@ const slideData = [
 
 export { SLIDE_KEYS };
 
-export function HeroSlideshow({ images }: { images?: Record<string, string> }) {
-  const slides = slideData.map((s) => ({
-    ...s,
-    src: images?.[s.key] ?? s.fallback,
-  }));
+type SlideInput = {
+  image?: string;
+  alt?: string;
+  objectPosition?: string;
+  quote?: string;
+  author?: string;
+  role?: string;
+  detail?: string;
+};
+
+export function HeroSlideshow({ images, slides: slidesProp }: { images?: Record<string, string>; slides?: SlideInput[] }) {
+  const slides = slidesProp && slidesProp.length > 0
+    ? slidesProp.map((s, i) => ({
+        key: `slide-${i}`,
+        src: s.image || "",
+        alt: s.alt || "",
+        objectPosition: s.objectPosition || "center center",
+        quote: s.quote || "",
+        author: s.author || "",
+        role: s.role || "",
+        detail: s.detail || "",
+      }))
+    : slideData.map((s) => ({
+        ...s,
+        src: images?.[s.key] ?? s.fallback,
+      }));
 
   const [current, setCurrent] = useState(0);
 

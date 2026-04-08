@@ -10,6 +10,7 @@ import { BookTeaser } from "@/components/sections/BookTeaser";
 import { FinaleCta } from "@/components/sections/FinaleCta";
 import { JsonLd, websiteJsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/lib/i18n/server";
+import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLocale();
@@ -27,20 +28,50 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+type Section = Record<string, unknown>;
+
 export default async function HomePage() {
   const lang = await getLocale();
+  const db = await loadPageContent("home", lang);
+
+  const slideshow = sectionOr(db, "slideshow", {} as Section) as { slides?: Array<{ image?: string; alt?: string; objectPosition?: string; quote?: string; author?: string; role?: string; detail?: string }> };
+  const logos = sectionOr(db, "logos", {} as Section) as { label?: string; items?: Array<{ image?: string; alt?: string; width?: number; height?: number }> };
+  const teamPhotos = sectionOr(db, "team-photos", {} as Section) as { eyebrow?: string; title?: string; titleAccent?: string; items?: Array<{ image?: string; caption?: string; featured?: string }> };
+  const aboutKlaas = sectionOr(db, "about-klaas", {} as Section) as {
+    image?: string;
+    imageAlt?: string;
+    label?: string;
+    name?: string;
+    subtitle?: string;
+    bio1?: string;
+    bio1Bold?: string;
+    bio1End?: string;
+    bio2?: string;
+    ctaPrimary?: string;
+    ctaSecondary?: string;
+  };
+  const bookTeaser = sectionOr(db, "book-teaser", {} as Section) as {
+    image?: string;
+    imageAlt?: string;
+    label?: string;
+    title?: string;
+    titleAccent?: string;
+    description?: string;
+    badges?: Array<{ value: string }>;
+    ctaLabel?: string;
+  };
 
   return (
     <>
       <JsonLd data={websiteJsonLd} />
-      <Hero lang={lang} />
-      <LogoBar />
+      <Hero lang={lang} slides={slideshow.slides} />
+      <LogoBar content={logos} />
       <TrainingCards lang={lang} />
       <StatsBand lang={lang} />
-      <TeamPhotos />
+      <TeamPhotos content={teamPhotos} />
       <ReviewGrid lang={lang} />
-      <AboutKlaas lang={lang} />
-      <BookTeaser lang={lang} />
+      <AboutKlaas lang={lang} content={aboutKlaas} />
+      <BookTeaser lang={lang} content={bookTeaser} />
       <FinaleCta lang={lang} />
     </>
   );

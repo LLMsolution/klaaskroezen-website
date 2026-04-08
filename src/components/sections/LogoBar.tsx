@@ -29,11 +29,27 @@ const logoData = [
 
 interface LogoBarProps {
   label?: string;
+  content?: {
+    label?: string;
+    items?: Array<{ image?: string; alt?: string; width?: number; height?: number }>;
+  };
 }
 
-export async function LogoBar({ label = "Trainingen verzorgd voor" }: LogoBarProps) {
-  const img = await loadSiteImages([...LOGO_KEYS]);
-  const logos = logoData.map((l) => ({ ...l, src: imgUrl(img, l.key) }));
+export async function LogoBar({ label: labelProp = "Trainingen verzorgd voor", content }: LogoBarProps) {
+  const label = content?.label || labelProp;
+  let logos: Array<{ alt: string; w: number; h: number; src: string }>;
+
+  if (content?.items && content.items.length > 0) {
+    logos = content.items.map((l) => ({
+      alt: l.alt || "",
+      w: l.width || 80,
+      h: l.height || 26,
+      src: l.image || "",
+    }));
+  } else {
+    const img = await loadSiteImages([...LOGO_KEYS]);
+    logos = logoData.map((l) => ({ alt: l.alt, w: l.w, h: l.h, src: imgUrl(img, l.key) }));
+  }
   return (
     <section
       aria-label="Klanten"

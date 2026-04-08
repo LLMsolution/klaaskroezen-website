@@ -403,7 +403,7 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
 
   "home-slideshow": {
     type: "home-slideshow",
-    label: "Home — Hero slideshow",
+    label: "Hero slideshow",
     fields: [
       { key: "slides", type: "array", label: "Slides", itemFields: [
         { key: "image", type: "image-path", label: "Afbeelding" },
@@ -419,7 +419,7 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
 
   "home-logos": {
     type: "home-logos",
-    label: "Home — Logo balk",
+    label: "Logo balk",
     fields: [
       { key: "label", type: "text", label: "Label" },
       { key: "items", type: "array", label: "Logos", itemFields: [
@@ -433,7 +433,7 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
 
   "home-training-cards": {
     type: "home-training-cards",
-    label: "Home — Training cards",
+    label: "Training cards",
     fields: [
       { key: "eyebrow", type: "text", label: "Eyebrow" },
       { key: "title", type: "text", label: "Titel" },
@@ -452,7 +452,7 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
 
   "home-stats": {
     type: "home-stats",
-    label: "Home — Stats band",
+    label: "Stats band",
     fields: [
       { key: "items", type: "array", label: "Stats", itemFields: [
         { key: "value", type: "text", label: "Waarde" },
@@ -463,7 +463,7 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
 
   "home-team-photos": {
     type: "home-team-photos",
-    label: "Home — Team foto's",
+    label: "Team foto's",
     fields: [
       { key: "eyebrow", type: "text", label: "Eyebrow" },
       { key: "title", type: "text", label: "Titel" },
@@ -478,7 +478,7 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
 
   "home-reviews": {
     type: "home-reviews",
-    label: "Home — Reviews",
+    label: "Reviews",
     fields: [
       { key: "eyebrow", type: "text", label: "Eyebrow" },
       { key: "title", type: "text", label: "Titel" },
@@ -495,7 +495,7 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
 
   "home-about-klaas": {
     type: "home-about-klaas",
-    label: "Home — Over Klaas",
+    label: "Over Klaas",
     fields: [
       { key: "image", type: "image-path", label: "Portret" },
       { key: "imageAlt", type: "text", label: "Alt tekst" },
@@ -513,7 +513,7 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
 
   "home-book-teaser": {
     type: "home-book-teaser",
-    label: "Home — Boek teaser",
+    label: "Boek teaser",
     fields: [
       { key: "image", type: "image-path", label: "Boek cover" },
       { key: "imageAlt", type: "text", label: "Alt tekst" },

@@ -2,7 +2,25 @@ import Link from "next/link";
 import { HeroSlideshow } from "./HeroSlideshow";
 import { t, type Lang } from "@/lib/i18n";
 
-export function Hero({ lang, slideImages }: { lang: Lang; slideImages?: Record<string, string> }) {
+type SlideInput = {
+  image?: string;
+  alt?: string;
+  objectPosition?: string;
+  quote?: string;
+  author?: string;
+  role?: string;
+  detail?: string;
+};
+
+export function Hero({
+  lang,
+  slideImages,
+  slides,
+}: {
+  lang: Lang;
+  slideImages?: Record<string, string>;
+  slides?: SlideInput[];
+}) {
   const s = t(lang).hero;
 
   return (
@@ -10,7 +28,7 @@ export function Hero({ lang, slideImages }: { lang: Lang; slideImages?: Record<s
       aria-label={s.ariaLabel}
       className="grid grid-cols-1 lg:grid-cols-2 min-h-[calc(100dvh-64px)]"
     >
-      <HeroSlideshow images={slideImages} />
+      <HeroSlideshow images={slideImages} slides={slides} />
 
       {/* Right: Copy */}
       <div className="flex flex-col justify-center px-7 py-10 sm:px-10 lg:px-16 lg:py-20 relative order-2">

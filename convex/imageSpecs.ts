@@ -16,7 +16,7 @@ const CONTENT_KEY_TO_SPEC: Record<string, string> = {
   // Boek
   "boek/hero/image": "book/sales-oprecht-ontspannen-cover.png",
   "boek/interview/image": "blog/klaas-managementboek-interview.jpg",
-  // Contact — uses its own spec (landscape crop, different from over-ons mission)
+  // Contact
   "contact/hero/image": "contact/hero-portrait-2",
   // Training pages
   "sales-excellence-training/hero/image": "training/visma-youserve-session.jpg",
@@ -24,6 +24,14 @@ const CONTENT_KEY_TO_SPEC: Record<string, string> = {
   "customer-success-training/hero/image": "hero/customer-success-hero.jpeg",
   "customer-success-training/cross-link/image": "cross-link/sales-excellence",
   "boek/cross-link/image": "cross-link/boek",
+  // Home sections
+  "home/about-klaas/image": "home/about-klaas-banner",
+  "home/book-teaser/image": "home/book-teaser-cover",
+  // Array item specs (ContentFieldRenderer uses pageSlug/sectionId/fieldKey pattern)
+  "home/slideshow/slides.image": "home/slideshow-slide",
+  "home/training-cards/items.image": "home/training-card",
+  "home/team-photos/items.image": "home/team-photo-large",
+  "home/logos/items.image": "logos/visma.png",
 };
 
 /** Get the display spec for a single image key */

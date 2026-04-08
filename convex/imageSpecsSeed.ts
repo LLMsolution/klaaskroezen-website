@@ -123,6 +123,21 @@ const SPECS: SpecEntry[] = [
   { imageKey: "cross-link/customer-success", displayWidth: 1180, displayHeight: 664, aspectRatio: "16:9", context: "Cross-link naar Customer Success", pageSlug: "sales-excellence-training" },
   { imageKey: "cross-link/sales-excellence", displayWidth: 1180, displayHeight: 664, aspectRatio: "16:9", context: "Cross-link naar Sales Excellence", pageSlug: "customer-success-training" },
   { imageKey: "cross-link/boek", displayWidth: 1180, displayHeight: 664, aspectRatio: "16:9", context: "Cross-link naar boek", pageSlug: "boek" },
+
+  // ══════════════════════════════════════
+  // HOMEPAGE specific specs
+  // ══════════════════════════════════════
+  // AboutKlaas banner — min-h-[340px] in 50vw col (~590px wide) → ~16:9 landscape
+  { imageKey: "home/about-klaas-banner", displayWidth: 1180, displayHeight: 680, aspectRatio: "16:9", context: "Over Klaas banner (home)", pageSlug: "home", objectPosition: "top" },
+  // BookTeaser — 180px wide × 270px tall (w-[min(180px,52%)]) = 2:3 portrait
+  { imageKey: "home/book-teaser-cover", displayWidth: 360, displayHeight: 540, aspectRatio: "2:3", context: "Boek teaser cover (home)", pageSlug: "home" },
+  // Slideshow — h-[50vh] sm:h-[55vh] lg:auto in 50vw col, viewport-height portrait-ish
+  { imageKey: "home/slideshow-slide", displayWidth: 1200, displayHeight: 1200, aspectRatio: "1:1", context: "Home hero slideshow", pageSlug: "home" },
+  // Training cards — aspect-video (16:9) in 50vw col
+  { imageKey: "home/training-card", displayWidth: 1180, displayHeight: 664, aspectRatio: "16:9", context: "Training card thumbnail", pageSlug: "home" },
+  // Team photos — first h-[500px] (2 rows), others h-[249px] in 50vw col
+  { imageKey: "home/team-photo-large", displayWidth: 1180, displayHeight: 1000, aspectRatio: "~1.18:1", context: "Team foto groot (1ste)", pageSlug: "home" },
+  { imageKey: "home/team-photo-small", displayWidth: 1180, displayHeight: 498, aspectRatio: "~2.37:1", context: "Team foto klein", pageSlug: "home" },
 ];
 
 /** Seed all image specs. Use force=true to overwrite existing specs. */

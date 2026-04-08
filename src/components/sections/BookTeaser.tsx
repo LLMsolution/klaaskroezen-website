@@ -4,11 +4,31 @@ import { FadeIn } from "@/components/ui/FadeIn";
 import { t, type Lang } from "@/lib/i18n";
 import { loadSiteImages, imgUrl } from "@/lib/site-images";
 
-export async function BookTeaser({ lang }: { lang: Lang }) {
+type BookTeaserProps = {
+  lang: Lang;
+  content?: {
+    image?: string;
+    imageAlt?: string;
+    label?: string;
+    title?: string;
+    titleAccent?: string;
+    description?: string;
+    badges?: Array<{ value: string }>;
+    ctaLabel?: string;
+  };
+};
+
+export async function BookTeaser({ lang, content }: BookTeaserProps) {
   const img = await loadSiteImages(["book/sales-oprecht-ontspannen-cover.png"]);
   const s = t(lang).bookTeaser;
 
-  const badges = [s.badge1, s.badge2, s.badge3];
+  const image = content?.image || imgUrl(img, "book/sales-oprecht-ontspannen-cover.png");
+  const imageAlt = content?.imageAlt || s.imageAlt;
+  const eyebrow = content?.label || s.eyebrow;
+  const title1 = content?.title || s.title1;
+  const title2 = content?.titleAccent || s.title2;
+  const description = content?.description || s.description;
+  const badges = content?.badges?.map((b) => b.value) ?? [s.badge1, s.badge2, s.badge3];
 
   return (
     <section
@@ -24,8 +44,8 @@ export async function BookTeaser({ lang }: { lang: Lang }) {
         />
         <div className="relative z-10 w-[min(160px,45%)] sm:w-[min(180px,52%)]">
           <Image
-            src={imgUrl(img, "book/sales-oprecht-ontspannen-cover.png")}
-            alt={s.imageAlt}
+            src={image}
+            alt={imageAlt}
             width={340}
             height={480}
             className="drop-shadow-[_-10px_20px_36px_rgba(0,0,0,0.25)] -rotate-2 hover:rotate-0 hover:scale-105 transition-transform duration-[600ms] ease-out"
@@ -38,19 +58,19 @@ export async function BookTeaser({ lang }: { lang: Lang }) {
       <div className="p-7 sm:p-[52px_60px] flex flex-col justify-center">
         <FadeIn>
         <span className="block font-body text-[11px] font-medium tracking-[0.22em] uppercase text-ink/45 mb-3">
-          {s.eyebrow}
+          {eyebrow}
         </span>
         <h2
           id="book-heading"
           className="font-display text-[clamp(22px,2.8vw,38px)] font-black leading-none tracking-[-0.025em] text-ink mb-1"
         >
-          {s.title1}
+          {title1}
           <em className="block italic font-normal text-copper">
-            {s.title2}
+            {title2}
           </em>
         </h2>
         <p className="text-[15px] sm:text-[16px] text-ink/75 leading-[1.8] max-w-[360px] mt-4 mb-5">
-          {s.description}
+          {description}
         </p>
         <ul className="flex gap-3 flex-wrap mb-5 list-none" aria-label={s.awardsLabel}>
           {badges.map((badge) => (

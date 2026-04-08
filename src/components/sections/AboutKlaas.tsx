@@ -5,9 +5,38 @@ import { FadeIn } from "@/components/ui/FadeIn";
 import { t, type Lang } from "@/lib/i18n";
 import { loadSiteImages, imgUrl } from "@/lib/site-images";
 
-export async function AboutKlaas({ lang }: { lang: Lang }) {
+type AboutKlaasProps = {
+  lang: Lang;
+  content?: {
+    image?: string;
+    imageAlt?: string;
+    label?: string;
+    name?: string;
+    subtitle?: string;
+    bio1?: string;
+    bio1Bold?: string;
+    bio1End?: string;
+    bio2?: string;
+    ctaPrimary?: string;
+    ctaSecondary?: string;
+  };
+};
+
+export async function AboutKlaas({ lang, content }: AboutKlaasProps) {
   const img = await loadSiteImages(["about/klaas-kroezen-portrait.jpeg"]);
   const s = t(lang).aboutKlaas;
+
+  const image = content?.image || imgUrl(img, "about/klaas-kroezen-portrait.jpeg");
+  const imageAlt = content?.imageAlt || s.imageAlt;
+  const label = content?.label || s.label;
+  const name = content?.name || s.name;
+  const subtitle = content?.subtitle || s.subtitle;
+  const bio1 = content?.bio1 || s.bio1;
+  const bio1Bold = content?.bio1Bold || s.bio1Bold;
+  const bio1End = content?.bio1End || s.bio1End;
+  const bio2 = content?.bio2 || s.bio2;
+  const ctaPrimary = content?.ctaPrimary || s.ctaPrimary;
+  const ctaSecondary = content?.ctaSecondary || s.ctaSecondary;
 
   const stats = [
     { number: "25+", label: s.statExp },
@@ -23,8 +52,8 @@ export async function AboutKlaas({ lang }: { lang: Lang }) {
     >
       <div className="relative overflow-hidden bg-warm lg:border-r lg:border-rule min-h-[300px] sm:min-h-[340px]">
         <Image
-          src={imgUrl(img, "about/klaas-kroezen-portrait.jpeg")}
-          alt={s.imageAlt}
+          src={image}
+          alt={imageAlt}
           fill
           className="object-cover object-[center_top]"
           sizes="(max-width: 1024px) 100vw, 50vw"
@@ -33,35 +62,35 @@ export async function AboutKlaas({ lang }: { lang: Lang }) {
       </div>
       <div className="py-12 sm:py-20 px-7 sm:px-[60px] flex flex-col justify-center">
         <FadeIn>
-        <Label className="mb-3.5">{s.label}</Label>
+        <Label className="mb-3.5">{label}</Label>
         <h2
           id="klaas-heading"
           className="font-display text-[clamp(26px,3.2vw,46px)] font-black leading-[0.97] tracking-[-0.03em] mb-1"
         >
-          {s.name}
+          {name}
           <em className="block italic font-normal text-ink/40 text-[0.82em]">
-            {s.subtitle}
+            {subtitle}
           </em>
         </h2>
         <p className="text-[15px] sm:text-[16.5px] text-ink/80 leading-[1.85] mt-4 mb-5 max-w-[440px]">
-          {s.bio1}{" "}
+          {bio1}{" "}
           <strong className="font-semibold text-ink">
-            {s.bio1Bold}
+            {bio1Bold}
           </strong>{" "}
-          {s.bio1End}
+          {bio1End}
         </p>
         <p className="text-[15px] sm:text-[16.5px] text-ink/80 leading-[1.85] mb-6 max-w-[440px]">
-          {s.bio2}
+          {bio2}
         </p>
         <div className="flex gap-2.5 flex-wrap mb-6">
           <ButtonLink
             href="/checkout/set-online"
             variant="copper"
           >
-            <ButtonArrow>{s.ctaPrimary}</ButtonArrow>
+            <ButtonArrow>{ctaPrimary}</ButtonArrow>
           </ButtonLink>
           <ButtonLink href="/over-ons" variant="ghost">
-            {s.ctaSecondary}
+            {ctaSecondary}
           </ButtonLink>
         </div>
         <dl

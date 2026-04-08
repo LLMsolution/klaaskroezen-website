@@ -33,12 +33,48 @@ const photoData = [
   },
 ] as const;
 
-export async function TeamPhotos() {
+type TeamPhotoInput = {
+  image?: string;
+  caption?: string;
+  featured?: string;
+};
+
+type TeamPhotosProps = {
+  content?: {
+    eyebrow?: string;
+    title?: string;
+    titleAccent?: string;
+    items?: TeamPhotoInput[];
+  };
+};
+
+export async function TeamPhotos({ content }: TeamPhotosProps = {}) {
   const img = await loadSiteImages([...PHOTO_KEYS]);
-  const photos = photoData.map((p) => ({
-    ...p,
-    src: imgUrl(img, p.key),
-  }));
+
+  let photos: Array<{
+    key: string;
+    src: string;
+    alt: string;
+    company: string;
+    text: string;
+    result: string;
+  }>;
+
+  if (content?.items && content.items.length > 0) {
+    photos = content.items.map((p, i) => ({
+      key: `photo-${i}`,
+      src: p.image || "",
+      alt: p.caption || "",
+      company: "",
+      text: p.caption || "",
+      result: "",
+    }));
+  } else {
+    photos = photoData.map((p) => ({
+      ...p,
+      src: imgUrl(img, p.key),
+    }));
+  }
   return (
     <section aria-labelledby="team-heading" className="border-b border-rule">
       <div className="py-12 sm:py-20 px-7 sm:px-14 max-w-[1180px] mx-auto">
