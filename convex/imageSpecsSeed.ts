@@ -84,7 +84,7 @@ const SPECS: SpecEntry[] = [
   // Hero — full-screen min-h-[90vh]
   { imageKey: "spreker/klaas-hero.jpeg", displayWidth: 1920, displayHeight: 1080, aspectRatio: "16:9", context: "Spreker hero (full screen)", pageSlug: "spreker" },
   // ContentBlock — aspect-[4/5] mob, sm:aspect-[3/4], lg:min-h-[480px] in 50vw col → ~590x480 = ~1.23:1
-  { imageKey: "spreker/klaas-flipchart.jpeg", displayWidth: 1200, displayHeight: 1600, aspectRatio: "3:4", context: "Content blok portrait (3:4, object-top)", pageSlug: "spreker", objectPosition: "top" },
+  { imageKey: "spreker/klaas-flipchart.jpeg", displayWidth: 1600, displayHeight: 1200, aspectRatio: "4:3", context: "Content blok landscape (4:3, object-top)", pageSlug: "spreker", objectPosition: "top" },
   // Video thumbnails — aspect-video
   { imageKey: "spreker/video-thumb-speech.jpg", displayWidth: 1280, displayHeight: 720, aspectRatio: "16:9", context: "Video thumbnail", pageSlug: "spreker" },
   { imageKey: "spreker/video-thumb-mindset.jpg", displayWidth: 1280, displayHeight: 720, aspectRatio: "16:9", context: "Video thumbnail", pageSlug: "spreker" },

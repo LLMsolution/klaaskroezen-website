@@ -26,7 +26,7 @@ export function ContentBlock({
   children,
 }: ContentBlockProps) {
   const imgBlock = (
-    <div className="relative aspect-[4/5] sm:aspect-[3/4] lg:aspect-[3/4] overflow-hidden bg-warm">
+    <div className="relative aspect-[4/5] sm:aspect-[3/4] lg:aspect-[4/3] overflow-hidden bg-warm">
       <Image
         src={image}
         alt={imageAlt}
