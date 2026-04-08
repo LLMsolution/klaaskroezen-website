@@ -147,9 +147,12 @@ export function BlogTab() {
           category, lang, published,
         });
       }
-      resetForm();
-      setView("list");
-      setEditId(null);
+      // Only reset + close on create, keep edit view open so user can continue editing
+      if (view === "create") {
+        resetForm();
+        setView("list");
+        setEditId(null);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Fout bij opslaan.");
     } finally {
@@ -221,8 +224,12 @@ export function BlogTab() {
                 currentUrl={imageUrl || undefined}
                 onUploaded={async (storageId) => {
                   setImageStorageId(storageId);
-                  setImageUrl(""); // clear legacy URL so updatePost won't restore it
-                  if (editId) await saveImage({ postId: editId, storageId });
+                  if (editId) {
+                    await saveImage({ postId: editId, storageId });
+                    // Refetch the updated post to get the resolved URL
+                    const updated = posts?.find((p) => p._id === editId);
+                    if (updated?.imageUrl) setImageUrl(updated.imageUrl);
+                  }
                 }}
                 onRemoved={editId ? async () => {
                   setImageStorageId(null);

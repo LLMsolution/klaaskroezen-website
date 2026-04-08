@@ -252,7 +252,9 @@ export const saveImage = mutation({
     if (post?.imageStorageId) {
       try { await ctx.storage.delete(post.imageStorageId); } catch { /* old file already gone */ }
     }
-    await ctx.db.patch(postId, { imageStorageId: storageId, imageUrl: undefined });
+    // Store resolved URL in imageUrl so public queries work without extra resolution
+    const url = await ctx.storage.getUrl(storageId);
+    await ctx.db.patch(postId, { imageStorageId: storageId, imageUrl: url ?? undefined });
   },
 });
 
