@@ -6,15 +6,23 @@ import { requireAdmin } from "./adminAuth";
 
 /** Map of content section keys to their matching imageSpecs key */
 const CONTENT_KEY_TO_SPEC: Record<string, string> = {
+  // Over-ons
   "over-ons/hero/image": "about/klaas-over-mij.jpeg",
   "over-ons/mission/image": "about/klaas-kroezen-portrait-2.jpeg",
   "over-ons/office/image": "about/kantoor-administratie.jpg",
+  // Spreker
   "spreker/content-block/image": "spreker/klaas-flipchart.jpeg",
   "spreker/hero/image": "spreker/klaas-hero.jpeg",
+  // Boek
   "boek/hero/image": "book/sales-oprecht-ontspannen-cover.png",
+  "boek/interview/image": "blog/klaas-managementboek-interview.jpg",
+  // Contact
   "contact/hero/image": "about/klaas-kroezen-portrait-2.jpeg",
+  // Training pages
   "sales-excellence-training/hero/image": "training/visma-youserve-session.jpg",
+  "sales-excellence-training/cross-link/image": "hero/customer-success-group.jpg",
   "customer-success-training/hero/image": "hero/customer-success-hero.jpeg",
+  "customer-success-training/cross-link/image": "hero/sales-excellence-group.jpeg",
 };
 
 /** Get the display spec for a single image key */

@@ -18,74 +18,75 @@ type SpecEntry = {
  */
 const SPECS: SpecEntry[] = [
   // ══════════════════════════════════════
-  // HOME PAGE
+  // HOME PAGE — desktop rendering
   // ══════════════════════════════════════
-  // Hero slideshow — h-[50vh] sm:h-[55vh], 50vw desktop
-  { imageKey: "hero/sales-excellence-group.jpeg", displayWidth: 960, displayHeight: 600, aspectRatio: "16:10", context: "Hero slideshow", pageSlug: "home" },
-  { imageKey: "hero/customer-success-group.jpg", displayWidth: 960, displayHeight: 600, aspectRatio: "16:10", context: "Hero slideshow", pageSlug: "home" },
-  // AboutKlaas — min-h-[300px] sm:min-h-[340px] in 50vw col, landscape crop with object-cover
-  { imageKey: "about/klaas-kroezen-portrait.jpeg", displayWidth: 590, displayHeight: 340, aspectRatio: "16:9", context: "About Klaas banner", pageSlug: "home" },
-  // Team photos — h-[280px] sm:h-[500px] first, h-[220px] sm:h-[249px] others
-  { imageKey: "team/heigo-group.jpeg", displayWidth: 960, displayHeight: 500, aspectRatio: "2:1", context: "Team foto carousel", pageSlug: "home" },
-  { imageKey: "team/training-group-1.jpeg", displayWidth: 960, displayHeight: 500, aspectRatio: "2:1", context: "Team foto carousel", pageSlug: "home" },
-  { imageKey: "team/training-group-2.jpeg", displayWidth: 960, displayHeight: 500, aspectRatio: "2:1", context: "Team foto carousel", pageSlug: "home" },
-  { imageKey: "team/training-group-3.jpeg", displayWidth: 960, displayHeight: 500, aspectRatio: "2:1", context: "Team foto carousel", pageSlug: "home" },
-  { imageKey: "team/training-group-4.jpeg", displayWidth: 960, displayHeight: 500, aspectRatio: "2:1", context: "Team foto carousel", pageSlug: "home" },
-  { imageKey: "team/joost-wammer-klaas.jpeg", displayWidth: 960, displayHeight: 500, aspectRatio: "2:1", context: "Team foto carousel", pageSlug: "home" },
-  { imageKey: "team/visma-certificaat.jpeg", displayWidth: 960, displayHeight: 500, aspectRatio: "2:1", context: "Team foto carousel", pageSlug: "home" },
-  { imageKey: "team/whatsapp-group.jpeg", displayWidth: 960, displayHeight: 500, aspectRatio: "2:1", context: "Team foto carousel", pageSlug: "home" },
-  { imageKey: "team/ai-sales-training.jpeg", displayWidth: 960, displayHeight: 500, aspectRatio: "2:1", context: "Team foto carousel", pageSlug: "home" },
-  // BookTeaser — 340x480 in constrained container
-  { imageKey: "book/sales-oprecht-ontspannen-cover.png", displayWidth: 380, displayHeight: 570, aspectRatio: "2:3", context: "Boek teaser cover", pageSlug: "home" },
+  // Hero slideshow — h-[50vh] mobile, lg:min-h-[calc(100vh-96px)] desktop, ~50vw col
+  { imageKey: "hero/sales-excellence-group.jpeg", displayWidth: 1200, displayHeight: 900, aspectRatio: "4:3", context: "Hero slideshow (home)", pageSlug: "home" },
+  { imageKey: "hero/customer-success-group.jpg", displayWidth: 1200, displayHeight: 900, aspectRatio: "4:3", context: "Hero slideshow + TrainingCards", pageSlug: "home" },
+  // AboutKlaas — min-h-[340px] in 50vw col (~590px wide) → landscape banner
+  { imageKey: "about/klaas-kroezen-portrait.jpeg", displayWidth: 1180, displayHeight: 680, aspectRatio: "16:9", context: "AboutKlaas banner", pageSlug: "home" },
+  // Team photos — first h-[500px], others h-[249px]; ~590px wide each
+  { imageKey: "team/heigo-group.jpeg", displayWidth: 1180, displayHeight: 1000, aspectRatio: "~1.18:1", context: "Team foto groot", pageSlug: "home" },
+  { imageKey: "team/training-group-1.jpeg", displayWidth: 1180, displayHeight: 498, aspectRatio: "~2.37:1", context: "Team foto klein", pageSlug: "home" },
+  { imageKey: "team/training-group-2.jpeg", displayWidth: 1180, displayHeight: 498, aspectRatio: "~2.37:1", context: "Team foto klein", pageSlug: "home" },
+  { imageKey: "team/training-group-3.jpeg", displayWidth: 1180, displayHeight: 498, aspectRatio: "~2.37:1", context: "Team foto klein", pageSlug: "home" },
+  { imageKey: "team/training-group-4.jpeg", displayWidth: 1180, displayHeight: 498, aspectRatio: "~2.37:1", context: "Team foto klein", pageSlug: "home" },
+  { imageKey: "team/joost-wammer-klaas.jpeg", displayWidth: 1180, displayHeight: 498, aspectRatio: "~2.37:1", context: "Team foto klein", pageSlug: "home" },
+  { imageKey: "team/visma-certificaat.jpeg", displayWidth: 1180, displayHeight: 498, aspectRatio: "~2.37:1", context: "Team foto klein", pageSlug: "home" },
+  { imageKey: "team/whatsapp-group.jpeg", displayWidth: 1180, displayHeight: 498, aspectRatio: "~2.37:1", context: "Team foto klein", pageSlug: "home" },
+  { imageKey: "team/ai-sales-training.jpeg", displayWidth: 1180, displayHeight: 498, aspectRatio: "~2.37:1", context: "Team foto klein", pageSlug: "home" },
+  // BookTeaser — compacte cover (w-[180px] in teaser)
+  { imageKey: "book/sales-oprecht-ontspannen-cover.png", displayWidth: 380, displayHeight: 570, aspectRatio: "2:3", context: "Boek cover (teaser + boek pagina)", pageSlug: "home", pageSlugs: ["home", "boek"] },
   // OG image
-  { imageKey: "hero/og-image.jpeg", displayWidth: 1200, displayHeight: 630, aspectRatio: "1200:630", context: "OpenGraph image", pageSlug: "home" },
-  // Logos
+  { imageKey: "hero/og-image.jpeg", displayWidth: 1200, displayHeight: 630, aspectRatio: "40:21", context: "OpenGraph image", pageSlug: "home" },
+  // Logos — h-[26px] displayed, 2x for retina
   ...["bots.png","edison.png","gp-products.png","gradient.png","heigo.png","leadinfo.png","mom-in-balance.png","mt-sprout.png","vasco.png","visma.png","zigt.webp"].map(f => ({
-    imageKey: `logos/${f}`, displayWidth: 200, displayHeight: 52, aspectRatio: "auto", context: "Logo", pageSlug: "home",
+    imageKey: `logos/${f}`, displayWidth: 200, displayHeight: 52, aspectRatio: "auto", context: "Logo (variable width)", pageSlug: "home",
   })),
-  // Reviews (used on multiple pages)
-  { imageKey: "reviews/simon-kornblum.jpg", displayWidth: 72, displayHeight: 72, aspectRatio: "1:1", context: "Review avatar", pageSlug: "home" },
-  { imageKey: "reviews/michael-pilarczyk.jpeg", displayWidth: 72, displayHeight: 72, aspectRatio: "1:1", context: "Review avatar", pageSlug: "home" },
-  { imageKey: "reviews/mark-tigchelaar.jpeg", displayWidth: 72, displayHeight: 72, aspectRatio: "1:1", context: "Review avatar", pageSlug: "home" },
-  { imageKey: "reviews/tijn-touber.jpg", displayWidth: 72, displayHeight: 72, aspectRatio: "1:1", context: "Review avatar", pageSlug: "home" },
+  // Reviews — 36x36 display, 2x retina = 72x72
+  { imageKey: "reviews/simon-kornblum.jpg", displayWidth: 144, displayHeight: 144, aspectRatio: "1:1", context: "Review avatar", pageSlug: "home" },
+  { imageKey: "reviews/michael-pilarczyk.jpeg", displayWidth: 144, displayHeight: 144, aspectRatio: "1:1", context: "Review avatar", pageSlug: "home" },
+  { imageKey: "reviews/mark-tigchelaar.jpeg", displayWidth: 144, displayHeight: 144, aspectRatio: "1:1", context: "Review avatar", pageSlug: "home" },
+  { imageKey: "reviews/tijn-touber.jpg", displayWidth: 144, displayHeight: 144, aspectRatio: "1:1", context: "Review avatar", pageSlug: "home" },
 
   // ══════════════════════════════════════
   // OVER ONS
   // ══════════════════════════════════════
-  // Hero — aspect-[3/4] mobile, full-height 50vw desktop
-  { imageKey: "about/klaas-over-mij.jpeg", displayWidth: 590, displayHeight: 900, aspectRatio: "2:3", context: "Hero portrait (full height)", pageSlug: "over-ons" },
-  // Mission — aspect-[4/3] mobile, lg:min-h-[560px] in 50vw col — also used on /contact
-  { imageKey: "about/klaas-kroezen-portrait-2.jpeg", displayWidth: 590, displayHeight: 560, aspectRatio: "~1:1", context: "Missie sectie portrait + contact hero", pageSlug: "over-ons", pageSlugs: ["over-ons", "contact"] },
-  // Team members — aspect-square in 4-col grid
-  { imageKey: "about/tim-lind.png", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member", pageSlug: "over-ons" },
-  { imageKey: "about/joost-wammes.png", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member", pageSlug: "over-ons" },
-  { imageKey: "about/sanne-bakker.png", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member", pageSlug: "over-ons" },
-  { imageKey: "about/yvon-kruger.webp", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member", pageSlug: "over-ons" },
-  // Office — aspect-video mobile, lg:min-h-[480px]
-  { imageKey: "about/kantoor-administratie.jpg", displayWidth: 1180, displayHeight: 664, aspectRatio: "16:9", context: "Kantoor foto", pageSlug: "over-ons" },
+  // Hero — aspect-[3/4] mobile, desktop fills ~590x900 (min-h-[calc(100vh-96px)]) → ~2:3
+  { imageKey: "about/klaas-over-mij.jpeg", displayWidth: 1180, displayHeight: 1770, aspectRatio: "2:3", context: "Hero portrait (full height desktop)", pageSlug: "over-ons" },
+  // Mission — aspect-[4/3] mobile, lg:min-h-[560px] in 50vw col → ~590x560 = ~1.05:1 near square
+  // Also used on contact — same container type but lg:min-h-[480px] → ~590x480 = ~1.23:1
+  { imageKey: "about/klaas-kroezen-portrait-2.jpeg", displayWidth: 1180, displayHeight: 1120, aspectRatio: "~1.05:1", context: "Missie sectie (over-ons) + contact hero", pageSlug: "over-ons", pageSlugs: ["over-ons", "contact"] },
+  // Team members — aspect-square in 4-col grid (25vw desktop = ~295px)
+  { imageKey: "about/tim-lind.png", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member portrait", pageSlug: "over-ons" },
+  { imageKey: "about/joost-wammes.png", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member portrait", pageSlug: "over-ons" },
+  { imageKey: "about/sanne-bakker.png", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member portrait", pageSlug: "over-ons" },
+  { imageKey: "about/yvon-kruger.webp", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member portrait", pageSlug: "over-ons" },
+  // Office — aspect-video mobile, lg:min-h-[480px] in 50vw col → ~590x480 = ~1.23:1
+  { imageKey: "about/kantoor-administratie.jpg", displayWidth: 1180, displayHeight: 960, aspectRatio: "~1.23:1", context: "Kantoor foto", pageSlug: "over-ons" },
 
   // ══════════════════════════════════════
   // SALES EXCELLENCE TRAINING
   // ══════════════════════════════════════
-  // TrainingHero — full-screen min-h-[90vh]
-  { imageKey: "training/visma-youserve-session.jpg", displayWidth: 1920, displayHeight: 1080, aspectRatio: "16:9", context: "Hero achtergrond (full screen)", pageSlug: "sales-excellence-training" },
+  // TrainingHero — full-screen min-h-[90vh], fill
+  { imageKey: "training/visma-youserve-session.jpg", displayWidth: 1920, displayHeight: 1080, aspectRatio: "16:9", context: "Training hero (full screen)", pageSlug: "sales-excellence-training" },
 
   // ══════════════════════════════════════
   // CUSTOMER SUCCESS TRAINING
   // ══════════════════════════════════════
-  { imageKey: "hero/customer-success-hero.jpeg", displayWidth: 1920, displayHeight: 1080, aspectRatio: "16:9", context: "Hero achtergrond (full screen)", pageSlug: "customer-success-training" },
+  { imageKey: "hero/customer-success-hero.jpeg", displayWidth: 1920, displayHeight: 1080, aspectRatio: "16:9", context: "Training hero (full screen)", pageSlug: "customer-success-training" },
 
   // ══════════════════════════════════════
   // SPREKER
   // ══════════════════════════════════════
-  // Hero — full-screen min-h-[90vh], object-cover "center 25%"
-  { imageKey: "spreker/klaas-hero.jpeg", displayWidth: 1920, displayHeight: 1080, aspectRatio: "16:9", context: "Hero achtergrond (full screen)", pageSlug: "spreker" },
-  // ContentBlock — aspect-[4/5] mobile, sm:aspect-[3/4], lg:min-h-[480px] in 50vw col
-  { imageKey: "spreker/klaas-flipchart.jpeg", displayWidth: 590, displayHeight: 480, aspectRatio: "5:4", context: "Content sectie portrait", pageSlug: "spreker" },
+  // Hero — full-screen min-h-[90vh]
+  { imageKey: "spreker/klaas-hero.jpeg", displayWidth: 1920, displayHeight: 1080, aspectRatio: "16:9", context: "Spreker hero (full screen)", pageSlug: "spreker" },
+  // ContentBlock — aspect-[4/5] mob, sm:aspect-[3/4], lg:min-h-[480px] in 50vw col → ~590x480 = ~1.23:1
+  { imageKey: "spreker/klaas-flipchart.jpeg", displayWidth: 1180, displayHeight: 960, aspectRatio: "~1.23:1", context: "Content blok portrait", pageSlug: "spreker" },
   // Video thumbnails — aspect-video
-  { imageKey: "spreker/video-thumb-speech.jpg", displayWidth: 960, displayHeight: 540, aspectRatio: "16:9", context: "Video thumbnail", pageSlug: "spreker" },
-  { imageKey: "spreker/video-thumb-mindset.jpg", displayWidth: 960, displayHeight: 540, aspectRatio: "16:9", context: "Video thumbnail", pageSlug: "spreker" },
-  { imageKey: "spreker/klaas-spreker-flipchart.jpg", displayWidth: 960, displayHeight: 540, aspectRatio: "16:9", context: "Spreker foto", pageSlug: "spreker" },
+  { imageKey: "spreker/video-thumb-speech.jpg", displayWidth: 1280, displayHeight: 720, aspectRatio: "16:9", context: "Video thumbnail", pageSlug: "spreker" },
+  { imageKey: "spreker/video-thumb-mindset.jpg", displayWidth: 1280, displayHeight: 720, aspectRatio: "16:9", context: "Video thumbnail", pageSlug: "spreker" },
+  { imageKey: "spreker/klaas-spreker-flipchart.jpg", displayWidth: 1280, displayHeight: 720, aspectRatio: "16:9", context: "Spreker foto", pageSlug: "spreker" },
 
   // ══════════════════════════════════════
   // BOEK

@@ -89,7 +89,7 @@ export default async function BoekPage() {
             <div className="flex justify-center lg:justify-start pb-4">
               <div className="relative w-[260px] sm:w-[320px] lg:w-[380px]">
                 <Image
-                  src={coverUrl}
+                  src={(hero as { image?: string }).image || coverUrl}
                   alt={hero.imageAlt}
                   width={380}
                   height={570}

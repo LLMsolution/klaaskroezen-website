@@ -72,6 +72,7 @@ import type * as siteImagesMigration from "../siteImagesMigration.js";
 import type * as siteSchemas from "../siteSchemas.js";
 import type * as siteSeed from "../siteSeed.js";
 import type * as siteSeedBoek from "../siteSeedBoek.js";
+import type * as siteSeedContact from "../siteSeedContact.js";
 import type * as siteSeedCst from "../siteSeedCst.js";
 import type * as siteSeedOverOns from "../siteSeedOverOns.js";
 import type * as siteSeedSet from "../siteSeedSet.js";
@@ -156,6 +157,7 @@ declare const fullApi: ApiFromModules<{
   siteSchemas: typeof siteSchemas;
   siteSeed: typeof siteSeed;
   siteSeedBoek: typeof siteSeedBoek;
+  siteSeedContact: typeof siteSeedContact;
   siteSeedCst: typeof siteSeedCst;
   siteSeedOverOns: typeof siteSeedOverOns;
   siteSeedSet: typeof siteSeedSet;

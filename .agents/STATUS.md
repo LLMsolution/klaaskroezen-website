@@ -10,11 +10,13 @@
 | CRM Prospects View | done | 2026-03-30 |
 | Admin Image Crop Tool | done | 2026-04-01 |
 | Inline Image Management | done | 2026-04-01 |
+| Homepage + Remaining Images | partial | 2026-04-01 |
 
 ## Current Focus
-No features in progress (homepage refactor deferred)
+Homepage + Remaining Images — [plan](.agents/plans/homepage-and-remaining-images.md)
 
 ## Recent Activity
+- 2026-04-01: Homepage + Remaining Images plan created
 - 2026-04-01: Inline Image Management implementation completed (Phase 1-3 + cleanup; homepage deferred)
 - 2026-04-01: Inline Image Management execution started
 - 2026-04-01: Inline Image Management plan created
