@@ -85,13 +85,56 @@ function InitialsAvatar({ name, dark }: { name: string; dark: boolean }) {
   );
 }
 
-export async function ReviewGrid({ lang }: { lang: Lang }) {
+type ReviewInput = {
+  text?: string;
+  name?: string;
+  role?: string;
+  avatar?: string;
+  source?: string;
+};
+
+type ReviewGridProps = {
+  lang: Lang;
+  content?: {
+    eyebrow?: string;
+    title?: string;
+    titleAccent?: string;
+    items?: ReviewInput[];
+  };
+};
+
+export async function ReviewGrid({ lang, content }: ReviewGridProps) {
   const s = t(lang).reviewGrid;
-  const img = await loadSiteImages([...AVATAR_KEYS]);
-  const reviews = reviewData.map((r) => ({
-    ...r,
-    avatar: r.avatarKey ? imgUrl(img, r.avatarKey) : null,
-  }));
+  const sectionLabel = content?.eyebrow || s.label;
+  const heading1 = content?.title || s.heading1;
+  const heading2 = content?.titleAccent || s.heading2;
+
+  let reviews: Array<{
+    text: string;
+    name: string;
+    role: string;
+    avatar: string | null;
+    dark: boolean;
+  }>;
+
+  if (content?.items && content.items.length > 0) {
+    reviews = content.items.map((r, i) => ({
+      text: r.text || "",
+      name: r.name || "",
+      role: r.role || "",
+      avatar: r.avatar || null,
+      dark: i % 2 === 1,
+    }));
+  } else {
+    const img = await loadSiteImages([...AVATAR_KEYS]);
+    reviews = reviewData.map((r) => ({
+      text: r.text,
+      name: r.name,
+      role: r.role,
+      avatar: r.avatarKey ? imgUrl(img, r.avatarKey) : null,
+      dark: r.dark,
+    }));
+  }
 
   return (
     <section
@@ -100,15 +143,15 @@ export async function ReviewGrid({ lang }: { lang: Lang }) {
     >
       <Container>
         <FadeIn className="mb-10 sm:mb-[60px]">
-          <Label className="mb-3">{s.label}</Label>
+          <Label className="mb-3">{sectionLabel}</Label>
           <h2
             id="reviews-heading"
             className="font-display text-[clamp(32px,4.2vw,58px)] font-black leading-[0.97] tracking-[-0.03em]"
           >
-            {s.heading1}
+            {heading1}
             <br />
             <em className="italic font-normal text-ink/40">
-              {s.heading2}
+              {heading2}
             </em>
           </h2>
         </FadeIn>

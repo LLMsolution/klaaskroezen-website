@@ -75,18 +75,22 @@ export async function TeamPhotos({ content }: TeamPhotosProps = {}) {
       src: imgUrl(img, p.key),
     }));
   }
+  const eyebrow = content?.eyebrow || "Eerder meegedaan";
+  const title = content?.title || "Teams die al";
+  const titleAccent = content?.titleAccent || "vooroplopen.";
+
   return (
     <section aria-labelledby="team-heading" className="border-b border-rule">
       <div className="py-12 sm:py-20 px-7 sm:px-14 max-w-[1180px] mx-auto">
         <FadeIn>
-          <Label className="mb-3">Eerder meegedaan</Label>
+          <Label className="mb-3">{eyebrow}</Label>
           <h2
             id="team-heading"
             className="font-display text-[clamp(30px,4vw,52px)] font-black leading-[0.97] tracking-[-0.03em]"
           >
-            Teams die al
+            {title}
             <br />
-            <em className="italic font-normal text-ink/40">vooroplopen.</em>
+            <em className="italic font-normal text-ink/40">{titleAccent}</em>
           </h2>
         </FadeIn>
       </div>

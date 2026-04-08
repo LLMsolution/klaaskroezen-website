@@ -17,9 +17,30 @@ interface Training {
   who: string;
   description: React.ReactNode;
   points: string[];
+  ctaLabel?: string;
 }
 
-export async function TrainingCards({ lang }: { lang: Lang }) {
+type TrainingCardItem = {
+  image?: string;
+  imageAlt?: string;
+  label?: string;
+  title?: string;
+  description?: string;
+  href?: string;
+  ctaLabel?: string;
+};
+
+type TrainingCardsProps = {
+  lang: Lang;
+  content?: {
+    eyebrow?: string;
+    title?: string;
+    titleAccent?: string;
+    items?: TrainingCardItem[];
+  };
+};
+
+export async function TrainingCards({ lang, content }: TrainingCardsProps) {
   const s = t(lang).trainingCards;
 
   const images = await loadSiteImages([
@@ -27,46 +48,67 @@ export async function TrainingCards({ lang }: { lang: Lang }) {
     "hero/customer-success-group.jpg",
   ]);
 
-  const trainings: Training[] = [
-    {
-      href: "/sales-excellence-training",
-      featured: true,
-      image: imgUrl(images, "hero/sales-excellence-group.jpeg"),
-      imageAlt: s.setImageAlt,
-      tag: s.setTag,
-      title: s.setTitle,
-      who: s.setWho,
-      description: (
-        <>
-          {s.setDesc1}{" "}
-          <strong className="font-semibold text-ink">
-            {s.setDescHighlight}
-          </strong>{" "}
-          {s.setDesc2}
-        </>
-      ),
-      points: [s.setPoint1, s.setPoint2, s.setPoint3],
-    },
-    {
-      href: "/customer-success-training",
-      featured: false,
-      image: imgUrl(images, "hero/customer-success-group.jpg"),
-      imageAlt: s.cstImageAlt,
-      tag: s.cstTag,
-      title: s.cstTitle,
-      who: s.cstWho,
-      description: (
-        <>
-          {s.cstDesc1}{" "}
-          <strong className="font-semibold text-ink">
-            {s.cstDescHighlight}
-          </strong>{" "}
-          {s.cstDesc2}
-        </>
-      ),
-      points: [s.cstPoint1, s.cstPoint2, s.cstPoint3],
-    },
-  ];
+  const sectionLabel = content?.eyebrow || s.label;
+  const heading1 = content?.title || s.heading1;
+  const heading2 = content?.titleAccent || s.heading2;
+
+  let trainings: Training[];
+
+  if (content?.items && content.items.length > 0) {
+    trainings = content.items.map((item, i) => ({
+      href: item.href || "/",
+      featured: i === 0,
+      image: item.image || "",
+      imageAlt: item.imageAlt || "",
+      tag: item.label || "",
+      title: item.title || "",
+      who: "",
+      description: item.description || "",
+      points: [],
+      ctaLabel: item.ctaLabel,
+    }));
+  } else {
+    trainings = [
+      {
+        href: "/sales-excellence-training",
+        featured: true,
+        image: imgUrl(images, "hero/sales-excellence-group.jpeg"),
+        imageAlt: s.setImageAlt,
+        tag: s.setTag,
+        title: s.setTitle,
+        who: s.setWho,
+        description: (
+          <>
+            {s.setDesc1}{" "}
+            <strong className="font-semibold text-ink">
+              {s.setDescHighlight}
+            </strong>{" "}
+            {s.setDesc2}
+          </>
+        ),
+        points: [s.setPoint1, s.setPoint2, s.setPoint3],
+      },
+      {
+        href: "/customer-success-training",
+        featured: false,
+        image: imgUrl(images, "hero/customer-success-group.jpg"),
+        imageAlt: s.cstImageAlt,
+        tag: s.cstTag,
+        title: s.cstTitle,
+        who: s.cstWho,
+        description: (
+          <>
+            {s.cstDesc1}{" "}
+            <strong className="font-semibold text-ink">
+              {s.cstDescHighlight}
+            </strong>{" "}
+            {s.cstDesc2}
+          </>
+        ),
+        points: [s.cstPoint1, s.cstPoint2, s.cstPoint3],
+      },
+    ];
+  }
 
   return (
     <section
@@ -75,15 +117,15 @@ export async function TrainingCards({ lang }: { lang: Lang }) {
     >
       <Container>
         <FadeIn className="mb-10 sm:mb-[60px]">
-          <Label className="mb-3">{s.label}</Label>
+          <Label className="mb-3">{sectionLabel}</Label>
           <h2
             id="trainingen-heading"
             className="font-display text-[clamp(32px,4.2vw,58px)] font-black leading-[0.97] tracking-[-0.03em]"
           >
-            {s.heading1}
+            {heading1}
             <br />
             <em className="italic font-normal text-ink/40">
-              {s.heading2}
+              {heading2}
             </em>
           </h2>
           <p className="text-[16px] sm:text-[17px] text-ink/80 max-w-[500px] mt-5 leading-[1.8]">
@@ -145,7 +187,7 @@ export async function TrainingCards({ lang }: { lang: Lang }) {
                         : "bg-transparent text-ink border-rule group-hover:border-ink/35"
                     }`}
                   >
-                    {s.viewTraining} <ArrowIcon />
+                    {tr.ctaLabel || s.viewTraining} <ArrowIcon />
                   </span>
                 </div>
               </div>

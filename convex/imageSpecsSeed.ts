@@ -138,6 +138,8 @@ const SPECS: SpecEntry[] = [
   // Team photos — first h-[500px] (2 rows), others h-[249px] in 50vw col
   { imageKey: "home/team-photo-large", displayWidth: 1180, displayHeight: 1000, aspectRatio: "~1.18:1", context: "Team foto groot (1ste)", pageSlug: "home" },
   { imageKey: "home/team-photo-small", displayWidth: 1180, displayHeight: 498, aspectRatio: "~2.37:1", context: "Team foto klein", pageSlug: "home" },
+  // Logo item — h-[26px] × auto width, 2x retina
+  { imageKey: "home/logo-item", displayWidth: 200, displayHeight: 52, aspectRatio: "auto", context: "Logo item (26px × auto)", pageSlug: "home" },
 ];
 
 /** Seed all image specs. Use force=true to overwrite existing specs. */

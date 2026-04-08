@@ -36,7 +36,10 @@ export default async function HomePage() {
 
   const slideshow = sectionOr(db, "slideshow", {} as Section) as { slides?: Array<{ image?: string; alt?: string; objectPosition?: string; quote?: string; author?: string; role?: string; detail?: string }> };
   const logos = sectionOr(db, "logos", {} as Section) as { label?: string; items?: Array<{ image?: string; alt?: string; width?: number; height?: number }> };
+  const trainingCards = sectionOr(db, "training-cards", {} as Section) as { eyebrow?: string; title?: string; titleAccent?: string; items?: Array<{ image?: string; imageAlt?: string; label?: string; title?: string; description?: string; href?: string; ctaLabel?: string }> };
+  const stats = sectionOr(db, "stats", {} as Section) as { items?: Array<{ value?: string; label?: string }> };
   const teamPhotos = sectionOr(db, "team-photos", {} as Section) as { eyebrow?: string; title?: string; titleAccent?: string; items?: Array<{ image?: string; caption?: string; featured?: string }> };
+  const reviews = sectionOr(db, "reviews", {} as Section) as { eyebrow?: string; title?: string; titleAccent?: string; items?: Array<{ text?: string; name?: string; role?: string; avatar?: string; source?: string }> };
   const aboutKlaas = sectionOr(db, "about-klaas", {} as Section) as {
     image?: string;
     imageAlt?: string;
@@ -66,10 +69,10 @@ export default async function HomePage() {
       <JsonLd data={websiteJsonLd} />
       <Hero lang={lang} slides={slideshow.slides} />
       <LogoBar content={logos} />
-      <TrainingCards lang={lang} />
-      <StatsBand lang={lang} />
+      <TrainingCards lang={lang} content={trainingCards} />
+      <StatsBand lang={lang} content={stats} />
       <TeamPhotos content={teamPhotos} />
-      <ReviewGrid lang={lang} />
+      <ReviewGrid lang={lang} content={reviews} />
       <AboutKlaas lang={lang} content={aboutKlaas} />
       <BookTeaser lang={lang} content={bookTeaser} />
       <FinaleCta lang={lang} />

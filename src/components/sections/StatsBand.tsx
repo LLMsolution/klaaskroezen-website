@@ -1,14 +1,23 @@
 import { t, type Lang } from "@/lib/i18n";
 
-export function StatsBand({ lang }: { lang: Lang }) {
+type StatItem = { value?: string; label?: string };
+
+type StatsBandProps = {
+  lang: Lang;
+  content?: { items?: StatItem[] };
+};
+
+export function StatsBand({ lang, content }: StatsBandProps) {
   const s = t(lang).stats;
 
-  const stats = [
-    { number: "25", suffix: "+", label: s.experience },
-    { number: "21", suffix: "", label: s.countries },
-    { number: "9,1", suffix: "", label: s.rating },
-    { number: "10", suffix: "%", label: s.guarantee },
-  ];
+  const stats = content?.items && content.items.length > 0
+    ? content.items.map((it) => ({ number: it.value || "", suffix: "", label: it.label || "" }))
+    : [
+        { number: "25", suffix: "+", label: s.experience },
+        { number: "21", suffix: "", label: s.countries },
+        { number: "9,1", suffix: "", label: s.rating },
+        { number: "10", suffix: "%", label: s.guarantee },
+      ];
 
   return (
     <section

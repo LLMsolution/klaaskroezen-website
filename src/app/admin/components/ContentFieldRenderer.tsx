@@ -106,6 +106,8 @@ export function ContentFieldRenderer({ fields, data, displayData, onChange, pref
                 displayData={displayData?.[field.key] as Record<string, unknown> | undefined}
                 onChange={(newVal) => updateField(field.key, newVal)}
                 prefix={fieldKey}
+                pageSlug={pageSlug}
+                sectionId={sectionId}
               />
             </div>
           );
@@ -175,6 +177,8 @@ export function ContentFieldRenderer({ fields, data, displayData, onChange, pref
                               updateField(field.key, updated);
                             }}
                             prefix={`${fieldKey}[${idx}]`}
+                            pageSlug={pageSlug}
+                            sectionId={`${sectionId}-${field.key}`}
                           />
                         </div>
                       )}

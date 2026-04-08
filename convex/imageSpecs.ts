@@ -27,11 +27,12 @@ const CONTENT_KEY_TO_SPEC: Record<string, string> = {
   // Home sections
   "home/about-klaas/image": "home/about-klaas-banner",
   "home/book-teaser/image": "home/book-teaser-cover",
-  // Array item specs (ContentFieldRenderer uses pageSlug/sectionId/fieldKey pattern)
-  "home/slideshow/slides.image": "home/slideshow-slide",
-  "home/training-cards/items.image": "home/training-card",
-  "home/team-photos/items.image": "home/team-photo-large",
-  "home/logos/items.image": "logos/visma.png",
+  // Array item specs — nested arrays use sectionId-fieldKey pattern
+  "home/slideshow-slides/image": "home/slideshow-slide",
+  "home/training-cards-items/image": "home/training-card",
+  "home/team-photos-items/image": "home/team-photo-large",
+  "home/reviews-items/avatar": "reviews/simon-kornblum.jpg",
+  "home/logos-items/image": "home/logo-item",
 };
 
 /** Get the display spec for a single image key */
