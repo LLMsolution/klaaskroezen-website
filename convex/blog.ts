@@ -249,7 +249,9 @@ export const saveImage = mutation({
   handler: async (ctx, { postId, storageId }) => {
     await requireAdmin(ctx);
     const post = await ctx.db.get(postId);
-    if (post?.imageStorageId) await ctx.storage.delete(post.imageStorageId);
+    if (post?.imageStorageId) {
+      try { await ctx.storage.delete(post.imageStorageId); } catch { /* old file already gone */ }
+    }
     await ctx.db.patch(postId, { imageStorageId: storageId, imageUrl: undefined });
   },
 });
@@ -259,7 +261,9 @@ export const removeImage = mutation({
   handler: async (ctx, { postId }) => {
     await requireAdmin(ctx);
     const post = await ctx.db.get(postId);
-    if (post?.imageStorageId) await ctx.storage.delete(post.imageStorageId);
+    if (post?.imageStorageId) {
+      try { await ctx.storage.delete(post.imageStorageId); } catch { /* old file already gone */ }
+    }
     await ctx.db.patch(postId, { imageStorageId: undefined, imageUrl: undefined });
   },
 });
