@@ -139,6 +139,7 @@ export const bulkUpsert = internalMutation({
         aspectRatio: v.string(),
         context: v.string(),
         pageSlug: v.optional(v.string()),
+        pageSlugs: v.optional(v.array(v.string())),
       }),
     ),
     force: v.optional(v.boolean()),
