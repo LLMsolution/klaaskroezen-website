@@ -46,12 +46,12 @@ export default async function HomePage() {
     setSalesTitle?: string;
     forCS?: string;
     cstTitle?: string;
-    benefits?: Array<{ value: string }>;
+    benefits?: string[];
   };
   const slideshow = sectionOr(db, "slideshow", {} as Section) as { slides?: Array<{ image?: string; alt?: string; objectPosition?: string; quote?: string; author?: string; role?: string; detail?: string }> };
   const logos = sectionOr(db, "logos", {} as Section) as { label?: string; items?: Array<{ image?: string; alt?: string; width?: number; height?: number }> };
-  const trainingCards = sectionOr(db, "training-cards", {} as Section) as { eyebrow?: string; title?: string; titleAccent?: string; introBold?: string; introEnd?: string; items?: Array<{ image?: string; imageAlt?: string; label?: string; title?: string; who?: string; description?: string; descriptionHighlight?: string; descriptionEnd?: string; points?: Array<{ value: string }>; href?: string; ctaLabel?: string }> };
-  const finaleCta = sectionOr(db, "finale-cta", {} as Section) as { eyebrow?: string; title?: string; titleAccent?: string; description?: string; ctaPrimary?: string; ctaSecondary?: string; guarantees?: Array<{ value: string }> };
+  const trainingCards = sectionOr(db, "training-cards", {} as Section) as { eyebrow?: string; title?: string; titleAccent?: string; introBold?: string; introEnd?: string; items?: Array<{ image?: string; imageAlt?: string; label?: string; title?: string; who?: string; description?: string; descriptionHighlight?: string; descriptionEnd?: string; points?: string[]; href?: string; ctaLabel?: string }> };
+  const finaleCta = sectionOr(db, "finale-cta", {} as Section) as { eyebrow?: string; title?: string; titleAccent?: string; description?: string; ctaPrimary?: string; ctaSecondary?: string; guarantees?: string[] };
   const stats = sectionOr(db, "stats", {} as Section) as { items?: Array<{ value?: string; label?: string }> };
   const teamPhotos = sectionOr(db, "team-photos", {} as Section) as { eyebrow?: string; title?: string; titleAccent?: string; items?: Array<{ image?: string; caption?: string; featured?: string }> };
   const reviews = sectionOr(db, "reviews", {} as Section) as { eyebrow?: string; title?: string; titleAccent?: string; items?: Array<{ text?: string; name?: string; role?: string; avatar?: string; source?: string }> };
@@ -75,7 +75,7 @@ export default async function HomePage() {
     title?: string;
     titleAccent?: string;
     description?: string;
-    badges?: Array<{ value: string }>;
+    badges?: string[];
     ctaLabel?: string;
   };
 

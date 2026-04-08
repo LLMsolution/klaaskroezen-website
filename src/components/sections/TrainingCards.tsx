@@ -29,7 +29,7 @@ type TrainingCardItem = {
   description?: string;
   descriptionHighlight?: string;
   descriptionEnd?: string;
-  points?: Array<{ value: string }>;
+  points?: string[];
   href?: string;
   ctaLabel?: string;
 };
@@ -78,7 +78,7 @@ export async function TrainingCards({ lang, content }: TrainingCardsProps) {
           {item.descriptionEnd}
         </>
       ) : (item.description || ""),
-      points: (item.points || []).map((p) => p.value),
+      points: item.points || [],
       ctaLabel: item.ctaLabel,
     }));
   } else {

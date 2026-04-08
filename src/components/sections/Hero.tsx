@@ -24,7 +24,7 @@ type HeroContent = {
   setSalesTitle?: string;
   forCS?: string;
   cstTitle?: string;
-  benefits?: Array<{ value: string }>;
+  benefits?: string[];
 };
 
 export function Hero({
@@ -51,7 +51,7 @@ export function Hero({
   const forCS = content?.forCS || s.forCS;
   const cstTitle = content?.cstTitle || s.cstTitle;
   const benefits = content?.benefits && content.benefits.length > 0
-    ? content.benefits.map((b) => b.value)
+    ? content.benefits
     : [s.benefit1, s.benefit2, s.benefit3];
 
   return (

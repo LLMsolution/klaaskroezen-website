@@ -30,11 +30,7 @@ export function seedHomeContent(): PageSeed {
       setSalesTitle: "Sales Excellence Training",
       forCS: "Voor klantcontact",
       cstTitle: "Customer Success Training",
-      benefits: [
-        { value: "Direct online toegang" },
-        { value: "10% resultaat of geld terug" },
-        { value: "25+ jaar ervaring" },
-      ],
+      benefits: ["Direct online toegang", "10% resultaat of geld terug", "25+ jaar ervaring"],
     }),
 
     // ── Finale CTA (NL) ──
@@ -45,11 +41,7 @@ export function seedHomeContent(): PageSeed {
       description: "Eén methode, twee doelgroepen. Kies de training die bij jouw rol past.",
       ctaPrimary: "Sales Excellence Training",
       ctaSecondary: "Customer Success Training",
-      guarantees: [
-        { value: "Direct online toegang" },
-        { value: "10% resultaat of geld terug" },
-        { value: "25+ jaar ervaring" },
-      ],
+      guarantees: ["Direct online toegang", "10% resultaat of geld terug", "25+ jaar ervaring"],
     }),
 
     // ── Slideshow (NL) ──
@@ -97,11 +89,7 @@ export function seedHomeContent(): PageSeed {
           description: "Meer omzet met minder druk. Je leert hoe je met",
           descriptionHighlight: "oprechtheid en ontspanning",
           descriptionEnd: "structureel beter verkoopt — van eerste gesprek tot deal. Niet met trucjes, maar met een aanpak die bij jou past.",
-          points: [
-            { value: "Meer omzet, minder weerstand" },
-            { value: "Klanten die jou aanbevelen" },
-            { value: "Zelfvertrouwen in elk verkoopgesprek" },
-          ],
+          points: ["Meer omzet, minder weerstand", "Klanten die jou aanbevelen", "Zelfvertrouwen in elk verkoopgesprek"],
           href: "/sales-excellence-training",
           ctaLabel: "Bekijk training",
         },
@@ -114,11 +102,7 @@ export function seedHomeContent(): PageSeed {
           description: "Maak van klanten fans. Je hebt geen salesfunctie — maar jij bepaalt wél of een klant blijft, groeit en anderen aanbeveelt.",
           descriptionHighlight: "Dat is commercieel goud.",
           descriptionEnd: "Deze training leert je hoe je dat bewust en ontspannen doet.",
-          points: [
-            { value: "Hogere klanttevredenheid en retentie" },
-            { value: "Klanten die ambassadeurs worden" },
-            { value: "Meer plezier in klantcontact" },
-          ],
+          points: ["Hogere klanttevredenheid en retentie", "Klanten die ambassadeurs worden", "Meer plezier in klantcontact"],
           href: "/customer-success-training",
           ctaLabel: "Bekijk training",
         },
@@ -185,11 +169,7 @@ export function seedHomeContent(): PageSeed {
       title: "Sales, Oprecht",
       titleAccent: "& Ontspannen.",
       description: "De theorie achter de training. #1 Managementboek, nu in 2e druk. Hardcopy, e-book of luisterboek.",
-      badges: [
-        { value: "#1 Managementboek" },
-        { value: "2e druk" },
-        { value: "9,1 beoordeling" },
-      ],
+      badges: ["#1 Managementboek", "2e druk", "9,1 beoordeling"],
       ctaLabel: "Bekijk het boek",
     }),
 
@@ -208,11 +188,7 @@ export function seedHomeContent(): PageSeed {
       setSalesTitle: "Sales Excellence Training",
       forCS: "For customer contact",
       cstTitle: "Customer Success Training",
-      benefits: [
-        { value: "Instant online access" },
-        { value: "10% results or money back" },
-        { value: "25+ years of experience" },
-      ],
+      benefits: ["Instant online access", "10% results or money back", "25+ years of experience"],
     }),
     makeContent(SLUG, "finale-cta", "home-finale-cta", "en", {
       eyebrow: "Ready to start?",
@@ -221,11 +197,7 @@ export function seedHomeContent(): PageSeed {
       description: "One method, two audiences. Choose the training that fits your role.",
       ctaPrimary: "Sales Excellence Training",
       ctaSecondary: "Customer Success Training",
-      guarantees: [
-        { value: "Instant online access" },
-        { value: "10% results or money back" },
-        { value: "25+ years of experience" },
-      ],
+      guarantees: ["Instant online access", "10% results or money back", "25+ years of experience"],
     }),
     makeContent(SLUG, "slideshow", "home-slideshow", "en", {
       slides: [
@@ -267,11 +239,7 @@ export function seedHomeContent(): PageSeed {
           description: "More revenue with less pressure. Learn how to sell structurally better with",
           descriptionHighlight: "honesty and ease",
           descriptionEnd: "— from first meeting to deal. Not with tricks, but with an approach that fits who you are.",
-          points: [
-            { value: "More revenue, less resistance" },
-            { value: "Customers who recommend you" },
-            { value: "Confidence in every sales conversation" },
-          ],
+          points: ["More revenue, less resistance", "Customers who recommend you", "Confidence in every sales conversation"],
           href: "/sales-excellence-training",
           ctaLabel: "View training",
         },
@@ -284,11 +252,7 @@ export function seedHomeContent(): PageSeed {
           description: "Turn customers into fans. You're not in sales — but you do determine whether a customer stays, grows and recommends others.",
           descriptionHighlight: "That's commercial gold.",
           descriptionEnd: "This training teaches you how to do that consciously and with ease.",
-          points: [
-            { value: "Higher customer satisfaction and retention" },
-            { value: "Customers who become ambassadors" },
-            { value: "More joy in customer contact" },
-          ],
+          points: ["Higher customer satisfaction and retention", "Customers who become ambassadors", "More joy in customer contact"],
           href: "/customer-success-training",
           ctaLabel: "View training",
         },
@@ -345,11 +309,7 @@ export function seedHomeContent(): PageSeed {
       title: "Sales, Honest",
       titleAccent: "& Relaxed.",
       description: "The theory behind the training. #1 Management book, now in 2nd edition. Hardcopy, e-book or audiobook.",
-      badges: [
-        { value: "#1 Management book" },
-        { value: "2nd edition" },
-        { value: "9.1 rating" },
-      ],
+      badges: ["#1 Management book", "2nd edition", "9.1 rating"],
       ctaLabel: "View the book",
     }),
 
@@ -368,11 +328,7 @@ export function seedHomeContent(): PageSeed {
       setSalesTitle: "Sales Excellence Training",
       forCS: "Für Kundenkontakt",
       cstTitle: "Customer Success Training",
-      benefits: [
-        { value: "Sofortiger Online-Zugang" },
-        { value: "10% Ergebnis oder Geld zurück" },
-        { value: "25+ Jahre Erfahrung" },
-      ],
+      benefits: ["Sofortiger Online-Zugang", "10% Ergebnis oder Geld zurück", "25+ Jahre Erfahrung"],
     }),
     makeContent(SLUG, "finale-cta", "home-finale-cta", "de", {
       eyebrow: "Bereit anzufangen?",
@@ -381,11 +337,7 @@ export function seedHomeContent(): PageSeed {
       description: "Eine Methode, zwei Zielgruppen. Wählen Sie das Training, das zu Ihrer Rolle passt.",
       ctaPrimary: "Sales Excellence Training",
       ctaSecondary: "Customer Success Training",
-      guarantees: [
-        { value: "Sofortiger Online-Zugang" },
-        { value: "10% Ergebnis oder Geld zurück" },
-        { value: "25+ Jahre Erfahrung" },
-      ],
+      guarantees: ["Sofortiger Online-Zugang", "10% Ergebnis oder Geld zurück", "25+ Jahre Erfahrung"],
     }),
     makeContent(SLUG, "slideshow", "home-slideshow", "de", {
       slides: [
@@ -427,11 +379,7 @@ export function seedHomeContent(): PageSeed {
           description: "Mehr Umsatz mit weniger Druck. Lernen Sie, mit",
           descriptionHighlight: "Aufrichtigkeit und Gelassenheit",
           descriptionEnd: "strukturell besser zu verkaufen — vom ersten Gespräch bis zum Abschluss. Nicht mit Tricks, sondern mit einem Ansatz, der zu Ihnen passt.",
-          points: [
-            { value: "Mehr Umsatz, weniger Widerstand" },
-            { value: "Kunden die Sie weiterempfehlen" },
-            { value: "Selbstvertrauen in jedem Verkaufsgespräch" },
-          ],
+          points: ["Mehr Umsatz, weniger Widerstand", "Kunden die Sie weiterempfehlen", "Selbstvertrauen in jedem Verkaufsgespräch"],
           href: "/sales-excellence-training",
           ctaLabel: "Training ansehen",
         },
@@ -444,11 +392,7 @@ export function seedHomeContent(): PageSeed {
           description: "Verwandeln Sie Kunden in Fans. Sie haben keine Vertriebsrolle — aber Sie bestimmen, ob ein Kunde bleibt, wächst und andere empfiehlt.",
           descriptionHighlight: "Das ist kommerzielles Gold.",
           descriptionEnd: "Dieses Training lehrt Sie, wie Sie das bewusst und entspannt tun.",
-          points: [
-            { value: "Höhere Kundenzufriedenheit und Bindung" },
-            { value: "Kunden die Botschafter werden" },
-            { value: "Mehr Freude am Kundenkontakt" },
-          ],
+          points: ["Höhere Kundenzufriedenheit und Bindung", "Kunden die Botschafter werden", "Mehr Freude am Kundenkontakt"],
           href: "/customer-success-training",
           ctaLabel: "Training ansehen",
         },
@@ -505,11 +449,7 @@ export function seedHomeContent(): PageSeed {
       title: "Sales, Aufrichtig",
       titleAccent: "& Entspannt.",
       description: "Die Theorie hinter dem Training. #1 Managementbuch, jetzt in 2. Auflage. Hardcopy, E-Book oder Hörbuch.",
-      badges: [
-        { value: "#1 Managementbuch" },
-        { value: "2. Auflage" },
-        { value: "9,1 Bewertung" },
-      ],
+      badges: ["#1 Managementbuch", "2. Auflage", "9,1 Bewertung"],
       ctaLabel: "Buch ansehen",
     }),
   ];

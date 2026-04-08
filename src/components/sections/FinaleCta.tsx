@@ -9,7 +9,7 @@ type FinaleCtaContent = {
   description?: string;
   ctaPrimary?: string;
   ctaSecondary?: string;
-  guarantees?: Array<{ value: string }>;
+  guarantees?: string[];
 };
 
 export function FinaleCta({ lang, content }: { lang: Lang; content?: FinaleCtaContent }) {
@@ -21,7 +21,7 @@ export function FinaleCta({ lang, content }: { lang: Lang; content?: FinaleCtaCo
   const ctaPrimary = content?.ctaPrimary || s.ctaPrimary;
   const ctaSecondary = content?.ctaSecondary || s.ctaSecondary;
   const guarantees = content?.guarantees && content.guarantees.length > 0
-    ? content.guarantees.map((g) => g.value)
+    ? content.guarantees
     : [s.guarantee1, s.guarantee2, s.guarantee3];
 
   return (

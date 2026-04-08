@@ -13,7 +13,7 @@ type BookTeaserProps = {
     title?: string;
     titleAccent?: string;
     description?: string;
-    badges?: Array<{ value: string }>;
+    badges?: string[];
     ctaLabel?: string;
   };
 };
@@ -28,7 +28,7 @@ export async function BookTeaser({ lang, content }: BookTeaserProps) {
   const title1 = content?.title || s.title1;
   const title2 = content?.titleAccent || s.title2;
   const description = content?.description || s.description;
-  const badges = content?.badges?.map((b) => b.value) ?? [s.badge1, s.badge2, s.badge3];
+  const badges = content?.badges ?? [s.badge1, s.badge2, s.badge3];
 
   return (
     <section
