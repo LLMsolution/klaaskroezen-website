@@ -50,7 +50,7 @@ export default async function OverOnsPage() {
       {/* Klaas — prominent hero */}
       <section className="border-b border-rule">
         <div className="grid grid-cols-1 lg:grid-cols-2">
-          <div className="relative aspect-[3/4] lg:aspect-[4/5] overflow-hidden bg-warm">
+          <div className="relative aspect-[3/4] lg:aspect-[4/3] overflow-hidden bg-warm">
             <Image
               src={(hero as { image?: string }).image || imgUrl(img, "about/klaas-over-mij.jpeg")}
               alt={hero.imageAlt}

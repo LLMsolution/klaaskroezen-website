@@ -53,8 +53,8 @@ const SPECS: SpecEntry[] = [
   // ══════════════════════════════════════
   // OVER ONS
   // ══════════════════════════════════════
-  // Hero — aspect-[3/4] mobile, lg:aspect-[4/5] desktop portrait
-  { imageKey: "about/klaas-over-mij.jpeg", displayWidth: 1200, displayHeight: 1500, aspectRatio: "4:5", context: "Over ons hero portrait", pageSlug: "over-ons" },
+  // Hero — aspect-[3/4] mobile, lg:aspect-[4/3] desktop landscape
+  { imageKey: "about/klaas-over-mij.jpeg", displayWidth: 1600, displayHeight: 1200, aspectRatio: "4:3", context: "Over ons hero (landscape desktop)", pageSlug: "over-ons" },
   // Mission (over-ons) — aspect-[4/3] both mobile and desktop, object-top
   { imageKey: "about/klaas-kroezen-portrait-2.jpeg", displayWidth: 1600, displayHeight: 1200, aspectRatio: "4:3", context: "Missie sectie (landscape, object-top)", pageSlug: "over-ons", objectPosition: "top" },
   // Contact hero — aspect-[4/3] mobile, lg:aspect-[16/9] desktop (object-top, shows head/shoulders)
