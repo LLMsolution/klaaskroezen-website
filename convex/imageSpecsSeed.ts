@@ -57,8 +57,8 @@ const SPECS: SpecEntry[] = [
   { imageKey: "about/klaas-over-mij.jpeg", displayWidth: 1180, displayHeight: 1770, aspectRatio: "2:3", context: "Hero portrait (full height desktop)", pageSlug: "over-ons" },
   // Mission (over-ons) — aspect-[4/3] mobile, lg:min-h-[560px] in 50vw col → ~1.05:1 near square (object-top)
   { imageKey: "about/klaas-kroezen-portrait-2.jpeg", displayWidth: 1180, displayHeight: 1120, aspectRatio: "~1.05:1", context: "Missie sectie portrait (over-ons)", pageSlug: "over-ons", objectPosition: "top" },
-  // Contact hero — aspect-[4/3] mobile, lg:min-h-[480px] in 50vw col → ~1.23:1 landscape (object-top)
-  { imageKey: "contact/hero-portrait-2", displayWidth: 1180, displayHeight: 960, aspectRatio: "~1.23:1", context: "Contact hero (landscape crop, object-top)", pageSlug: "contact", objectPosition: "top" },
+  // Contact hero — aspect-[4/3] mobile, lg:aspect-[16/9] desktop (object-top, shows head/shoulders)
+  { imageKey: "contact/hero-portrait-2", displayWidth: 1920, displayHeight: 1080, aspectRatio: "16:9", context: "Contact hero (landscape 16:9, object-top)", pageSlug: "contact", objectPosition: "top" },
   // Team members — aspect-square in 4-col grid (25vw desktop = ~295px)
   { imageKey: "about/tim-lind.png", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member portrait", pageSlug: "over-ons" },
   { imageKey: "about/joost-wammes.png", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member portrait", pageSlug: "over-ons" },
