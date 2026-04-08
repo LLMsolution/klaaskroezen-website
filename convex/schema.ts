@@ -1027,6 +1027,7 @@ export default defineSchema({
     context: v.string(), // "TrainingHero — volledig scherm"
     pageSlug: v.optional(v.string()), // primary page (legacy)
     pageSlugs: v.optional(v.array(v.string())), // all pages that use this image
+    objectPosition: v.optional(v.string()), // "top", "center", "bottom" — matches frontend
     updatedAt: v.number(),
   })
     .index("by_key", ["imageKey"])

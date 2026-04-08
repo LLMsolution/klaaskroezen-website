@@ -10,6 +10,7 @@ type SpecEntry = {
   context: string;
   pageSlug?: string;
   pageSlugs?: string[];
+  objectPosition?: string;
 };
 
 /**
@@ -23,8 +24,8 @@ const SPECS: SpecEntry[] = [
   // Hero slideshow — h-[50vh] mobile, lg:min-h-[calc(100vh-96px)] desktop, ~50vw col
   { imageKey: "hero/sales-excellence-group.jpeg", displayWidth: 1200, displayHeight: 900, aspectRatio: "4:3", context: "Hero slideshow (home)", pageSlug: "home" },
   { imageKey: "hero/customer-success-group.jpg", displayWidth: 1200, displayHeight: 900, aspectRatio: "4:3", context: "Hero slideshow + TrainingCards", pageSlug: "home" },
-  // AboutKlaas — min-h-[340px] in 50vw col (~590px wide) → landscape banner
-  { imageKey: "about/klaas-kroezen-portrait.jpeg", displayWidth: 1180, displayHeight: 680, aspectRatio: "16:9", context: "AboutKlaas banner", pageSlug: "home" },
+  // AboutKlaas — min-h-[340px] in 50vw col (~590px wide) → landscape banner (object-top)
+  { imageKey: "about/klaas-kroezen-portrait.jpeg", displayWidth: 1180, displayHeight: 680, aspectRatio: "16:9", context: "AboutKlaas banner", pageSlug: "home", objectPosition: "top" },
   // Team photos — first h-[500px], others h-[249px]; ~590px wide each
   { imageKey: "team/heigo-group.jpeg", displayWidth: 1180, displayHeight: 1000, aspectRatio: "~1.18:1", context: "Team foto groot", pageSlug: "home" },
   { imageKey: "team/training-group-1.jpeg", displayWidth: 1180, displayHeight: 498, aspectRatio: "~2.37:1", context: "Team foto klein", pageSlug: "home" },
@@ -54,10 +55,10 @@ const SPECS: SpecEntry[] = [
   // ══════════════════════════════════════
   // Hero — aspect-[3/4] mobile, desktop fills ~590x900 (min-h-[calc(100vh-96px)]) → ~2:3
   { imageKey: "about/klaas-over-mij.jpeg", displayWidth: 1180, displayHeight: 1770, aspectRatio: "2:3", context: "Hero portrait (full height desktop)", pageSlug: "over-ons" },
-  // Mission (over-ons) — aspect-[4/3] mobile, lg:min-h-[560px] in 50vw col → ~1.05:1 near square
-  { imageKey: "about/klaas-kroezen-portrait-2.jpeg", displayWidth: 1180, displayHeight: 1120, aspectRatio: "~1.05:1", context: "Missie sectie portrait (over-ons)", pageSlug: "over-ons" },
+  // Mission (over-ons) — aspect-[4/3] mobile, lg:min-h-[560px] in 50vw col → ~1.05:1 near square (object-top)
+  { imageKey: "about/klaas-kroezen-portrait-2.jpeg", displayWidth: 1180, displayHeight: 1120, aspectRatio: "~1.05:1", context: "Missie sectie portrait (over-ons)", pageSlug: "over-ons", objectPosition: "top" },
   // Contact hero — aspect-[4/3] mobile, lg:min-h-[480px] in 50vw col → ~1.23:1 landscape (object-top)
-  { imageKey: "contact/hero-portrait-2", displayWidth: 1180, displayHeight: 960, aspectRatio: "~1.23:1", context: "Contact hero (landscape crop, object-top)", pageSlug: "contact" },
+  { imageKey: "contact/hero-portrait-2", displayWidth: 1180, displayHeight: 960, aspectRatio: "~1.23:1", context: "Contact hero (landscape crop, object-top)", pageSlug: "contact", objectPosition: "top" },
   // Team members — aspect-square in 4-col grid (25vw desktop = ~295px)
   { imageKey: "about/tim-lind.png", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member portrait", pageSlug: "over-ons" },
   { imageKey: "about/joost-wammes.png", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member portrait", pageSlug: "over-ons" },

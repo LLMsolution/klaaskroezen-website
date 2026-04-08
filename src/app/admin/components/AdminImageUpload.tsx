@@ -214,6 +214,7 @@ export function AdminImageUpload({
               src={displayUrl}
               alt={alt}
               className="w-full h-full object-cover"
+              style={{ objectPosition: spec?.objectPosition || "center" }}
             />
           </div>
           <div className="flex gap-2 mt-2">
@@ -317,7 +318,12 @@ export function AdminImageUpload({
                   }}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={displayUrl} alt={alt} className="w-full h-full object-cover" />
+                  <img
+                    src={displayUrl}
+                    alt={alt}
+                    className="w-full h-full object-cover"
+                    style={{ objectPosition: spec.objectPosition || "center" }}
+                  />
                 </div>
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
