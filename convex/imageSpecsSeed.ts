@@ -54,9 +54,9 @@ const SPECS: SpecEntry[] = [
   // ══════════════════════════════════════
   // Hero — aspect-[3/4] mobile, desktop fills ~590x900 (min-h-[calc(100vh-96px)]) → ~2:3
   { imageKey: "about/klaas-over-mij.jpeg", displayWidth: 1180, displayHeight: 1770, aspectRatio: "2:3", context: "Hero portrait (full height desktop)", pageSlug: "over-ons" },
-  // Mission (over-ons) — aspect-[4/3] mobile, lg:min-h-[560px] in 50vw col → near square
-  // Contact — aspect-[3/4] mobile, lg:min-h-[640px] in 50vw col → portrait 3:4
-  { imageKey: "about/klaas-kroezen-portrait-2.jpeg", displayWidth: 1180, displayHeight: 1580, aspectRatio: "3:4", context: "Missie + contact hero (portrait)", pageSlug: "over-ons", pageSlugs: ["over-ons", "contact"] },
+  // Mission (over-ons) — aspect-[4/3] mobile, lg:min-h-[560px] in 50vw col
+  // Contact — aspect-[4/5] mobile, lg:min-h-[520px] in 50vw col → 4:5 portrait
+  { imageKey: "about/klaas-kroezen-portrait-2.jpeg", displayWidth: 1180, displayHeight: 1475, aspectRatio: "4:5", context: "Missie + contact hero (4:5 portrait)", pageSlug: "over-ons", pageSlugs: ["over-ons", "contact"] },
   // Team members — aspect-square in 4-col grid (25vw desktop = ~295px)
   { imageKey: "about/tim-lind.png", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member portrait", pageSlug: "over-ons" },
   { imageKey: "about/joost-wammes.png", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member portrait", pageSlug: "over-ons" },
@@ -108,7 +108,12 @@ const SPECS: SpecEntry[] = [
   }),
 
   // NOTE: Contact page shares about/klaas-kroezen-portrait-2.jpeg with over-ons (see pageSlugs)
-  // NOTE: Blog/nieuws images are managed via the Blog tab (blogPosts table), not siteImages
+
+  // ══════════════════════════════════════
+  // BLOG / NIEUWS — generic spec for blog post images
+  // Blog list uses aspect-[16/10], detail uses aspect-[16/9] → use 16:9 as primary
+  // ══════════════════════════════════════
+  { imageKey: "blog/post-image", displayWidth: 1360, displayHeight: 765, aspectRatio: "16:9", context: "Blog post afbeelding (lijst + detail)", pageSlug: "nieuws" },
 ];
 
 /** Seed all image specs. Use force=true to overwrite existing specs. */

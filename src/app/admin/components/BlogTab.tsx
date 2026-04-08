@@ -229,11 +229,13 @@ export function BlogTab() {
                   if (editId) await removeImage({ postId: editId });
                 } : undefined}
                 alt="Blog afbeelding"
+                imageKey="blog/post-image"
               />
             ) : (
               <AdminImageUpload
                 onUploaded={(storageId) => setImageStorageId(storageId)}
                 alt="Blog afbeelding"
+                imageKey="blog/post-image"
               />
             )}
           </div>
