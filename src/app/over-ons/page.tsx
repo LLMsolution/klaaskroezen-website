@@ -49,8 +49,8 @@ export default async function OverOnsPage() {
       <JsonLd data={personJsonLd} />
       {/* Klaas — prominent hero */}
       <section className="border-b border-rule">
-        <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[calc(100vh-96px)]">
-          <div className="relative aspect-[3/4] lg:aspect-auto overflow-hidden bg-warm">
+        <div className="grid grid-cols-1 lg:grid-cols-2">
+          <div className="relative aspect-[3/4] lg:aspect-[4/5] overflow-hidden bg-warm">
             <Image
               src={(hero as { image?: string }).image || imgUrl(img, "about/klaas-over-mij.jpeg")}
               alt={hero.imageAlt}
@@ -161,7 +161,7 @@ export default async function OverOnsPage() {
             </div>
             </FadeIn>
           </div>
-          <div className="relative aspect-[4/3] lg:aspect-auto lg:min-h-[560px] overflow-hidden">
+          <div className="relative aspect-[4/3] lg:aspect-[4/3] overflow-hidden">
             <Image
               src={(mission as { image?: string }).image || imgUrl(img, "about/klaas-kroezen-portrait-2.jpeg")}
               alt={mission.imageAlt}
@@ -219,7 +219,7 @@ export default async function OverOnsPage() {
       {/* Kantoor */}
       <section className="border-b border-rule">
         <div className="grid grid-cols-1 lg:grid-cols-2">
-          <div className="relative aspect-video lg:aspect-auto lg:min-h-[480px] overflow-hidden">
+          <div className="relative aspect-video lg:aspect-[16/9] overflow-hidden">
             <Image
               src={(office as { image?: string }).image || imgUrl(img, "about/kantoor-administratie.jpg")}
               alt={office.imageAlt}

@@ -53,10 +53,10 @@ const SPECS: SpecEntry[] = [
   // ══════════════════════════════════════
   // OVER ONS
   // ══════════════════════════════════════
-  // Hero — aspect-[3/4] mobile, desktop fills ~590x900 (min-h-[calc(100vh-96px)]) → ~2:3
-  { imageKey: "about/klaas-over-mij.jpeg", displayWidth: 1180, displayHeight: 1770, aspectRatio: "2:3", context: "Hero portrait (full height desktop)", pageSlug: "over-ons" },
-  // Mission (over-ons) — aspect-[4/3] mobile, lg:min-h-[560px] in 50vw col → ~1.05:1 near square (object-top)
-  { imageKey: "about/klaas-kroezen-portrait-2.jpeg", displayWidth: 1180, displayHeight: 1120, aspectRatio: "~1.05:1", context: "Missie sectie portrait (over-ons)", pageSlug: "over-ons", objectPosition: "top" },
+  // Hero — aspect-[3/4] mobile, lg:aspect-[4/5] desktop portrait
+  { imageKey: "about/klaas-over-mij.jpeg", displayWidth: 1200, displayHeight: 1500, aspectRatio: "4:5", context: "Over ons hero portrait", pageSlug: "over-ons" },
+  // Mission (over-ons) — aspect-[4/3] both mobile and desktop, object-top
+  { imageKey: "about/klaas-kroezen-portrait-2.jpeg", displayWidth: 1600, displayHeight: 1200, aspectRatio: "4:3", context: "Missie sectie (landscape, object-top)", pageSlug: "over-ons", objectPosition: "top" },
   // Contact hero — aspect-[4/3] mobile, lg:aspect-[16/9] desktop (object-top, shows head/shoulders)
   { imageKey: "contact/hero-portrait-2", displayWidth: 1920, displayHeight: 1080, aspectRatio: "16:9", context: "Contact hero (landscape 16:9, object-top)", pageSlug: "contact", objectPosition: "top" },
   // Team members — aspect-square in 4-col grid (25vw desktop = ~295px)
@@ -65,7 +65,7 @@ const SPECS: SpecEntry[] = [
   { imageKey: "about/sanne-bakker.png", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member portrait", pageSlug: "over-ons" },
   { imageKey: "about/yvon-kruger.webp", displayWidth: 590, displayHeight: 590, aspectRatio: "1:1", context: "Team member portrait", pageSlug: "over-ons" },
   // Office — aspect-video mobile, lg:min-h-[480px] in 50vw col → ~590x480 = ~1.23:1
-  { imageKey: "about/kantoor-administratie.jpg", displayWidth: 1180, displayHeight: 960, aspectRatio: "~1.23:1", context: "Kantoor foto", pageSlug: "over-ons" },
+  { imageKey: "about/kantoor-administratie.jpg", displayWidth: 1920, displayHeight: 1080, aspectRatio: "16:9", context: "Kantoor foto (16:9)", pageSlug: "over-ons" },
 
   // ══════════════════════════════════════
   // SALES EXCELLENCE TRAINING
