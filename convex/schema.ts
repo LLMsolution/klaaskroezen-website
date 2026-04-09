@@ -994,6 +994,8 @@ export default defineSchema({
   lessonForms: defineTable({
     moduleId: v.id("trainingModules"),
     recipientEmail: v.string(),
+    // Optional hero image shown between the form header and the intro text.
+    imageStorageId: v.optional(v.id("_storage")),
     introText: v.object({
       nl: v.string(),
       en: v.string(),
