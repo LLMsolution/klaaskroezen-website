@@ -206,16 +206,8 @@ export function NotesPanel({ moduleId, lang }: Props) {
         </div>
       </div>
 
-      <textarea
-        value={noteValue}
-        onChange={(e) => handleNoteChange(e.target.value)}
-        placeholder={copy.placeholder}
-        rows={6}
-        className="w-full bg-transparent border border-rule px-4 py-3 text-[14px] text-ink leading-[1.6] focus:border-copper focus:outline-none rounded-[2px] resize-y mb-5"
-      />
-
-      {/* Bookmarks section */}
-      <div className="pt-4 border-t border-rule/60">
+      {/* Bookmarks section (above notes) */}
+      <div className="mb-5">
         <div className="flex items-center justify-between mb-3">
           <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40">
             {copy.bookmarks}
@@ -335,6 +327,17 @@ export function NotesPanel({ moduleId, lang }: Props) {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Notes textarea (below bookmarks) */}
+      <div className="pt-4 border-t border-rule/60">
+        <textarea
+          value={noteValue}
+          onChange={(e) => handleNoteChange(e.target.value)}
+          placeholder={copy.placeholder}
+          rows={6}
+          className="w-full bg-transparent border border-rule px-4 py-3 text-[14px] text-ink leading-[1.6] focus:border-copper focus:outline-none rounded-[2px] resize-y"
+        />
       </div>
     </div>
   );

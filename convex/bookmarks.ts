@@ -2,6 +2,34 @@ import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { requireTrainingAccess } from "./trainingProgress";
 
+/**
+ * Map of { moduleId -> bookmark count } for the current user across every
+ * module of a training. Used by the module sidebar + training overview to
+ * badge lessons that already have bookmarks.
+ */
+export const countsForTraining = query({
+  args: { trainingId: v.id("trainings") },
+  handler: async (ctx, { trainingId }) => {
+    const { userId } = await requireTrainingAccess(ctx, trainingId);
+    const modules = await ctx.db
+      .query("trainingModules")
+      .withIndex("by_training", (q) => q.eq("trainingId", trainingId))
+      .collect();
+
+    const counts: Record<string, number> = {};
+    for (const m of modules) {
+      const rows = await ctx.db
+        .query("bookmarks")
+        .withIndex("by_user_module", (q) =>
+          q.eq("userId", userId).eq("moduleId", m._id),
+        )
+        .collect();
+      if (rows.length > 0) counts[m._id] = rows.length;
+    }
+    return counts;
+  },
+});
+
 export const listForModule = query({
   args: { moduleId: v.id("trainingModules") },
   handler: async (ctx, { moduleId }) => {
