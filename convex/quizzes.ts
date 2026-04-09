@@ -233,18 +233,18 @@ export const addQuestion = mutation({
       v.literal("open"),
       v.literal("scale"),
     ),
-    question: v.object({ nl: v.string(), en: v.string() }),
+    question: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
     options: v.optional(
       v.array(
         v.object({
-          text: v.object({ nl: v.string(), en: v.string() }),
+          text: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
           correct: v.boolean(),
         }),
       ),
     ),
     scaleMin: v.optional(v.number()),
     scaleMax: v.optional(v.number()),
-    scaleLabels: v.optional(v.object({ nl: v.string(), en: v.string() })),
+    scaleLabels: v.optional(v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) })),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
