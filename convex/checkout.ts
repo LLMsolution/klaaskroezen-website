@@ -457,7 +457,7 @@ export const getRecentPurchases = query({
   handler: async (ctx, { product }) => {
     const cutoff = Date.now() - 48 * 60 * 60 * 1000;
 
-    let q = ctx.db
+    const q = ctx.db
       .query("purchases")
       .withIndex("by_status", (q) => q.eq("status", "paid"));
 
