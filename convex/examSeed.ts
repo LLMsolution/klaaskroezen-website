@@ -22,9 +22,8 @@ type ExamField = {
 };
 
 const EXAM_FIELDS: ExamField[] = [
-  { id: "voornaam", type: "text", labelNl: "Voornaam", required: true },
-  { id: "achternaam", type: "text", labelNl: "Achternaam", required: true },
-  { id: "email", type: "text", labelNl: "E-mail", required: true },
+  // Naam + e-mail weggelaten — die kennen we al uit het account van de cursist
+  // (Klaas ziet ze bovenaan de e-mail + replyTo staat op de cursist).
   {
     id: "belangrijkste-lessen",
     type: "textarea",
