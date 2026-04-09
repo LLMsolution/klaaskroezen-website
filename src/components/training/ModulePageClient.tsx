@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { api } from "../../../convex/_generated/api";
 import type { Lang } from "@/lib/i18n";
@@ -211,6 +211,36 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
     if (nav?.next) {
       router.push(`/training/${slug}/${nav.next.slug}`);
     }
+  }, [nav, router, slug]);
+
+  // Keyboard navigation: ArrowRight = next lesson, ArrowLeft = previous lesson.
+  // Ignored when the user is typing in an input/textarea/contentEditable field.
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t) {
+        const tag = t.tagName;
+        if (
+          tag === "INPUT" ||
+          tag === "TEXTAREA" ||
+          tag === "SELECT" ||
+          t.isContentEditable
+        ) {
+          return;
+        }
+      }
+      if (e.key === "ArrowRight" && nav?.next) {
+        e.preventDefault();
+        router.push(`/training/${slug}/${nav.next.slug}`);
+      } else if (e.key === "ArrowLeft" && nav?.prev) {
+        e.preventDefault();
+        router.push(`/training/${slug}/${nav.prev.slug}`);
+      }
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
   }, [nav, router, slug]);
 
   if (training === undefined || mod === undefined) {
