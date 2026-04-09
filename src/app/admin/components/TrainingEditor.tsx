@@ -6,9 +6,10 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { Loading } from "./shared";
 import { QuizEditor } from "./QuizEditor";
-import { ModuleVideoField, ModuleAudioField } from "./ModuleFields";
+import { ModuleAudioField } from "./ModuleFields";
 import { DeepLButton } from "./DeepLButton";
-import { Section, EditableField, InlineForm, WorkbookSection, CoverImageSection, CertificateSection } from "./TrainingEditorSections";
+import { Section, InlineForm, WorkbookSection, CoverImageSection } from "./TrainingEditorSections";
+import { TrainingModuleSortable, type SortableModule } from "./TrainingModuleSortable";
 
 interface Props {
   trainingId: Id<"trainings">;
@@ -151,9 +152,6 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
       {/* Werkboek */}
       <WorkbookSection trainingId={trainingId} />
 
-      {/* Certificaat */}
-      {!isAudiobook && <CertificateSection trainingId={trainingId} />}
-
       {/* Audiobook: flat chapter list */}
       {isAudiobook ? (
         <AudiobookChapterList
@@ -172,11 +170,10 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
           removeAudio={removeAudio}
         />
       ) : (
-        /* Training: module hierarchy */
-        <TrainingModuleList
-          topModules={topModules}
-          lessonMap={lessonMap}
-          isAudiobook={false}
+        /* Training: sortable module hierarchy with drag-and-drop */
+        <TrainingModuleSortable
+          topModules={topModules as SortableModule[]}
+          lessonMap={lessonMap as Map<string, SortableModule[]>}
           expandedModuleId={expandedModuleId}
           addingModule={addingModule}
           addingLessonFor={addingLessonFor}
@@ -351,122 +348,3 @@ function AudiobookChapterExpanded({ chapter, hasAudio, audioFile, onUpdateModule
   );
 }
 
-/* ─── Training module hierarchy ─── */
-
-function TrainingModuleList({ topModules, lessonMap, expandedModuleId, addingModule, addingLessonFor, formTitle, saving, onToggleExpand, onToggleAddModule, onFormTitleChange, onAddModule, onCancelAddModule, onStartAddLesson, onAddLesson, onCancelAddLesson, onUpdateModule, onDeleteModule, onEditQuiz }: {
-  topModules: Mod[]; lessonMap: Map<string, Mod[]>; isAudiobook: boolean;
-  expandedModuleId: string | null; addingModule: boolean; addingLessonFor: string | null; formTitle: string; saving: boolean;
-  onToggleExpand: (id: string) => void; onToggleAddModule: () => void; onFormTitleChange: (v: string) => void;
-  onAddModule: () => void; onCancelAddModule: () => void; onStartAddLesson: (id: string) => void;
-  onAddLesson: (parentId: Id<"trainingModules">) => Promise<void>; onCancelAddLesson: () => void;
-  onUpdateModule: ModMut; onDeleteModule: ModDel;
-  onEditQuiz: (id: Id<"trainingModules">) => void;
-}) {
-  return (
-    <div className="mb-8">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper">Modules ({topModules.length})</h3>
-        <button onClick={onToggleAddModule} className="text-[12px] text-copper hover:text-copper-light cursor-pointer">
-          {addingModule ? "Annuleer" : "+ Module toevoegen"}
-        </button>
-      </div>
-
-      {addingModule && (
-        <InlineForm placeholder="Naam van de module" value={formTitle} onChange={onFormTitleChange} saving={saving} onSave={onAddModule} onCancel={onCancelAddModule} />
-      )}
-
-      {topModules.length === 0 && !addingModule && (
-        <p className="text-[14px] text-ink/30 py-6 text-center border border-dashed border-rule rounded-[2px]">Nog geen modules.</p>
-      )}
-
-      <div className="space-y-2">
-        {topModules.map((mod, modIdx) => {
-          const lessons = lessonMap.get(mod._id) ?? [];
-          const isExpanded = expandedModuleId === mod._id;
-
-          return (
-            <div key={mod._id} className="border border-rule rounded-[2px] overflow-hidden">
-              <button type="button" onClick={() => onToggleExpand(mod._id)}
-                className="w-full flex items-center justify-between p-4 cursor-pointer hover:bg-warm/20 transition-colors text-left">
-                <div className="flex items-center gap-3">
-                  <span className="text-[13px] font-medium text-ink/25 w-7 text-center">{String(modIdx + 1).padStart(2, "0")}</span>
-                  <div>
-                    <p className="text-[14px] font-medium text-ink">{mod.title.nl}</p>
-                    <p className="text-[11px] text-ink/40">{lessons.length} training{lessons.length !== 1 ? "en" : ""}</p>
-                  </div>
-                </div>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className={`text-ink/30 shrink-0 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}><path d="M4 6l4 4 4-4" /></svg>
-              </button>
-
-              {isExpanded && (
-                <div className="border-t border-rule p-4 space-y-3 bg-warm/5">
-                  {lessons.map((lesson, lessonIdx) => (
-                    <LessonCard
-                      key={lesson._id}
-                      lesson={lesson}
-                      label={`${modIdx + 1}.${lessonIdx + 1}`}
-                      onUpdateModule={onUpdateModule}
-                      onDelete={async () => { if (confirm(`Training "${lesson.title.nl}" verwijderen?`)) await onDeleteModule({ id: lesson._id }); }}
-                      onEditQuiz={() => onEditQuiz(lesson._id)}
-                    />
-                  ))}
-
-                  {addingLessonFor === mod._id ? (
-                    <InlineForm placeholder={`Titel training ${modIdx + 1}.${lessons.length + 1}`} value={formTitle} onChange={onFormTitleChange} saving={saving}
-                      onSave={() => onAddLesson(mod._id)} onCancel={onCancelAddLesson} />
-                  ) : (
-                    <button onClick={() => onStartAddLesson(mod._id)} className="text-[12px] text-copper hover:text-copper-light cursor-pointer">+ Training toevoegen</button>
-                  )}
-
-                  <div className="flex items-center gap-3 pt-2 border-t border-rule">
-                    <button onClick={() => onEditQuiz(mod._id)} className="text-[12px] text-copper hover:text-copper-light cursor-pointer">Quiz beheren</button>
-                    <button onClick={async () => {
-                      if (confirm("Module en alle trainingen verwijderen?")) {
-                        for (const l of lessons) await onDeleteModule({ id: l._id });
-                        await onDeleteModule({ id: mod._id });
-                      }
-                    }} className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer">Verwijder module</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-/* ─── Lesson card within a training module ─── */
-
-function LessonCard({ lesson, label, onUpdateModule, onDelete, onEditQuiz }: {
-  lesson: Mod & { vimeoVideoId?: string; quizRequired?: boolean }; label: string;
-  onUpdateModule: ModMut;
-  onDelete: () => Promise<void>; onEditQuiz: () => void;
-}) {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <div className="border border-rule/60 rounded-[2px] bg-paper overflow-hidden">
-      <button type="button" onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-3 p-3 text-left cursor-pointer hover:bg-warm/20 transition-colors">
-        <span className="text-[12px] font-medium text-ink/25 w-8">{label}</span>
-        <p className="text-[13px] font-medium text-ink flex-1">{lesson.title.nl}</p>
-        {lesson.vimeoVideoId && <span className="text-[10px] text-ink/30">Video</span>}
-        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className={`text-ink/20 transition-transform ${expanded ? "rotate-180" : ""}`}><path d="M4 6l4 4 4-4" /></svg>
-      </button>
-
-      {expanded && (
-        <div className="border-t border-rule/50 p-3 space-y-3">
-          <EditableField label="Titel" value={lesson.title.nl} onSave={async (v) => { await onUpdateModule({ id: lesson._id, title: { nl: v, en: lesson.title.en ?? v } }); }} />
-          <EditableField label="Beschrijving" value={lesson.description.nl} onSave={async (v) => { await onUpdateModule({ id: lesson._id, description: { nl: v, en: v } }); }} multiline />
-          <ModuleVideoField moduleId={lesson._id} currentVideoId={lesson.vimeoVideoId} onSave={async (videoId) => { await onUpdateModule({ id: lesson._id, vimeoVideoId: videoId }); }} />
-          <div className="flex items-center gap-3 pt-2">
-            <button onClick={onEditQuiz} className="text-[12px] text-copper hover:text-copper-light cursor-pointer">Quiz</button>
-            <button onClick={onDelete} className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer">Verwijder</button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}

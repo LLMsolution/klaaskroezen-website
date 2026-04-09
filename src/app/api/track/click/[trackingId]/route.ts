@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { fetchMutation } from "convex/nextjs";
 import { api } from "../../../../../../convex/_generated/api";
 
-const ALLOWED_HOSTS = ["klaaskroezen.com", "www.klaaskroezen.com"];
+const ALLOWED_HOSTS = [
+  "klaaskroezen.nl",
+  "www.klaaskroezen.nl",
+  "klaaskroezen.com",
+  "www.klaaskroezen.com",
+];
 
 export async function GET(
   request: NextRequest,

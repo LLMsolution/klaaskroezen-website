@@ -212,7 +212,7 @@ function buildInvoiceHtml(invoice: InvoiceData, isNl: boolean): string {
   <!-- Footer -->
   <div style="margin-top: 48px; padding-top: 24px; border-top: 1px solid #EDE9E2; font-size: 11px; color: rgba(14,12,10,0.35); text-align: center;">
     <p>Klaas Kroezen B.V. · KVK 92622909 · BTW NL866276498B01</p>
-    <p>www.klaaskroezen.com · info@klaaskroezen.com</p>
+    <p>www.klaaskroezen.nl · info@klaaskroezen.com</p>
   </div>
 </body>
 </html>`;

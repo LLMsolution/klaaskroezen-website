@@ -6,7 +6,7 @@
  * everything stays in sync automatically.
  */
 
-export const SITE_URL = "https://www.klaaskroezen.com";
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.klaaskroezen.nl";
 
 export const SITE = {
   name: "Klaas Kroezen",

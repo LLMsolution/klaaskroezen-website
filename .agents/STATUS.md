@@ -12,11 +12,17 @@
 | Inline Image Management | done | 2026-04-01 |
 | Homepage + Remaining Images | partial | 2026-04-01 |
 | Homepage Content Integration | in-progress | 2026-04-08 |
+| Domeinmigratie .com → .nl | done | 2026-04-09 |
+| Admin Trainings: sortable + per-lang workbook | done | 2026-04-09 |
+| Admin bugfixes: Popup width, AdSpend tooltip | done | 2026-04-09 |
 
 ## Current Focus
 Homepage + Remaining Images — [plan](.agents/plans/homepage-and-remaining-images.md)
 
 ## Recent Activity
+- 2026-04-09: Admin Trainings drag-and-drop + manual display numbers + per-lang workbook PDF
+- 2026-04-09: Domeinmigratie klaaskroezen.com → klaaskroezen.nl (SITE_URL via env)
+- 2026-04-09: Admin fixes — PopupTab fullwidth + Ad Spend tooltip label/format
 - 2026-04-01: Homepage + Remaining Images plan created
 - 2026-04-01: Inline Image Management implementation completed (Phase 1-3 + cleanup; homepage deferred)
 - 2026-04-01: Inline Image Management execution started

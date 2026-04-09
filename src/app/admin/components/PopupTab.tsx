@@ -90,7 +90,7 @@ export function PopupTab() {
   }
 
   return (
-    <div className="space-y-8 max-w-[900px]">
+    <div className="space-y-8">
       {/* Header + Toggle */}
       <div className="flex items-center justify-between">
         <div>

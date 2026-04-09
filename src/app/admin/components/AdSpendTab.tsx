@@ -148,10 +148,16 @@ function HourlyChart({ data }: { data: HourlyRow[] }) {
             <YAxis tick={{ fontSize: 10, fill: "#0E0C0A", opacity: 0.3 }} tickLine={false} axisLine={false} tickFormatter={(v) => `${(Number(v) / 100).toFixed(0)}`} width={35} />
             <Tooltip
               contentStyle={{ fontSize: 12, border: "1px solid #EDE9E2", borderRadius: 2, background: "#F7F4EF" }}
-              formatter={(value, name) => [
-                name === "spend" ? `\u20AC ${(Number(value) / 100).toFixed(2).replace(".", ",")}` : String(value),
-                name === "spend" ? "Spend" : "Clicks",
-              ]}
+              formatter={(value, name) => {
+                if (name === "Spend") {
+                  const euros = Number(value) / 100;
+                  return [
+                    `\u20AC ${euros.toLocaleString("nl-NL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                    "Spend",
+                  ];
+                }
+                return [String(value), "Clicks"];
+              }}
             />
             <Legend wrapperStyle={{ fontSize: 11 }} />
             <Bar dataKey="spend" name="Spend" fill="#B5622A" radius={[2, 2, 0, 0]} />
