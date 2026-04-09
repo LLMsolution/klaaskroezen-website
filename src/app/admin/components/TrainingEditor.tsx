@@ -189,7 +189,7 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
       )}
 
       {/* Werkboek */}
-      <WorkbookSection trainingId={trainingId} />
+      <WorkbookSection trainingId={trainingId} editLang={editLang} />
 
       {/* Audiobook: flat chapter list */}
       {isAudiobook ? (

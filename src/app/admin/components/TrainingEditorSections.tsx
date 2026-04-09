@@ -69,15 +69,19 @@ export function InlineForm({ placeholder, value, onChange, saving, onSave, onCan
   );
 }
 
-/* ─── Werkboek section (per language) ─── */
+/* ─── Werkboek section (follows global editLang) ─── */
 
 type WorkbookLang = "nl" | "en" | "de";
 type WorkbookData = { storageId: string; fileName: string; title?: string; description?: string } | undefined;
 
-export function WorkbookSection({ trainingId }: { trainingId: Id<"trainings"> }) {
+export function WorkbookSection({
+  trainingId,
+  editLang,
+}: {
+  trainingId: Id<"trainings">;
+  editLang: WorkbookLang;
+}) {
   const trainingData = useQuery(api.trainings.listAll);
-  const [activeLang, setActiveLang] = useState<WorkbookLang>("nl");
-
   const t = trainingData?.find((tr) => tr._id === trainingId);
   const tRec = t as Record<string, unknown> | undefined;
 
@@ -87,34 +91,24 @@ export function WorkbookSection({ trainingId }: { trainingId: Id<"trainings"> })
     de: tRec?.workbookDe as WorkbookData,
   };
 
-  return (
-    <Section title="Werkboek (per taal)" subtitle="Upload per taal een eigen PDF werkboek met titel en beschrijving. De afbeelding wordt gedeeld over alle talen.">
-      {/* Language tabs */}
-      <div className="flex gap-2 mb-4 flex-wrap">
-        {(["nl", "en", "de"] as const).map((lang) => {
-          const hasFile = !!workbookByLang[lang];
-          return (
-            <button
-              key={lang}
-              onClick={() => setActiveLang(lang)}
-              className={`text-[11px] px-3 py-1.5 rounded-[2px] cursor-pointer transition-colors flex items-center gap-2 ${
-                activeLang === lang
-                  ? "bg-copper text-paper"
-                  : "border border-rule text-ink/50 hover:text-ink"
-              }`}
-            >
-              {lang.toUpperCase()}
-              {hasFile && <span className="w-1.5 h-1.5 rounded-full bg-green-500" />}
-            </button>
-          );
-        })}
-      </div>
+  const langsWithFile = (Object.entries(workbookByLang) as [WorkbookLang, WorkbookData][])
+    .filter(([, wb]) => !!wb)
+    .map(([l]) => l.toUpperCase());
 
+  return (
+    <Section
+      title={`Werkboek (${editLang.toUpperCase()})`}
+      subtitle={
+        langsWithFile.length > 0
+          ? `Upload een PDF werkboek voor de actieve bewerktaal. Al aanwezig: ${langsWithFile.join(", ")}.`
+          : "Upload een PDF werkboek voor de actieve bewerktaal. Wissel van taal bovenin de editor."
+      }
+    >
       <WorkbookLangPanel
-        key={activeLang}
+        key={editLang}
         trainingId={trainingId}
-        lang={activeLang}
-        existing={workbookByLang[activeLang]}
+        lang={editLang}
+        existing={workbookByLang[editLang]}
       />
 
       <WorkbookImageSection trainingId={trainingId} />
