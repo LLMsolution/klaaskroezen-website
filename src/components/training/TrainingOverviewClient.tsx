@@ -123,6 +123,7 @@ function TrainingContent({
   const trainingId = training._id;
   const modules = useQuery(api.trainings.getModulesForTraining, { trainingId });
   const progress = useQuery(api.trainingProgress.getMyTrainingProgress, { trainingId });
+  const bookmarkCounts = useQuery(api.bookmarks.countsForTraining, { trainingId });
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const allActive = (modules ?? [])
@@ -283,6 +284,7 @@ function TrainingContent({
                       const displayLabel =
                         (lesson as unknown as { displayNumber?: string }).displayNumber?.trim()
                         || `${chapterIdx + 1}.${lessonIdx + 1}`;
+                      const bmCount = bookmarkCounts?.[lesson._id] ?? 0;
                       return (
                         <Link
                           key={lesson._id}
@@ -302,11 +304,21 @@ function TrainingContent({
                                   {loc(lesson.description, lang)}
                                 </p>
                               )}
-                              {vp > 0 && !done && (
-                                <div className="mt-2 h-1 bg-warm rounded-full overflow-hidden max-w-[200px]">
-                                  <div className="h-full bg-copper rounded-full" style={{ width: `${vp}%` }} />
-                                </div>
-                              )}
+                              <div className="flex items-center gap-3 mt-1.5">
+                                {vp > 0 && !done && (
+                                  <div className="h-1 bg-warm rounded-full overflow-hidden w-[160px]">
+                                    <div className="h-full bg-copper rounded-full" style={{ width: `${vp}%` }} />
+                                  </div>
+                                )}
+                                {bmCount > 0 && (
+                                  <span className="inline-flex items-center gap-0.5 text-[11px] text-copper">
+                                    <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor">
+                                      <path d="M4 2v13l4-3 4 3V2z" />
+                                    </svg>
+                                    {bmCount}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                             {done && <span className="text-[11px] text-copper shrink-0">{tcI18n.completed}</span>}
                             {!done && vp > 0 && <span className="text-[11px] text-ink/30 shrink-0">{vp}%</span>}
