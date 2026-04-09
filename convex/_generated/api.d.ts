@@ -83,6 +83,7 @@ import type * as trainingModules from "../trainingModules.js";
 import type * as trainingProgress from "../trainingProgress.js";
 import type * as trainingSeed from "../trainingSeed.js";
 import type * as trainings from "../trainings.js";
+import type * as userNotes from "../userNotes.js";
 import type * as users from "../users.js";
 import type * as workflowEngine from "../workflowEngine.js";
 import type * as workflows from "../workflows.js";
@@ -169,6 +170,7 @@ declare const fullApi: ApiFromModules<{
   trainingProgress: typeof trainingProgress;
   trainingSeed: typeof trainingSeed;
   trainings: typeof trainings;
+  userNotes: typeof userNotes;
   users: typeof users;
   workflowEngine: typeof workflowEngine;
   workflows: typeof workflows;

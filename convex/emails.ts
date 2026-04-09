@@ -214,6 +214,49 @@ export const sendAbandonedCartReminder = internalAction({
   },
 });
 
+/** Celebration email fired once when a cursist passes the final required quiz. */
+export const sendTrainingCompletionEmail = internalAction({
+  args: {
+    userId: v.id("users"),
+    trainingId: v.id("trainings"),
+  },
+  handler: async (ctx, { userId, trainingId }) => {
+    const data = await ctx.runQuery(internal.emails.getCompletionRecipient, {
+      userId,
+      trainingId,
+    });
+    if (!data) return;
+    if (!data.email) return;
+
+    const isNl = data.lang === "nl";
+    const trainingTitle = isNl ? data.titleNl : data.titleEn;
+    const firstName = data.name?.split(" ")[0] || (isNl ? "daar" : "there");
+
+    const body = tpl.trainingCompletionNl(firstName, trainingTitle);
+    const html = layout(body, {
+      preheader: isNl
+        ? "Gefeliciteerd met het afronden van je training"
+        : "Congratulations on completing your training",
+      crossSell: "training",
+      lang: isNl ? "nl" : "en",
+    });
+
+    await ctx.runAction(internal.emails.sendEmail, {
+      to: data.email,
+      subject: isNl
+        ? "Gefeliciteerd — je hebt het gedaan!"
+        : "Congratulations — you did it!",
+      html,
+      template: "training-completion-celebration",
+    });
+
+    await ctx.runMutation(internal.emails.markCompletionEmailSent, {
+      userId,
+      trainingId,
+    });
+  },
+});
+
 /* ═══════════════════════════════════════════
    3. HELPERS & QUERIES
    ═══════════════════════════════════════════ */
@@ -222,6 +265,51 @@ export const getPendingOrder = internalQuery({
   args: { orderId: v.id("pendingOrders") },
   handler: async (ctx, { orderId }) => {
     return await ctx.db.get(orderId);
+  },
+});
+
+/** Gather everything the completion email needs in one query. */
+export const getCompletionRecipient = internalQuery({
+  args: { userId: v.id("users"), trainingId: v.id("trainings") },
+  handler: async (ctx, { userId, trainingId }) => {
+    const user = await ctx.db.get(userId);
+    const training = await ctx.db.get(trainingId);
+    if (!user || !training) return null;
+
+    // Resolve email via authAccounts (email-based providers store it there)
+    const accounts = await ctx.db
+      .query("authAccounts")
+      .filter((q) => q.eq(q.field("userId"), userId))
+      .collect();
+    const emailAccount = accounts.find((a) =>
+      a.providerAccountId?.includes("@"),
+    );
+    const userRec = user as unknown as { email?: string; name?: string };
+    const email = emailAccount?.providerAccountId ?? userRec.email ?? "";
+
+    return {
+      email,
+      name: userRec.name ?? "",
+      lang: "nl" as const,
+      titleNl: training.title.nl,
+      titleEn: training.title.en,
+    };
+  },
+});
+
+/** Stamp trainingCompletions row with emailSentAt to prevent duplicate sends. */
+export const markCompletionEmailSent = internalMutation({
+  args: { userId: v.id("users"), trainingId: v.id("trainings") },
+  handler: async (ctx, { userId, trainingId }) => {
+    const row = await ctx.db
+      .query("trainingCompletions")
+      .withIndex("by_user_training", (q) =>
+        q.eq("userId", userId).eq("trainingId", trainingId),
+      )
+      .first();
+    if (row) {
+      await ctx.db.patch(row._id, { emailSentAt: Date.now() });
+    }
   },
 });
 

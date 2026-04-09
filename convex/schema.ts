@@ -968,6 +968,27 @@ export default defineSchema({
     createdAt: v.number(),
   }).index("by_user_module", ["userId", "moduleId"]),
 
+  // Personal notes per user per module (one per pair, upsert pattern).
+  userNotes: defineTable({
+    userId: v.id("users"),
+    moduleId: v.id("trainingModules"),
+    trainingId: v.id("trainings"),
+    content: v.string(),
+    updatedAt: v.number(),
+  })
+    .index("by_user_module", ["userId", "moduleId"])
+    .index("by_user_training", ["userId", "trainingId"]),
+
+  // Training completion tracking — one row per (user, training) the moment
+  // the cursist passes the final required quiz. Used to send the completion
+  // email exactly once and gate future celebration logic.
+  trainingCompletions: defineTable({
+    userId: v.id("users"),
+    trainingId: v.id("trainings"),
+    completedAt: v.number(),
+    emailSentAt: v.optional(v.number()),
+  }).index("by_user_training", ["userId", "trainingId"]),
+
   // Discussion posts per module
   discussions: defineTable({
     moduleId: v.id("trainingModules"),
