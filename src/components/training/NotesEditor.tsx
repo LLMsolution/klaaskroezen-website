@@ -9,6 +9,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lang } from "@/lib/i18n";
 import { TimestampNode } from "./tiptap/TimestampNode";
 import { NotesEditorToolbar } from "./NotesEditorToolbar";
+import { getVimeoPlayer } from "./tiptap/vimeoPlayer";
 
 type Copy = {
   title: string;
@@ -16,6 +17,7 @@ type Copy = {
   placeholder: string;
   saving: string;
   saved: string;
+  addBookmark: string;
 };
 
 const COPY: Record<Lang, Copy> = {
@@ -25,6 +27,7 @@ const COPY: Record<Lang, Copy> = {
     placeholder: "Schrijf hier je notities, inzichten of vragen voor deze les...",
     saving: "Opslaan...",
     saved: "Opgeslagen",
+    addBookmark: "+ Bladwijzer op huidige tijd",
   },
   en: {
     title: "My notes",
@@ -32,6 +35,7 @@ const COPY: Record<Lang, Copy> = {
     placeholder: "Write your notes, insights, or questions for this lesson...",
     saving: "Saving...",
     saved: "Saved",
+    addBookmark: "+ Bookmark current time",
   },
   de: {
     title: "Meine Notizen",
@@ -39,6 +43,7 @@ const COPY: Record<Lang, Copy> = {
     placeholder: "Schreiben Sie Ihre Notizen, Erkenntnisse oder Fragen zu dieser Lektion...",
     saving: "Speichern...",
     saved: "Gespeichert",
+    addBookmark: "+ Lesezeichen zur aktuellen Zeit",
   },
 };
 
@@ -113,7 +118,7 @@ export function NotesEditor({ moduleId, lang }: Props) {
     editorProps: {
       attributes: {
         class:
-          "tiptap-notes w-full min-h-[160px] bg-transparent border border-rule px-4 py-3 text-[14px] text-ink leading-[1.6] focus:border-copper focus:outline-none rounded-[2px] prose prose-sm max-w-none",
+          "tiptap-notes w-full min-h-[160px] bg-transparent text-[14px] text-ink leading-[1.6] focus:outline-none max-w-none",
         "data-placeholder": copy.placeholder,
       },
     },
@@ -150,22 +155,52 @@ export function NotesEditor({ moduleId, lang }: Props) {
     };
   }, []);
 
+  async function handleBookmark() {
+    if (!editor) return;
+    const player = await getVimeoPlayer();
+    if (!player) return;
+    try {
+      const t = await player.getCurrentTime();
+      editor
+        .chain()
+        .focus()
+        .insertContent({ type: "timestamp", attrs: { seconds: Math.round(t) } })
+        .insertContent(" ")
+        .run();
+    } catch {
+      /* player not ready */
+    }
+  }
+
   return (
-    <div className="my-6 border border-rule rounded-[2px] p-5 sm:p-6">
-      <div className="flex items-start justify-between mb-3 gap-3">
-        <div>
-          <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-1">
-            {copy.title}
-          </p>
-          <p className="text-[12px] text-ink/50">{copy.subtitle}</p>
+    <>
+      {/* Prominent bookmark action — lives directly below the video, outside
+          the notes card. Inserts a [m:ss] chip at the editor cursor. */}
+      <button
+        type="button"
+        onClick={handleBookmark}
+        disabled={!editor}
+        className="mt-4 inline-flex items-center gap-2 bg-copper text-paper px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] disabled:opacity-50"
+      >
+        {copy.addBookmark}
+      </button>
+
+      <div className="my-6 border border-rule rounded-[2px] p-5 sm:p-6">
+        <div className="flex items-start justify-between mb-3 gap-3">
+          <div>
+            <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-1">
+              {copy.title}
+            </p>
+            <p className="text-[12px] text-ink/50">{copy.subtitle}</p>
+          </div>
+          <div className="text-[11px] text-ink/40 tabular-nums min-w-[80px] text-right shrink-0">
+            {status === "saving" && copy.saving}
+            {status === "saved" && <span className="text-green-600">{copy.saved}</span>}
+          </div>
         </div>
-        <div className="text-[11px] text-ink/40 tabular-nums min-w-[80px] text-right shrink-0">
-          {status === "saving" && copy.saving}
-          {status === "saved" && <span className="text-green-600">{copy.saved}</span>}
-        </div>
+        <NotesEditorToolbar editor={editor} lang={lang} />
+        <EditorContent editor={editor} />
       </div>
-      <NotesEditorToolbar editor={editor} lang={lang} />
-      <EditorContent editor={editor} />
-    </div>
+    </>
   );
 }

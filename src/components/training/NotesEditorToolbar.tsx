@@ -2,19 +2,17 @@
 
 import type { Editor } from "@tiptap/react";
 import type { Lang } from "@/lib/i18n";
-import { getVimeoPlayer } from "./tiptap/vimeoPlayer";
 
 type Copy = {
   title: string;
   bullets: string;
   numbers: string;
-  bookmark: string;
 };
 
 const COPY: Record<Lang, Copy> = {
-  nl: { title: "Titel", bullets: "Lijst", numbers: "Nummers", bookmark: "Bladwijzer" },
-  en: { title: "Title", bullets: "Bullets", numbers: "Numbers", bookmark: "Bookmark" },
-  de: { title: "Titel", bullets: "Liste", numbers: "Nummern", bookmark: "Lesezeichen" },
+  nl: { title: "Titel", bullets: "Lijst", numbers: "Nummers" },
+  en: { title: "Title", bullets: "Bullets", numbers: "Numbers" },
+  de: { title: "Titel", bullets: "Liste", numbers: "Nummern" },
 };
 
 type BtnProps = {
@@ -46,23 +44,6 @@ export function NotesEditorToolbar({ editor, lang }: { editor: Editor | null; la
   if (!editor) return null;
   const copy = COPY[lang];
 
-  async function insertTimestamp() {
-    if (!editor) return;
-    const player = await getVimeoPlayer();
-    if (!player) return;
-    try {
-      const t = await player.getCurrentTime();
-      editor
-        .chain()
-        .focus()
-        .insertContent({ type: "timestamp", attrs: { seconds: Math.round(t) } })
-        .insertContent(" ")
-        .run();
-    } catch {
-      /* player not ready */
-    }
-  }
-
   return (
     <div className="flex flex-wrap gap-1.5 mb-3">
       <ToolbarButton
@@ -79,11 +60,6 @@ export function NotesEditorToolbar({ editor, lang }: { editor: Editor | null; la
         label={copy.numbers}
         active={editor.isActive("orderedList")}
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
-      />
-      <ToolbarButton
-        label={`+ ${copy.bookmark}`}
-        active={false}
-        onClick={insertTimestamp}
       />
     </div>
   );

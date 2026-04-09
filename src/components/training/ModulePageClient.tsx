@@ -363,52 +363,6 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
           {/* Lesson form (questionnaire) */}
           <LessonFormSection moduleId={mod._id} lang={lang} />
 
-          {/* Prev / Next lesson nav — compact, at the very bottom of the main column */}
-          {nav && (nav.prev || nav.next) && (
-            <div className="flex items-center justify-between gap-3 mt-10 pt-6 border-t border-rule">
-              {nav.prev ? (
-                <Link
-                  href={`/training/${slug}/${nav.prev.slug}`}
-                  className="group flex items-center gap-3 text-left min-w-0 flex-1 sm:flex-none sm:max-w-[45%]"
-                >
-                  <span className="w-8 h-8 shrink-0 rounded-[2px] border border-copper/40 flex items-center justify-center text-copper group-hover:border-copper group-hover:bg-copper/10 transition-colors">
-                    &larr;
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-[10px] font-medium tracking-[0.15em] uppercase text-copper">
-                      {s.prev}
-                    </span>
-                    <span className="block text-[12px] text-ink/60 group-hover:text-ink truncate">
-                      {loc(nav.prev.title, lang)}
-                    </span>
-                  </span>
-                </Link>
-              ) : (
-                <span />
-              )}
-              {nav.next ? (
-                <Link
-                  href={`/training/${slug}/${nav.next.slug}`}
-                  className="group flex items-center gap-3 text-right min-w-0 flex-1 sm:flex-none sm:max-w-[45%] justify-end"
-                >
-                  <span className="min-w-0">
-                    <span className="block text-[10px] font-medium tracking-[0.15em] uppercase text-copper">
-                      {s.next}
-                    </span>
-                    <span className="block text-[12px] text-ink/60 group-hover:text-ink truncate">
-                      {loc(nav.next.title, lang)}
-                    </span>
-                  </span>
-                  <span className="w-8 h-8 shrink-0 rounded-[2px] border border-copper/40 flex items-center justify-center text-copper group-hover:border-copper group-hover:bg-copper/10 transition-colors">
-                    &rarr;
-                  </span>
-                </Link>
-              ) : (
-                <span />
-              )}
-            </div>
-          )}
-
           {/* Discussion */}
           {mod.discussionEnabled && <DiscussionSection moduleId={mod._id} lang={lang} />}
         </div>
