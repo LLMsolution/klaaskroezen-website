@@ -280,29 +280,38 @@ function TrainingContent({
                       const lp = progressMap.get(lesson._id);
                       const vp = lp?.videoProgress ?? 0;
                       const done = !!lp?.completedAt;
+                      const displayLabel =
+                        (lesson as unknown as { displayNumber?: string }).displayNumber?.trim()
+                        || `${chapterIdx + 1}.${lessonIdx + 1}`;
                       return (
-                        <div key={lesson._id} className="px-5 py-4">
-                          <div className="flex items-center gap-3 mb-2">
-                            <span className={`text-[12px] font-medium w-8 ${done ? "text-copper" : "text-ink/25"}`}>
-                              {chapterIdx + 1}.{lessonIdx + 1}
+                        <Link
+                          key={lesson._id}
+                          href={`/training/${slug}/${lesson.slug}`}
+                          className="block px-5 py-4 hover:bg-warm/30 transition-colors group cursor-pointer"
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className={`text-[12px] font-medium w-10 shrink-0 tabular-nums pt-0.5 ${done ? "text-copper" : "text-ink/25"}`}>
+                              {displayLabel}
                             </span>
-                            <p className="text-[14px] font-medium text-ink flex-1">{loc(lesson.title, lang)}</p>
-                            {done && <span className="text-[11px] text-copper">{tcI18n.completed}</span>}
-                            {!done && vp > 0 && <span className="text-[11px] text-ink/30">{vp}%</span>}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[14px] font-medium text-ink group-hover:text-copper transition-colors">
+                                {loc(lesson.title, lang)}
+                              </p>
+                              {loc(lesson.description, lang) && (
+                                <p className="text-[13px] text-ink/50 leading-[1.6] mt-1 line-clamp-2">
+                                  {loc(lesson.description, lang)}
+                                </p>
+                              )}
+                              {vp > 0 && !done && (
+                                <div className="mt-2 h-1 bg-warm rounded-full overflow-hidden max-w-[200px]">
+                                  <div className="h-full bg-copper rounded-full" style={{ width: `${vp}%` }} />
+                                </div>
+                              )}
+                            </div>
+                            {done && <span className="text-[11px] text-copper shrink-0">{tcI18n.completed}</span>}
+                            {!done && vp > 0 && <span className="text-[11px] text-ink/30 shrink-0">{vp}%</span>}
                           </div>
-                          <div className="pl-11">
-                            {loc(lesson.description, lang) && (
-                              <p className="text-[13px] text-ink/40 mb-3">{loc(lesson.description, lang)}</p>
-                            )}
-                            <Link
-                              href={`/training/${slug}/${lesson.slug}`}
-                              className="inline-flex items-center gap-2 text-[12px] font-medium text-copper hover:text-copper-light transition-colors"
-                            >
-                              {done ? lessonI18n[lang].reviewVideo : vp > 0 ? lessonI18n[lang].continueVideo : lessonI18n[lang].startVideo}
-                              <ArrowIcon />
-                            </Link>
-                          </div>
-                        </div>
+                        </Link>
                       );
                     })}
                   </div>
@@ -350,7 +359,7 @@ function LessonDetail({ mod, slug, progress, lang }: {
       {mod.vimeoVideoId && (
         <div className="relative w-full rounded-[2px] overflow-hidden bg-ink/5" style={{ paddingBottom: "56.25%" }}>
           <iframe
-            src={`https://player.vimeo.com/video/${mod.vimeoVideoId}?badge=0&autopause=0`}
+            src={`https://player.vimeo.com/video/${mod.vimeoVideoId}?byline=0&portrait=0&title=0&badge=0&autopause=0&transparent=0&dnt=1`}
             allow="autoplay; fullscreen; picture-in-picture"
             className="absolute inset-0 w-full h-full"
             title={loc(mod.title, lang)}
