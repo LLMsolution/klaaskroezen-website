@@ -50,6 +50,7 @@ import type * as emailSequences from "../emailSequences.js";
 import type * as emailTemplates from "../emailTemplates.js";
 import type * as emailTracking from "../emailTracking.js";
 import type * as emails from "../emails.js";
+import type * as examSeed from "../examSeed.js";
 import type * as http from "../http.js";
 import type * as imageSpecs from "../imageSpecs.js";
 import type * as imageSpecsSeed from "../imageSpecsSeed.js";
@@ -139,6 +140,7 @@ declare const fullApi: ApiFromModules<{
   emailTemplates: typeof emailTemplates;
   emailTracking: typeof emailTracking;
   emails: typeof emails;
+  examSeed: typeof examSeed;
   http: typeof http;
   imageSpecs: typeof imageSpecs;
   imageSpecsSeed: typeof imageSpecsSeed;
