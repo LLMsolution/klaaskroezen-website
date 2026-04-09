@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { api } from "../../../convex/_generated/api";
 import type { Lang } from "@/lib/i18n";
@@ -213,6 +213,36 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
     }
   }, [nav, router, slug]);
 
+  // Keyboard navigation: ArrowRight = next lesson, ArrowLeft = previous lesson.
+  // Ignored when the user is typing in an input/textarea/contentEditable field.
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t) {
+        const tag = t.tagName;
+        if (
+          tag === "INPUT" ||
+          tag === "TEXTAREA" ||
+          tag === "SELECT" ||
+          t.isContentEditable
+        ) {
+          return;
+        }
+      }
+      if (e.key === "ArrowRight" && nav?.next) {
+        e.preventDefault();
+        router.push(`/training/${slug}/${nav.next.slug}`);
+      } else if (e.key === "ArrowLeft" && nav?.prev) {
+        e.preventDefault();
+        router.push(`/training/${slug}/${nav.prev.slug}`);
+      }
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [nav, router, slug]);
+
   if (training === undefined || mod === undefined) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -341,49 +371,63 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
             </div>
           )}
 
-          {/* Bookmarks (only when the lesson has a video and is not a form-only lesson) */}
+          {/* Bookmarks (standalone button — no card) */}
           {hasVideo && !hasForm && <BookmarksPanel moduleId={mod._id} lang={lang} />}
 
-          {/* Personal notes (hidden on form lessons) */}
+          {/* Personal notes */}
           {!hasForm && <NotesPanel moduleId={mod._id} lang={lang} />}
-
-          {/* Prev / Next lesson nav */}
-          {nav && (nav.prev || nav.next) && (
-            <div className="flex items-stretch gap-3 mb-8">
-              {nav.prev && (
-                <Link
-                  href={`/training/${slug}/${nav.prev.slug}`}
-                  className="flex-1 border border-copper/40 rounded-[2px] p-4 hover:border-copper hover:bg-copper/[0.03] transition-colors group"
-                >
-                  <p className="text-[10px] font-medium tracking-[0.15em] uppercase text-copper mb-1">
-                    &larr; {s.prev}
-                  </p>
-                  <p className="text-[13px] text-ink/80 group-hover:text-ink line-clamp-1">
-                    {loc(nav.prev.title, lang)}
-                  </p>
-                </Link>
-              )}
-              {nav.next && (
-                <Link
-                  href={`/training/${slug}/${nav.next.slug}`}
-                  className="flex-1 border border-copper/40 rounded-[2px] p-4 hover:border-copper hover:bg-copper/[0.03] transition-colors text-right group"
-                >
-                  <p className="text-[10px] font-medium tracking-[0.15em] uppercase text-copper mb-1">
-                    {s.next} &rarr;
-                  </p>
-                  <p className="text-[13px] text-ink/80 group-hover:text-ink line-clamp-1">
-                    {loc(nav.next.title, lang)}
-                  </p>
-                </Link>
-              )}
-            </div>
-          )}
 
           {/* Quiz */}
           {mod.quizRequired && <QuizSection moduleId={mod._id} lang={lang} />}
 
           {/* Lesson form (questionnaire) */}
           <LessonFormSection moduleId={mod._id} lang={lang} />
+
+          {/* Prev / Next lesson nav — compact, at the very bottom of the main column */}
+          {nav && (nav.prev || nav.next) && (
+            <div className="flex items-center justify-between gap-3 mt-10 pt-6 border-t border-rule">
+              {nav.prev ? (
+                <Link
+                  href={`/training/${slug}/${nav.prev.slug}`}
+                  className="group flex items-center gap-3 text-left min-w-0 flex-1 sm:flex-none sm:max-w-[45%]"
+                >
+                  <span className="w-8 h-8 shrink-0 rounded-[2px] border border-copper/40 flex items-center justify-center text-copper group-hover:border-copper group-hover:bg-copper/10 transition-colors">
+                    &larr;
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[10px] font-medium tracking-[0.15em] uppercase text-copper">
+                      {s.prev}
+                    </span>
+                    <span className="block text-[12px] text-ink/60 group-hover:text-ink truncate">
+                      {loc(nav.prev.title, lang)}
+                    </span>
+                  </span>
+                </Link>
+              ) : (
+                <span />
+              )}
+              {nav.next ? (
+                <Link
+                  href={`/training/${slug}/${nav.next.slug}`}
+                  className="group flex items-center gap-3 text-right min-w-0 flex-1 sm:flex-none sm:max-w-[45%] justify-end"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-[10px] font-medium tracking-[0.15em] uppercase text-copper">
+                      {s.next}
+                    </span>
+                    <span className="block text-[12px] text-ink/60 group-hover:text-ink truncate">
+                      {loc(nav.next.title, lang)}
+                    </span>
+                  </span>
+                  <span className="w-8 h-8 shrink-0 rounded-[2px] border border-copper/40 flex items-center justify-center text-copper group-hover:border-copper group-hover:bg-copper/10 transition-colors">
+                    &rarr;
+                  </span>
+                </Link>
+              ) : (
+                <span />
+              )}
+            </div>
+          )}
 
           {/* Discussion */}
           {mod.discussionEnabled && <DiscussionSection moduleId={mod._id} lang={lang} />}

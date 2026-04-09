@@ -16,7 +16,7 @@ interface Props {
   nextLessonTitle?: string;
 }
 
-const COUNTDOWN_SECONDS = 5;
+const COUNTDOWN_SECONDS = 10;
 
 export function VideoPlayer({
   vimeoVideoId,
@@ -139,7 +139,7 @@ export function VideoPlayer({
       <div className="relative bg-ink/5 rounded-[2px] overflow-hidden" style={{ paddingTop: "56.25%" }}>
         <iframe
           ref={iframeRef}
-          src={`https://player.vimeo.com/video/${vimeoVideoId}?byline=0&portrait=0&title=0&badge=0&autopause=0&transparent=0&dnt=1&pip=0`}
+          src={`https://player.vimeo.com/video/${vimeoVideoId}?byline=0&portrait=0&title=0&badge=0&autopause=0&transparent=0&dnt=1&pip=0&color=B5622A`}
           className="absolute inset-0 w-full h-full"
           allow="autoplay; fullscreen; picture-in-picture"
           allowFullScreen
