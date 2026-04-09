@@ -463,32 +463,39 @@ function SortableLessonRow({
       </div>
 
       {expanded && (
-        <div className="border-t border-rule/50 p-3 space-y-3">
-          <LangField
-            label="Les titel"
-            value={lesson.title[editLang] ?? ""}
-            sourceNl={lesson.title.nl}
-            lang={editLang}
-            onSave={async (v) => {
-              await onUpdateModule({ id: lesson._id, title: mergeLang(lesson.title, editLang, v) });
-            }}
-          />
-          <LangField
-            label="Les beschrijving"
-            value={lesson.description[editLang] ?? ""}
-            sourceNl={lesson.description.nl}
-            lang={editLang}
-            multiline
-            onSave={async (v) => {
-              await onUpdateModule({ id: lesson._id, description: mergeLang(lesson.description, editLang, v) });
-            }}
-          />
-          <ModuleVideoField
-            moduleId={lesson._id}
-            currentVideoId={lesson.vimeoVideoId}
-            onSave={async (videoId) => { await onUpdateModule({ id: lesson._id, vimeoVideoId: videoId }); }}
-          />
-          <div className="flex items-center gap-3 pt-2">
+        <div className="border-t border-rule/50 p-4 space-y-4">
+          {/* Two-column layout: text inputs left, video preview right */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div className="space-y-4">
+              <LangField
+                label="Les titel"
+                value={lesson.title[editLang] ?? ""}
+                sourceNl={lesson.title.nl}
+                lang={editLang}
+                onSave={async (v) => {
+                  await onUpdateModule({ id: lesson._id, title: mergeLang(lesson.title, editLang, v) });
+                }}
+              />
+              <LangField
+                label="Les beschrijving"
+                value={lesson.description[editLang] ?? ""}
+                sourceNl={lesson.description.nl}
+                lang={editLang}
+                multiline
+                onSave={async (v) => {
+                  await onUpdateModule({ id: lesson._id, description: mergeLang(lesson.description, editLang, v) });
+                }}
+              />
+            </div>
+            <div>
+              <ModuleVideoField
+                moduleId={lesson._id}
+                currentVideoId={lesson.vimeoVideoId}
+                onSave={async (videoId) => { await onUpdateModule({ id: lesson._id, vimeoVideoId: videoId }); }}
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-3 pt-2 border-t border-rule/50">
             <button onClick={onEditQuiz} className="text-[12px] text-copper hover:text-copper-light cursor-pointer">Quiz</button>
             <button onClick={onDelete} className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer">Verwijder</button>
           </div>

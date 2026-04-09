@@ -32,7 +32,7 @@ export function ModuleVideoField({
         {currentVideoId && (
           <div className="mt-2 relative w-full max-w-[400px] rounded-[2px] overflow-hidden bg-ink/5" style={{ paddingBottom: "56.25%" }}>
             <iframe
-              src={`https://player.vimeo.com/video/${currentVideoId}?badge=0`}
+              src={`https://player.vimeo.com/video/${currentVideoId}?byline=0&portrait=0&title=0&badge=0&dnt=1`}
               allow="fullscreen"
               className="absolute inset-0 w-full h-full"
             />

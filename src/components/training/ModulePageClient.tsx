@@ -10,7 +10,6 @@ import { VideoPlayer } from "./VideoPlayer";
 import { AudioPlayer } from "./AudioPlayer";
 import { QuizSection } from "./QuizSection";
 import { DiscussionSection } from "./DiscussionSection";
-import { BookmarksList } from "./BookmarksList";
 import { NotesPanel } from "./NotesPanel";
 
 type LocalizedStr = { nl: string; en: string; de?: string };
@@ -143,10 +142,7 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
         </div>
       )}
 
-      {/* Bookmarks */}
-      <BookmarksList moduleId={mod._id} lang={lang} />
-
-      {/* Personal notes */}
+      {/* Personal notes + bookmarks (unified panel) */}
       <NotesPanel moduleId={mod._id} lang={lang} />
 
       {/* Workbook download */}
