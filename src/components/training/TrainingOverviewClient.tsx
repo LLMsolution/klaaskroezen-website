@@ -9,6 +9,8 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lang } from "@/lib/i18n";
 import { CertificateButton } from "./CertificateButton";
 import { AudiobookOverview } from "./AudiobookOverview";
+import { WorkbookCard } from "./WorkbookCard";
+import { NotesDownloadButton } from "./NotesDownloadButton";
 
 type LocalizedStr = { nl: string; en: string; de?: string };
 function loc(obj: LocalizedStr, lang: Lang): string {
@@ -105,9 +107,9 @@ const lessonI18n = {
 };
 
 const trainingContentI18n = {
-  nl: { label: "Training", videos: "video's", video: "video", completed: "afgerond", workbooks: "Werkboeken", workbookPdf: "Werkboek PDF" },
-  en: { label: "Training", videos: "videos", video: "video", completed: "completed", workbooks: "Workbooks", workbookPdf: "Workbook PDF" },
-  de: { label: "Training", videos: "Videos", video: "Video", completed: "abgeschlossen", workbooks: "Arbeitsbucher", workbookPdf: "Arbeitsbuch PDF" },
+  nl: { label: "Training", videos: "video's", video: "video", completed: "afgerond", myMaterial: "Mijn materiaal" },
+  en: { label: "Training", videos: "videos", video: "video", completed: "completed", myMaterial: "My material" },
+  de: { label: "Training", videos: "Videos", video: "Video", completed: "abgeschlossen", myMaterial: "Meine Materialien" },
 };
 
 function TrainingContent({
@@ -160,8 +162,6 @@ function TrainingContent({
       ? Math.round((completedCount / lessons.length) * 100)
       : 0;
 
-  const hasWorkbooks = allActive.some((m) => m.workbookStorageId);
-
   return (
     <div className="mx-auto max-w-[1180px] px-7 lg:px-14 py-12 lg:py-20">
       {/* Header */}
@@ -193,21 +193,14 @@ function TrainingContent({
         </div>
       </div>
 
-      {/* Workbook downloads */}
-      {hasWorkbooks && (
-        <div className="mb-10 border border-rule rounded-[2px] p-5">
-          <h3 className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40 mb-3">
-            {tcI18n.workbooks}
-          </h3>
-          <div className="space-y-2">
-            {allActive
-              .filter((m) => m.workbookStorageId)
-              .map((m) => (
-                <WorkbookDownload key={m._id} moduleId={m._id} title={loc(m.title, lang)} pdfLabel={tcI18n.workbookPdf} />
-              ))}
-          </div>
-        </div>
-      )}
+      {/* Mijn materiaal */}
+      <div className="mb-10">
+        <h3 className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40 mb-3">
+          {tcI18n.myMaterial}
+        </h3>
+        <WorkbookCard trainingId={training._id} lang={lang} />
+        <NotesDownloadButton lang={lang} />
+      </div>
 
       {/* Certificate */}
       <CertificateButton trainingId={training._id} trainingTitle={loc(training.title, lang)} />
@@ -412,30 +405,6 @@ function LessonDetail({ mod, slug, progress, lang }: {
         <ArrowIcon />
       </Link>
     </div>
-  );
-}
-
-function WorkbookDownload({ moduleId, title, pdfLabel }: { moduleId: Id<"trainingModules">; title: string; pdfLabel: string }) {
-  const data = useQuery(api.trainingModules.getWithProgress, { moduleId });
-  if (!data?.workbookUrl) return null;
-
-  return (
-    <a
-      href={data.workbookUrl}
-      download
-      className="flex items-center gap-3 p-3 border border-rule rounded-[2px] hover:border-copper/30 transition-colors group"
-    >
-      <div className="w-9 h-9 rounded-[2px] bg-copper/10 flex items-center justify-center shrink-0">
-        <PdfIcon />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[14px] font-medium text-ink group-hover:text-copper transition-colors truncate">
-          {title}
-        </p>
-        <p className="text-[11px] text-ink/40">{pdfLabel}</p>
-      </div>
-      <DownloadIcon />
-    </a>
   );
 }
 

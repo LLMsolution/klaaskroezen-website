@@ -367,8 +367,9 @@ export const saveWorkbook = mutation({
     fileName: v.string(),
     title: v.optional(v.string()),
     description: v.optional(v.string()),
+    buttonLabel: v.optional(v.string()),
   },
-  handler: async (ctx, { trainingId, lang, storageId, fileName, title, description }) => {
+  handler: async (ctx, { trainingId, lang, storageId, fileName, title, description, buttonLabel }) => {
     await requireAdmin(ctx);
     const training = await ctx.db.get(trainingId);
     if (!training) throw new Error("Training niet gevonden.");
@@ -376,7 +377,7 @@ export const saveWorkbook = mutation({
     const existing = training[field];
     if (existing?.storageId) await ctx.storage.delete(existing.storageId);
     await ctx.db.patch(trainingId, {
-      [field]: { storageId, fileName, title, description },
+      [field]: { storageId, fileName, title, description, buttonLabel },
     });
   },
 });
@@ -387,8 +388,9 @@ export const updateWorkbookMeta = mutation({
     lang: langValidator,
     title: v.optional(v.string()),
     description: v.optional(v.string()),
+    buttonLabel: v.optional(v.string()),
   },
-  handler: async (ctx, { trainingId, lang, title, description }) => {
+  handler: async (ctx, { trainingId, lang, title, description, buttonLabel }) => {
     await requireAdmin(ctx);
     const training = await ctx.db.get(trainingId);
     if (!training) throw new Error("Training niet gevonden.");
@@ -396,7 +398,7 @@ export const updateWorkbookMeta = mutation({
     const existing = training[field];
     if (!existing) throw new Error(`Geen werkboek voor taal ${lang}.`);
     await ctx.db.patch(trainingId, {
-      [field]: { ...existing, title, description },
+      [field]: { ...existing, title, description, buttonLabel },
     });
   },
 });
@@ -444,6 +446,7 @@ export const getWorkbookUrl = query({
       fileName: resolved.fileName,
       title: resolved.title,
       description: resolved.description,
+      buttonLabel: resolved.buttonLabel,
       imageUrl: imageUrl ?? undefined,
     };
   },

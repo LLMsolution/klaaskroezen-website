@@ -14,6 +14,8 @@ import { NotesPanel } from "./NotesPanel";
 import { BookmarksPanel } from "./BookmarksPanel";
 import { LessonFormSection } from "./LessonFormSection";
 import { ModuleSidebar, type SidebarLesson } from "./ModuleSidebar";
+import { WorkbookCard } from "./WorkbookCard";
+import { LessonBackButton } from "./LessonBackButton";
 
 type LocalizedStr = { nl: string; en: string; de?: string };
 function loc(obj: LocalizedStr, lang: Lang): string {
@@ -292,6 +294,7 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
 
   return (
     <div className="mx-auto max-w-[1280px] px-7 lg:px-14 py-6 lg:py-10">
+      <LessonBackButton trainingSlug={slug} lang={lang} />
       {/* Breadcrumb */}
       <nav className="text-[12px] text-ink/40 mb-5 flex flex-wrap items-center gap-1.5">
         <Link href={`/training/${slug}`} className="hover:text-ink transition-colors">
@@ -350,26 +353,8 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
             </div>
           )}
 
-          {/* Workbook download */}
-          {moduleWithProgress?.workbookUrl && (
-            <div className="my-6 border border-rule rounded-[2px] p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40 mb-1">
-                    {s.workbook}
-                  </p>
-                  <p className="text-[13px] text-ink">{mod.workbookFileName}</p>
-                </div>
-                <a
-                  href={moduleWithProgress.workbookUrl}
-                  download={mod.workbookFileName}
-                  className="bg-copper text-paper px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px]"
-                >
-                  Download
-                </a>
-              </div>
-            </div>
-          )}
+          {/* Workbook (training-level) */}
+          <WorkbookCard trainingId={training._id} lang={lang} />
 
           {/* Bookmarks (standalone button — no card) */}
           {hasVideo && !hasForm && <BookmarksPanel moduleId={mod._id} lang={lang} />}
@@ -445,6 +430,8 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
             completedMap={completedMap}
             progressMap={progressPctMap}
             bookmarkCounts={bookmarkCounts ?? {}}
+            prev={nav.prev}
+            next={nav.next}
             lang={lang}
           />
         )}

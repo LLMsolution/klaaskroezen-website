@@ -837,6 +837,7 @@ export default defineSchema({
         fileName: v.string(),
         title: v.optional(v.string()),
         description: v.optional(v.string()),
+        buttonLabel: v.optional(v.string()),
       }),
     ),
     workbookEn: v.optional(
@@ -845,6 +846,7 @@ export default defineSchema({
         fileName: v.string(),
         title: v.optional(v.string()),
         description: v.optional(v.string()),
+        buttonLabel: v.optional(v.string()),
       }),
     ),
     workbookDe: v.optional(
@@ -853,6 +855,7 @@ export default defineSchema({
         fileName: v.string(),
         title: v.optional(v.string()),
         description: v.optional(v.string()),
+        buttonLabel: v.optional(v.string()),
       }),
     ),
     workbookImageStorageId: v.optional(v.id("_storage")),

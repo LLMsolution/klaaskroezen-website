@@ -39,13 +39,17 @@ interface Props {
   progressMap: Record<string, number>;
   /** Map of moduleId → bookmark count. */
   bookmarkCounts: Record<string, number>;
+  /** Previous lesson in chapter-ordered flow (may be in another chapter). */
+  prev?: SidebarLesson | null;
+  /** Next lesson in chapter-ordered flow (may be in another chapter). */
+  next?: SidebarLesson | null;
   lang: Lang;
 }
 
-const COPY: Record<Lang, { moduleLabel: string; progress: string; completed: string }> = {
-  nl: { moduleLabel: "Module", progress: "voltooid", completed: "Afgerond" },
-  en: { moduleLabel: "Module", progress: "completed", completed: "Completed" },
-  de: { moduleLabel: "Modul", progress: "abgeschlossen", completed: "Abgeschlossen" },
+const COPY: Record<Lang, { moduleLabel: string; progress: string; completed: string; prev: string; next: string }> = {
+  nl: { moduleLabel: "Module", progress: "voltooid", completed: "Afgerond", prev: "Vorige", next: "Volgende" },
+  en: { moduleLabel: "Module", progress: "completed", completed: "Completed", prev: "Previous", next: "Next" },
+  de: { moduleLabel: "Modul", progress: "abgeschlossen", completed: "Abgeschlossen", prev: "Vorherige", next: "Nachste" },
 };
 
 export function ModuleSidebar({
@@ -58,6 +62,8 @@ export function ModuleSidebar({
   completedMap,
   progressMap,
   bookmarkCounts,
+  prev,
+  next,
   lang,
 }: Props) {
   const copy = COPY[lang];
@@ -171,6 +177,54 @@ export function ModuleSidebar({
           );
         })}
       </div>
+
+      {/* Compact prev/next row — quick hop next to the video */}
+      {(prev || next) && (
+        <div className="mt-4 pt-4 border-t border-rule flex items-center justify-between gap-2">
+          {prev ? (
+            <Link
+              href={`/training/${trainingSlug}/${prev.slug}`}
+              className="group flex items-center gap-2 min-w-0 flex-1"
+              aria-label={`${copy.prev}: ${loc(prev.title, lang)}`}
+            >
+              <span className="w-6 h-6 shrink-0 rounded-[2px] border border-copper/40 flex items-center justify-center text-copper group-hover:border-copper group-hover:bg-copper/10 transition-colors text-[12px]">
+                &larr;
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[9px] font-medium tracking-[0.15em] uppercase text-copper leading-none">
+                  {copy.prev}
+                </span>
+                <span className="block text-[11px] text-ink/60 group-hover:text-ink truncate">
+                  {loc(prev.title, lang)}
+                </span>
+              </span>
+            </Link>
+          ) : (
+            <span className="flex-1" />
+          )}
+          {next ? (
+            <Link
+              href={`/training/${trainingSlug}/${next.slug}`}
+              className="group flex items-center gap-2 min-w-0 flex-1 justify-end text-right"
+              aria-label={`${copy.next}: ${loc(next.title, lang)}`}
+            >
+              <span className="min-w-0">
+                <span className="block text-[9px] font-medium tracking-[0.15em] uppercase text-copper leading-none">
+                  {copy.next}
+                </span>
+                <span className="block text-[11px] text-ink/60 group-hover:text-ink truncate">
+                  {loc(next.title, lang)}
+                </span>
+              </span>
+              <span className="w-6 h-6 shrink-0 rounded-[2px] border border-copper/40 flex items-center justify-center text-copper group-hover:border-copper group-hover:bg-copper/10 transition-colors text-[12px]">
+                &rarr;
+              </span>
+            </Link>
+          ) : (
+            <span className="flex-1" />
+          )}
+        </div>
+      )}
     </aside>
   );
 }
