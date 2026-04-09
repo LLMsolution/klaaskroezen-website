@@ -11,6 +11,7 @@ import { AudioPlayer } from "./AudioPlayer";
 import { QuizSection } from "./QuizSection";
 import { DiscussionSection } from "./DiscussionSection";
 import { NotesPanel } from "./NotesPanel";
+import { LessonFormSection } from "./LessonFormSection";
 import { ModuleSidebar, type SidebarLesson } from "./ModuleSidebar";
 
 type LocalizedStr = { nl: string; en: string; de?: string };
@@ -334,6 +335,9 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
 
           {/* Quiz */}
           {mod.quizRequired && <QuizSection moduleId={mod._id} lang={lang} />}
+
+          {/* Lesson form (questionnaire) */}
+          <LessonFormSection moduleId={mod._id} lang={lang} />
 
           {/* Discussion */}
           {mod.discussionEnabled && <DiscussionSection moduleId={mod._id} lang={lang} />}
