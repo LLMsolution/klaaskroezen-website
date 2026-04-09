@@ -81,8 +81,23 @@ export function VideoPlayer({
       });
 
       // Auto-next overlay on video end
-      player.on("ended", () => {
+      player.on("ended", async () => {
         if (!onEndedRef.current) return;
+        // Vimeo fullscreens the iframe itself, so our React overlay would
+        // sit behind the fullscreen layer. Exit fullscreen first so the
+        // user sees the countdown overlay inside the normal page layout.
+        try {
+          await player.exitFullscreen?.();
+        } catch {
+          /* ignore */
+        }
+        if (typeof document !== "undefined" && document.fullscreenElement) {
+          try {
+            await document.exitFullscreen();
+          } catch {
+            /* ignore */
+          }
+        }
         setShowEndOverlay(true);
         setCountdown(COUNTDOWN_SECONDS);
         if (countdownTimer.current) clearInterval(countdownTimer.current);

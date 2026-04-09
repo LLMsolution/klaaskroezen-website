@@ -135,11 +135,21 @@ export function LessonFormSection({ moduleId, lang }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="my-8 border border-rule rounded-[2px] p-5 space-y-5">
+    <form onSubmit={handleSubmit} className="my-8 border border-rule rounded-[2px] p-5 sm:p-6 space-y-5">
       <div>
-        <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-2">
+        <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-3">
           {copy.title}
         </p>
+        {form.imageUrl && (
+          <div className="mb-4 -mx-5 sm:-mx-6 sm:mt-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={form.imageUrl}
+              alt=""
+              className="w-full h-auto max-h-[320px] object-cover"
+            />
+          </div>
+        )}
         {loc(form.introText, lang) && (
           <p className="text-[14px] text-ink/60 leading-[1.6]">
             {loc(form.introText, lang)}

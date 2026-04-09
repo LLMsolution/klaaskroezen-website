@@ -21,6 +21,8 @@ type FormField = {
 
 type FormState = {
   recipientEmail: string;
+  imageStorageId?: Id<"_storage">;
+  imageUrl?: string;
   introText: Localized;
   submitLabel: Localized;
   fields: FormField[];
@@ -57,11 +59,13 @@ export function LessonFormEditor({ moduleId }: Props) {
   const existing = useQuery(api.lessonForms.getForModuleAdmin, { moduleId });
   const upsertForm = useMutation(api.lessonForms.upsertForm);
   const deleteForm = useMutation(api.lessonForms.deleteForm);
+  const generateImageUploadUrl = useMutation(api.lessonForms.generateImageUploadUrl);
 
   const [enabled, setEnabled] = useState(false);
   const [form, setForm] = useState<FormState>(DEFAULT_FORM);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Hydrate from server once
   useEffect(() => {
@@ -70,6 +74,8 @@ export function LessonFormEditor({ moduleId }: Props) {
       setEnabled(true);
       setForm({
         recipientEmail: existing.recipientEmail,
+        imageStorageId: existing.imageStorageId,
+        imageUrl: existing.imageUrl,
         introText: existing.introText,
         submitLabel: existing.submitLabel,
         fields: existing.fields as FormField[],
@@ -90,6 +96,7 @@ export function LessonFormEditor({ moduleId }: Props) {
       await upsertForm({
         moduleId,
         recipientEmail: form.recipientEmail,
+        imageStorageId: form.imageStorageId,
         introText: form.introText,
         submitLabel: form.submitLabel,
         fields: form.fields,
@@ -99,6 +106,55 @@ export function LessonFormEditor({ moduleId }: Props) {
     } finally {
       setSaving(false);
     }
+  }
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const url = await generateImageUploadUrl();
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      const { storageId } = await res.json();
+      const next: FormState = {
+        ...form,
+        imageStorageId: storageId,
+        imageUrl: URL.createObjectURL(file),
+      };
+      setForm(next);
+      // Auto-save so the upload sticks without the user having to click Opslaan.
+      await upsertForm({
+        moduleId,
+        recipientEmail: next.recipientEmail,
+        imageStorageId: storageId,
+        introText: next.introText,
+        submitLabel: next.submitLabel,
+        fields: next.fields,
+        active: next.active,
+      });
+      setSavedAt(Date.now());
+    } finally {
+      setUploadingImage(false);
+    }
+  }
+
+  async function handleImageRemove() {
+    const next: FormState = { ...form, imageStorageId: undefined, imageUrl: undefined };
+    setForm(next);
+    await upsertForm({
+      moduleId,
+      recipientEmail: next.recipientEmail,
+      imageStorageId: undefined,
+      introText: next.introText,
+      submitLabel: next.submitLabel,
+      fields: next.fields,
+      active: next.active,
+    });
+    setSavedAt(Date.now());
   }
 
   async function handleDelete() {
@@ -210,6 +266,40 @@ export function LessonFormEditor({ moduleId }: Props) {
           placeholder="klaas@klaaskroezen.com"
           className={inputCls}
         />
+      </div>
+
+      {/* Image upload (shown between header and intro text in the cursist view) */}
+      <div>
+        <label className="text-[11px] text-ink/50 mb-1 block">Afbeelding (optioneel)</label>
+        {form.imageUrl ? (
+          <div className="flex items-start gap-3">
+            <div className="relative w-[200px] aspect-[16/9] border border-rule rounded-[2px] overflow-hidden bg-warm/20">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={form.imageUrl}
+                alt="Formulier hero"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] text-copper hover:text-copper-light cursor-pointer">
+                Vervangen
+                <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+              </label>
+              <button
+                onClick={handleImageRemove}
+                className="text-[11px] text-red-400 hover:text-red-600 cursor-pointer text-left"
+              >
+                Verwijderen
+              </button>
+            </div>
+          </div>
+        ) : (
+          <label className={`inline-block text-[11px] text-copper border border-copper/40 px-3 py-1.5 rounded-[2px] hover:bg-copper/10 transition-colors cursor-pointer ${uploadingImage ? "opacity-50" : ""}`}>
+            {uploadingImage ? "Uploaden…" : "+ Afbeelding uploaden"}
+            <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploadingImage} className="hidden" />
+          </label>
+        )}
       </div>
 
       <div>

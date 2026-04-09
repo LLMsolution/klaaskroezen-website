@@ -45,7 +45,11 @@ export const getForModule = query({
       .withIndex("by_module", (q) => q.eq("moduleId", moduleId))
       .first();
     if (!form || !form.active) return null;
-    return form;
+
+    const imageUrl = form.imageStorageId
+      ? ((await ctx.storage.getUrl(form.imageStorageId)) ?? undefined)
+      : undefined;
+    return { ...form, imageUrl };
   },
 });
 
@@ -126,6 +130,7 @@ export const upsertForm = mutation({
   args: {
     moduleId: v.id("trainingModules"),
     recipientEmail: v.string(),
+    imageStorageId: v.optional(v.id("_storage")),
     introText: localizedString,
     submitLabel: localizedString,
     fields: v.array(fieldValidator),
@@ -143,6 +148,7 @@ export const upsertForm = mutation({
     if (existing) {
       await ctx.db.patch(existing._id, {
         recipientEmail: args.recipientEmail,
+        imageStorageId: args.imageStorageId,
         introText: args.introText,
         submitLabel: args.submitLabel,
         fields: args.fields,
@@ -156,6 +162,15 @@ export const upsertForm = mutation({
       createdAt: now,
       updatedAt: now,
     });
+  },
+});
+
+/** Generate a Convex storage upload URL for the form image (admin only). */
+export const generateImageUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    return await ctx.storage.generateUploadUrl();
   },
 });
 
@@ -177,10 +192,15 @@ export const getForModuleAdmin = query({
   args: { moduleId: v.id("trainingModules") },
   handler: async (ctx, { moduleId }) => {
     await requireAdmin(ctx);
-    return await ctx.db
+    const form = await ctx.db
       .query("lessonForms")
       .withIndex("by_module", (q) => q.eq("moduleId", moduleId))
       .first();
+    if (!form) return null;
+    const imageUrl = form.imageStorageId
+      ? ((await ctx.storage.getUrl(form.imageStorageId)) ?? undefined)
+      : undefined;
+    return { ...form, imageUrl };
   },
 });
 
