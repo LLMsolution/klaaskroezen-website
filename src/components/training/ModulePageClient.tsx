@@ -299,7 +299,7 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
           )}
 
           {/* Notes + bookmarks */}
-          <NotesPanel moduleId={mod._id} lang={lang} />
+          <NotesPanel moduleId={mod._id} lang={lang} hasVideo={!!mod.vimeoVideoId} />
 
           {/* Prev / Next lesson nav */}
           {nav && (nav.prev || nav.next) && (

@@ -70,6 +70,8 @@ const COPY: Record<
 interface Props {
   moduleId: Id<"trainingModules">;
   lang: Lang;
+  /** When false, the bookmarks section is hidden (no video → no timestamps to bookmark). */
+  hasVideo?: boolean;
 }
 
 function formatTimestamp(seconds: number): string {
@@ -92,10 +94,13 @@ async function getVimeoPlayer(): Promise<{
   return new Player(iframe);
 }
 
-export function NotesPanel({ moduleId, lang }: Props) {
+export function NotesPanel({ moduleId, lang, hasVideo = true }: Props) {
   const note = useQuery(api.userNotes.getMyNote, { moduleId });
   const saveNote = useMutation(api.userNotes.saveNote);
-  const bookmarks = useQuery(api.bookmarks.listForModule, { moduleId });
+  const bookmarks = useQuery(
+    api.bookmarks.listForModule,
+    hasVideo ? { moduleId } : "skip",
+  );
   const createBookmark = useMutation(api.bookmarks.create);
   const updateBookmark = useMutation(api.bookmarks.update);
   const removeBookmark = useMutation(api.bookmarks.remove);
@@ -206,7 +211,8 @@ export function NotesPanel({ moduleId, lang }: Props) {
         </div>
       </div>
 
-      {/* Bookmarks section (above notes) */}
+      {/* Bookmarks section (above notes) — only when the lesson has a video */}
+      {hasVideo && (
       <div className="mb-5">
         <div className="flex items-center justify-between mb-3">
           <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40">
@@ -328,9 +334,10 @@ export function NotesPanel({ moduleId, lang }: Props) {
           </div>
         )}
       </div>
+      )}
 
-      {/* Notes textarea (below bookmarks) */}
-      <div className="pt-4 border-t border-rule/60">
+      {/* Notes textarea (below bookmarks, or alone when no video) */}
+      <div className={hasVideo ? "pt-4 border-t border-rule/60" : ""}>
         <textarea
           value={noteValue}
           onChange={(e) => handleNoteChange(e.target.value)}
