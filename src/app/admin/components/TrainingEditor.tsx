@@ -10,6 +10,7 @@ import { ModuleAudioField } from "./ModuleFields";
 import { DeepLButton } from "./DeepLButton";
 import { Section, InlineForm, WorkbookSection, CoverImageSection } from "./TrainingEditorSections";
 import { TrainingModuleSortable, type SortableModule } from "./TrainingModuleSortable";
+import { LangTabs, LangField, mergeLang, type Lang } from "./LangEditor";
 
 interface Props {
   trainingId: Id<"trainings">;
@@ -33,13 +34,20 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
   const [addingLessonFor, setAddingLessonFor] = useState<string | null>(null);
   const [formTitle, setFormTitle] = useState("");
   const [saving, setSaving] = useState(false);
+  const [editLang, setEditLang] = useState<Lang>("nl");
 
   if (!trainingData || modules === undefined) return <Loading />;
   const t = trainingData.find((tr) => tr._id === trainingId);
   if (!t) return <Loading />;
 
   if (editingQuizModule) {
-    return <QuizEditor moduleId={editingQuizModule} onBack={() => setEditingQuizModule(null)} />;
+    return (
+      <QuizEditor
+        moduleId={editingQuizModule}
+        editLang={editLang}
+        onBack={() => setEditingQuizModule(null)}
+      />
+    );
   }
 
   const isAudiobook = (t as Record<string, unknown>).type === "audiobook";
@@ -104,7 +112,7 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
       </button>
 
       {/* Training header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="font-display text-[24px] font-black tracking-[-0.02em]">{t.title.nl}</h2>
           <p className="text-[13px] text-ink/40">/{t.slug}</p>
@@ -128,6 +136,37 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
           </select>
         </div>
       </div>
+
+      {/* Global language selector — affects all module/lesson/quiz editing below */}
+      <div className="flex items-center gap-3 mb-6 pb-4 border-b border-rule">
+        <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40">Bewerktaal</span>
+        <LangTabs value={editLang} onChange={setEditLang} />
+      </div>
+
+      {/* Training title + description (per active lang) */}
+      <Section title="Training info" subtitle="Titel en beschrijving per taal. Wissel bovenin van taal.">
+        <div className="space-y-4">
+          <LangField
+            label="Titel"
+            value={t.title[editLang] ?? ""}
+            sourceNl={t.title.nl}
+            lang={editLang}
+            onSave={async (v) => {
+              await updateTraining({ id: trainingId, title: mergeLang(t.title, editLang, v) });
+            }}
+          />
+          <LangField
+            label="Beschrijving"
+            value={t.description[editLang] ?? ""}
+            sourceNl={t.description.nl}
+            lang={editLang}
+            multiline
+            onSave={async (v) => {
+              await updateTraining({ id: trainingId, description: mergeLang(t.description, editLang, v) });
+            }}
+          />
+        </div>
+      </Section>
 
       {/* Cover image (audiobook) */}
       {isAudiobook && <CoverImageSection trainingId={trainingId} />}
@@ -174,6 +213,7 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
         <TrainingModuleSortable
           topModules={topModules as SortableModule[]}
           lessonMap={lessonMap as Map<string, SortableModule[]>}
+          editLang={editLang}
           expandedModuleId={expandedModuleId}
           addingModule={addingModule}
           addingLessonFor={addingLessonFor}

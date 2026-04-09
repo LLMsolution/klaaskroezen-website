@@ -22,7 +22,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { ModuleVideoField } from "./ModuleFields";
-import { EditableField, InlineForm } from "./TrainingEditorSections";
+import { InlineForm } from "./TrainingEditorSections";
+import { LangField, mergeLang, type Lang } from "./LangEditor";
 
 // Keep the shape loose — consumed from TrainingEditor which already queries the raw data.
 export type SortableModule = {
@@ -42,6 +43,7 @@ type ModuleDel = ReturnType<typeof useMutation<typeof api.trainingModules.delete
 interface Props {
   topModules: SortableModule[];
   lessonMap: Map<string, SortableModule[]>;
+  editLang: Lang;
   expandedModuleId: string | null;
   addingModule: boolean;
   addingLessonFor: string | null;
@@ -63,6 +65,7 @@ interface Props {
 export function TrainingModuleSortable({
   topModules,
   lessonMap,
+  editLang,
   expandedModuleId,
   addingModule,
   addingLessonFor,
@@ -142,6 +145,7 @@ export function TrainingModuleSortable({
                 <SortableModuleRow
                   key={mod._id}
                   mod={mod}
+                  editLang={editLang}
                   autoLabel={autoLabel}
                   lessonCount={lessons.length}
                   isExpanded={isExpanded}
@@ -152,6 +156,7 @@ export function TrainingModuleSortable({
                     <ExpandedModuleBody
                       modIdx={modIdx}
                       mod={mod}
+                      editLang={editLang}
                       lessons={lessons}
                       addingLessonFor={addingLessonFor}
                       formTitle={formTitle}
@@ -180,6 +185,7 @@ export function TrainingModuleSortable({
 
 function SortableModuleRow({
   mod,
+  editLang,
   autoLabel,
   lessonCount,
   isExpanded,
@@ -188,6 +194,7 @@ function SortableModuleRow({
   children,
 }: {
   mod: SortableModule;
+  editLang: Lang;
   autoLabel: string;
   lessonCount: number;
   isExpanded: boolean;
@@ -203,6 +210,7 @@ function SortableModuleRow({
   };
 
   const displayLabel = mod.displayNumber?.trim() || autoLabel;
+  const displayTitle = mod.title[editLang] || mod.title.nl || `Module ${displayLabel}`;
 
   return (
     <div ref={setNodeRef} style={style} className="border border-rule rounded-[2px] overflow-hidden bg-paper">
@@ -229,7 +237,7 @@ function SortableModuleRow({
         />
 
         <button type="button" onClick={onToggleExpand} className="flex-1 text-left cursor-pointer">
-          <p className="text-[14px] font-medium text-ink">{mod.title.nl || `Module ${displayLabel}`}</p>
+          <p className="text-[14px] font-medium text-ink">{displayTitle}</p>
           <p className="text-[11px] text-ink/40">{lessonCount} les{lessonCount !== 1 ? "sen" : ""}</p>
         </button>
 
@@ -257,6 +265,7 @@ function SortableModuleRow({
 function ExpandedModuleBody({
   modIdx,
   mod,
+  editLang,
   lessons,
   addingLessonFor,
   formTitle,
@@ -272,6 +281,7 @@ function ExpandedModuleBody({
 }: {
   modIdx: number;
   mod: SortableModule;
+  editLang: Lang;
   lessons: SortableModule[];
   addingLessonFor: string | null;
   formTitle: string;
@@ -306,8 +316,26 @@ function ExpandedModuleBody({
 
   return (
     <div className="border-t border-rule p-4 space-y-3 bg-warm/5">
-      {/* Title & description per lang (NL/EN/DE) with DeepL handled at lesson level */}
-      <ModuleTitlesPerLang mod={mod} onUpdateModule={onUpdateModule} />
+      {/* Title & description in the active lang (with DeepL button for non-NL) */}
+      <LangField
+        label="Module titel"
+        value={mod.title[editLang] ?? ""}
+        sourceNl={mod.title.nl}
+        lang={editLang}
+        onSave={async (v) => {
+          await onUpdateModule({ id: mod._id, title: mergeLang(mod.title, editLang, v) });
+        }}
+      />
+      <LangField
+        label="Module beschrijving"
+        value={mod.description[editLang] ?? ""}
+        sourceNl={mod.description.nl}
+        lang={editLang}
+        multiline
+        onSave={async (v) => {
+          await onUpdateModule({ id: mod._id, description: mergeLang(mod.description, editLang, v) });
+        }}
+      />
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleLessonDragEnd}>
         <SortableContext items={orderedLessons.map((l) => l._id)} strategy={verticalListSortingStrategy}>
@@ -316,6 +344,7 @@ function ExpandedModuleBody({
               <SortableLessonRow
                 key={lesson._id}
                 lesson={lesson}
+                editLang={editLang}
                 autoLabel={`${modIdx + 1}.${lessonIdx + 1}`}
                 onUpdateModule={onUpdateModule}
                 onDelete={async () => {
@@ -366,42 +395,18 @@ function ExpandedModuleBody({
   );
 }
 
-/* ─── Editable per-language module titles/descriptions ─── */
-
-function ModuleTitlesPerLang({ mod, onUpdateModule }: { mod: SortableModule; onUpdateModule: ModuleMut }) {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-      {(["nl", "en", "de"] as const).map((lang) => (
-        <EditableField
-          key={lang}
-          label={`Titel (${lang.toUpperCase()})`}
-          value={(mod.title[lang] ?? "") as string}
-          onSave={async (v) => {
-            await onUpdateModule({
-              id: mod._id,
-              title: {
-                nl: lang === "nl" ? v : (mod.title.nl ?? ""),
-                en: lang === "en" ? v : (mod.title.en ?? ""),
-                de: lang === "de" ? v : (mod.title.de ?? ""),
-              },
-            });
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
 /* ─── Sortable row for a lesson ─── */
 
 function SortableLessonRow({
   lesson,
+  editLang,
   autoLabel,
   onUpdateModule,
   onDelete,
   onEditQuiz,
 }: {
   lesson: SortableModule;
+  editLang: Lang;
   autoLabel: string;
   onUpdateModule: ModuleMut;
   onDelete: () => Promise<void>;
@@ -415,6 +420,7 @@ function SortableLessonRow({
   };
   const [expanded, setExpanded] = useState(false);
   const displayLabel = lesson.displayNumber?.trim() || autoLabel;
+  const displayTitle = lesson.title[editLang] || lesson.title.nl || `Les ${displayLabel}`;
 
   return (
     <div ref={setNodeRef} style={style} className="border border-rule/60 rounded-[2px] bg-paper overflow-hidden">
@@ -438,7 +444,7 @@ function SortableLessonRow({
           compact
         />
         <button type="button" onClick={() => setExpanded(!expanded)} className="flex-1 text-left cursor-pointer">
-          <p className="text-[13px] font-medium text-ink">{lesson.title.nl || `Les ${displayLabel}`}</p>
+          <p className="text-[13px] font-medium text-ink">{displayTitle}</p>
         </button>
         {lesson.vimeoVideoId && <span className="text-[10px] text-ink/30">Video</span>}
         <svg
@@ -458,17 +464,24 @@ function SortableLessonRow({
 
       {expanded && (
         <div className="border-t border-rule/50 p-3 space-y-3">
-          <ModuleTitlesPerLang mod={lesson} onUpdateModule={onUpdateModule} />
-          <EditableField
-            label="Beschrijving (NL)"
-            value={lesson.description.nl}
+          <LangField
+            label="Les titel"
+            value={lesson.title[editLang] ?? ""}
+            sourceNl={lesson.title.nl}
+            lang={editLang}
             onSave={async (v) => {
-              await onUpdateModule({
-                id: lesson._id,
-                description: { nl: v, en: lesson.description.en ?? "", de: lesson.description.de ?? "" },
-              });
+              await onUpdateModule({ id: lesson._id, title: mergeLang(lesson.title, editLang, v) });
             }}
+          />
+          <LangField
+            label="Les beschrijving"
+            value={lesson.description[editLang] ?? ""}
+            sourceNl={lesson.description.nl}
+            lang={editLang}
             multiline
+            onSave={async (v) => {
+              await onUpdateModule({ id: lesson._id, description: mergeLang(lesson.description, editLang, v) });
+            }}
           />
           <ModuleVideoField
             moduleId={lesson._id}

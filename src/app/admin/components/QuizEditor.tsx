@@ -1,19 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { Loading } from "./shared";
+import type { Lang } from "./LangEditor";
 
 type QuestionType = "multiple_choice" | "multiple_select" | "open" | "scale";
+type MultilangString = { nl: string; en: string; de?: string };
+type OptionState = { nl: string; en: string; de: string; correct: boolean };
+
+const DEEPL_TARGET: Record<Lang, string> = { nl: "NL", en: "EN-US", de: "DE" };
 
 interface Props {
   moduleId: Id<"trainingModules">;
+  editLang: Lang;
   onBack: () => void;
 }
 
-export function QuizEditor({ moduleId, onBack }: Props) {
+export function QuizEditor({ moduleId, editLang, onBack }: Props) {
   const quiz = useQuery(api.quizzes.getFullQuiz, { moduleId });
   const createQuiz = useMutation(api.quizzes.createQuiz);
   const addQuestion = useMutation(api.quizzes.addQuestion);
@@ -24,18 +30,16 @@ export function QuizEditor({ moduleId, onBack }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // Question form state
+  // Question form state — full multilang object so we can edit any lang.
   const [qType, setQType] = useState<QuestionType>("multiple_choice");
-  const [qNl, setQNl] = useState("");
-  const [qEn, setQEn] = useState("");
-  const [options, setOptions] = useState<{ nl: string; en: string; correct: boolean }[]>([
-    { nl: "", en: "", correct: true },
-    { nl: "", en: "", correct: false },
+  const [qText, setQText] = useState<MultilangString>({ nl: "", en: "", de: "" });
+  const [options, setOptions] = useState<OptionState[]>([
+    { nl: "", en: "", de: "", correct: true },
+    { nl: "", en: "", de: "", correct: false },
   ]);
   const [scaleMin, setScaleMin] = useState(1);
   const [scaleMax, setScaleMax] = useState(10);
-  const [scaleLabelNl, setScaleLabelNl] = useState("");
-  const [scaleLabelEn, setScaleLabelEn] = useState("");
+  const [scaleLabels, setScaleLabels] = useState<MultilangString>({ nl: "", en: "", de: "" });
 
   if (quiz === undefined) return <Loading />;
 
@@ -52,22 +56,20 @@ export function QuizEditor({ moduleId, onBack }: Props) {
 
   function resetQuestionForm() {
     setQType("multiple_choice");
-    setQNl("");
-    setQEn("");
+    setQText({ nl: "", en: "", de: "" });
     setOptions([
-      { nl: "", en: "", correct: true },
-      { nl: "", en: "", correct: false },
+      { nl: "", en: "", de: "", correct: true },
+      { nl: "", en: "", de: "", correct: false },
     ]);
     setScaleMin(1);
     setScaleMax(10);
-    setScaleLabelNl("");
-    setScaleLabelEn("");
+    setScaleLabels({ nl: "", en: "", de: "" });
     setError("");
   }
 
   async function handleAddQuestion() {
-    if (!qNl || !qEn) {
-      setError("Vraag NL en EN zijn verplicht.");
+    if (!qText.nl.trim()) {
+      setError("Vraag (NL) is verplicht als brontekst.");
       return;
     }
     setSaving(true);
@@ -76,19 +78,19 @@ export function QuizEditor({ moduleId, onBack }: Props) {
       const args: Parameters<typeof addQuestion>[0] = {
         quizId: quiz!._id,
         type: qType,
-        question: { nl: qNl, en: qEn },
+        question: { nl: qText.nl, en: qText.en, de: qText.de || undefined },
       };
       if (qType === "multiple_choice" || qType === "multiple_select") {
         args.options = options.map((o) => ({
-          text: { nl: o.nl, en: o.en },
+          text: { nl: o.nl, en: o.en, de: o.de || undefined },
           correct: o.correct,
         }));
       }
       if (qType === "scale") {
         args.scaleMin = scaleMin;
         args.scaleMax = scaleMax;
-        if (scaleLabelNl || scaleLabelEn) {
-          args.scaleLabels = { nl: scaleLabelNl, en: scaleLabelEn };
+        if (scaleLabels.nl || scaleLabels.en || scaleLabels.de) {
+          args.scaleLabels = { nl: scaleLabels.nl, en: scaleLabels.en, de: scaleLabels.de || undefined };
         }
       }
       await addQuestion(args);
@@ -111,9 +113,7 @@ export function QuizEditor({ moduleId, onBack }: Props) {
         <h2 className="font-display text-[20px] font-black tracking-[-0.02em] mb-4">
           Quiz aanmaken
         </h2>
-        <p className="text-[14px] text-ink/50 mb-4">
-          Deze module heeft nog geen quiz.
-        </p>
+        <p className="text-[14px] text-ink/50 mb-4">Deze module heeft nog geen quiz.</p>
         {error && <p className="text-red-600 text-[13px] mb-3">{error}</p>}
         <div className="flex items-center gap-3 mb-4">
           <label className="text-[13px] text-ink/60">Slagingspercentage:</label>
@@ -153,13 +153,14 @@ export function QuizEditor({ moduleId, onBack }: Props) {
       </button>
 
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-display text-[20px] font-black tracking-[-0.02em]">
-          Quiz bewerken
-        </h2>
+        <div>
+          <h2 className="font-display text-[20px] font-black tracking-[-0.02em]">Quiz bewerken</h2>
+          <p className="text-[11px] text-ink/40 mt-0.5">
+            Weergegeven in <span className="font-medium text-copper">{editLang.toUpperCase()}</span> — wissel van taal bovenin de training editor.
+          </p>
+        </div>
         <div className="flex items-center gap-3">
-          <span className="text-[13px] text-ink/50">
-            Slagingspercentage: {quiz.passingScore}%
-          </span>
+          <span className="text-[13px] text-ink/50">Slagingspercentage: {quiz.passingScore}%</span>
           <span
             className={`text-[11px] font-medium px-2 py-0.5 rounded-[2px] ${
               quiz.active ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"
@@ -170,150 +171,330 @@ export function QuizEditor({ moduleId, onBack }: Props) {
         </div>
       </div>
 
-      {/* Questions list */}
+      {/* Questions list — displayed in active lang, fallback to NL */}
       <div className="space-y-3 mb-6">
         {questions.length === 0 ? (
           <p className="text-[14px] text-ink/30 py-6 text-center border border-dashed border-rule rounded-[2px]">
             Nog geen vragen.
           </p>
         ) : (
-          questions.map((q, i) => (
-            <div key={q._id} className="border border-rule rounded-[2px] p-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-[11px] text-ink/30 mb-1">
-                    Vraag {i + 1} · {TYPE_LABELS[q.type as QuestionType]}
-                  </p>
-                  <p className="text-[14px] text-ink">{q.question.nl}</p>
-                  {q.options && (
-                    <div className="mt-2 space-y-1">
-                      {q.options.map((o, oi) => (
-                        <p key={oi} className={`text-[13px] ${o.correct ? "text-green-700 font-medium" : "text-ink/50"}`}>
-                          {o.correct ? "✓" : "○"} {o.text.nl}
-                        </p>
-                      ))}
-                    </div>
-                  )}
+          questions.map((q, i) => {
+            const qLangText = (q.question[editLang] as string | undefined) || q.question.nl;
+            return (
+              <div key={q._id} className="border border-rule rounded-[2px] p-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-[11px] text-ink/30 mb-1">
+                      Vraag {i + 1} · {TYPE_LABELS[q.type as QuestionType]}
+                    </p>
+                    <p className="text-[14px] text-ink">{qLangText}</p>
+                    {q.options && (
+                      <div className="mt-2 space-y-1">
+                        {q.options.map((o, oi) => {
+                          const optText = (o.text[editLang] as string | undefined) || o.text.nl;
+                          return (
+                            <p
+                              key={oi}
+                              className={`text-[13px] ${
+                                o.correct ? "text-green-700 font-medium" : "text-ink/50"
+                              }`}
+                            >
+                              {o.correct ? "✓" : "○"} {optText}
+                            </p>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => removeQuestion({ id: q._id })}
+                    className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer"
+                  >
+                    Verwijder
+                  </button>
                 </div>
-                <button
-                  onClick={() => removeQuestion({ id: q._id })}
-                  className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer"
-                >
-                  Verwijder
-                </button>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
-      {/* Add question */}
+      {/* Add question form */}
       {showForm ? (
-        <div className="border border-copper/20 rounded-[2px] p-5 bg-copper/[0.02]">
-          <h3 className="text-[13px] font-medium text-ink mb-3">Nieuwe vraag</h3>
-          {error && <p className="text-red-600 text-[13px] mb-3">{error}</p>}
-
-          <div className="mb-3">
-            <label className="block text-[11px] text-ink/50 mb-1">Type</label>
-            <select
-              value={qType}
-              onChange={(e) => setQType(e.target.value as QuestionType)}
-              className="w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]"
-            >
-              {Object.entries(TYPE_LABELS).map(([k, v]) => (
-                <option key={k} value={k}>{v}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 mb-3">
-            <div>
-              <label className="block text-[11px] text-ink/50 mb-1">Vraag (NL)</label>
-              <textarea value={qNl} onChange={(e) => setQNl(e.target.value)} rows={2}
-                className="w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
-            </div>
-            <div>
-              <label className="block text-[11px] text-ink/50 mb-1">Vraag (EN)</label>
-              <textarea value={qEn} onChange={(e) => setQEn(e.target.value)} rows={2}
-                className="w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
-            </div>
-          </div>
-
-          {/* Options for choice types */}
-          {(qType === "multiple_choice" || qType === "multiple_select") && (
-            <div className="mb-3">
-              <label className="block text-[11px] text-ink/50 mb-1">Opties</label>
-              {options.map((opt, i) => (
-                <div key={i} className="flex items-center gap-2 mb-2">
-                  <input type={qType === "multiple_choice" ? "radio" : "checkbox"} checked={opt.correct}
-                    onChange={() => {
-                      if (qType === "multiple_choice") {
-                        setOptions(options.map((o, j) => ({ ...o, correct: j === i })));
-                      } else {
-                        setOptions(options.map((o, j) => j === i ? { ...o, correct: !o.correct } : o));
-                      }
-                    }}
-                    className="cursor-pointer"
-                  />
-                  <input type="text" value={opt.nl} placeholder="NL" onChange={(e) => setOptions(options.map((o, j) => j === i ? { ...o, nl: e.target.value } : o))}
-                    className="flex-1 bg-transparent border border-rule px-2 py-1.5 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
-                  <input type="text" value={opt.en} placeholder="EN" onChange={(e) => setOptions(options.map((o, j) => j === i ? { ...o, en: e.target.value } : o))}
-                    className="flex-1 bg-transparent border border-rule px-2 py-1.5 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
-                  {options.length > 2 && (
-                    <button onClick={() => setOptions(options.filter((_, j) => j !== i))} className="text-[11px] text-red-400 cursor-pointer">×</button>
-                  )}
-                </div>
-              ))}
-              <button onClick={() => setOptions([...options, { nl: "", en: "", correct: false }])}
-                className="text-[12px] text-copper hover:text-copper-light cursor-pointer">
-                + Optie
-              </button>
-            </div>
-          )}
-
-          {/* Scale settings */}
-          {qType === "scale" && (
-            <div className="grid grid-cols-4 gap-3 mb-3">
-              <div>
-                <label className="block text-[11px] text-ink/50 mb-1">Min</label>
-                <input type="number" value={scaleMin} onChange={(e) => setScaleMin(Number(e.target.value))}
-                  className="w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
-              </div>
-              <div>
-                <label className="block text-[11px] text-ink/50 mb-1">Max</label>
-                <input type="number" value={scaleMax} onChange={(e) => setScaleMax(Number(e.target.value))}
-                  className="w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
-              </div>
-              <div>
-                <label className="block text-[11px] text-ink/50 mb-1">Label (NL)</label>
-                <input type="text" value={scaleLabelNl} onChange={(e) => setScaleLabelNl(e.target.value)}
-                  className="w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
-              </div>
-              <div>
-                <label className="block text-[11px] text-ink/50 mb-1">Label (EN)</label>
-                <input type="text" value={scaleLabelEn} onChange={(e) => setScaleLabelEn(e.target.value)}
-                  className="w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
-              </div>
-            </div>
-          )}
-
-          <div className="flex gap-3">
-            <button onClick={handleAddQuestion} disabled={saving}
-              className="bg-copper text-paper px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] disabled:opacity-50 cursor-pointer">
-              {saving ? "Opslaan..." : "Vraag toevoegen"}
-            </button>
-            <button onClick={() => { resetQuestionForm(); setShowForm(false); }}
-              className="text-[12px] text-ink/40 hover:text-ink cursor-pointer px-4 py-2.5">
-              Annuleer
-            </button>
-          </div>
-        </div>
+        <AddQuestionForm
+          editLang={editLang}
+          qType={qType}
+          setQType={setQType}
+          qText={qText}
+          setQText={setQText}
+          options={options}
+          setOptions={setOptions}
+          scaleMin={scaleMin}
+          setScaleMin={setScaleMin}
+          scaleMax={scaleMax}
+          setScaleMax={setScaleMax}
+          scaleLabels={scaleLabels}
+          setScaleLabels={setScaleLabels}
+          error={error}
+          saving={saving}
+          typeLabels={TYPE_LABELS}
+          onSubmit={handleAddQuestion}
+          onCancel={() => { resetQuestionForm(); setShowForm(false); }}
+        />
       ) : (
-        <button onClick={() => setShowForm(true)}
-          className="text-[12px] text-copper hover:text-copper-light cursor-pointer">
+        <button
+          onClick={() => setShowForm(true)}
+          className="text-[12px] text-copper hover:text-copper-light cursor-pointer"
+        >
           + Vraag toevoegen
         </button>
       )}
+    </div>
+  );
+}
+
+/* ─── Add question form (single active lang + DeepL) ─── */
+
+function AddQuestionForm({
+  editLang,
+  qType,
+  setQType,
+  qText,
+  setQText,
+  options,
+  setOptions,
+  scaleMin,
+  setScaleMin,
+  scaleMax,
+  setScaleMax,
+  scaleLabels,
+  setScaleLabels,
+  error,
+  saving,
+  typeLabels,
+  onSubmit,
+  onCancel,
+}: {
+  editLang: Lang;
+  qType: QuestionType;
+  setQType: (v: QuestionType) => void;
+  qText: MultilangString;
+  setQText: (v: MultilangString) => void;
+  options: OptionState[];
+  setOptions: (v: OptionState[]) => void;
+  scaleMin: number;
+  setScaleMin: (v: number) => void;
+  scaleMax: number;
+  setScaleMax: (v: number) => void;
+  scaleLabels: MultilangString;
+  setScaleLabels: (v: MultilangString) => void;
+  error: string;
+  saving: boolean;
+  typeLabels: Record<QuestionType, string>;
+  onSubmit: () => void;
+  onCancel: () => void;
+}) {
+  const translateField = useAction(api.blogTranslate.translateField);
+  const [translating, setTranslating] = useState(false);
+  const inputCls = "w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]";
+
+  async function translate(text: string): Promise<string> {
+    if (editLang === "nl" || !text.trim()) return "";
+    return translateField({ text, targetLang: DEEPL_TARGET[editLang] });
+  }
+
+  async function translateAllFromNl() {
+    if (editLang === "nl") return;
+    setTranslating(true);
+    try {
+      const next: MultilangString = { ...qText };
+      if (qText.nl) next[editLang] = await translate(qText.nl);
+      setQText(next);
+
+      const nextOptions: OptionState[] = [];
+      for (const o of options) {
+        const translated = o.nl ? await translate(o.nl) : "";
+        nextOptions.push({ ...o, [editLang]: translated });
+      }
+      setOptions(nextOptions);
+
+      if (scaleLabels.nl) {
+        setScaleLabels({ ...scaleLabels, [editLang]: await translate(scaleLabels.nl) });
+      }
+    } finally {
+      setTranslating(false);
+    }
+  }
+
+  function updateOption(i: number, patch: Partial<OptionState>) {
+    setOptions(options.map((o, j) => (j === i ? { ...o, ...patch } : o)));
+  }
+
+  return (
+    <div className="border border-copper/20 rounded-[2px] p-5 bg-copper/[0.02]">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-[13px] font-medium text-ink">Nieuwe vraag ({editLang.toUpperCase()})</h3>
+        {editLang !== "nl" && (
+          <button
+            type="button"
+            onClick={translateAllFromNl}
+            disabled={translating || !qText.nl.trim()}
+            className="text-[11px] text-copper hover:text-copper-light cursor-pointer disabled:opacity-40"
+          >
+            {translating ? "Vertalen..." : "Vertaal alles vanuit NL"}
+          </button>
+        )}
+      </div>
+      {error && <p className="text-red-600 text-[13px] mb-3">{error}</p>}
+
+      <div className="mb-3">
+        <label className="block text-[11px] text-ink/50 mb-1">Type</label>
+        <select
+          value={qType}
+          onChange={(e) => setQType(e.target.value as QuestionType)}
+          className={inputCls}
+        >
+          {Object.entries(typeLabels).map(([k, v]) => (
+            <option key={k} value={k}>{v}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* NL source — always visible so DeepL has something to translate from */}
+      <div className="mb-3">
+        <label className="block text-[11px] text-ink/50 mb-1">Vraag (NL — bron)</label>
+        <textarea
+          value={qText.nl}
+          onChange={(e) => setQText({ ...qText, nl: e.target.value })}
+          rows={2}
+          className={inputCls}
+        />
+      </div>
+
+      {editLang !== "nl" && (
+        <div className="mb-3">
+          <label className="block text-[11px] text-ink/50 mb-1">Vraag ({editLang.toUpperCase()})</label>
+          <textarea
+            value={qText[editLang]}
+            onChange={(e) => setQText({ ...qText, [editLang]: e.target.value })}
+            rows={2}
+            className={inputCls}
+          />
+        </div>
+      )}
+
+      {(qType === "multiple_choice" || qType === "multiple_select") && (
+        <div className="mb-3">
+          <label className="block text-[11px] text-ink/50 mb-2">Opties</label>
+          {options.map((opt, i) => (
+            <div key={i} className="flex items-center gap-2 mb-2">
+              <input
+                type={qType === "multiple_choice" ? "radio" : "checkbox"}
+                checked={opt.correct}
+                onChange={() => {
+                  if (qType === "multiple_choice") {
+                    setOptions(options.map((o, j) => ({ ...o, correct: j === i })));
+                  } else {
+                    updateOption(i, { correct: !opt.correct });
+                  }
+                }}
+                className="cursor-pointer"
+              />
+              <input
+                type="text"
+                value={opt.nl}
+                placeholder="NL"
+                onChange={(e) => updateOption(i, { nl: e.target.value })}
+                className="flex-1 bg-transparent border border-rule px-2 py-1.5 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]"
+              />
+              {editLang !== "nl" && (
+                <input
+                  type="text"
+                  value={opt[editLang]}
+                  placeholder={editLang.toUpperCase()}
+                  onChange={(e) => updateOption(i, { [editLang]: e.target.value })}
+                  className="flex-1 bg-transparent border border-rule px-2 py-1.5 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]"
+                />
+              )}
+              {options.length > 2 && (
+                <button
+                  onClick={() => setOptions(options.filter((_, j) => j !== i))}
+                  className="text-[11px] text-red-400 cursor-pointer"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
+          <button
+            onClick={() =>
+              setOptions([...options, { nl: "", en: "", de: "", correct: false }])
+            }
+            className="text-[12px] text-copper hover:text-copper-light cursor-pointer"
+          >
+            + Optie
+          </button>
+        </div>
+      )}
+
+      {qType === "scale" && (
+        <div className="grid grid-cols-4 gap-3 mb-3">
+          <div>
+            <label className="block text-[11px] text-ink/50 mb-1">Min</label>
+            <input
+              type="number"
+              value={scaleMin}
+              onChange={(e) => setScaleMin(Number(e.target.value))}
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] text-ink/50 mb-1">Max</label>
+            <input
+              type="number"
+              value={scaleMax}
+              onChange={(e) => setScaleMax(Number(e.target.value))}
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] text-ink/50 mb-1">Label (NL)</label>
+            <input
+              type="text"
+              value={scaleLabels.nl}
+              onChange={(e) => setScaleLabels({ ...scaleLabels, nl: e.target.value })}
+              className={inputCls}
+            />
+          </div>
+          {editLang !== "nl" && (
+            <div>
+              <label className="block text-[11px] text-ink/50 mb-1">Label ({editLang.toUpperCase()})</label>
+              <input
+                type="text"
+                value={scaleLabels[editLang]}
+                onChange={(e) => setScaleLabels({ ...scaleLabels, [editLang]: e.target.value })}
+                className={inputCls}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="flex gap-3">
+        <button
+          onClick={onSubmit}
+          disabled={saving}
+          className="bg-copper text-paper px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] disabled:opacity-50 cursor-pointer"
+        >
+          {saving ? "Opslaan..." : "Vraag toevoegen"}
+        </button>
+        <button
+          onClick={onCancel}
+          className="text-[12px] text-ink/40 hover:text-ink cursor-pointer px-4 py-2.5"
+        >
+          Annuleer
+        </button>
+      </div>
     </div>
   );
 }
