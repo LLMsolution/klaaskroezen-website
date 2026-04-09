@@ -11,6 +11,7 @@ import { AudioPlayer } from "./AudioPlayer";
 import { QuizSection } from "./QuizSection";
 import { DiscussionSection } from "./DiscussionSection";
 import { NotesPanel } from "./NotesPanel";
+import { LessonFormSection } from "./LessonFormSection";
 import { ModuleSidebar, type SidebarLesson } from "./ModuleSidebar";
 
 type LocalizedStr = { nl: string; en: string; de?: string };
@@ -276,42 +277,6 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
             </div>
           )}
 
-          {/* Prev / Next lesson nav */}
-          {nav && (nav.prev || nav.next) && (
-            <div className="flex items-stretch gap-3 mb-8">
-              {nav.prev ? (
-                <Link
-                  href={`/training/${slug}/${nav.prev.slug}`}
-                  className="flex-1 border border-rule rounded-[2px] p-3 hover:border-copper/40 transition-colors group"
-                >
-                  <p className="text-[10px] font-medium tracking-[0.15em] uppercase text-ink/30 mb-0.5">
-                    &larr; {s.prev}
-                  </p>
-                  <p className="text-[13px] text-ink/70 group-hover:text-ink line-clamp-1">
-                    {loc(nav.prev.title, lang)}
-                  </p>
-                </Link>
-              ) : (
-                <div className="flex-1" />
-              )}
-              {nav.next ? (
-                <Link
-                  href={`/training/${slug}/${nav.next.slug}`}
-                  className="flex-1 border border-rule rounded-[2px] p-3 hover:border-copper/40 transition-colors text-right group"
-                >
-                  <p className="text-[10px] font-medium tracking-[0.15em] uppercase text-copper mb-0.5">
-                    {s.next} &rarr;
-                  </p>
-                  <p className="text-[13px] text-ink/70 group-hover:text-ink line-clamp-1">
-                    {loc(nav.next.title, lang)}
-                  </p>
-                </Link>
-              ) : (
-                <div className="flex-1" />
-              )}
-            </div>
-          )}
-
           {/* Workbook download */}
           {moduleWithProgress?.workbookUrl && (
             <div className="my-6 border border-rule rounded-[2px] p-4">
@@ -334,10 +299,45 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
           )}
 
           {/* Notes + bookmarks */}
-          <NotesPanel moduleId={mod._id} lang={lang} />
+          <NotesPanel moduleId={mod._id} lang={lang} hasVideo={!!mod.vimeoVideoId} />
+
+          {/* Prev / Next lesson nav */}
+          {nav && (nav.prev || nav.next) && (
+            <div className="flex items-stretch gap-3 mb-8">
+              {nav.prev && (
+                <Link
+                  href={`/training/${slug}/${nav.prev.slug}`}
+                  className="flex-1 border border-rule rounded-[2px] p-3 hover:border-copper/40 transition-colors group"
+                >
+                  <p className="text-[10px] font-medium tracking-[0.15em] uppercase text-ink/30 mb-0.5">
+                    &larr; {s.prev}
+                  </p>
+                  <p className="text-[13px] text-ink/70 group-hover:text-ink line-clamp-1">
+                    {loc(nav.prev.title, lang)}
+                  </p>
+                </Link>
+              )}
+              {nav.next && (
+                <Link
+                  href={`/training/${slug}/${nav.next.slug}`}
+                  className="flex-1 border border-rule rounded-[2px] p-3 hover:border-copper/40 transition-colors text-right group"
+                >
+                  <p className="text-[10px] font-medium tracking-[0.15em] uppercase text-copper mb-0.5">
+                    {s.next} &rarr;
+                  </p>
+                  <p className="text-[13px] text-ink/70 group-hover:text-ink line-clamp-1">
+                    {loc(nav.next.title, lang)}
+                  </p>
+                </Link>
+              )}
+            </div>
+          )}
 
           {/* Quiz */}
           {mod.quizRequired && <QuizSection moduleId={mod._id} lang={lang} />}
+
+          {/* Lesson form (questionnaire) */}
+          <LessonFormSection moduleId={mod._id} lang={lang} />
 
           {/* Discussion */}
           {mod.discussionEnabled && <DiscussionSection moduleId={mod._id} lang={lang} />}
