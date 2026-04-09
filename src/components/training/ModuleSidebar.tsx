@@ -76,7 +76,8 @@ export function ModuleSidebar({
       : 0;
 
   return (
-    <aside className="lg:sticky lg:top-6 lg:self-start border border-rule rounded-[2px] p-5 bg-paper">
+    <div className="lg:sticky lg:top-6 lg:self-start flex flex-col gap-4">
+    <aside className="border border-rule rounded-[2px] p-5 bg-paper">
       {/* Module header */}
       <div className="mb-4 pb-4 border-b border-rule">
         <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-1.5">
@@ -178,53 +179,52 @@ export function ModuleSidebar({
         })}
       </div>
 
-      {/* Compact prev/next row — quick hop next to the video */}
-      {(prev || next) && (
-        <div className="mt-4 pt-4 border-t border-rule flex items-center justify-between gap-2">
-          {prev ? (
-            <Link
-              href={`/training/${trainingSlug}/${prev.slug}`}
-              className="group flex items-center gap-2 min-w-0 flex-1"
-              aria-label={`${copy.prev}: ${loc(prev.title, lang)}`}
-            >
-              <span className="w-6 h-6 shrink-0 rounded-[2px] border border-copper/40 flex items-center justify-center text-copper group-hover:border-copper group-hover:bg-copper/10 transition-colors text-[12px]">
-                &larr;
-              </span>
-              <span className="min-w-0">
-                <span className="block text-[9px] font-medium tracking-[0.15em] uppercase text-copper leading-none">
-                  {copy.prev}
-                </span>
-                <span className="block text-[11px] text-ink/60 group-hover:text-ink truncate">
-                  {loc(prev.title, lang)}
-                </span>
-              </span>
-            </Link>
-          ) : (
-            <span className="flex-1" />
-          )}
-          {next ? (
-            <Link
-              href={`/training/${trainingSlug}/${next.slug}`}
-              className="group flex items-center gap-2 min-w-0 flex-1 justify-end text-right"
-              aria-label={`${copy.next}: ${loc(next.title, lang)}`}
-            >
-              <span className="min-w-0">
-                <span className="block text-[9px] font-medium tracking-[0.15em] uppercase text-copper leading-none">
-                  {copy.next}
-                </span>
-                <span className="block text-[11px] text-ink/60 group-hover:text-ink truncate">
-                  {loc(next.title, lang)}
-                </span>
-              </span>
-              <span className="w-6 h-6 shrink-0 rounded-[2px] border border-copper/40 flex items-center justify-center text-copper group-hover:border-copper group-hover:bg-copper/10 transition-colors text-[12px]">
-                &rarr;
-              </span>
-            </Link>
-          ) : (
-            <span className="flex-1" />
-          )}
-        </div>
-      )}
     </aside>
+
+    {/* Prev / Next — two loose buttons, outside the sidebar card. No box
+        around the arrow; the arrow is just a glyph next to the label. */}
+    {(prev || next) && (
+      <div className="flex flex-col gap-2">
+        {prev && (
+          <Link
+            href={`/training/${trainingSlug}/${prev.slug}`}
+            className="group flex items-center gap-3 px-1 py-1 min-w-0"
+            aria-label={`${copy.prev}: ${loc(prev.title, lang)}`}
+          >
+            <span className="text-copper text-[16px] leading-none shrink-0 group-hover:text-copper-light transition-colors">
+              &larr;
+            </span>
+            <span className="min-w-0">
+              <span className="block text-[9px] font-medium tracking-[0.15em] uppercase text-copper leading-none mb-0.5">
+                {copy.prev}
+              </span>
+              <span className="block text-[12px] text-ink/70 group-hover:text-ink truncate">
+                {loc(prev.title, lang)}
+              </span>
+            </span>
+          </Link>
+        )}
+        {next && (
+          <Link
+            href={`/training/${trainingSlug}/${next.slug}`}
+            className="group flex items-center gap-3 px-1 py-1 min-w-0"
+            aria-label={`${copy.next}: ${loc(next.title, lang)}`}
+          >
+            <span className="text-copper text-[16px] leading-none shrink-0 group-hover:text-copper-light transition-colors">
+              &rarr;
+            </span>
+            <span className="min-w-0">
+              <span className="block text-[9px] font-medium tracking-[0.15em] uppercase text-copper leading-none mb-0.5">
+                {copy.next}
+              </span>
+              <span className="block text-[12px] text-ink/70 group-hover:text-ink truncate">
+                {loc(next.title, lang)}
+              </span>
+            </span>
+          </Link>
+        )}
+      </div>
+    )}
+    </div>
   );
 }

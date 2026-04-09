@@ -107,9 +107,9 @@ const lessonI18n = {
 };
 
 const trainingContentI18n = {
-  nl: { label: "Training", videos: "video's", video: "video", completed: "afgerond", myMaterial: "Mijn materiaal" },
-  en: { label: "Training", videos: "videos", video: "video", completed: "completed", myMaterial: "My material" },
-  de: { label: "Training", videos: "Videos", video: "Video", completed: "abgeschlossen", myMaterial: "Meine Materialien" },
+  nl: { label: "Training", videos: "lessen", video: "les", completed: "afgerond", myMaterial: "Mijn materiaal" },
+  en: { label: "Training", videos: "lessons", video: "lesson", completed: "completed", myMaterial: "My material" },
+  de: { label: "Training", videos: "Lektionen", video: "Lektion", completed: "abgeschlossen", myMaterial: "Meine Materialien" },
 };
 
 function TrainingContent({

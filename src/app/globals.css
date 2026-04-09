@@ -174,3 +174,56 @@ p {
     transform: translateY(0);
   }
 }
+
+/* ── Tiptap notes editor ── */
+.tiptap-notes {
+  outline: none;
+}
+.tiptap-notes:focus,
+.tiptap-notes:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.tiptap-notes h2 {
+  font-family: var(--font-display), Playfair Display, serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0.8em 0 0.4em;
+  color: #0E0C0A;
+}
+.tiptap-notes ul,
+.tiptap-notes ol {
+  padding-left: 1.4em;
+  margin: 0.4em 0;
+}
+.tiptap-notes ul {
+  list-style: disc;
+}
+.tiptap-notes ol {
+  list-style: decimal;
+}
+.tiptap-notes li {
+  margin: 0.15em 0;
+}
+.tiptap-notes li > p {
+  display: inline;
+  margin: 0;
+}
+.tiptap-notes p {
+  margin: 0.35em 0;
+  min-height: 1em;
+}
+.tiptap-notes p:first-child {
+  margin-top: 0;
+}
+.tiptap-notes p:last-child {
+  margin-bottom: 0;
+}
+.tiptap-notes p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: rgba(14, 12, 10, 0.3);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
