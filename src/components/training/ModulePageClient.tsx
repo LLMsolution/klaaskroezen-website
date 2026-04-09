@@ -10,8 +10,7 @@ import { VideoPlayer } from "./VideoPlayer";
 import { AudioPlayer } from "./AudioPlayer";
 import { QuizSection } from "./QuizSection";
 import { DiscussionSection } from "./DiscussionSection";
-import { NotesPanel } from "./NotesPanel";
-import { BookmarksPanel } from "./BookmarksPanel";
+import { NotesEditor } from "./NotesEditor";
 import { LessonFormSection } from "./LessonFormSection";
 import { ModuleSidebar, type SidebarLesson } from "./ModuleSidebar";
 import { WorkbookCard } from "./WorkbookCard";
@@ -90,7 +89,6 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
     moduleId ? { moduleId } : "skip",
   );
   const hasForm = !!lessonForm;
-  const hasVideo = !!mod?.vimeoVideoId;
 
   const s = modulePageI18n[lang];
   const updateProgress = useMutation(api.trainingProgress.updateVideoProgress);
@@ -356,11 +354,8 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
           {/* Workbook (training-level) */}
           <WorkbookCard trainingId={training._id} lang={lang} />
 
-          {/* Bookmarks (standalone button — no card) */}
-          {hasVideo && !hasForm && <BookmarksPanel moduleId={mod._id} lang={lang} />}
-
-          {/* Personal notes */}
-          {!hasForm && <NotesPanel moduleId={mod._id} lang={lang} />}
+          {/* Personal notes (rich-text editor, bookmarks inline) */}
+          {!hasForm && <NotesEditor moduleId={mod._id} lang={lang} />}
 
           {/* Quiz */}
           {mod.quizRequired && <QuizSection moduleId={mod._id} lang={lang} />}

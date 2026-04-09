@@ -969,6 +969,9 @@ export default defineSchema({
     videoTimestamp: v.number(), // seconds
     note: v.optional(v.string()),
     createdAt: v.number(),
+    // Set when this bookmark has been migrated into the matching userNotes
+    // contentJson as an inline timestamp node. Read-only after migration.
+    migratedAt: v.optional(v.number()),
   }).index("by_user_module", ["userId", "moduleId"]),
 
   // Personal notes per user per module (one per pair, upsert pattern).
@@ -977,6 +980,9 @@ export default defineSchema({
     moduleId: v.id("trainingModules"),
     trainingId: v.id("trainings"),
     content: v.string(),
+    // Tiptap JSON document. New canonical format; `content` remains as a
+    // plain-text fallback for legacy rows and PDF export text-only mode.
+    contentJson: v.optional(v.any()),
     updatedAt: v.number(),
   })
     .index("by_user_module", ["userId", "moduleId"])

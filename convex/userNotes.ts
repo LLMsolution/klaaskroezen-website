@@ -25,8 +25,9 @@ export const saveNote = mutation({
   args: {
     moduleId: v.id("trainingModules"),
     content: v.string(),
+    contentJson: v.optional(v.any()),
   },
-  handler: async (ctx, { moduleId, content }) => {
+  handler: async (ctx, { moduleId, content, contentJson }) => {
     const mod = await ctx.db.get(moduleId);
     if (!mod) throw new Error("Module niet gevonden.");
     const { userId } = await requireTrainingAccess(ctx, mod.trainingId);
@@ -40,7 +41,7 @@ export const saveNote = mutation({
 
     const now = Date.now();
     if (existing) {
-      await ctx.db.patch(existing._id, { content, updatedAt: now });
+      await ctx.db.patch(existing._id, { content, contentJson, updatedAt: now });
       return existing._id;
     }
     return await ctx.db.insert("userNotes", {
@@ -48,6 +49,7 @@ export const saveNote = mutation({
       moduleId,
       trainingId: mod.trainingId,
       content,
+      contentJson,
       updatedAt: now,
     });
   },
