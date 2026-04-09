@@ -11,6 +11,7 @@ import { AudioPlayer } from "./AudioPlayer";
 import { QuizSection } from "./QuizSection";
 import { DiscussionSection } from "./DiscussionSection";
 import { BookmarksList } from "./BookmarksList";
+import { NotesPanel } from "./NotesPanel";
 
 type LocalizedStr = { nl: string; en: string; de?: string };
 function loc(obj: LocalizedStr, lang: Lang): string {
@@ -144,6 +145,9 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
 
       {/* Bookmarks */}
       <BookmarksList moduleId={mod._id} lang={lang} />
+
+      {/* Personal notes */}
+      <NotesPanel moduleId={mod._id} lang={lang} />
 
       {/* Workbook download */}
       {moduleWithProgress?.workbookUrl && (

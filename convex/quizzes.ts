@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { query, mutation, QueryCtx, MutationCtx } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
+import { internal } from "./_generated/api";
 import { requireAdmin } from "./adminAuth";
 import { requireTrainingAccess } from "./trainingProgress";
 
@@ -154,6 +155,55 @@ export const submitAttempt = mutation({
 
       if (existing) {
         await ctx.db.patch(existing._id, { quizPassed: true });
+      }
+
+      // Check if this was the final required quiz for the training.
+      // If so, record completion and fire the celebration email exactly once.
+      const mod = await ctx.db.get(quiz.moduleId);
+      if (mod) {
+        const trainingId = mod.trainingId;
+        const allModules = await ctx.db
+          .query("trainingModules")
+          .withIndex("by_training", (q) => q.eq("trainingId", trainingId))
+          .collect();
+        const required = allModules.filter((m) => m.active && m.quizRequired);
+        if (required.length > 0) {
+          const progressRows = await ctx.db
+            .query("moduleProgress")
+            .withIndex("by_user_training", (q) =>
+              q.eq("userId", userId).eq("trainingId", trainingId),
+            )
+            .collect();
+          const passedIds = new Set(
+            progressRows.filter((p) => p.quizPassed).map((p) => p.moduleId),
+          );
+          // The just-passed module may not be in progressRows yet if moduleProgress
+          // was never initialised; treat the current module as passed too.
+          passedIds.add(quiz.moduleId);
+          const allPassed = required.every((m) => passedIds.has(m._id));
+
+          if (allPassed) {
+            const already = await ctx.db
+              .query("trainingCompletions")
+              .withIndex("by_user_training", (q) =>
+                q.eq("userId", userId).eq("trainingId", trainingId),
+              )
+              .first();
+            if (!already) {
+              await ctx.db.insert("trainingCompletions", {
+                userId,
+                trainingId,
+                completedAt: Date.now(),
+              });
+              // Schedule the email action (mutations can't invoke actions directly)
+              await ctx.scheduler.runAfter(
+                0,
+                internal.emails.sendTrainingCompletionEmail,
+                { userId, trainingId },
+              );
+            }
+          }
+        }
       }
     }
 
