@@ -199,7 +199,7 @@ function TrainingContent({
           {tcI18n.myMaterial}
         </h3>
         <WorkbookCard trainingId={training._id} lang={lang} />
-        <NotesDownloadButton lang={lang} />
+        <NotesDownloadButton trainingId={training._id} lang={lang} />
       </div>
 
       {/* Certificate */}
