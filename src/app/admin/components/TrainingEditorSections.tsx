@@ -72,7 +72,9 @@ export function InlineForm({ placeholder, value, onChange, saving, onSave, onCan
 /* ─── Werkboek section (follows global editLang) ─── */
 
 type WorkbookLang = "nl" | "en" | "de";
-type WorkbookData = { storageId: string; fileName: string; title?: string; description?: string } | undefined;
+type WorkbookData =
+  | { storageId: string; fileName: string; title?: string; description?: string; buttonLabel?: string }
+  | undefined;
 
 export function WorkbookSection({
   trainingId,
@@ -134,6 +136,7 @@ function WorkbookLangPanel({
   const wbTitle = existing?.title ?? "";
   const wbDesc = existing?.description ?? "";
   const wbFile = existing?.fileName ?? "";
+  const wbButtonLabel = existing?.buttonLabel ?? "";
 
   async function handleUploadPdf(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -150,6 +153,7 @@ function WorkbookLangPanel({
         fileName: file.name,
         title: wbTitle || file.name,
         description: wbDesc,
+        buttonLabel: wbButtonLabel,
       });
     } finally {
       setUploading(false);
@@ -186,13 +190,18 @@ function WorkbookLangPanel({
       <EditableField
         label={`Titel (${lang.toUpperCase()})`}
         value={wbTitle}
-        onSave={async (v) => { await updateMeta({ trainingId, lang, title: v, description: wbDesc }); }}
+        onSave={async (v) => { await updateMeta({ trainingId, lang, title: v, description: wbDesc, buttonLabel: wbButtonLabel }); }}
       />
       <EditableField
         label={`Beschrijving (${lang.toUpperCase()})`}
         value={wbDesc}
-        onSave={async (v) => { await updateMeta({ trainingId, lang, title: wbTitle, description: v }); }}
+        onSave={async (v) => { await updateMeta({ trainingId, lang, title: wbTitle, description: v, buttonLabel: wbButtonLabel }); }}
         multiline
+      />
+      <EditableField
+        label={`Knop-label (${lang.toUpperCase()})`}
+        value={wbButtonLabel}
+        onSave={async (v) => { await updateMeta({ trainingId, lang, title: wbTitle, description: wbDesc, buttonLabel: v }); }}
       />
     </div>
   );
