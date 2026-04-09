@@ -11,6 +11,7 @@ import { AudioPlayer } from "./AudioPlayer";
 import { QuizSection } from "./QuizSection";
 import { DiscussionSection } from "./DiscussionSection";
 import { NotesPanel } from "./NotesPanel";
+import { BookmarksPanel } from "./BookmarksPanel";
 import { LessonFormSection } from "./LessonFormSection";
 import { ModuleSidebar, type SidebarLesson } from "./ModuleSidebar";
 
@@ -82,6 +83,12 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
     api.bookmarks.countsForTraining,
     trainingId ? { trainingId } : "skip",
   );
+  const lessonForm = useQuery(
+    api.lessonForms.getForModule,
+    moduleId ? { moduleId } : "skip",
+  );
+  const hasForm = !!lessonForm;
+  const hasVideo = !!mod?.vimeoVideoId;
 
   const s = modulePageI18n[lang];
   const updateProgress = useMutation(api.trainingProgress.updateVideoProgress);
@@ -298,8 +305,11 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
             </div>
           )}
 
-          {/* Notes + bookmarks */}
-          <NotesPanel moduleId={mod._id} lang={lang} hasVideo={!!mod.vimeoVideoId} />
+          {/* Bookmarks (only when the lesson has a video and is not a form-only lesson) */}
+          {hasVideo && !hasForm && <BookmarksPanel moduleId={mod._id} lang={lang} />}
+
+          {/* Personal notes (hidden on form lessons) */}
+          {!hasForm && <NotesPanel moduleId={mod._id} lang={lang} />}
 
           {/* Prev / Next lesson nav */}
           {nav && (nav.prev || nav.next) && (
