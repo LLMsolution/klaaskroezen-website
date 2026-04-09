@@ -7,7 +7,7 @@ import { internalMutation } from "./_generated/server";
 export const clearTestData = internalMutation({
   args: {},
   handler: async (ctx) => {
-    let deleted = { emailLog: 0, emailEvents: 0, pendingOrders: 0 };
+    const deleted = { emailLog: 0, emailEvents: 0, pendingOrders: 0 };
 
     // Clear emailEvents
     const events = await ctx.db.query("emailEvents").collect();
