@@ -134,11 +134,47 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
           .sort((a, b) => a.sortOrder - b.sortOrder);
 
     const currentIdx = siblings.findIndex((m) => m._id === mod._id);
-    const prev = currentIdx > 0 ? siblings[currentIdx - 1] : null;
-    const next =
+
+    // First attempt: stay within the current chapter.
+    let prev = currentIdx > 0 ? siblings[currentIdx - 1] : null;
+    let next =
       currentIdx >= 0 && currentIdx < siblings.length - 1
         ? siblings[currentIdx + 1]
         : null;
+
+    // Cross-chapter fallback: when we are at the last sibling of a chapter,
+    // continue to the first lesson of the next chapter that has lessons.
+    if (!isFlat) {
+      const currentChapterIdx = parent
+        ? chapters.findIndex((c) => c._id === parent._id)
+        : -1;
+
+      if (!next && currentChapterIdx >= 0) {
+        for (let i = currentChapterIdx + 1; i < chapters.length; i++) {
+          const nextChapter = chapters[i];
+          const lessonsOfNext = active
+            .filter((m) => m.parentModuleId === nextChapter._id)
+            .sort((a, b) => a.sortOrder - b.sortOrder);
+          if (lessonsOfNext.length > 0) {
+            next = lessonsOfNext[0];
+            break;
+          }
+        }
+      }
+
+      if (!prev && currentChapterIdx > 0) {
+        for (let i = currentChapterIdx - 1; i >= 0; i--) {
+          const prevChapter = chapters[i];
+          const lessonsOfPrev = active
+            .filter((m) => m.parentModuleId === prevChapter._id)
+            .sort((a, b) => a.sortOrder - b.sortOrder);
+          if (lessonsOfPrev.length > 0) {
+            prev = lessonsOfPrev[lessonsOfPrev.length - 1];
+            break;
+          }
+        }
+      }
+    }
 
     const chapterIndex = parent
       ? chapters.findIndex((c) => c._id === parent._id)
@@ -317,12 +353,12 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
               {nav.prev && (
                 <Link
                   href={`/training/${slug}/${nav.prev.slug}`}
-                  className="flex-1 border border-rule rounded-[2px] p-3 hover:border-copper/40 transition-colors group"
+                  className="flex-1 border border-copper/40 rounded-[2px] p-4 hover:border-copper hover:bg-copper/[0.03] transition-colors group"
                 >
-                  <p className="text-[10px] font-medium tracking-[0.15em] uppercase text-ink/30 mb-0.5">
+                  <p className="text-[10px] font-medium tracking-[0.15em] uppercase text-copper mb-1">
                     &larr; {s.prev}
                   </p>
-                  <p className="text-[13px] text-ink/70 group-hover:text-ink line-clamp-1">
+                  <p className="text-[13px] text-ink/80 group-hover:text-ink line-clamp-1">
                     {loc(nav.prev.title, lang)}
                   </p>
                 </Link>
@@ -330,12 +366,12 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
               {nav.next && (
                 <Link
                   href={`/training/${slug}/${nav.next.slug}`}
-                  className="flex-1 border border-rule rounded-[2px] p-3 hover:border-copper/40 transition-colors text-right group"
+                  className="flex-1 border border-copper/40 rounded-[2px] p-4 hover:border-copper hover:bg-copper/[0.03] transition-colors text-right group"
                 >
-                  <p className="text-[10px] font-medium tracking-[0.15em] uppercase text-copper mb-0.5">
+                  <p className="text-[10px] font-medium tracking-[0.15em] uppercase text-copper mb-1">
                     {s.next} &rarr;
                   </p>
-                  <p className="text-[13px] text-ink/70 group-hover:text-ink line-clamp-1">
+                  <p className="text-[13px] text-ink/80 group-hover:text-ink line-clamp-1">
                     {loc(nav.next.title, lang)}
                   </p>
                 </Link>
