@@ -9,48 +9,36 @@ import type { Lang } from "@/lib/i18n";
 const COPY: Record<
   Lang,
   {
-    title: string;
-    subtitle: string;
     addBookmark: string;
     bookmarkPlaceholder: string;
     save: string;
     cancel: string;
     edit: string;
-    noBookmarks: string;
     currentMoment: string;
   }
 > = {
   nl: {
-    title: "Bladwijzers",
-    subtitle: "Markeer een moment in de video en vind het later snel terug.",
     addBookmark: "+ Bladwijzer op huidige tijd",
     bookmarkPlaceholder: "Waarom is dit moment belangrijk? (optioneel)",
     save: "Opslaan",
     cancel: "Annuleer",
     edit: "Bewerk",
-    noBookmarks: "Nog geen bladwijzers — klik op de knop om er één toe te voegen op het huidige videomoment.",
     currentMoment: "huidig videomoment",
   },
   en: {
-    title: "Bookmarks",
-    subtitle: "Mark a moment in the video and jump back later.",
     addBookmark: "+ Bookmark current time",
     bookmarkPlaceholder: "Why does this moment matter? (optional)",
     save: "Save",
     cancel: "Cancel",
     edit: "Edit",
-    noBookmarks: "No bookmarks yet — click the button to save the current video moment.",
     currentMoment: "current video time",
   },
   de: {
-    title: "Lesezeichen",
-    subtitle: "Markieren Sie einen Moment im Video und finden Sie ihn spater schnell wieder.",
     addBookmark: "+ Lesezeichen zur aktuellen Zeit",
     bookmarkPlaceholder: "Warum ist dieser Moment wichtig? (optional)",
     save: "Speichern",
     cancel: "Abbrechen",
     edit: "Bearbeiten",
-    noBookmarks: "Noch keine Lesezeichen — klicken Sie auf die Schaltflache, um den aktuellen Moment zu speichern.",
     currentMoment: "aktueller Videozeitpunkt",
   },
 };
@@ -144,26 +132,19 @@ export function BookmarksPanel({ moduleId, lang }: Props) {
   const sorted = [...(bookmarks ?? [])].sort((a, b) => a.videoTimestamp - b.videoTimestamp);
 
   return (
-    <div className="my-6 border border-rule rounded-[2px] p-5 sm:p-6">
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
-        <div>
-          <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-1">
-            {copy.title}
-          </p>
-          <p className="text-[12px] text-ink/50">{copy.subtitle}</p>
-        </div>
-        {!showForm && (
-          <button
-            onClick={handleAddClick}
-            className="shrink-0 bg-copper text-paper px-4 py-2 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer w-full sm:w-auto"
-          >
-            {copy.addBookmark}
-          </button>
-        )}
-      </div>
+    <div className="my-6 space-y-3">
+      {/* Standalone copper button — no card chrome */}
+      {!showForm && (
+        <button
+          onClick={handleAddClick}
+          className="bg-copper text-paper px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer"
+        >
+          {copy.addBookmark}
+        </button>
+      )}
 
       {showForm && pendingTimestamp !== null && (
-        <div className="mb-4 p-3 border border-copper/40 rounded-[2px] bg-copper/[0.04]">
+        <div className="p-4 border border-copper/40 rounded-[2px] bg-copper/[0.04]">
           <div className="flex items-center gap-2 mb-2">
             <span className="text-[13px] font-medium text-copper tabular-nums">
               {formatTimestamp(pendingTimestamp)}
@@ -201,16 +182,13 @@ export function BookmarksPanel({ moduleId, lang }: Props) {
         </div>
       )}
 
-      {sorted.length === 0 && !showForm && (
-        <p className="text-[12px] text-ink/30">{copy.noBookmarks}</p>
-      )}
-
+      {/* Bookmark list — only when there are bookmarks */}
       {sorted.length > 0 && (
         <div className="space-y-1">
           {sorted.map((bm) => (
             <div
               key={bm._id}
-              className="flex items-center gap-3 p-2.5 border border-rule rounded-[2px] hover:border-copper/30 transition-colors group"
+              className="flex items-center gap-3 px-3 py-2 border border-rule/70 rounded-[2px] hover:border-copper/40 transition-colors group"
             >
               <button
                 onClick={() => jumpTo(bm.videoTimestamp)}
