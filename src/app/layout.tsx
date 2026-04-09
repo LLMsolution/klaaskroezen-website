@@ -6,6 +6,7 @@ import { playfair, dmSans } from "@/lib/fonts";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { JsonLd, organizationJsonLd } from "@/components/seo/JsonLd";
+import { SITE_URL } from "@/lib/site-config";
 import { ConvexProvider } from "@/components/providers/ConvexProvider";
 import { BookPopup } from "@/components/ui/BookPopup";
 import { getLocale } from "@/lib/i18n/server";
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
   },
   description:
     "Sales- en Customer Success trainingen van Klaas Kroezen. Oprecht en ontspannen verkopen. 25+ jaar ervaring, 21 landen, 9.1 beoordeling.",
-  metadataBase: new URL("https://www.klaaskroezen.com"),
+  metadataBase: new URL(SITE_URL),
   openGraph: {
     type: "website",
     locale: "nl_NL",
@@ -38,10 +39,10 @@ export const metadata: Metadata = {
   },
   alternates: {
     languages: {
-      "nl": "https://www.klaaskroezen.com",
-      "en": "https://www.klaaskroezen.com",
-      "de": "https://www.klaaskroezen.com",
-      "x-default": "https://www.klaaskroezen.com",
+      "nl": SITE_URL,
+      "en": SITE_URL,
+      "de": SITE_URL,
+      "x-default": SITE_URL,
     },
   },
 };

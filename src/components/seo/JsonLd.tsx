@@ -1,3 +1,5 @@
+import { SITE_URL } from "@/lib/site-config";
+
 interface JsonLdProps {
   data: Record<string, unknown>;
 }
@@ -15,8 +17,8 @@ export const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "Klaas Kroezen",
-  url: "https://www.klaaskroezen.com",
-  logo: "https://www.klaaskroezen.com/images/hero/og-image.jpeg",
+  url: SITE_URL,
+  logo: `${SITE_URL}/images/hero/og-image.jpeg`,
   description:
     "Sales- en Customer Success trainingen. Oprecht en ontspannen verkopen — geen trucjes, geen scripts.",
   address: {
@@ -44,8 +46,8 @@ export const personJsonLd = {
   "@type": "Person",
   name: "Klaas Kroezen",
   jobTitle: "Sales & Customer Success Trainer",
-  url: "https://www.klaaskroezen.com",
-  image: "https://www.klaaskroezen.com/images/about/klaas-kroezen-portrait.jpeg",
+  url: SITE_URL,
+  image: `${SITE_URL}/images/about/klaas-kroezen-portrait.jpeg`,
   description:
     "Trainer, spreker en auteur. 25+ jaar internationale ervaring in sales en klantgerichtheid bij Google, Samsung, Microsoft, ING en Vodafone.",
   worksFor: {
@@ -74,7 +76,7 @@ export function courseJsonLd(options: {
     provider: {
       "@type": "Organization",
       name: "Klaas Kroezen",
-      url: "https://www.klaaskroezen.com",
+      url: SITE_URL,
     },
     instructor: {
       "@type": "Person",
@@ -96,14 +98,14 @@ export const websiteJsonLd = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "Klaas Kroezen",
-  url: "https://www.klaaskroezen.com",
+  url: SITE_URL,
   description:
     "Sales- en Customer Success trainingen. Oprecht en ontspannen verkopen — geen trucjes, geen scripts.",
   inLanguage: "nl",
   publisher: {
     "@type": "Organization",
     name: "Klaas Kroezen",
-    url: "https://www.klaaskroezen.com",
+    url: SITE_URL,
   },
 };
 
@@ -113,11 +115,11 @@ export const speakerServiceJsonLd = {
   name: "Spreker & Keynote — Klaas Kroezen",
   description:
     "Inspirerende keynotes en workshops over sales, klantgerichtheid en commerciële groei. Van 30 minuten tot een volledige dag.",
-  url: "https://www.klaaskroezen.com/spreker",
+  url: `${SITE_URL}/spreker`,
   provider: {
     "@type": "Person",
     name: "Klaas Kroezen",
-    url: "https://www.klaaskroezen.com",
+    url: SITE_URL,
   },
   areaServed: {
     "@type": "GeoCircle",
@@ -137,7 +139,7 @@ export const contactPageJsonLd = {
   name: "Contact — Klaas Kroezen",
   description:
     "Neem contact op met Klaas Kroezen voor trainingen, coaching of een keynote.",
-  url: "https://www.klaaskroezen.com/contact",
+  url: `${SITE_URL}/contact`,
   mainEntity: {
     "@type": "Organization",
     name: "Klaas Kroezen",
@@ -163,7 +165,7 @@ export const bookJsonLd = {
   },
   description:
     "Het boek over verkopen vanuit verbinding. Meer omzet, minder stress.",
-  url: "https://www.klaaskroezen.com/boek",
+  url: `${SITE_URL}/boek`,
   inLanguage: "nl",
   bookFormat: "https://schema.org/Hardcover",
   offers: [

@@ -203,7 +203,7 @@ export const notifySubscribers = mutation({
 
     // Create a broadcast with the blog post content
     const subject = `Nieuw artikel: ${post.title}`;
-    const siteUrl = process.env.SITE_URL || "https://www.klaaskroezen.com";
+    const siteUrl = process.env.SITE_URL || "https://www.klaaskroezen.nl";
     const postUrl = `${siteUrl}/nieuws/${post.slug}`;
 
     const htmlBody = `

@@ -74,6 +74,7 @@ import type * as siteSeed from "../siteSeed.js";
 import type * as siteSeedBoek from "../siteSeedBoek.js";
 import type * as siteSeedContact from "../siteSeedContact.js";
 import type * as siteSeedCst from "../siteSeedCst.js";
+import type * as siteSeedHome from "../siteSeedHome.js";
 import type * as siteSeedOverOns from "../siteSeedOverOns.js";
 import type * as siteSeedSet from "../siteSeedSet.js";
 import type * as siteSeedSpreker from "../siteSeedSpreker.js";
@@ -159,6 +160,7 @@ declare const fullApi: ApiFromModules<{
   siteSeedBoek: typeof siteSeedBoek;
   siteSeedContact: typeof siteSeedContact;
   siteSeedCst: typeof siteSeedCst;
+  siteSeedHome: typeof siteSeedHome;
   siteSeedOverOns: typeof siteSeedOverOns;
   siteSeedSet: typeof siteSeedSet;
   siteSeedSpreker: typeof siteSeedSpreker;

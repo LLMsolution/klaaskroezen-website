@@ -69,23 +69,77 @@ export function InlineForm({ placeholder, value, onChange, saving, onSave, onCan
   );
 }
 
-/* ─── Werkboek section ─── */
+/* ─── Werkboek section (per language) ─── */
+
+type WorkbookLang = "nl" | "en" | "de";
+type WorkbookData = { storageId: string; fileName: string; title?: string; description?: string } | undefined;
 
 export function WorkbookSection({ trainingId }: { trainingId: Id<"trainings"> }) {
   const trainingData = useQuery(api.trainings.listAll);
+  const [activeLang, setActiveLang] = useState<WorkbookLang>("nl");
+
+  const t = trainingData?.find((tr) => tr._id === trainingId);
+  const tRec = t as Record<string, unknown> | undefined;
+
+  const workbookByLang: Record<WorkbookLang, WorkbookData> = {
+    nl: tRec?.workbookNl as WorkbookData,
+    en: tRec?.workbookEn as WorkbookData,
+    de: tRec?.workbookDe as WorkbookData,
+  };
+
+  return (
+    <Section title="Werkboek (per taal)" subtitle="Upload per taal een eigen PDF werkboek met titel en beschrijving. De afbeelding wordt gedeeld over alle talen.">
+      {/* Language tabs */}
+      <div className="flex gap-2 mb-4 flex-wrap">
+        {(["nl", "en", "de"] as const).map((lang) => {
+          const hasFile = !!workbookByLang[lang];
+          return (
+            <button
+              key={lang}
+              onClick={() => setActiveLang(lang)}
+              className={`text-[11px] px-3 py-1.5 rounded-[2px] cursor-pointer transition-colors flex items-center gap-2 ${
+                activeLang === lang
+                  ? "bg-copper text-paper"
+                  : "border border-rule text-ink/50 hover:text-ink"
+              }`}
+            >
+              {lang.toUpperCase()}
+              {hasFile && <span className="w-1.5 h-1.5 rounded-full bg-green-500" />}
+            </button>
+          );
+        })}
+      </div>
+
+      <WorkbookLangPanel
+        key={activeLang}
+        trainingId={trainingId}
+        lang={activeLang}
+        existing={workbookByLang[activeLang]}
+      />
+
+      <WorkbookImageSection trainingId={trainingId} />
+    </Section>
+  );
+}
+
+function WorkbookLangPanel({
+  trainingId,
+  lang,
+  existing,
+}: {
+  trainingId: Id<"trainings">;
+  lang: WorkbookLang;
+  existing: WorkbookData;
+}) {
   const generateUploadUrl = useMutation(api.trainings.generateUploadUrl);
   const saveWorkbook = useMutation(api.trainings.saveWorkbook);
   const removeWorkbook = useMutation(api.trainings.removeWorkbook);
   const updateMeta = useMutation(api.trainings.updateWorkbookMeta);
-  const saveImage = useMutation(api.trainings.saveWorkbookImage);
   const [uploading, setUploading] = useState(false);
 
-  const t = trainingData?.find((tr) => tr._id === trainingId);
-  const has = t && "workbookStorageId" in t && !!t.workbookStorageId;
-  const tRec = t as Record<string, unknown> | undefined;
-  const wbTitle = (tRec?.workbookTitle as string) ?? "";
-  const wbDesc = (tRec?.workbookDescription as string) ?? "";
-  const wbFile = (tRec?.workbookFileName as string) ?? "";
+  const wbTitle = existing?.title ?? "";
+  const wbDesc = existing?.description ?? "";
+  const wbFile = existing?.fileName ?? "";
 
   async function handleUploadPdf(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -95,45 +149,71 @@ export function WorkbookSection({ trainingId }: { trainingId: Id<"trainings"> })
       const url = await generateUploadUrl();
       const res = await fetch(url, { method: "POST", headers: { "Content-Type": file.type }, body: file });
       const { storageId } = await res.json();
-      await saveWorkbook({ trainingId, storageId, fileName: file.name, title: wbTitle || file.name, description: wbDesc });
-    } finally { setUploading(false); }
+      await saveWorkbook({
+        trainingId,
+        lang,
+        storageId,
+        fileName: file.name,
+        title: wbTitle || file.name,
+        description: wbDesc,
+      });
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  if (!existing) {
+    return (
+      <label className={`inline-block bg-copper text-paper px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light rounded-[2px] cursor-pointer ${uploading ? "opacity-50" : ""}`}>
+        {uploading ? "Uploaden..." : `PDF uploaden (${lang.toUpperCase()})`}
+        <input type="file" accept=".pdf" onChange={handleUploadPdf} disabled={uploading} className="hidden" />
+      </label>
+    );
   }
 
   return (
-    <Section title="Werkboek" subtitle="Upload een PDF werkboek met titel, afbeelding en beschrijving. Deelnemers kunnen dit downloaden.">
-      {has ? (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-copper">
-                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><path d="M14 2v6h6" />
-              </svg>
-              <span className="text-[13px] text-ink">{wbFile}</span>
-            </div>
-            <div className="flex gap-3">
-              <label className="text-[12px] text-copper hover:text-copper-light cursor-pointer">
-                Vervangen <input type="file" accept=".pdf" onChange={handleUploadPdf} className="hidden" />
-              </label>
-              <button onClick={() => removeWorkbook({ trainingId })} className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer">Verwijderen</button>
-            </div>
-          </div>
-          <EditableField label="Titel" value={wbTitle} onSave={async (v) => { await updateMeta({ trainingId, title: v, description: wbDesc }); }} />
-          <EditableField label="Beschrijving" value={wbDesc} onSave={async (v) => { await updateMeta({ trainingId, title: wbTitle, description: v }); }} multiline />
-          <div>
-            <p className="text-[11px] text-ink/50 mb-1">Afbeelding</p>
-            <AdminImageUpload
-              onUploaded={async (storageId) => { await saveImage({ trainingId, storageId }); }}
-              alt="Werkboek cover"
-            />
-          </div>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-copper">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><path d="M14 2v6h6" />
+          </svg>
+          <span className="text-[13px] text-ink">{wbFile}</span>
         </div>
-      ) : (
-        <label className={`inline-block bg-copper text-paper px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light rounded-[2px] cursor-pointer ${uploading ? "opacity-50" : ""}`}>
-          {uploading ? "Uploaden..." : "PDF uploaden"}
-          <input type="file" accept=".pdf" onChange={handleUploadPdf} disabled={uploading} className="hidden" />
-        </label>
-      )}
-    </Section>
+        <div className="flex gap-3">
+          <label className="text-[12px] text-copper hover:text-copper-light cursor-pointer">
+            Vervangen <input type="file" accept=".pdf" onChange={handleUploadPdf} className="hidden" />
+          </label>
+          <button onClick={() => removeWorkbook({ trainingId, lang })} className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer">
+            Verwijderen
+          </button>
+        </div>
+      </div>
+      <EditableField
+        label={`Titel (${lang.toUpperCase()})`}
+        value={wbTitle}
+        onSave={async (v) => { await updateMeta({ trainingId, lang, title: v, description: wbDesc }); }}
+      />
+      <EditableField
+        label={`Beschrijving (${lang.toUpperCase()})`}
+        value={wbDesc}
+        onSave={async (v) => { await updateMeta({ trainingId, lang, title: wbTitle, description: v }); }}
+        multiline
+      />
+    </div>
+  );
+}
+
+function WorkbookImageSection({ trainingId }: { trainingId: Id<"trainings"> }) {
+  const saveImage = useMutation(api.trainings.saveWorkbookImage);
+  return (
+    <div className="mt-4 pt-4 border-t border-rule/60">
+      <p className="text-[11px] text-ink/50 mb-2">Afbeelding (gedeeld over alle talen)</p>
+      <AdminImageUpload
+        onUploaded={async (storageId) => { await saveImage({ trainingId, storageId }); }}
+        alt="Werkboek cover"
+      />
+    </div>
   );
 }
 
@@ -182,49 +262,3 @@ export function CoverImageSection({ trainingId }: { trainingId: Id<"trainings"> 
   );
 }
 
-/* ─── Certificate section ─── */
-
-export function CertificateSection({ trainingId }: { trainingId: Id<"trainings"> }) {
-  const trainingData = useQuery(api.trainings.listAll);
-  const generateUploadUrl = useMutation(api.trainings.generateUploadUrl);
-  const saveCertificate = useMutation(api.trainings.saveCertificate);
-  const removeCertificate = useMutation(api.trainings.removeCertificate);
-  const [uploading, setUploading] = useState(false);
-
-  const t = trainingData?.find((tr) => tr._id === trainingId);
-  const has = t && "certificateStorageId" in t && !!t.certificateStorageId;
-  const fileName = (t as Record<string, unknown> | undefined)?.certificateFileName as string | undefined;
-
-  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      const url = await generateUploadUrl();
-      const res = await fetch(url, { method: "POST", headers: { "Content-Type": file.type }, body: file });
-      const { storageId } = await res.json();
-      await saveCertificate({ trainingId, storageId, fileName: file.name });
-    } finally { setUploading(false); }
-  }
-
-  return (
-    <Section title="Certificaat PDF" subtitle="Deelnemers downloaden dit na afronding van alle quizzes.">
-      {has ? (
-        <div className="flex items-center justify-between">
-          <p className="text-[14px] text-ink">{fileName || "certificaat.pdf"}</p>
-          <div className="flex gap-3">
-            <label className="text-[12px] text-copper hover:text-copper-light cursor-pointer">
-              Vervangen <input type="file" accept=".pdf" onChange={handleUpload} className="hidden" />
-            </label>
-            <button onClick={() => removeCertificate({ trainingId })} className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer">Verwijderen</button>
-          </div>
-        </div>
-      ) : (
-        <label className={`inline-block bg-copper text-paper px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light rounded-[2px] cursor-pointer ${uploading ? "opacity-50" : ""}`}>
-          {uploading ? "Uploaden..." : "PDF uploaden"}
-          <input type="file" accept=".pdf" onChange={handleUpload} disabled={uploading} className="hidden" />
-        </label>
-      )}
-    </Section>
-  );
-}

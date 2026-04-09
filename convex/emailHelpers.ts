@@ -6,8 +6,8 @@
 export const COPPER = "#B5622A";
 export const INK = "#0E0C0A";
 export const WARM = "#EDE9E2";
-export const BOOK_COVER_URL = "https://www.klaaskroezen.com/images/book/sales-oprecht-ontspannen-cover.png";
-export const SITE_URL = "https://www.klaaskroezen.com";
+export const SITE_URL = process.env.SITE_URL ?? "https://www.klaaskroezen.nl";
+export const BOOK_COVER_URL = `${SITE_URL}/images/book/sales-oprecht-ontspannen-cover.png`;
 
 export type CrossSellContext = "book" | "training" | "cst" | "general" | "none";
 

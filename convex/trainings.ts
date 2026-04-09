@@ -349,55 +349,34 @@ export const removeThumbnail = mutation({
   },
 });
 
-// ── Certificate upload ──
+// ── Werkboek (training-level PDF with metadata, per language) ──
 
-export const saveCertificate = mutation({
-  args: {
-    trainingId: v.id("trainings"),
-    storageId: v.id("_storage"),
-    fileName: v.string(),
-  },
-  handler: async (ctx, { trainingId, storageId, fileName }) => {
-    await requireAdmin(ctx);
-    const training = await ctx.db.get(trainingId);
-    if (training?.certificateStorageId) {
-      await ctx.storage.delete(training.certificateStorageId);
-    }
-    await ctx.db.patch(trainingId, { certificateStorageId: storageId, certificateFileName: fileName });
-  },
-});
+const workbookFieldByLang = {
+  nl: "workbookNl",
+  en: "workbookEn",
+  de: "workbookDe",
+} as const;
 
-export const removeCertificate = mutation({
-  args: { trainingId: v.id("trainings") },
-  handler: async (ctx, { trainingId }) => {
-    await requireAdmin(ctx);
-    const training = await ctx.db.get(trainingId);
-    if (training?.certificateStorageId) {
-      await ctx.storage.delete(training.certificateStorageId);
-    }
-    await ctx.db.patch(trainingId, { certificateStorageId: undefined, certificateFileName: undefined });
-  },
-});
-
-// ── Werkboek (training-level PDF with metadata) ──
+const langValidator = v.union(v.literal("nl"), v.literal("en"), v.literal("de"));
 
 export const saveWorkbook = mutation({
   args: {
     trainingId: v.id("trainings"),
+    lang: langValidator,
     storageId: v.id("_storage"),
     fileName: v.string(),
     title: v.optional(v.string()),
     description: v.optional(v.string()),
   },
-  handler: async (ctx, { trainingId, storageId, fileName, title, description }) => {
+  handler: async (ctx, { trainingId, lang, storageId, fileName, title, description }) => {
     await requireAdmin(ctx);
     const training = await ctx.db.get(trainingId);
-    if (training?.workbookStorageId) await ctx.storage.delete(training.workbookStorageId);
+    if (!training) throw new Error("Training niet gevonden.");
+    const field = workbookFieldByLang[lang];
+    const existing = training[field];
+    if (existing?.storageId) await ctx.storage.delete(existing.storageId);
     await ctx.db.patch(trainingId, {
-      workbookStorageId: storageId,
-      workbookFileName: fileName,
-      workbookTitle: title,
-      workbookDescription: description,
+      [field]: { storageId, fileName, title, description },
     });
   },
 });
@@ -405,12 +384,20 @@ export const saveWorkbook = mutation({
 export const updateWorkbookMeta = mutation({
   args: {
     trainingId: v.id("trainings"),
+    lang: langValidator,
     title: v.optional(v.string()),
     description: v.optional(v.string()),
   },
-  handler: async (ctx, { trainingId, title, description }) => {
+  handler: async (ctx, { trainingId, lang, title, description }) => {
     await requireAdmin(ctx);
-    await ctx.db.patch(trainingId, { workbookTitle: title, workbookDescription: description });
+    const training = await ctx.db.get(trainingId);
+    if (!training) throw new Error("Training niet gevonden.");
+    const field = workbookFieldByLang[lang];
+    const existing = training[field];
+    if (!existing) throw new Error(`Geen werkboek voor taal ${lang}.`);
+    await ctx.db.patch(trainingId, {
+      [field]: { ...existing, title, description },
+    });
   },
 });
 
@@ -425,67 +412,39 @@ export const saveWorkbookImage = mutation({
 });
 
 export const removeWorkbook = mutation({
-  args: { trainingId: v.id("trainings") },
-  handler: async (ctx, { trainingId }) => {
+  args: { trainingId: v.id("trainings"), lang: langValidator },
+  handler: async (ctx, { trainingId, lang }) => {
     await requireAdmin(ctx);
     const training = await ctx.db.get(trainingId);
-    if (training?.workbookStorageId) await ctx.storage.delete(training.workbookStorageId);
-    if (training?.workbookImageStorageId) await ctx.storage.delete(training.workbookImageStorageId);
-    await ctx.db.patch(trainingId, {
-      workbookStorageId: undefined, workbookFileName: undefined,
-      workbookTitle: undefined, workbookDescription: undefined,
-      workbookImageStorageId: undefined,
-    });
+    if (!training) return;
+    const field = workbookFieldByLang[lang];
+    const existing = training[field];
+    if (existing?.storageId) await ctx.storage.delete(existing.storageId);
+    await ctx.db.patch(trainingId, { [field]: undefined });
   },
 });
 
 export const getWorkbookUrl = query({
-  args: { trainingId: v.id("trainings") },
-  handler: async (ctx, { trainingId }) => {
+  args: { trainingId: v.id("trainings"), lang: langValidator },
+  handler: async (ctx, { trainingId, lang }) => {
     await requireTrainingAccess(ctx, trainingId);
     const training = await ctx.db.get(trainingId);
-    if (!training?.workbookStorageId) return null;
-    const pdfUrl = await ctx.storage.getUrl(training.workbookStorageId);
+    if (!training) return null;
+    const field = workbookFieldByLang[lang];
+    const wb = training[field];
+    // Fallback: if requested lang has no workbook, return NL version.
+    const resolved = wb ?? training.workbookNl;
+    if (!resolved) return null;
+    const pdfUrl = await ctx.storage.getUrl(resolved.storageId);
     const imageUrl = training.workbookImageStorageId
       ? await ctx.storage.getUrl(training.workbookImageStorageId)
       : undefined;
     return {
       url: pdfUrl,
-      fileName: training.workbookFileName,
-      title: training.workbookTitle,
-      description: training.workbookDescription,
+      fileName: resolved.fileName,
+      title: resolved.title,
+      description: resolved.description,
       imageUrl: imageUrl ?? undefined,
     };
-  },
-});
-
-/** Get certificate download URL — requires access + all quizzes passed */
-export const getCertificateUrl = query({
-  args: { trainingId: v.id("trainings") },
-  handler: async (ctx, { trainingId }) => {
-    const { userId } = await requireTrainingAccess(ctx, trainingId);
-
-    // Verify all required quizzes are passed (server-side enforcement)
-    const quizModules = await ctx.db
-      .query("trainingModules")
-      .withIndex("by_training", (q) => q.eq("trainingId", trainingId))
-      .collect();
-    const requiredModules = quizModules.filter((m) => m.active && m.quizRequired);
-
-    if (requiredModules.length > 0) {
-      const progress = await ctx.db
-        .query("moduleProgress")
-        .withIndex("by_user_training", (q) => q.eq("userId", userId).eq("trainingId", trainingId))
-        .collect();
-      const allPassed = requiredModules.every((m) =>
-        progress.find((p) => p.moduleId === m._id)?.quizPassed === true,
-      );
-      if (!allPassed) return null;
-    }
-
-    const training = await ctx.db.get(trainingId);
-    if (!training?.certificateStorageId) return null;
-    const url = await ctx.storage.getUrl(training.certificateStorageId);
-    return url ? { url, fileName: training.certificateFileName } : null;
   },
 });

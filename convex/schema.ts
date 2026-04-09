@@ -829,13 +829,32 @@ export default defineSchema({
     description: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
     coverImageStorageId: v.optional(v.id("_storage")), // For audiobooks: album/book cover
     thumbnailStorageId: v.optional(v.id("_storage")),
-    certificateStorageId: v.optional(v.id("_storage")),
-    certificateFileName: v.optional(v.string()),
-    // Werkboek: downloadable PDF with metadata shown on training page
-    workbookStorageId: v.optional(v.id("_storage")),
-    workbookFileName: v.optional(v.string()),
-    workbookTitle: v.optional(v.string()),
-    workbookDescription: v.optional(v.string()),
+    // Werkboek: per-language downloadable PDF with metadata shown on training page.
+    // Image is shared across languages (same visual), metadata/PDF are per-language.
+    workbookNl: v.optional(
+      v.object({
+        storageId: v.id("_storage"),
+        fileName: v.string(),
+        title: v.optional(v.string()),
+        description: v.optional(v.string()),
+      }),
+    ),
+    workbookEn: v.optional(
+      v.object({
+        storageId: v.id("_storage"),
+        fileName: v.string(),
+        title: v.optional(v.string()),
+        description: v.optional(v.string()),
+      }),
+    ),
+    workbookDe: v.optional(
+      v.object({
+        storageId: v.id("_storage"),
+        fileName: v.string(),
+        title: v.optional(v.string()),
+        description: v.optional(v.string()),
+      }),
+    ),
     workbookImageStorageId: v.optional(v.id("_storage")),
     // Which checkout product slugs grant access to this training
     linkedProducts: v.optional(v.array(v.string())),
@@ -861,6 +880,8 @@ export default defineSchema({
     audioFileName: v.optional(v.string()),
     durationSeconds: v.optional(v.number()),
     sortOrder: v.number(),
+    // Optional manual display label (e.g. "1.0" or "Intro"). Overrides auto-numbering.
+    displayNumber: v.optional(v.string()),
     workbookStorageId: v.optional(v.id("_storage")),
     workbookFileName: v.optional(v.string()),
     discussionEnabled: v.boolean(),

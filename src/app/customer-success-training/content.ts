@@ -1,4 +1,5 @@
 import type { Lang } from "@/lib/i18n";
+import { SITE_URL } from "@/lib/site-config";
 
 export function getCstContent(lang: Lang, images?: Record<string, string>) {
   const text = {
@@ -228,7 +229,7 @@ export function getCstContent(lang: Lang, images?: Record<string, string>) {
     jsonLd: {
       name: "Customer Success Training",
       description: text.jsonLdDescription,
-      url: "https://www.klaaskroezen.com/customer-success-training",
+      url: `${SITE_URL}/customer-success-training`,
       price: "2250",
     },
     hero: {

@@ -12,7 +12,6 @@ interface Props {
 export function CertificateButton({ trainingId, trainingTitle }: Props) {
   const modules = useQuery(api.trainings.getModulesForTraining, { trainingId });
   const progress = useQuery(api.trainingProgress.getMyTrainingProgress, { trainingId });
-  const certificate = useQuery(api.trainings.getCertificateUrl, { trainingId });
   const user = useQuery(api.users.getCurrentUser);
 
   if (!modules || !progress) return null;
@@ -26,16 +25,7 @@ export function CertificateButton({ trainingId, trainingTitle }: Props) {
   const allPassed = quizModules.length > 0 && passedModules.length === quizModules.length;
 
   function handleDownload() {
-    // If a PDF was uploaded by admin, download that
-    if (certificate?.url) {
-      const a = document.createElement("a");
-      a.href = certificate.url;
-      a.download = certificate.fileName || `Certificaat - ${trainingTitle}.pdf`;
-      a.click();
-      return;
-    }
-
-    // Fallback: generate certificate in browser
+    // Generate certificate HTML in browser (opens print preview)
     if (!user) return;
     const name = user.name || user.email;
     const date = new Date().toLocaleDateString("nl-NL", {

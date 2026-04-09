@@ -1,4 +1,5 @@
 import type { Lang } from "@/lib/i18n";
+import { SITE_URL } from "@/lib/site-config";
 import { setNl } from "./content-nl";
 import { setEn } from "./content-en";
 import { setDe } from "./content-de";
@@ -15,7 +16,7 @@ export function getSetContent(lang: Lang, images?: Record<string, string>) {
     jsonLd: {
       name: "Sales Excellence Training",
       description: text.jsonLdDescription,
-      url: "https://www.klaaskroezen.com/sales-excellence-training",
+      url: `${SITE_URL}/sales-excellence-training`,
       price: "2250",
     },
 
