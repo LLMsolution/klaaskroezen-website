@@ -24,6 +24,7 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import { ModuleVideoField } from "./ModuleFields";
 import { InlineForm } from "./TrainingEditorSections";
 import { LangField, mergeLang, type Lang } from "./LangEditor";
+import { LessonFormEditor } from "./LessonFormEditor";
 
 // Keep the shape loose — consumed from TrainingEditor which already queries the raw data.
 export type SortableModule = {
@@ -495,6 +496,7 @@ function SortableLessonRow({
               />
             </div>
           </div>
+          <LessonFormEditor moduleId={lesson._id} />
           <div className="flex items-center gap-3 pt-2 border-t border-rule/50">
             <button onClick={onEditQuiz} className="text-[12px] text-copper hover:text-copper-light cursor-pointer">Quiz</button>
             <button onClick={onDelete} className="text-[12px] text-red-400 hover:text-red-600 cursor-pointer">Verwijder</button>

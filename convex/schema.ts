@@ -989,6 +989,76 @@ export default defineSchema({
     emailSentAt: v.optional(v.number()),
   }).index("by_user_training", ["userId", "trainingId"]),
 
+  // Per-lesson form / questionnaire. Cursists fill it in; on submit the
+  // answers are e-mailed to `recipientEmail` (typically Klaas).
+  lessonForms: defineTable({
+    moduleId: v.id("trainingModules"),
+    recipientEmail: v.string(),
+    introText: v.object({
+      nl: v.string(),
+      en: v.string(),
+      de: v.optional(v.string()),
+    }),
+    submitLabel: v.object({
+      nl: v.string(),
+      en: v.string(),
+      de: v.optional(v.string()),
+    }),
+    fields: v.array(
+      v.object({
+        // Stable per-field identifier so submissions survive field reordering.
+        id: v.string(),
+        type: v.union(
+          v.literal("text"),
+          v.literal("textarea"),
+          v.literal("radio"),
+          v.literal("checkbox"),
+          v.literal("scale"),
+        ),
+        label: v.object({
+          nl: v.string(),
+          en: v.string(),
+          de: v.optional(v.string()),
+        }),
+        required: v.boolean(),
+        // Choice options for radio/checkbox.
+        options: v.optional(
+          v.array(
+            v.object({
+              nl: v.string(),
+              en: v.string(),
+              de: v.optional(v.string()),
+            }),
+          ),
+        ),
+        scaleMin: v.optional(v.number()),
+        scaleMax: v.optional(v.number()),
+      }),
+    ),
+    active: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_module", ["moduleId"]),
+
+  // Submitted form responses. One row per (user, form) submission attempt.
+  lessonFormSubmissions: defineTable({
+    formId: v.id("lessonForms"),
+    moduleId: v.id("trainingModules"),
+    trainingId: v.id("trainings"),
+    userId: v.id("users"),
+    answers: v.array(
+      v.object({
+        fieldId: v.string(),
+        // JSON-encoded for non-string answers (e.g. checkbox arrays, scale ints).
+        value: v.string(),
+      }),
+    ),
+    emailSentAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_user_module", ["userId", "moduleId"])
+    .index("by_form", ["formId"]),
+
   // Discussion posts per module
   discussions: defineTable({
     moduleId: v.id("trainingModules"),
