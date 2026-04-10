@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lang } from "@/lib/i18n";
@@ -69,6 +70,26 @@ export function ModuleSidebar({
   const copy = COPY[lang];
   const moduleLabel = moduleDisplayNumber || String(moduleIndex + 1).padStart(2, "0");
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollUp, setCanScrollUp] = useState(false);
+  const [canScrollDown, setCanScrollDown] = useState(false);
+
+  const updateScrollState = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollUp(el.scrollTop > 4);
+    setCanScrollDown(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
+  }, []);
+
+  // Check on mount via ref callback
+  const setScrollRef = useCallback((el: HTMLDivElement | null) => {
+    (scrollRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+    if (el) {
+      setCanScrollUp(el.scrollTop > 4);
+      setCanScrollDown(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
+    }
+  }, []);
+
   const completedCount = siblingLessons.filter((l) => completedMap[l._id]).length;
   const progressPct =
     siblingLessons.length > 0
@@ -79,7 +100,7 @@ export function ModuleSidebar({
     <div className="lg:sticky lg:top-6 flex flex-col gap-4">
     <aside className="border border-rule rounded-[2px] bg-paper overflow-hidden">
       {/* Module header */}
-      <div className="mb-4 pb-4 border-b border-rule px-5 pt-5">
+      <div className="pb-4 border-b border-rule px-5 pt-5">
         <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-1.5">
           {copy.moduleLabel} {moduleLabel}
         </p>
@@ -104,7 +125,7 @@ export function ModuleSidebar({
 
       {/* Lesson list — ~6 visible, fade edges hint at more */}
       <div className="relative">
-      <div className="max-h-[340px] overflow-y-auto scrollbar-hide">
+      <div ref={setScrollRef} onScroll={updateScrollState} className="max-h-[340px] overflow-y-auto scrollbar-hide">
         {siblingLessons.map((lesson, idx) => {
           const isCurrent = lesson._id === currentLessonId;
           const isDone = !!completedMap[lesson._id];
@@ -179,11 +200,11 @@ export function ModuleSidebar({
           );
         })}
       </div>
-      {siblingLessons.length > 6 && (
-        <>
-          <div className="pointer-events-none absolute top-0 left-0 right-0 h-5" style={{ background: "linear-gradient(to bottom, rgba(14,12,10,0.08), transparent)" }} />
-          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-8" style={{ background: "linear-gradient(to top, rgba(14,12,10,0.12), transparent)" }} />
-        </>
+      {canScrollUp && (
+        <div className="pointer-events-none absolute top-0 left-0 right-0 h-5" style={{ background: "linear-gradient(to bottom, rgba(14,12,10,0.08), transparent)" }} />
+      )}
+      {canScrollDown && (
+        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-8" style={{ background: "linear-gradient(to top, rgba(14,12,10,0.12), transparent)" }} />
       )}
       </div>
 
