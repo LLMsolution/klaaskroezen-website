@@ -76,7 +76,7 @@ export function ModuleSidebar({
       : 0;
 
   return (
-    <div className="lg:sticky lg:top-6 lg:self-start flex flex-col gap-4">
+    <div className="lg:sticky lg:top-6 flex flex-col gap-4">
     <aside className="border border-rule rounded-[2px] p-5 bg-paper">
       {/* Module header */}
       <div className="mb-4 pb-4 border-b border-rule">
@@ -102,8 +102,8 @@ export function ModuleSidebar({
         </div>
       </div>
 
-      {/* Lesson list */}
-      <div className="space-y-0.5">
+      {/* Lesson list — max 5 visible, scroll for the rest */}
+      <div className="space-y-0.5 max-h-[280px] overflow-y-auto">
         {siblingLessons.map((lesson, idx) => {
           const isCurrent = lesson._id === currentLessonId;
           const isDone = !!completedMap[lesson._id];
@@ -181,10 +181,9 @@ export function ModuleSidebar({
 
     </aside>
 
-    {/* Prev / Next — two loose buttons, outside the sidebar card. No box
-        around the arrow; the arrow is just a glyph next to the label. */}
+    {/* Prev / Next — pushed towards the bottom of the sidebar column */}
     {(prev || next) && (
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 mt-auto">
         {next && (
           <Link
             href={`/training/${trainingSlug}/${next.slug}`}
