@@ -10,7 +10,7 @@ type DashboardAction = "training" | "download" | "audiobook" | "physical";
 type CatalogItem = {
   checkoutProductId: Id<"checkoutProducts">;
   category: "training" | "book";
-  dashboardAction: DashboardAction;
+  dashboardAction?: DashboardAction;
   linkedTrainingSlug?: string;
   sortOrder: number;
 };
