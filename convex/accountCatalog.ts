@@ -5,6 +5,36 @@ import { auth } from "./auth";
 
 const langValidator = v.union(v.literal("nl"), v.literal("en"), v.literal("de"));
 
+type DashboardAction = "training" | "download" | "audiobook" | "physical";
+
+/** Infer dashboardAction from category + product slug when not explicitly set. */
+function inferAction(
+  category: string,
+  slug: string,
+  explicit?: DashboardAction,
+): DashboardAction {
+  if (explicit) return explicit;
+  if (category === "training") return "training";
+  if (slug.includes("luisterboek")) return "audiobook";
+  if (slug.includes("hardcopy") || slug.includes("cadeau")) return "physical";
+  return "download";
+}
+
+/** Find the training slug that matches a checkout product slug. */
+function findTrainingSlug(
+  productSlug: string,
+  trainings: Array<{ slug: string; linkedProducts?: string[] }>,
+): string | undefined {
+  const match = trainings.find(
+    (t) =>
+      t.slug === productSlug ||
+      `${t.slug}-online` === productSlug ||
+      `${t.slug}-coaching` === productSlug ||
+      (t.linkedProducts ?? []).includes(productSlug),
+  );
+  return match?.slug;
+}
+
 // ── Public queries ──
 
 /** Fetch the catalog for a language, resolved with product details. */
@@ -17,6 +47,11 @@ export const getForLang = query({
       .first();
     if (!row || row.items.length === 0) return [];
 
+    const allTrainings = await ctx.db
+      .query("trainings")
+      .withIndex("by_active", (q) => q.eq("active", true))
+      .collect();
+
     const resolved = [];
     for (const item of [...row.items].sort((a, b) => a.sortOrder - b.sortOrder)) {
       const product = await ctx.db.get(item.checkoutProductId);
@@ -27,18 +62,12 @@ export const getForLang = query({
         imageUrl = (await ctx.storage.getUrl(product.imageStorageId)) ?? undefined;
       }
 
-      // Infer defaults when not explicitly configured
-      let action = item.dashboardAction;
-      if (!action) {
-        if (item.category === "training") action = "training";
-        else if (product.slug.includes("luisterboek")) action = "audiobook";
-        else if (product.slug.includes("hardcopy") || product.slug.includes("cadeau")) action = "physical";
-        else action = "download";
-      }
-      let trainingSlug = item.linkedTrainingSlug;
-      if (!trainingSlug && (action === "training" || action === "audiobook")) {
-        trainingSlug = product.slug.replace(/-online$|-coaching$/, "");
-      }
+      const action = inferAction(item.category, product.slug, item.dashboardAction ?? undefined);
+      const trainingSlug =
+        item.linkedTrainingSlug ??
+        ((action === "training" || action === "audiobook")
+          ? findTrainingSlug(product.slug, allTrainings)
+          : undefined);
 
       resolved.push({
         checkoutProductId: item.checkoutProductId,
@@ -100,6 +129,12 @@ export const getForLangWithAccess = query({
       }
     }
 
+    // Pre-load trainings for slug resolution
+    const allTrainings = await ctx.db
+      .query("trainings")
+      .withIndex("by_active", (q) => q.eq("active", true))
+      .collect();
+
     const resolved = [];
     for (const item of [...row.items].sort((a, b) => a.sortOrder - b.sortOrder)) {
       const product = await ctx.db.get(item.checkoutProductId);
@@ -110,28 +145,13 @@ export const getForLangWithAccess = query({
         imageUrl = (await ctx.storage.getUrl(product.imageStorageId)) ?? undefined;
       }
 
-      // Admins own everything; regular users check accessRights.
       const owned = isAdmin || ownedSlugs.has(product.slug);
-
-      // Infer dashboardAction when not explicitly configured
-      let action = item.dashboardAction;
-      if (!action) {
-        if (item.category === "training") {
-          action = "training";
-        } else if (product.slug.includes("luisterboek")) {
-          action = "audiobook";
-        } else if (product.slug.includes("hardcopy") || product.slug.includes("cadeau")) {
-          action = "physical";
-        } else {
-          action = "download";
-        }
-      }
-
-      // Infer linkedTrainingSlug when not set
-      let trainingSlug = item.linkedTrainingSlug;
-      if (!trainingSlug && (action === "training" || action === "audiobook")) {
-        trainingSlug = product.slug.replace(/-online$|-coaching$/, "");
-      }
+      const action = inferAction(item.category, product.slug, item.dashboardAction ?? undefined);
+      const trainingSlug =
+        item.linkedTrainingSlug ??
+        ((action === "training" || action === "audiobook")
+          ? findTrainingSlug(product.slug, allTrainings)
+          : undefined);
 
       resolved.push({
         checkoutProductId: item.checkoutProductId,
