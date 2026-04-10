@@ -30,6 +30,7 @@ export default async function OverOnsPage() {
     "about/tim-lind.png",
     "about/joost-wammes.png",
     "about/sanne-bakker.png",
+    "about/yvon-kruger.png",
   ]);
   const imageUrls: Record<string, string> = {};
   for (const key of Object.keys(img)) {
