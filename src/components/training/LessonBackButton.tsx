@@ -13,11 +13,9 @@ export function LessonBackButton({ trainingSlug, lang }: { trainingSlug: string;
   return (
     <Link
       href={`/training/${trainingSlug}`}
-      className="inline-flex items-center gap-2 text-[11px] font-medium tracking-[0.15em] uppercase text-copper hover:text-copper-light transition-colors mb-4"
+      className="inline-flex items-center gap-1.5 text-[11px] font-medium tracking-[0.15em] uppercase text-copper hover:text-copper-light transition-colors mb-4"
     >
-      <span className="w-6 h-6 rounded-[2px] border border-copper/40 flex items-center justify-center group-hover:border-copper">
-        &larr;
-      </span>
+      <span className="text-[14px] leading-none">&larr;</span>
       {COPY[lang]}
     </Link>
   );
