@@ -64,7 +64,10 @@ export default async function CustomerSuccessTrainingPage() {
         description={hero.description}
         image={hero.image}
         imageAlt={hero.imageAlt}
-        imagePosition={hero.imagePosition}
+        ctaLabel={hero.ctaLabel}
+        secondaryLabel={hero.secondaryLabel}
+        pricingAnchor={hero.pricingAnchor}
+        programAnchor={hero.programAnchor}
         glassItems={hero.glassItems}
       />
 

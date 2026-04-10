@@ -1,4 +1,5 @@
 import type { Lang } from "@/lib/i18n";
+import { t } from "@/lib/i18n";
 import { SITE_URL } from "@/lib/site-config";
 
 export function getCstContent(lang: Lang, images?: Record<string, string>) {
@@ -239,7 +240,10 @@ export function getCstContent(lang: Lang, images?: Record<string, string>) {
       description: text.heroDescription,
       image: images?.["hero/customer-success-group.jpg"] ?? "/images/hero/customer-success-group.jpg",
       imageAlt: text.heroImageAlt,
-      imagePosition: "center center",
+      ctaLabel: t(lang).training.ctaLabel,
+      secondaryLabel: t(lang).training.secondaryLabel,
+      pricingAnchor: "#pricing",
+      programAnchor: "#programma",
       glassItems: text.glassItems,
     },
     painPoints: {

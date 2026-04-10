@@ -70,16 +70,22 @@ function PageSections({ slug }: { slug: string }) {
     sectionRefs.current[id] = el;
   }, []);
 
-  // Scroll to section after expand (needs a tick for DOM to update)
+  // Scroll to section after expand — wait for DOM to render expanded content
   const pendingScrollRef = useRef<string | null>(null);
   useEffect(() => {
     if (pendingScrollRef.current) {
-      const el = sectionRefs.current[pendingScrollRef.current];
-      if (el) {
-        const y = el.getBoundingClientRect().top + window.scrollY - 20;
-        window.scrollTo({ top: y, behavior: "smooth" });
-      }
+      const id = pendingScrollRef.current;
       pendingScrollRef.current = null;
+      // Double rAF ensures the expanded content is rendered before measuring
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const el = sectionRefs.current[id];
+          if (el) {
+            const y = el.getBoundingClientRect().top + window.scrollY - 12;
+            window.scrollTo({ top: y, behavior: "smooth" });
+          }
+        });
+      });
     }
   });
 

@@ -1,4 +1,5 @@
 import type { Lang } from "@/lib/i18n";
+import { t } from "@/lib/i18n";
 import { SITE_URL } from "@/lib/site-config";
 import { setNl } from "./content-nl";
 import { setEn } from "./content-en";
@@ -27,7 +28,10 @@ export function getSetContent(lang: Lang, images?: Record<string, string>) {
       description: text.heroDescription,
       image: images?.["training/visma-youserve-session.jpg"] ?? "/images/training/visma-youserve-session.jpg",
       imageAlt: text.heroImageAlt,
-      imagePosition: "center 25%",
+      ctaLabel: t(lang).training.ctaLabel,
+      secondaryLabel: t(lang).training.secondaryLabel,
+      pricingAnchor: "#pricing",
+      programAnchor: "#programma",
       glassItems: text.glassItems,
     },
 

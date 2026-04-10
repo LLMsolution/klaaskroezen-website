@@ -58,7 +58,6 @@ export default async function SprekerPage() {
         description={hero.description}
         image={hero.image}
         imageAlt={hero.imageAlt}
-        imagePosition={hero.imagePosition}
         ctaLabel={hero.ctaLabel}
         pricingAnchor={hero.pricingAnchor}
         programAnchor={hero.programAnchor}
@@ -103,7 +102,7 @@ export default async function SprekerPage() {
         videos={videos.items}
       />
 
-      <LogoBar label={logoBar.label} />
+      <LogoBar label={logoBar.label} content={logoBar} />
 
       {/* Coaching cards */}
       <section className="py-16 sm:py-[110px] border-b border-rule">
