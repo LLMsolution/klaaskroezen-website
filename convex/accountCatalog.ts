@@ -27,14 +27,27 @@ export const getForLang = query({
         imageUrl = (await ctx.storage.getUrl(product.imageStorageId)) ?? undefined;
       }
 
+      // Infer defaults when not explicitly configured
+      let action = item.dashboardAction;
+      if (!action) {
+        if (item.category === "training") action = "training";
+        else if (product.slug.includes("luisterboek")) action = "audiobook";
+        else if (product.slug.includes("hardcopy") || product.slug.includes("cadeau")) action = "physical";
+        else action = "download";
+      }
+      let trainingSlug = item.linkedTrainingSlug;
+      if (!trainingSlug && (action === "training" || action === "audiobook")) {
+        trainingSlug = product.slug.replace(/-online$|-coaching$/, "");
+      }
+
       resolved.push({
         checkoutProductId: item.checkoutProductId,
         slug: product.slug,
         name: product.name,
         shortName: product.shortName,
         category: item.category,
-        dashboardAction: item.dashboardAction ?? (item.category === "training" ? "training" : "download"),
-        linkedTrainingSlug: item.linkedTrainingSlug,
+        dashboardAction: action,
+        linkedTrainingSlug: trainingSlug,
         sortOrder: item.sortOrder,
         image: imageUrl || product.image,
         priceCents: product.priceCents,
@@ -100,14 +113,34 @@ export const getForLangWithAccess = query({
       // Admins own everything; regular users check accessRights.
       const owned = isAdmin || ownedSlugs.has(product.slug);
 
+      // Infer dashboardAction when not explicitly configured
+      let action = item.dashboardAction;
+      if (!action) {
+        if (item.category === "training") {
+          action = "training";
+        } else if (product.slug.includes("luisterboek")) {
+          action = "audiobook";
+        } else if (product.slug.includes("hardcopy") || product.slug.includes("cadeau")) {
+          action = "physical";
+        } else {
+          action = "download";
+        }
+      }
+
+      // Infer linkedTrainingSlug when not set
+      let trainingSlug = item.linkedTrainingSlug;
+      if (!trainingSlug && (action === "training" || action === "audiobook")) {
+        trainingSlug = product.slug.replace(/-online$|-coaching$/, "");
+      }
+
       resolved.push({
         checkoutProductId: item.checkoutProductId,
         slug: product.slug,
         name: product.name,
         shortName: product.shortName,
         category: item.category,
-        dashboardAction: item.dashboardAction ?? (item.category === "training" ? "training" : "download"),
-        linkedTrainingSlug: item.linkedTrainingSlug,
+        dashboardAction: action,
+        linkedTrainingSlug: trainingSlug,
         sortOrder: item.sortOrder,
         image: imageUrl || product.image,
         priceCents: product.priceCents,
