@@ -115,6 +115,7 @@ export const seedProducts = internalMutation({
         bumps: ["boek-hardcopy", "boek-luisterboek"],
         requiresShipping: false,
         mockupType: "tablet" as const,
+        availableBookLanguages: ["nl" as const],
       },
       {
         slug: "boek-hardcopy",
@@ -140,6 +141,7 @@ export const seedProducts = internalMutation({
           { bumpSlug: "boek-cadeau", priceCents: 2950 },
         ],
         requiresShipping: true,
+        availableBookLanguages: ["nl" as const],
         quantityTiers: [
           { quantity: 1, unitPriceCents: 3250, savingsPercent: 0 },
           { quantity: 3, unitPriceCents: 2950, savingsPercent: 9 },
@@ -166,6 +168,7 @@ export const seedProducts = internalMutation({
         bumps: ["boek-hardcopy", "boek-ebook"],
         requiresShipping: false,
         mockupType: "audio" as const,
+        availableBookLanguages: ["nl" as const],
       },
       {
         slug: "boek-cadeau",
@@ -183,6 +186,7 @@ export const seedProducts = internalMutation({
         image: "/images/book/sales-oprecht-ontspannen-cover.png",
         bumps: [],
         requiresShipping: true,
+        availableBookLanguages: ["nl" as const],
       },
     ];
 

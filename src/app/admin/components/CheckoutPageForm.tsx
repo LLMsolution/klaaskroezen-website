@@ -37,6 +37,7 @@ interface ProductData {
   purchaseTag?: string;
   accessDurationDays?: number;
   mockupType?: MockupType;
+  availableBookLanguages?: ("nl" | "en" | "de")[];
 }
 
 interface Props {
@@ -102,10 +103,11 @@ export function CheckoutPageForm({ product, onBack }: Props) {
   const [instAmount, setInstAmount] = useState(product?.installments?.amountPerTermCents ?? 0);
   const [hasTiers, setHasTiers] = useState(!!product?.quantityTiers?.length);
   const [tiers, setTiers] = useState<QtyTier[]>(product?.quantityTiers ?? [{ quantity: 1, unitPriceCents: 0, savingsPercent: 0 }]);
+  const [bookLanguages, setBookLanguages] = useState<("nl" | "en" | "de")[]>(product?.availableBookLanguages ?? ["nl"]);
 
   // Section visibility
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    basis: true, prijs: true, content: false, bumps: false, tiers: false, overig: false,
+    basis: true, prijs: true, content: false, bumps: false, tiers: false, boektalen: false, overig: false,
   });
   const toggle = (key: string) => setOpenSections((s) => ({ ...s, [key]: !s[key] }));
 
@@ -132,6 +134,7 @@ export function CheckoutPageForm({ product, onBack }: Props) {
       purchaseTag: purchaseTag || undefined,
       accessDurationDays: accessDurationDays ? Number(accessDurationDays) : undefined,
       mockupType: mockupType || undefined,
+      availableBookLanguages: type === "book" ? bookLanguages : undefined,
     };
     try {
       if (isEdit) {
@@ -435,6 +438,36 @@ export function CheckoutPageForm({ product, onBack }: Props) {
           </div>
         )}
       </Section>
+
+      {/* Boektalen — only for book products */}
+      {type === "book" && (
+        <Section title="Beschikbare boektalen" open={openSections.boektalen} onToggle={() => toggle("boektalen")}>
+          <p className="text-[12px] text-ink/40 mb-3">
+            Welke taaledities zijn beschikbaar voor dit boek? Bezoekers in een taal zonder editie zien een melding dat het boek (nog) alleen in het Nederlands beschikbaar is.
+          </p>
+          {(["nl", "en", "de"] as const).map((lang) => {
+            const checked = bookLanguages.includes(lang);
+            const label = { nl: "Nederlands", en: "Engels", de: "Duits" }[lang];
+            return (
+              <label key={lang} className="flex items-center gap-3 cursor-pointer py-1.5">
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  disabled={lang === "nl"}
+                  onChange={(e) => {
+                    if (e.target.checked) setBookLanguages([...bookLanguages, lang]);
+                    else setBookLanguages(bookLanguages.filter((l) => l !== lang));
+                  }}
+                  className="w-4 h-4 accent-copper"
+                />
+                <span className="text-[13px] text-ink">{label}</span>
+                {lang === "nl" && <span className="text-[11px] text-ink/30">altijd beschikbaar</span>}
+                {lang !== "nl" && !checked && <span className="text-[11px] text-ink/30">binnenkort</span>}
+              </label>
+            );
+          })}
+        </Section>
+      )}
 
       {/* Bottom save */}
       <div className="flex items-center justify-end pt-2">

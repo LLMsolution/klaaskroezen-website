@@ -132,6 +132,7 @@ export const createPendingOrder = mutation({
     discountCode: v.optional(v.string()),
     discountAmount: v.optional(v.number()),
     installments: v.boolean(),
+    bookLang: v.optional(langValidator),
     experimentSlug: v.optional(v.string()),
     experimentVariant: v.optional(v.string()),
   },
@@ -177,6 +178,7 @@ export const createPendingOrder = mutation({
         discountCode: args.discountCode,
         discountAmount: args.discountAmount,
         installments: args.installments,
+        bookLang: args.bookLang,
         experimentSlug: args.experimentSlug,
         experimentVariant: args.experimentVariant,
       });

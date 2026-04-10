@@ -200,6 +200,9 @@ const productFields = {
   mockupType: v.optional(
     v.union(v.literal("tablet"), v.literal("phone"), v.literal("audio")),
   ),
+  availableBookLanguages: v.optional(
+    v.array(v.union(v.literal("nl"), v.literal("en"), v.literal("de"))),
+  ),
 };
 
 export const createProduct = mutation({

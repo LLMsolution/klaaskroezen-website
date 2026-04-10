@@ -81,6 +81,8 @@ export default defineSchema({
     convertedAt: v.optional(v.number()),
     abandonedAt: v.optional(v.number()),
     createdAt: v.number(),
+    // Book orders: which language edition was purchased
+    bookLang: v.optional(langValidator),
     // A/B testing: which experiment and variant this order belongs to
     experimentSlug: v.optional(v.string()),
     experimentVariant: v.optional(v.string()),
@@ -766,6 +768,10 @@ export default defineSchema({
     accessDurationDays: v.optional(v.number()), // Days of access after purchase (empty = forever)
     mockupType: v.optional(
       v.union(v.literal("tablet"), v.literal("phone"), v.literal("audio")),
+    ),
+    // Book-only: which language editions are available for purchase
+    availableBookLanguages: v.optional(
+      v.array(v.union(v.literal("nl"), v.literal("en"), v.literal("de"))),
     ),
   })
     .index("by_slug", ["slug"])
