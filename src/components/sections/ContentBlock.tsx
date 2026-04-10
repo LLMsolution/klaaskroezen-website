@@ -40,9 +40,14 @@ export function ContentBlock({
     </div>
   );
 
+  // Push the text content towards the image: when image is right the text
+  // floats to the right edge of its grid cell (ml-auto), and vice versa.
+  const alignCls = imagePosition === "right" ? "ml-auto" : "mr-auto";
+
   const textBlock = (
     <div className="flex flex-col justify-center py-10 sm:py-16 lg:py-20 px-7 sm:px-10 lg:px-16">
       <FadeIn>
+      <div className={`max-w-[520px] ${alignCls}`}>
       {eyebrow && <Label className="mb-3">{eyebrow}</Label>}
       <h2 className="font-display text-[clamp(28px,3.4vw,44px)] font-black leading-[0.97] tracking-[-0.03em] mb-5">
         {title}
@@ -53,7 +58,7 @@ export function ContentBlock({
           </>
         )}
       </h2>
-      <div className="space-y-4 max-w-[480px]">
+      <div className="space-y-4">
         {paragraphs.map((p, i) => (
           <p
             key={i}
@@ -64,6 +69,7 @@ export function ContentBlock({
         ))}
       </div>
       {children && <div className="mt-7">{children}</div>}
+      </div>
       </FadeIn>
     </div>
   );
