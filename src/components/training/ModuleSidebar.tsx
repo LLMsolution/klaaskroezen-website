@@ -185,25 +185,6 @@ export function ModuleSidebar({
         around the arrow; the arrow is just a glyph next to the label. */}
     {(prev || next) && (
       <div className="flex flex-col gap-2">
-        {prev && (
-          <Link
-            href={`/training/${trainingSlug}/${prev.slug}`}
-            className="group flex items-center gap-3 px-1 py-1 min-w-0"
-            aria-label={`${copy.prev}: ${loc(prev.title, lang)}`}
-          >
-            <span className="text-copper text-[16px] leading-none shrink-0 group-hover:text-copper-light transition-colors">
-              &larr;
-            </span>
-            <span className="min-w-0">
-              <span className="block text-[9px] font-medium tracking-[0.15em] uppercase text-copper leading-none mb-0.5">
-                {copy.prev}
-              </span>
-              <span className="block text-[12px] text-ink/70 group-hover:text-ink truncate">
-                {loc(prev.title, lang)}
-              </span>
-            </span>
-          </Link>
-        )}
         {next && (
           <Link
             href={`/training/${trainingSlug}/${next.slug}`}
@@ -219,6 +200,25 @@ export function ModuleSidebar({
               </span>
               <span className="block text-[12px] text-ink/70 group-hover:text-ink truncate">
                 {loc(next.title, lang)}
+              </span>
+            </span>
+          </Link>
+        )}
+        {prev && (
+          <Link
+            href={`/training/${trainingSlug}/${prev.slug}`}
+            className="group flex items-center gap-3 px-1 py-1 min-w-0"
+            aria-label={`${copy.prev}: ${loc(prev.title, lang)}`}
+          >
+            <span className="text-copper text-[16px] leading-none shrink-0 group-hover:text-copper-light transition-colors">
+              &larr;
+            </span>
+            <span className="min-w-0">
+              <span className="block text-[9px] font-medium tracking-[0.15em] uppercase text-copper leading-none mb-0.5">
+                {copy.prev}
+              </span>
+              <span className="block text-[12px] text-ink/70 group-hover:text-ink truncate">
+                {loc(prev.title, lang)}
               </span>
             </span>
           </Link>
