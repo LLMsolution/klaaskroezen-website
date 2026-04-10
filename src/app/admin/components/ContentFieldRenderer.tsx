@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
@@ -115,124 +115,166 @@ export function ContentFieldRenderer({ fields, data, displayData, onChange, pref
 
         // ── Array ──
         if (field.type === "array" && field.itemFields) {
-          const items = (value as unknown[]) ?? [];
-          const isSimple =
-            field.itemFields.length === 1 && field.itemFields[0].key === "value";
-
           return (
-            <div key={fieldKey} className="border border-rule rounded-[2px] p-4">
-              <div className="flex items-center justify-between mb-3">
-                <p className={labelClass + " mb-0"}>{field.label}</p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (isSimple) {
-                      updateField(field.key, [...items, ""]);
-                    } else {
-                      const empty: Record<string, string> = {};
-                      for (const f of field.itemFields!) {
-                        empty[f.key] = "";
-                      }
-                      updateField(field.key, [...items, empty]);
-                    }
-                  }}
-                  className="text-[11px] text-copper hover:text-copper-light cursor-pointer"
-                >
-                  + Item
-                </button>
-              </div>
-
-              {items.length === 0 && (
-                <p className="text-[12px] text-ink/30">Geen items.</p>
-              )}
-
-              <div className="space-y-3">
-                {items.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex gap-2 items-start group"
-                  >
-                    <div className="flex-1">
-                      {isSimple ? (
-                        <input
-                          type="text"
-                          value={(item as string) ?? ""}
-                          onChange={(e) => {
-                            const updated = [...items];
-                            updated[idx] = e.target.value;
-                            updateField(field.key, updated);
-                          }}
-                          className={inputClass}
-                          placeholder={field.itemFields![0].label}
-                        />
-                      ) : (
-                        <div className="border border-rule/50 rounded-[2px] p-3 space-y-2">
-                          <ContentFieldRenderer
-                            fields={field.itemFields!}
-                            data={(item as Record<string, unknown>) ?? {}}
-                            displayData={((displayData?.[field.key] as unknown[]) ?? [])[idx] as Record<string, unknown> | undefined}
-                            onChange={(newItem) => {
-                              const updated = [...items];
-                              updated[idx] = newItem;
-                              updateField(field.key, updated);
-                            }}
-                            prefix={`${fieldKey}[${idx}]`}
-                            pageSlug={pageSlug}
-                            sectionId={`${sectionId}-${field.key}`}
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-1 pt-1">
-                      {idx > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const updated = [...items];
-                            [updated[idx - 1], updated[idx]] = [updated[idx], updated[idx - 1]];
-                            updateField(field.key, updated);
-                          }}
-                          className="text-[10px] text-ink/30 hover:text-ink cursor-pointer"
-                          title="Omhoog"
-                        >
-                          ▲
-                        </button>
-                      )}
-                      {idx < items.length - 1 && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const updated = [...items];
-                            [updated[idx], updated[idx + 1]] = [updated[idx + 1], updated[idx]];
-                            updateField(field.key, updated);
-                          }}
-                          className="text-[10px] text-ink/30 hover:text-ink cursor-pointer"
-                          title="Omlaag"
-                        >
-                          ▼
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updated = items.filter((_, i) => i !== idx);
-                          updateField(field.key, updated);
-                        }}
-                        className="text-[10px] text-ink/30 hover:text-red-500 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Verwijderen"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ArrayField
+              key={fieldKey}
+              field={field}
+              fieldKey={fieldKey}
+              items={(value as unknown[]) ?? []}
+              displayData={displayData}
+              onChange={(newItems) => updateField(field.key, newItems)}
+              pageSlug={pageSlug}
+              sectionId={sectionId}
+            />
           );
         }
 
         return null;
       })}
+    </div>
+  );
+}
+
+/** Array field with scroll-to-new-item behavior */
+function ArrayField({
+  field,
+  fieldKey,
+  items,
+  displayData,
+  onChange,
+  pageSlug,
+  sectionId,
+}: {
+  field: FieldSchema;
+  fieldKey: string;
+  items: unknown[];
+  displayData?: Record<string, unknown>;
+  onChange: (items: unknown[]) => void;
+  pageSlug?: string;
+  sectionId?: string;
+}) {
+  const listRef = useRef<HTMLDivElement>(null);
+  const isSimple =
+    field.itemFields!.length === 1 && field.itemFields![0].key === "value";
+
+  function addItem() {
+    if (isSimple) {
+      onChange([...items, ""]);
+    } else {
+      const empty: Record<string, string> = {};
+      for (const f of field.itemFields!) {
+        empty[f.key] = "";
+      }
+      onChange([...items, empty]);
+    }
+    // Scroll to new item after React renders
+    requestAnimationFrame(() => {
+      const container = listRef.current;
+      if (container) {
+        const lastChild = container.lastElementChild;
+        lastChild?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    });
+  }
+
+  return (
+    <div className="border border-rule rounded-[2px] p-4">
+      <div className="flex items-center justify-between mb-3">
+        <p className={labelClass + " mb-0"}>{field.label}</p>
+        <button
+          type="button"
+          onClick={addItem}
+          className="text-[11px] text-copper hover:text-copper-light cursor-pointer"
+        >
+          + Item
+        </button>
+      </div>
+
+      {items.length === 0 && (
+        <p className="text-[12px] text-ink/30">Geen items.</p>
+      )}
+
+      <div ref={listRef} className="space-y-3">
+        {items.map((item, idx) => (
+          <div
+            key={idx}
+            className="flex gap-2 items-start group"
+          >
+            <div className="flex-1">
+              {isSimple ? (
+                <input
+                  type="text"
+                  value={(item as string) ?? ""}
+                  onChange={(e) => {
+                    const updated = [...items];
+                    updated[idx] = e.target.value;
+                    onChange(updated);
+                  }}
+                  className={inputClass}
+                  placeholder={field.itemFields![0].label}
+                />
+              ) : (
+                <div className="border border-rule/50 rounded-[2px] p-3 space-y-2">
+                  <ContentFieldRenderer
+                    fields={field.itemFields!}
+                    data={(item as Record<string, unknown>) ?? {}}
+                    displayData={((displayData?.[field.key] as unknown[]) ?? [])[idx] as Record<string, unknown> | undefined}
+                    onChange={(newItem) => {
+                      const updated = [...items];
+                      updated[idx] = newItem;
+                      onChange(updated);
+                    }}
+                    prefix={`${fieldKey}[${idx}]`}
+                    pageSlug={pageSlug}
+                    sectionId={`${sectionId}-${field.key}`}
+                  />
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col gap-1 pt-1">
+              {idx > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updated = [...items];
+                    [updated[idx - 1], updated[idx]] = [updated[idx], updated[idx - 1]];
+                    onChange(updated);
+                  }}
+                  className="text-[10px] text-ink/30 hover:text-ink cursor-pointer"
+                  title="Omhoog"
+                >
+                  ▲
+                </button>
+              )}
+              {idx < items.length - 1 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const updated = [...items];
+                    [updated[idx], updated[idx + 1]] = [updated[idx + 1], updated[idx]];
+                    onChange(updated);
+                  }}
+                  className="text-[10px] text-ink/30 hover:text-ink cursor-pointer"
+                  title="Omlaag"
+                >
+                  ▼
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  const updated = items.filter((_, i) => i !== idx);
+                  onChange(updated);
+                }}
+                className="text-[10px] text-ink/30 hover:text-red-500 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                title="Verwijderen"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

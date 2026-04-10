@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Loading, EmptyState } from "./shared";
@@ -64,6 +64,24 @@ function PageSections({ slug }: { slug: string }) {
   const [saved, setSaved] = useState<string | null>(null);
   const [error, setError] = useState("");
 
+  // Refs for scrolling to sections
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const setSectionRef = useCallback((id: string, el: HTMLDivElement | null) => {
+    sectionRefs.current[id] = el;
+  }, []);
+
+  // Scroll to section after expand (needs a tick for DOM to update)
+  const pendingScrollRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (pendingScrollRef.current) {
+      const el = sectionRefs.current[pendingScrollRef.current];
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      pendingScrollRef.current = null;
+    }
+  });
+
   if (page === undefined || contentEntries === undefined) return <Loading />;
   if (!page) return <EmptyState text="Pagina niet gevonden." />;
 
@@ -72,7 +90,6 @@ function PageSections({ slug }: { slug: string }) {
   );
 
   function getEntry(sectionId: string, lang: Lang) {
-    // Try requested lang first, fallback to NL if missing (for DE sections not yet seeded)
     const direct = contentEntries?.find(
       (e) => e.sectionId === sectionId && e.lang === lang,
     );
@@ -88,11 +105,13 @@ function PageSections({ slug }: { slug: string }) {
       setEditData(null);
       return;
     }
+    // Close current, open new, scroll to it
     setExpandedSection(sectionId);
     setError("");
     setSaved(null);
     const entry = getEntry(sectionId, activeLang);
     setEditData(entry?.parsedContent ?? {});
+    pendingScrollRef.current = sectionId;
   }
 
   function handleLangSwitch(lang: Lang) {
@@ -148,6 +167,7 @@ function PageSections({ slug }: { slug: string }) {
         return (
           <div
             key={section.id}
+            ref={(el) => setSectionRef(section.id, el)}
             className="border border-rule rounded-[2px] overflow-hidden"
           >
             {/* Section header */}
@@ -235,25 +255,34 @@ function PageSections({ slug }: { slug: string }) {
                 {error && (
                   <p className="text-[12px] text-red-500 mt-3">{error}</p>
                 )}
-
-                {/* Save button */}
-                <div className="flex items-center gap-3 mt-5">
-                  <button
-                    onClick={() => handleSave(section.id)}
-                    disabled={saving}
-                    className="bg-copper text-paper px-5 py-2 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer disabled:opacity-40"
-                  >
-                    {saving ? "Opslaan..." : "Opslaan"}
-                  </button>
-                  {saved === section.id && (
-                    <span className="text-[12px] text-green-600">Opgeslagen</span>
-                  )}
-                </div>
               </div>
             )}
           </div>
         );
       })}
+
+      {/* Floating save button — visible when a section is expanded */}
+      {expandedSection && editData && (
+        <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3">
+          {error && (
+            <span className="text-[12px] text-red-500 bg-paper border border-red-200 px-3 py-2 rounded-[2px] shadow-lg">
+              {error}
+            </span>
+          )}
+          {saved && (
+            <span className="text-[12px] text-green-600 bg-paper border border-green-200 px-3 py-2 rounded-[2px] shadow-lg">
+              Opgeslagen
+            </span>
+          )}
+          <button
+            onClick={() => handleSave(expandedSection)}
+            disabled={saving}
+            className="bg-copper text-paper px-6 py-3 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer disabled:opacity-40 shadow-lg"
+          >
+            {saving ? "Opslaan..." : "Opslaan"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
