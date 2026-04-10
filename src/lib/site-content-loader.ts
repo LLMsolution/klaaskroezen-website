@@ -23,6 +23,31 @@ export async function loadPageContent(
 }
 
 /**
+ * Recursively unwrap `{value: "..."}` objects that the content editor
+ * stores for string fields. Without this, React throws error #31
+ * ("objects are not valid as a React child").
+ */
+function unwrapValues(obj: unknown): unknown {
+  if (obj === null || obj === undefined) return obj;
+  if (Array.isArray(obj)) return obj.map(unwrapValues);
+  if (typeof obj === "object") {
+    const o = obj as Record<string, unknown>;
+    // If the object has ONLY a `value` key, unwrap it
+    const keys = Object.keys(o);
+    if (keys.length === 1 && keys[0] === "value") {
+      return unwrapValues(o.value);
+    }
+    // Otherwise recurse into all keys
+    const result: Record<string, unknown> = {};
+    for (const key of keys) {
+      result[key] = unwrapValues(o[key]);
+    }
+    return result;
+  }
+  return obj;
+}
+
+/**
  * Get a section's content with a typed fallback.
  * If the DB has content, parse and return it.
  * Otherwise return the fallback value.
@@ -33,6 +58,6 @@ export function sectionOr<T>(
   fallback: T,
 ): T {
   const data = content[sectionId];
-  if (data && Object.keys(data).length > 0) return data as T;
+  if (data && Object.keys(data).length > 0) return unwrapValues(data) as T;
   return fallback;
 }

@@ -82,24 +82,16 @@ export default async function OverOnsPage() {
 
             {/* Inline credentials */}
             <dl className="grid grid-cols-2 gap-x-8 gap-y-5 max-w-[400px]">
-              {(hero.stats ?? []).map((stat: { label: unknown; value: unknown }) => {
-                const label = typeof stat.label === "object" && stat.label !== null
-                  ? (stat.label as { value?: string }).value ?? ""
-                  : String(stat.label ?? "");
-                const value = typeof stat.value === "object" && stat.value !== null
-                  ? (stat.value as { value?: string }).value ?? ""
-                  : String(stat.value ?? "");
-                return (
-                  <div key={label}>
-                    <dt className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-1">
-                      {label}
-                    </dt>
-                    <dd className="font-display text-[22px] font-black leading-none tracking-[-0.02em]">
-                      {value}
-                    </dd>
-                  </div>
-                );
-              })}
+              {(hero.stats ?? []).map((stat: { label: string; value: string }) => (
+                <div key={stat.label}>
+                  <dt className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-1">
+                    {stat.label}
+                  </dt>
+                  <dd className="font-display text-[22px] font-black leading-none tracking-[-0.02em]">
+                    {stat.value}
+                  </dd>
+                </div>
+              ))}
             </dl>
             </FadeIn>
           </div>
