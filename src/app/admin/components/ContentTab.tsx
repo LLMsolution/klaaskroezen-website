@@ -76,13 +76,11 @@ function PageSections({ slug }: { slug: string }) {
     if (pendingScrollRef.current) {
       const id = pendingScrollRef.current;
       pendingScrollRef.current = null;
-      // Double rAF ensures the expanded content is rendered before measuring
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           const el = sectionRefs.current[id];
           if (el) {
-            const y = el.getBoundingClientRect().top + window.scrollY - 12;
-            window.scrollTo({ top: y, behavior: "smooth" });
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
           }
         });
       });
@@ -175,7 +173,7 @@ function PageSections({ slug }: { slug: string }) {
           <div
             key={section.id}
             ref={(el) => setSectionRef(section.id, el)}
-            className="border border-rule rounded-[2px] overflow-hidden"
+            className="border border-rule rounded-[2px] overflow-hidden scroll-mt-[120px]"
           >
             {/* Section header */}
             <div className="flex items-center justify-between px-4 py-3 hover:bg-warm/20 transition-colors">
