@@ -192,6 +192,35 @@ export const updateSection = mutation({
   },
 });
 
+/** Reset section content so it falls back to the code-defined default */
+export const resetSection = mutation({
+  args: {
+    pageSlug: v.string(),
+    sectionId: v.string(),
+    lang: langValidator,
+  },
+  handler: async (ctx, { pageSlug, sectionId, lang }) => {
+    await requireAdmin(ctx);
+
+    const entry = await ctx.db
+      .query("siteContent")
+      .withIndex("by_page_section", (q) =>
+        q.eq("pageSlug", pageSlug).eq("sectionId", sectionId).eq("lang", lang),
+      )
+      .first();
+
+    if (!entry) {
+      throw new Error(`Sectie ${sectionId} niet gevonden voor ${pageSlug} (${lang}).`);
+    }
+
+    await ctx.db.patch(entry._id, {
+      content: "{}",
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+
 /** Reorder sections on a page */
 export const reorderSections = mutation({
   args: {

@@ -46,7 +46,7 @@ export function ContentTab() {
       </div>
 
       {/* Section editor */}
-      <PageSections slug={slug} />
+      <PageSections key={slug} slug={slug} />
     </div>
   );
 }
