@@ -118,7 +118,7 @@ export function NotesEditor({ moduleId, lang }: Props) {
     editorProps: {
       attributes: {
         class:
-          "tiptap-notes w-full min-h-[160px] bg-transparent text-[14px] text-ink leading-[1.6] focus:outline-none max-w-none",
+          "tiptap-notes w-full min-h-[160px] bg-transparent text-[14px] text-ink leading-[1.6] focus:outline-none max-w-none px-4 py-3 rounded-[2px]",
         "data-placeholder": copy.placeholder,
       },
     },

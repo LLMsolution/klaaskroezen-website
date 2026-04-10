@@ -193,11 +193,14 @@ p {
 /* ── Tiptap notes editor ── */
 .tiptap-notes {
   outline: none;
+  border: 1px solid rgba(14, 12, 10, 0.15);
+  border-radius: 2px;
 }
 .tiptap-notes:focus,
 .tiptap-notes:focus-visible {
   outline: none;
   box-shadow: none;
+  border-color: rgba(14, 12, 10, 0.3);
 }
 .tiptap-notes h2 {
   font-family: var(--font-display), Playfair Display, serif;

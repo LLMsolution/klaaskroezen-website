@@ -77,9 +77,9 @@ export function ModuleSidebar({
 
   return (
     <div className="lg:sticky lg:top-6 flex flex-col gap-4">
-    <aside className="border border-rule rounded-[2px] p-5 bg-paper">
+    <aside className="border border-rule rounded-[2px] bg-paper overflow-hidden">
       {/* Module header */}
-      <div className="mb-4 pb-4 border-b border-rule">
+      <div className="mb-4 pb-4 border-b border-rule px-5 pt-5">
         <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-1.5">
           {copy.moduleLabel} {moduleLabel}
         </p>
@@ -104,7 +104,7 @@ export function ModuleSidebar({
 
       {/* Lesson list — ~6 visible, fade edges hint at more */}
       <div className="relative">
-      <div className="space-y-0.5 max-h-[340px] overflow-y-auto scrollbar-hide">
+      <div className="max-h-[340px] overflow-y-auto scrollbar-hide">
         {siblingLessons.map((lesson, idx) => {
           const isCurrent = lesson._id === currentLessonId;
           const isDone = !!completedMap[lesson._id];
@@ -118,7 +118,7 @@ export function ModuleSidebar({
             <Link
               key={lesson._id}
               href={`/training/${trainingSlug}/${lesson.slug}`}
-              className={`flex items-start gap-2.5 px-3 py-2.5 rounded-[2px] transition-colors ${
+              className={`flex items-start gap-2.5 px-5 py-2.5 transition-colors ${
                 isCurrent
                   ? "bg-copper/10 border-l-2 border-copper"
                   : "hover:bg-warm/40 border-l-2 border-transparent"
