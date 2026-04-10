@@ -77,16 +77,15 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
     label: "Hero",
     fields: [
       { key: "eyebrow", type: "text", label: "Eyebrow tekst" },
-      { key: "label", type: "text", label: "Label" },
       { key: "titleLine1", type: "text", label: "Titel regel 1" },
       { key: "titleLine2", type: "text", label: "Titel regel 2" },
-      { key: "title", type: "text", label: "Titel" },
-      { key: "titleAccent", type: "text", label: "Titel accent" },
       { key: "description", type: "textarea", label: "Beschrijving" },
       { key: "image", type: "image-path", label: "Afbeelding" },
       { key: "imageAlt", type: "text", label: "Alt tekst" },
-      { key: "imagePosition", type: "text", label: "Afbeelding positie" },
-      { key: "cta", type: "object", label: "CTA", fields: ctaFields },
+      { key: "ctaLabel", type: "text", label: "CTA knoptekst" },
+      { key: "pricingAnchor", type: "text", label: "Pricing anchor link" },
+      { key: "programAnchor", type: "text", label: "Programma anchor link" },
+      { key: "secondaryLabel", type: "text", label: "Secundaire knoptekst" },
       { key: "glassItems", type: "array", label: "Glass items", itemFields: glassItemFields },
     ],
   },
@@ -295,6 +294,12 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
     label: "Logo balk",
     fields: [
       { key: "label", type: "text", label: "Label" },
+      { key: "items", type: "array", label: "Logos", itemFields: [
+        { key: "image", type: "image-path", label: "Logo afbeelding" },
+        { key: "alt", type: "text", label: "Alt tekst" },
+        { key: "width", type: "number", label: "Breedte (px)" },
+        { key: "height", type: "number", label: "Hoogte (px)" },
+      ]},
     ],
   },
 

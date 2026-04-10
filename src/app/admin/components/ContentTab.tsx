@@ -76,7 +76,8 @@ function PageSections({ slug }: { slug: string }) {
     if (pendingScrollRef.current) {
       const el = sectionRefs.current[pendingScrollRef.current];
       if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        const y = el.getBoundingClientRect().top + window.scrollY - 20;
+        window.scrollTo({ top: y, behavior: "smooth" });
       }
       pendingScrollRef.current = null;
     }
