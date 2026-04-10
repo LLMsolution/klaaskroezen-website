@@ -772,6 +772,21 @@ export default defineSchema({
     .index("by_active", ["active", "sortOrder"])
     .index("by_type", ["type"]),
 
+  // ── Account Catalog ──
+  // Admin-configured per-language list of products shown on the user dashboard.
+  // One row per language; each row holds an ordered array of checkout product references.
+  accountCatalog: defineTable({
+    lang: v.union(v.literal("nl"), v.literal("en"), v.literal("de")),
+    items: v.array(
+      v.object({
+        checkoutProductId: v.id("checkoutProducts"),
+        category: v.union(v.literal("training"), v.literal("book")),
+        sortOrder: v.number(),
+      }),
+    ),
+    updatedAt: v.number(),
+  }).index("by_lang", ["lang"]),
+
   // ── Checkout Reviews ──
   // Editable testimonials for checkout pages
   checkoutReviews: defineTable({
