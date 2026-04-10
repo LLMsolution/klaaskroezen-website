@@ -220,7 +220,6 @@ export const resetSection = mutation({
   },
 });
 
-
 /** Reorder sections on a page */
 export const reorderSections = mutation({
   args: {
