@@ -106,7 +106,7 @@ function CatalogCard({ item, lang, copy, training, download }: {
   item: CatalogItem; lang: Lang; copy: CopyKeys;
   training?: TrainingInfo; download?: { url: string; fileName: string };
 }) {
-  const name = loc(item.shortName, lang) || loc(item.name, lang);
+  const name = loc(item.name, lang);
 
   if (item.owned) {
     return <OwnedCard item={item} name={name} lang={lang} copy={copy} training={training} download={download} />;
