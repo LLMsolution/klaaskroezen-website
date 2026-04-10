@@ -30,6 +30,18 @@ const COPY: Record<Lang, CopyKeys> = {
   de: { trainings: "Trainings", books: "Bucher", order: "Bestellen", owned: "Gekauft", ordered: "Bestellt", download: "Download", listen: "Anhoren", open: "Offnen", ofModules: "von", completed: "abgeschlossen" },
 };
 
+type CatalogItem = {
+  slug: string;
+  name: LocalizedStr;
+  shortName: LocalizedStr;
+  category: string;
+  dashboardAction: "training" | "download" | "audiobook" | "physical";
+  linkedTrainingSlug?: string;
+  image?: string;
+  priceCents: number;
+  owned: boolean;
+};
+
 export function ProductCatalog({ lang }: { lang: Lang }) {
   const catalog = useQuery(api.accountCatalog.getForLangWithAccess, { lang });
   const myTrainings = useQuery(api.trainingProgress.getMyTrainings);
@@ -39,16 +51,8 @@ export function ProductCatalog({ lang }: { lang: Lang }) {
   if (catalog === undefined) return null;
   if (catalog.length === 0) return null;
 
-  // Build lookup maps for owned content
   const trainingBySlug = new Map(
     (myTrainings ?? []).map((t) => [t.slug, t]),
-  );
-  // Training access also matches slug-online / slug-coaching variants
-  const trainingBySuffix = new Map(
-    (myTrainings ?? []).flatMap((t) => [
-      [`${t.slug}-online`, t],
-      [`${t.slug}-coaching`, t],
-    ]),
   );
   const downloadsByProduct = new Map<string, { url: string; fileName: string }>();
   for (const d of myDownloads ?? []) {
@@ -58,6 +62,11 @@ export function ProductCatalog({ lang }: { lang: Lang }) {
   const trainings = catalog.filter((i) => i.category === "training");
   const books = catalog.filter((i) => i.category === "book");
 
+  function getTraining(item: CatalogItem) {
+    if (!item.linkedTrainingSlug) return undefined;
+    return trainingBySlug.get(item.linkedTrainingSlug);
+  }
+
   return (
     <>
       {trainings.length > 0 && (
@@ -65,14 +74,7 @@ export function ProductCatalog({ lang }: { lang: Lang }) {
           <h2 className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-4">{copy.trainings}</h2>
           <div className="space-y-3">
             {trainings.map((item) => (
-              <CatalogCard
-                key={item.slug}
-                item={item}
-                lang={lang}
-                copy={copy}
-                training={trainingBySlug.get(item.slug.replace(/-online$|-coaching$/, "")) || trainingBySuffix.get(item.slug)}
-                download={downloadsByProduct.get(item.slug)}
-              />
+              <CatalogCard key={item.slug} item={item} lang={lang} copy={copy} training={getTraining(item)} download={downloadsByProduct.get(item.slug)} />
             ))}
           </div>
         </section>
@@ -82,14 +84,7 @@ export function ProductCatalog({ lang }: { lang: Lang }) {
           <h2 className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-4">{copy.books}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {books.map((item) => (
-              <CatalogCard
-                key={item.slug}
-                item={item}
-                lang={lang}
-                copy={copy}
-                training={undefined}
-                download={downloadsByProduct.get(item.slug)}
-              />
+              <CatalogCard key={item.slug} item={item} lang={lang} copy={copy} training={getTraining(item)} download={downloadsByProduct.get(item.slug)} />
             ))}
           </div>
         </section>
@@ -98,181 +93,109 @@ export function ProductCatalog({ lang }: { lang: Lang }) {
   );
 }
 
-type CatalogItem = {
-  slug: string;
-  name: LocalizedStr;
-  shortName: LocalizedStr;
-  category: string;
-  image?: string;
-  priceCents: number;
-  owned: boolean;
-};
-
 type TrainingInfo = {
   slug: string;
   title: LocalizedStr;
-  type?: string;
   overallProgress: number;
   completedModules: number;
   totalModules: number;
   lastModuleSlug?: string;
 };
 
-function CatalogCard({
-  item,
-  lang,
-  copy,
-  training,
-  download,
-}: {
-  item: CatalogItem;
-  lang: Lang;
-  copy: CopyKeys;
-  training?: TrainingInfo;
-  download?: { url: string; fileName: string };
+function CatalogCard({ item, lang, copy, training, download }: {
+  item: CatalogItem; lang: Lang; copy: CopyKeys;
+  training?: TrainingInfo; download?: { url: string; fileName: string };
 }) {
   const name = loc(item.shortName, lang) || loc(item.name, lang);
-  const price = `€ ${(item.priceCents / 100).toFixed(2).replace(".", ",")}`;
 
-  // Determine the right action and link based on ownership + product type
   if (item.owned) {
     return <OwnedCard item={item} name={name} lang={lang} copy={copy} training={training} download={download} />;
   }
 
-  // Not owned — show locked with link to checkout
   return (
-    <Link
-      href={`/checkout/${item.slug}`}
-      className="flex items-center gap-4 p-4 border border-rule rounded-[2px] hover:border-copper/40 transition-colors group"
-    >
+    <Link href={`/checkout/${item.slug}`} className="flex items-center gap-4 p-4 border border-rule rounded-[2px] hover:border-copper/40 transition-colors group">
       <ProductImage image={item.image} name={name} />
       <div className="flex-1 min-w-0">
         <p className="text-[14px] font-medium text-ink group-hover:text-copper transition-colors truncate">{name}</p>
-        <p className="text-[12px] text-ink/40">{price}</p>
+        <p className="text-[12px] text-ink/40">€ {(item.priceCents / 100).toFixed(2).replace(".", ",")}</p>
       </div>
       <div className="flex items-center gap-2 shrink-0">
-        <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-copper group-hover:text-copper-light transition-colors">{copy.order}</span>
+        <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-copper">{copy.order}</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-ink/30">
-          <rect x="5" y="11" width="14" height="10" rx="2" />
-          <path d="M8 11V7a4 4 0 018 0v4" />
+          <rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 018 0v4" />
         </svg>
       </div>
     </Link>
   );
 }
 
-function OwnedCard({
-  item,
-  name,
-  lang,
-  copy,
-  training,
-  download,
-}: {
-  item: CatalogItem;
-  name: string;
-  lang: Lang;
-  copy: CopyKeys;
-  training?: TrainingInfo;
-  download?: { url: string; fileName: string };
+function OwnedCard({ item, name, lang, copy, training, download }: {
+  item: CatalogItem; name: string; lang: Lang; copy: CopyKeys;
+  training?: TrainingInfo; download?: { url: string; fileName: string };
 }) {
-  const isTraining = item.category === "training";
-  const isEbook = item.slug.includes("ebook");
-  const isAudiobook = item.slug.includes("luisterboek");
-  const isHardcopy = item.slug.includes("hardcopy") || item.slug.includes("cadeau");
+  const action = item.dashboardAction;
 
-  // Training with progress
-  if (isTraining && training) {
-    const href = training.lastModuleSlug
-      ? `/training/${training.slug}/${training.lastModuleSlug}`
-      : `/training/${training.slug}`;
-
+  // Training → progress + link
+  if (action === "training" && training) {
+    const href = training.lastModuleSlug ? `/training/${training.slug}/${training.lastModuleSlug}` : `/training/${training.slug}`;
     return (
-      <Link
-        href={href}
-        className="flex items-center gap-4 p-4 border border-copper/30 bg-copper/[0.03] rounded-[2px] hover:border-copper/50 transition-colors group"
-      >
+      <Link href={href} className="flex items-center gap-4 p-4 border border-copper/30 bg-copper/[0.03] rounded-[2px] hover:border-copper/50 transition-colors group">
         <ProductImage image={item.image} name={name} />
         <div className="flex-1 min-w-0">
           <p className="text-[14px] font-medium text-ink group-hover:text-copper transition-colors truncate">{name}</p>
-          <p className="text-[12px] text-ink/40">
-            {training.completedModules} {copy.ofModules} {training.totalModules} modules · {training.overallProgress}% {copy.completed}
-          </p>
+          <p className="text-[12px] text-ink/40">{training.completedModules} {copy.ofModules} {training.totalModules} · {training.overallProgress}% {copy.completed}</p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
-          <div className="w-16">
-            <div className="h-1.5 bg-warm rounded-full overflow-hidden">
-              <div className="h-full bg-copper rounded-full transition-all" style={{ width: `${training.overallProgress}%` }} />
-            </div>
-          </div>
+          <div className="w-16"><div className="h-1.5 bg-warm rounded-full overflow-hidden"><div className="h-full bg-copper rounded-full" style={{ width: `${training.overallProgress}%` }} /></div></div>
           <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-copper">{copy.open}</span>
         </div>
       </Link>
     );
   }
 
-  // Audiobook — link to luisterboek training page
-  if (isAudiobook && training) {
+  // Audiobook → link to training page
+  if (action === "audiobook" && training) {
     return (
-      <Link
-        href={`/training/${training.slug}`}
-        className="flex items-center gap-4 p-4 border border-copper/30 bg-copper/[0.03] rounded-[2px] hover:border-copper/50 transition-colors group"
-      >
+      <Link href={`/training/${training.slug}`} className="flex items-center gap-4 p-4 border border-copper/30 bg-copper/[0.03] rounded-[2px] hover:border-copper/50 transition-colors group">
         <ProductImage image={item.image} name={name} />
-        <div className="flex-1 min-w-0">
-          <p className="text-[14px] font-medium text-ink group-hover:text-copper transition-colors truncate">{name}</p>
-        </div>
+        <div className="flex-1 min-w-0"><p className="text-[14px] font-medium text-ink group-hover:text-copper transition-colors truncate">{name}</p></div>
         <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-copper shrink-0">{copy.listen}</span>
       </Link>
     );
   }
 
-  // E-book — download link
-  if (isEbook && download) {
+  // Download → download link
+  if (action === "download" && download) {
     return (
-      <a
-        href={download.url}
-        download={download.fileName}
-        className="flex items-center gap-4 p-4 border border-copper/30 bg-copper/[0.03] rounded-[2px] hover:border-copper/50 transition-colors group"
-      >
+      <a href={download.url} download={download.fileName} className="flex items-center gap-4 p-4 border border-copper/30 bg-copper/[0.03] rounded-[2px] hover:border-copper/50 transition-colors group">
         <ProductImage image={item.image} name={name} />
-        <div className="flex-1 min-w-0">
-          <p className="text-[14px] font-medium text-ink group-hover:text-copper transition-colors truncate">{name}</p>
-        </div>
+        <div className="flex-1 min-w-0"><p className="text-[14px] font-medium text-ink group-hover:text-copper transition-colors truncate">{name}</p></div>
         <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-copper shrink-0">{copy.download}</span>
       </a>
     );
   }
 
-  // Hard copy / cadeau — just "Besteld" label
-  if (isHardcopy) {
+  // Physical → "Besteld"
+  if (action === "physical") {
     return (
       <div className="flex items-center gap-4 p-4 border border-copper/30 bg-copper/[0.03] rounded-[2px]">
         <ProductImage image={item.image} name={name} />
-        <div className="flex-1 min-w-0">
-          <p className="text-[14px] font-medium text-ink truncate">{name}</p>
-        </div>
+        <div className="flex-1 min-w-0"><p className="text-[14px] font-medium text-ink truncate">{name}</p></div>
         <div className="flex items-center gap-2 shrink-0">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" className="text-copper">
-            <path d="M3 8l3 3 7-7" />
-          </svg>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" className="text-copper"><path d="M3 8l3 3 7-7" /></svg>
           <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-copper">{copy.ordered}</span>
         </div>
       </div>
     );
   }
 
-  // Generic owned fallback
+  // Fallback — owned but action not matched (e.g. training without linkedTrainingSlug, download without file)
   return (
     <div className="flex items-center gap-4 p-4 border border-copper/30 bg-copper/[0.03] rounded-[2px]">
       <ProductImage image={item.image} name={name} />
-      <div className="flex-1 min-w-0">
-        <p className="text-[14px] font-medium text-ink truncate">{name}</p>
-      </div>
+      <div className="flex-1 min-w-0"><p className="text-[14px] font-medium text-ink truncate">{name}</p></div>
       <div className="flex items-center gap-2 shrink-0">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" className="text-copper">
-          <path d="M3 8l3 3 7-7" />
-        </svg>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" className="text-copper"><path d="M3 8l3 3 7-7" /></svg>
         <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-copper">{copy.owned}</span>
       </div>
     </div>
@@ -287,8 +210,7 @@ function ProductImage({ image, name }: { image?: string; name: string }) {
       ) : (
         <div className="w-full h-full flex items-center justify-center">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-ink/20">
-            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-            <path d="M14 2v6h6" />
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><path d="M14 2v6h6" />
           </svg>
         </div>
       )}
