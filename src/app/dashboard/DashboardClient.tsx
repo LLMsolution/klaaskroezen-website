@@ -8,8 +8,6 @@ import { useState, useEffect } from "react";
 import type { Lang } from "@/lib/i18n";
 import { ProfileEditor } from "./ProfileEditor";
 import { ProductCatalog } from "./ProductCatalog";
-import { TrainingSection } from "./TrainingSection";
-import { PurchasesSection } from "./PurchasesSection";
 import { DownloadsSection } from "./DownloadsSection";
 
 function getClientLocale(): Lang {
@@ -26,10 +24,8 @@ const COPY: Record<Lang, { welcome: string; login: string; loginBody: string; lo
 
 export function DashboardClient() {
   const user = useQuery(api.users.getCurrentUser);
-  const purchases = useQuery(api.users.getMyPurchases);
   const invoices = useQuery(api.users.getMyInvoices);
   const downloads = useQuery(api.users.getMyDownloads);
-  const myTrainings = useQuery(api.trainingProgress.getMyTrainings);
   const { signOut } = useAuthActions();
 
   const profile = useQuery(api.users.getMyProfile);
@@ -87,13 +83,7 @@ export function DashboardClient() {
 
       <ProductCatalog lang={lang} />
 
-      {myTrainings && myTrainings.length > 0 && (
-        <TrainingSection trainings={myTrainings} lang={lang} />
-      )}
-
       <DownloadsSection downloads={downloads} invoices={invoices} lang={lang} />
-
-      <PurchasesSection purchases={purchases} lang={lang} />
 
       {/* Profile / Account (collapsible) */}
       <section className="mb-12">
