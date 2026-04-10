@@ -185,7 +185,7 @@ export function NotesEditor({ moduleId, lang }: Props) {
         {copy.addBookmark}
       </button>
 
-      <div className="my-6 notes-card-border p-5 sm:p-6">
+      <div className="my-6 rounded-[2px] p-5 sm:p-6" style={{ border: "1px solid rgba(14, 12, 10, 0.2)" }}>
         <div className="flex items-start justify-between mb-3 gap-3">
           <div>
             <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-1">

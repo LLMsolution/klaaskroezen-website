@@ -181,8 +181,8 @@ export function ModuleSidebar({
       </div>
       {siblingLessons.length > 6 && (
         <>
-          <div className="pointer-events-none absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-paper to-transparent" />
-          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-paper to-transparent" />
+          <div className="pointer-events-none absolute top-0 left-0 right-0 h-5" style={{ background: "linear-gradient(to bottom, rgba(14,12,10,0.08), transparent)" }} />
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-8" style={{ background: "linear-gradient(to top, rgba(14,12,10,0.12), transparent)" }} />
         </>
       )}
       </div>
