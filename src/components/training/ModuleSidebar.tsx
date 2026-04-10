@@ -102,8 +102,9 @@ export function ModuleSidebar({
         </div>
       </div>
 
-      {/* Lesson list — max 5 visible, scroll for the rest */}
-      <div className="space-y-0.5 max-h-[280px] overflow-y-auto">
+      {/* Lesson list — ~6 visible, fade edges hint at more */}
+      <div className="relative">
+      <div className="space-y-0.5 max-h-[340px] overflow-y-auto scrollbar-hide">
         {siblingLessons.map((lesson, idx) => {
           const isCurrent = lesson._id === currentLessonId;
           const isDone = !!completedMap[lesson._id];
@@ -177,6 +178,13 @@ export function ModuleSidebar({
             </Link>
           );
         })}
+      </div>
+      {siblingLessons.length > 6 && (
+        <>
+          <div className="pointer-events-none absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-paper to-transparent" />
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-paper to-transparent" />
+        </>
+      )}
       </div>
 
     </aside>

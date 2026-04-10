@@ -175,6 +175,21 @@ p {
   }
 }
 
+/* ── Scrollbar hide utility ── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Notes editor card border (explicit, not via Tailwind token) ── */
+.notes-card-border {
+  border: 1px solid rgba(14, 12, 10, 0.18);
+  border-radius: 2px;
+}
+
 /* ── Tiptap notes editor ── */
 .tiptap-notes {
   outline: none;
