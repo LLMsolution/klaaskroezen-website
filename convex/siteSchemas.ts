@@ -171,8 +171,6 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
     label: "Reviews",
     fields: [
       { key: "eyebrow", type: "text", label: "Eyebrow" },
-      { key: "title", type: "text", label: "Titel" },
-      { key: "titleAccent", type: "text", label: "Titel accent" },
       { key: "items", type: "array", label: "Reviews", itemFields: reviewItemFields },
     ],
   },

@@ -254,7 +254,7 @@ export function getCstContent(lang: Lang, images?: Record<string, string>) {
     },
     transformation: text.transformation,
     audiences: text.audiences,
-    program: { price: "\u20ac 2.250", modules: text.modules },
+    program: { price: "\u20ac 2.250", ctaLabel: t(lang).training.ctaLabel, pricingAnchor: "#pricing", modules: text.modules },
     reviews: text.reviews.map((r: { text: string; name: string; role: string; avatar?: string }) => ({
       ...r,
       avatar: r.avatar

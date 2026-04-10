@@ -87,6 +87,8 @@ export default async function CustomerSuccessTrainingPage() {
         lang={lang}
         price={program.price}
         modules={program.modules}
+        ctaLabel={program.ctaLabel}
+        pricingAnchor={program.pricingAnchor}
       />
 
       <TrainingMethod lang={lang} />

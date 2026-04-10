@@ -47,6 +47,8 @@ export function getSetContent(lang: Lang, images?: Record<string, string>) {
 
     program: {
       price: "\u20ac 2.250",
+      ctaLabel: t(lang).training.ctaLabel,
+      pricingAnchor: "#pricing",
       modules: text.modules,
     },
 
