@@ -173,7 +173,7 @@ function PageSections({ slug }: { slug: string }) {
           <div
             key={section.id}
             ref={(el) => setSectionRef(section.id, el)}
-            className="border border-rule rounded-[2px] overflow-hidden scroll-mt-[120px]"
+            className="border border-rule rounded-[2px] overflow-hidden scroll-mt-[150px]"
           >
             {/* Section header */}
             <div className="flex items-center justify-between px-4 py-3 hover:bg-warm/20 transition-colors">
