@@ -27,6 +27,7 @@ import { WorkflowsTab } from "./components/WorkflowsTab";
 import { LayoutEditorTab } from "./components/LayoutEditorTab";
 import { PopupTab } from "./components/PopupTab";
 import { AdSpendTab } from "./components/AdSpendTab";
+import { AccountCatalogTab } from "./components/AccountCatalogTab";
 
 const TAB_LABELS: Record<AdminTab, string> = {
   dashboard: "Dashboard",
@@ -50,6 +51,7 @@ const TAB_LABELS: Record<AdminTab, string> = {
   "crm-prospects": "Prospects",
   "crm-contacts": "Contacten",
   "crm-reports": "Rapportages",
+  "account-catalog": "Mijn account",
   settings: "Instellingen",
 };
 
@@ -150,6 +152,7 @@ export function AdminClient() {
           {activeTab === "crm-prospects" && <ProspectsTab />}
           {activeTab === "crm-contacts" && <CrmContactsTab />}
           {activeTab === "crm-reports" && <CrmReportsTab />}
+          {activeTab === "account-catalog" && <AccountCatalogTab />}
           {activeTab === "settings" && <SettingsTab />}
         </div>
       </div>
