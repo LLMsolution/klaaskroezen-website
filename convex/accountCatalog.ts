@@ -33,7 +33,7 @@ export const getForLang = query({
         name: product.name,
         shortName: product.shortName,
         category: item.category,
-        dashboardAction: item.dashboardAction,
+        dashboardAction: item.dashboardAction ?? (item.category === "training" ? "training" : "download"),
         linkedTrainingSlug: item.linkedTrainingSlug,
         sortOrder: item.sortOrder,
         image: imageUrl || product.image,
@@ -92,7 +92,7 @@ export const getForLangWithAccess = query({
         name: product.name,
         shortName: product.shortName,
         category: item.category,
-        dashboardAction: item.dashboardAction,
+        dashboardAction: item.dashboardAction ?? (item.category === "training" ? "training" : "download"),
         linkedTrainingSlug: item.linkedTrainingSlug,
         sortOrder: item.sortOrder,
         image: imageUrl || product.image,
@@ -127,12 +127,12 @@ export const adminSave = mutation({
       v.object({
         checkoutProductId: v.id("checkoutProducts"),
         category: v.union(v.literal("training"), v.literal("book")),
-        dashboardAction: v.union(
+        dashboardAction: v.optional(v.union(
           v.literal("training"),
           v.literal("download"),
           v.literal("audiobook"),
           v.literal("physical"),
-        ),
+        )),
         linkedTrainingSlug: v.optional(v.string()),
         sortOrder: v.number(),
       }),

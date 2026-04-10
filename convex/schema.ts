@@ -781,13 +781,14 @@ export default defineSchema({
       v.object({
         checkoutProductId: v.id("checkoutProducts"),
         category: v.union(v.literal("training"), v.literal("book")),
-        // What happens on the dashboard when the user owns this product
-        dashboardAction: v.union(
+        // What happens on the dashboard when the user owns this product.
+        // Optional for backwards compat; defaults to category-based inference.
+        dashboardAction: v.optional(v.union(
           v.literal("training"),   // show progress, link to training
           v.literal("download"),   // show download link (ebook PDF/EPUB)
           v.literal("audiobook"),  // link to audiobook/luisterboek page
           v.literal("physical"),   // show "Besteld" label
-        ),
+        )),
         // For training/audiobook: which training slug to link to
         linkedTrainingSlug: v.optional(v.string()),
         sortOrder: v.number(),
