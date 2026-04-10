@@ -4,10 +4,31 @@ import { ButtonLink, ButtonArrow } from "@/components/ui/Button";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { t, type Lang } from "@/lib/i18n";
 
-export function BookPricing({ lang }: { lang: Lang }) {
+type FormatItem = {
+  title: string;
+  price: string;
+  priceNote?: string;
+  description: string;
+  features: string[];
+  href: string;
+  cta: string;
+  featured?: boolean | string;
+};
+
+type BookPricingContent = {
+  label?: string;
+  heading?: string;
+  formats?: FormatItem[];
+};
+
+export function BookPricing({ lang, content }: { lang: Lang; content?: BookPricingContent }) {
   const s = t(lang).bookPricing;
 
-  const formats = [
+  // Use DB content if available, otherwise fall back to i18n
+  const label = content?.label || s.label;
+  const heading = content?.heading || s.heading;
+
+  const defaultFormats: FormatItem[] = [
     {
       title: "E-book",
       price: "€ 22,50",
@@ -38,6 +59,8 @@ export function BookPricing({ lang }: { lang: Lang }) {
     },
   ];
 
+  const formats = content?.formats?.length ? content.formats : defaultFormats;
+
   return (
     <section
       id="bestellen"
@@ -45,68 +68,71 @@ export function BookPricing({ lang }: { lang: Lang }) {
     >
       <Container>
         <FadeIn className="text-center mb-10 sm:mb-14">
-          <Label className="mb-3">{s.label}</Label>
+          <Label className="mb-3">{label}</Label>
           <h2 className="font-display text-[clamp(28px,3.4vw,44px)] font-black leading-[0.97] tracking-[-0.03em]">
-            {s.heading}
+            {heading}
           </h2>
         </FadeIn>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-rule border border-rule max-w-[960px] mx-auto">
-          {formats.map((f) => (
-            <div
-              key={f.title}
-              className={`flex flex-col p-7 sm:p-9 ${f.featured ? "bg-ink" : "bg-paper"}`}
-            >
-              <h3
-                className={`font-display text-[18px] sm:text-[20px] font-black leading-[1.1] tracking-[-0.01em] mb-2 ${f.featured ? "text-paper" : "text-ink"}`}
+          {formats.map((f) => {
+            const isFeatured = f.featured === true || f.featured === "true";
+            return (
+              <div
+                key={f.title}
+                className={`flex flex-col p-7 sm:p-9 ${isFeatured ? "bg-ink" : "bg-paper"}`}
               >
-                {f.title}
-              </h3>
-              <div className="mb-1">
-                <span
-                  className={`font-display text-[34px] sm:text-[40px] font-black leading-none tracking-[-0.02em] ${f.featured ? "text-paper" : "text-ink"}`}
+                <h3
+                  className={`font-display text-[18px] sm:text-[20px] font-black leading-[1.1] tracking-[-0.01em] mb-2 ${isFeatured ? "text-paper" : "text-ink"}`}
                 >
-                  {f.price}
-                </span>
-              </div>
-              {f.priceNote && (
-                <span
-                  className={`text-[12px] mb-5 ${f.featured ? "text-paper/40" : "text-ink/40"}`}
-                >
-                  {f.priceNote}
-                </span>
-              )}
-              <p
-                className={`text-[14px] sm:text-[15px] leading-[1.65] mb-6 ${f.featured ? "text-paper/65" : "text-ink/65"}`}
-              >
-                {f.description}
-              </p>
-              <ul className="flex-1 mb-8 space-y-3">
-                {f.features.map((feat) => (
-                  <li
-                    key={feat}
-                    className={`flex items-start gap-2.5 text-[13px] sm:text-[14px] leading-[1.5] ${f.featured ? "text-paper/70" : "text-ink/70"}`}
+                  {f.title}
+                </h3>
+                <div className="mb-1">
+                  <span
+                    className={`font-display text-[34px] sm:text-[40px] font-black leading-none tracking-[-0.02em] ${isFeatured ? "text-paper" : "text-ink"}`}
                   >
-                    <span
-                      className={`shrink-0 mt-0.5 ${f.featured ? "text-copper-light" : "text-copper"}`}
-                    >
-                      &#10003;
-                    </span>
-                    {feat}
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-auto">
-                <ButtonLink
-                  href={f.href}
-                  variant={f.featured ? "copper" : "ghost"}
-                  size="large"
+                    {f.price}
+                  </span>
+                </div>
+                {f.priceNote && (
+                  <span
+                    className={`text-[12px] mb-5 ${isFeatured ? "text-paper/40" : "text-ink/40"}`}
+                  >
+                    {f.priceNote}
+                  </span>
+                )}
+                <p
+                  className={`text-[14px] sm:text-[15px] leading-[1.65] mb-6 ${isFeatured ? "text-paper/65" : "text-ink/65"}`}
                 >
-                  <ButtonArrow>{f.cta}</ButtonArrow>
-                </ButtonLink>
+                  {f.description}
+                </p>
+                <ul className="flex-1 mb-8 space-y-3">
+                  {(f.features ?? []).map((feat) => (
+                    <li
+                      key={typeof feat === "string" ? feat : JSON.stringify(feat)}
+                      className={`flex items-start gap-2.5 text-[13px] sm:text-[14px] leading-[1.5] ${isFeatured ? "text-paper/70" : "text-ink/70"}`}
+                    >
+                      <span
+                        className={`shrink-0 mt-0.5 ${isFeatured ? "text-copper-light" : "text-copper"}`}
+                      >
+                        &#10003;
+                      </span>
+                      {typeof feat === "string" ? feat : (feat as { value?: string }).value ?? ""}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-auto">
+                  <ButtonLink
+                    href={f.href}
+                    variant={isFeatured ? "copper" : "ghost"}
+                    size="large"
+                  >
+                    <ButtonArrow>{f.cta}</ButtonArrow>
+                  </ButtonLink>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Container>
     </section>

@@ -7,12 +7,13 @@ export function seedBoekContent(): PageSeed {
     { id: "hero", type: "hero-book", active: true, sortOrder: 0 },
     { id: "book-preview", type: "book-preview", active: true, sortOrder: 1 },
     { id: "program", type: "program", active: true, sortOrder: 2 },
-    { id: "reviews", type: "reviews", active: true, sortOrder: 3 },
-    { id: "videos", type: "videos", active: true, sortOrder: 4 },
-    { id: "interview", type: "interview", active: true, sortOrder: 5 },
-    { id: "cross-link", type: "cross-link", active: true, sortOrder: 6 },
-    { id: "faq", type: "faq", active: true, sortOrder: 7 },
-    { id: "cta", type: "cta", active: true, sortOrder: 8 },
+    { id: "bestellen", type: "book-pricing", active: true, sortOrder: 3 },
+    { id: "reviews", type: "reviews", active: true, sortOrder: 4 },
+    { id: "videos", type: "videos", active: true, sortOrder: 5 },
+    { id: "interview", type: "interview", active: true, sortOrder: 6 },
+    { id: "cross-link", type: "cross-link", active: true, sortOrder: 7 },
+    { id: "faq", type: "faq", active: true, sortOrder: 8 },
+    { id: "cta", type: "cta", active: true, sortOrder: 9 },
   ];
 
   const previewPages = [5, 6, 7, 8, 9, 11, 14, 19, 21, 24, 25, 27, 28, 31, 33, 35, 39, 132].map((n) => ({
@@ -121,6 +122,25 @@ export function seedBoekContent(): PageSeed {
         { text: "This book touches the essence and invites you to actively look at your own beliefs. Super practically applicable.", name: "M. te Woerd", role: "Reader", source: "Managementboek" },
         { text: "Sales is not about selling to someone, but about helping someone. With that approach, sales already feels different.", name: "Y. Kruger", role: "Reader", source: "Managementboek" },
         { text: "Truly a great book. Makes sales genuine, human and relaxed, full of practical tips I can apply immediately.", name: "E. Verheijen", role: "Reader", source: "Managementboek" },
+      ],
+    }),
+    // ── Bestellen ──
+    makeContent(SLUG, "bestellen", "book-pricing", "nl", {
+      label: "Bestellen",
+      heading: "Kies jouw formaat.",
+      formats: [
+        { title: "E-book", price: "€ 22,50", priceNote: "Direct toegang", description: "Direct lezen op je computer, tablet of telefoon.", features: ["Begin vandaag nog", "Direct toegang na betaling"], href: "/checkout/boek-ebook", cta: "Bestel e-book" },
+        { title: "Hard Copy", price: "€ 32,50", priceNote: "Incl. BTW · gratis verzending", description: "Het fysieke boek, thuis binnen één werkdag. De meest gekozen optie.", features: ["Levering binnen één werkdag", "Gratis verzending", "Inclusief BTW"], href: "/checkout/boek-hardcopy", cta: "Bestel boek", featured: "true" },
+        { title: "Luisterboek", price: "€ 22,50", priceNote: "Voorgelezen door Klaas", description: "Luister onderweg, tijdens het sporten of thuis op de bank.", features: ["Direct luisteren", "Voorgelezen door de auteur", "Ideaal voor onderweg"], href: "/checkout/boek-luisterboek", cta: "Bestel luisterboek" },
+      ],
+    }),
+    makeContent(SLUG, "bestellen", "book-pricing", "en", {
+      label: "Order",
+      heading: "Choose your format.",
+      formats: [
+        { title: "E-book", price: "€ 22.50", priceNote: "Instant access", description: "Read instantly on your computer, tablet or phone.", features: ["Start reading today", "Instant access after payment"], href: "/checkout/boek-ebook?lang=en", cta: "Order e-book" },
+        { title: "Hard Copy", price: "€ 32.50", priceNote: "Incl. VAT · free shipping", description: "The physical book, delivered within one business day. The most popular option.", features: ["Delivered within one business day", "Free shipping", "VAT included"], href: "/checkout/boek-hardcopy?lang=en", cta: "Order book", featured: "true" },
+        { title: "Audiobook", price: "€ 22.50", priceNote: "Narrated by Klaas", description: "Listen on the go, during workouts or at home on the couch.", features: ["Listen instantly", "Narrated by the author", "Perfect for on the go"], href: "/checkout/boek-luisterboek?lang=en", cta: "Order audiobook" },
       ],
     }),
     // ── Videos ──

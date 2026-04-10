@@ -44,6 +44,7 @@ export default async function BoekPage() {
     titleAccent: (dbReviews?.titleAccent as string) ?? fallback.testimonials.titleAccent,
     reviews: (dbReviews?.items as typeof fallback.testimonials.reviews) ?? fallback.testimonials.reviews,
   };
+  const bestellen = sectionOr(db, "bestellen", {});
   const videos = sectionOr(db, "videos", fallback.videos);
   const interview = sectionOr(db, "interview", fallback.interview);
   const crossLink = sectionOr(db, "cross-link", fallback.crossLink);
@@ -164,7 +165,7 @@ export default async function BoekPage() {
 
       <BookPreview lang={lang} pages={previewPages} coverImage={coverUrl} />
 
-      <BookPricing lang={lang} />
+      <BookPricing lang={lang} content={bestellen} />
 
       <Testimonials3D
         eyebrow={reviews.eyebrow}

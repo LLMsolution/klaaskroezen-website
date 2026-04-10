@@ -387,6 +387,25 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
     ],
   },
 
+  "book-pricing": {
+    type: "book-pricing",
+    label: "Bestellen (Kies jouw formaat)",
+    fields: [
+      { key: "label", type: "text", label: "Label" },
+      { key: "heading", type: "text", label: "Heading" },
+      { key: "formats", type: "array", label: "Formaten", itemFields: [
+        { key: "title", type: "text", label: "Titel" },
+        { key: "price", type: "text", label: "Prijs" },
+        { key: "priceNote", type: "text", label: "Prijsnotitie" },
+        { key: "description", type: "textarea", label: "Beschrijving" },
+        { key: "features", type: "array", label: "Features", itemFields: [{ key: "value", type: "text", label: "Feature" }] },
+        { key: "href", type: "text", label: "Checkout link" },
+        { key: "cta", type: "text", label: "CTA tekst" },
+        { key: "featured", type: "text", label: "Uitgelicht (true/false)" },
+      ]},
+    ],
+  },
+
   "book-preview": {
     type: "book-preview",
     label: "Boek preview pagina's",

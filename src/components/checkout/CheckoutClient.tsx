@@ -72,6 +72,10 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
   const [payingMethod, setPayingMethod] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [bookLang, setBookLang] = useState<Lang>(lang);
+  const isBook = product?.type === "book";
+  const availableBookLangs = (product as { availableBookLanguages?: string[] })?.availableBookLanguages ?? ["nl"];
+  const bookLangAvailable = availableBookLangs.includes(bookLang);
 
   // Returning visitor recognition via localStorage
   useEffect(() => {
@@ -288,6 +292,7 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
         discountCode: discountStatus === "valid" ? discountCode : undefined,
         discountAmount: discountAmountCents,
         installments: useInstallments,
+        bookLang: isBook ? bookLang : undefined,
         experimentSlug: experimentSlug || undefined,
         experimentVariant: experimentVariant || undefined,
       });
@@ -390,6 +395,50 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
             <div className="mb-6 p-4 bg-copper/5 border border-copper/20 rounded-[2px]">
               <p className="text-[14px] font-medium text-ink">{{ nl: `Hoi ${firstName}, je bestelling staat klaar!`, en: `Hi ${firstName}, your order is ready!`, de: `Hallo ${firstName}, Ihre Bestellung steht bereit!` }[lang]}</p>
               <p className="text-[13px] text-ink/50">{{ nl: "Alles is al ingevuld — kies alleen je betaalmethode.", en: "Everything is pre-filled — just choose your payment method.", de: "Alles ist bereits ausgefüllt — wählen Sie nur Ihre Zahlungsmethode." }[lang]}</p>
+            </div>
+          )}
+
+          {/* Book language selector */}
+          {isBook && (
+            <div className="mb-6 p-4 border border-rule rounded-[2px] bg-warm/20">
+              <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40 mb-3">
+                {{ nl: "Taal van het boek", en: "Book language", de: "Buchsprache" }[lang]}
+              </p>
+              <div className="flex gap-2">
+                {(["nl", "en", "de"] as const).map((bl) => {
+                  const available = availableBookLangs.includes(bl);
+                  const label = { nl: "Nederlands", en: "English", de: "Deutsch" }[bl];
+                  const selected = bookLang === bl;
+                  return (
+                    <button
+                      key={bl}
+                      type="button"
+                      disabled={!available}
+                      onClick={() => available && setBookLang(bl)}
+                      className={`px-4 py-2 text-[13px] rounded-[2px] transition-colors cursor-pointer ${
+                        selected
+                          ? "bg-copper text-paper font-medium"
+                          : available
+                            ? "bg-paper border border-rule text-ink/60 hover:border-copper"
+                            : "bg-ink/5 text-ink/20 cursor-not-allowed"
+                      }`}
+                    >
+                      {label}
+                      {!available && <span className="block text-[10px]">{{ nl: "binnenkort", en: "soon", de: "bald" }[lang]}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              {!bookLangAvailable && (
+                <p className="text-[12px] text-amber-700 mt-2">
+                  {{ nl: "Dit boek is momenteel alleen beschikbaar in het Nederlands.", en: "This book is currently only available in Dutch.", de: "Dieses Buch ist derzeit nur auf Niederländisch verfügbar." }[lang]}
+                </p>
+              )}
+              {bookLang !== lang && bookLangAvailable && (
+                <p className="text-[12px] text-ink/40 mt-2">
+                  {{ nl: `Je ontvangt het boek in het ${({ nl: "Nederlands", en: "Engels", de: "Duits" } as Record<string, string>)[bookLang]}.`, en: `You will receive the book in ${({ nl: "Dutch", en: "English", de: "German" } as Record<string, string>)[bookLang]}.`, de: `Sie erhalten das Buch auf ${({ nl: "Niederländisch", en: "Englisch", de: "Deutsch" } as Record<string, string>)[bookLang]}.` }[lang]}
+                </p>
+              )}
             </div>
           )}
 
