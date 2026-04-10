@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
-import { requireAdmin } from "./adminAuth";
+import { requireAdmin, isAdminEmail } from "./adminAuth";
 import { auth } from "./auth";
 
 const langValidator = v.union(v.literal("nl"), v.literal("en"), v.literal("de"));
@@ -57,9 +57,24 @@ export const getForLangWithAccess = query({
     const userId = await auth.getUserId(ctx);
     const now = Date.now();
 
-    // Fetch user's active access rights
-    let ownedSlugs = new Set<string>();
+    // Admins see everything as owned
+    let isAdmin = false;
     if (userId) {
+      const user = await ctx.db.get(userId);
+      if (user) {
+        const accounts = await ctx.db
+          .query("authAccounts")
+          .filter((q: any) => q.eq(q.field("userId"), userId))
+          .collect();
+        const emailAccount = accounts.find((a: any) => a.providerAccountId?.includes("@"));
+        const email = emailAccount?.providerAccountId ?? (user as any).email ?? "";
+        isAdmin = await isAdminEmail(ctx, email);
+      }
+    }
+
+    // Fetch user's active access rights
+    const ownedSlugs = new Set<string>();
+    if (userId && !isAdmin) {
       const rights = await ctx.db
         .query("accessRights")
         .withIndex("by_user", (q) => q.eq("userId", userId))
@@ -82,9 +97,8 @@ export const getForLangWithAccess = query({
         imageUrl = (await ctx.storage.getUrl(product.imageStorageId)) ?? undefined;
       }
 
-      // Check ownership: accessRights.resource matches the product slug.
-      // Training access also checks slug variants (slug-online, slug-coaching).
-      const owned = ownedSlugs.has(product.slug);
+      // Admins own everything; regular users check accessRights.
+      const owned = isAdmin || ownedSlugs.has(product.slug);
 
       resolved.push({
         checkoutProductId: item.checkoutProductId,
