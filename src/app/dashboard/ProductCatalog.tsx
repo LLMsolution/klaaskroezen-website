@@ -135,33 +135,43 @@ function OwnedCard({ item, name, lang, copy, training, download }: {
 }) {
   const action = item.dashboardAction;
 
-  // Training → progress + link
-  if (action === "training" && training) {
-    const href = training.lastModuleSlug ? `/training/${training.slug}/${training.lastModuleSlug}` : `/training/${training.slug}`;
-    return (
-      <Link href={href} className="flex items-center gap-4 p-4 border border-copper/30 bg-copper/[0.03] rounded-[2px] hover:border-copper/50 transition-colors group">
-        <ProductImage image={item.image} name={name} />
-        <div className="flex-1 min-w-0">
-          <p className="text-[14px] font-medium text-ink group-hover:text-copper transition-colors truncate">{name}</p>
-          <p className="text-[12px] text-ink/40">{training.completedModules} {copy.ofModules} {training.totalModules} · {training.overallProgress}% {copy.completed}</p>
-        </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="w-16"><div className="h-1.5 bg-warm rounded-full overflow-hidden"><div className="h-full bg-copper rounded-full" style={{ width: `${training.overallProgress}%` }} /></div></div>
-          <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-copper">{copy.open}</span>
-        </div>
-      </Link>
-    );
+  // Training → progress + link (fallback to linkedTrainingSlug if no progress record)
+  if (action === "training") {
+    const slug = training?.slug ?? item.linkedTrainingSlug;
+    if (slug) {
+      const href = training?.lastModuleSlug ? `/training/${slug}/${training.lastModuleSlug}` : `/training/${slug}`;
+      return (
+        <Link href={href} className="flex items-center gap-4 p-4 border border-copper/30 bg-copper/[0.03] rounded-[2px] hover:border-copper/50 transition-colors group">
+          <ProductImage image={item.image} name={name} />
+          <div className="flex-1 min-w-0">
+            <p className="text-[14px] font-medium text-ink group-hover:text-copper transition-colors truncate">{name}</p>
+            {training && (
+              <p className="text-[12px] text-ink/40">{training.completedModules} {copy.ofModules} {training.totalModules} · {training.overallProgress}% {copy.completed}</p>
+            )}
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            {training && (
+              <div className="w-16"><div className="h-1.5 bg-warm rounded-full overflow-hidden"><div className="h-full bg-copper rounded-full" style={{ width: `${training.overallProgress}%` }} /></div></div>
+            )}
+            <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-copper">{copy.open}</span>
+          </div>
+        </Link>
+      );
+    }
   }
 
-  // Audiobook → link to training page
-  if (action === "audiobook" && training) {
-    return (
-      <Link href={`/training/${training.slug}`} className="flex items-center gap-4 p-4 border border-copper/30 bg-copper/[0.03] rounded-[2px] hover:border-copper/50 transition-colors group">
-        <ProductImage image={item.image} name={name} />
-        <div className="flex-1 min-w-0"><p className="text-[14px] font-medium text-ink group-hover:text-copper transition-colors truncate">{name}</p></div>
-        <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-copper shrink-0">{copy.listen}</span>
-      </Link>
-    );
+  // Audiobook → link to training page (fallback to linkedTrainingSlug)
+  if (action === "audiobook") {
+    const slug = training?.slug ?? item.linkedTrainingSlug;
+    if (slug) {
+      return (
+        <Link href={`/training/${slug}`} className="flex items-center gap-4 p-4 border border-copper/30 bg-copper/[0.03] rounded-[2px] hover:border-copper/50 transition-colors group">
+          <ProductImage image={item.image} name={name} />
+          <div className="flex-1 min-w-0"><p className="text-[14px] font-medium text-ink group-hover:text-copper transition-colors truncate">{name}</p></div>
+          <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-copper shrink-0">{copy.listen}</span>
+        </Link>
+      );
+    }
   }
 
   // Download → download link
