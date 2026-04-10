@@ -286,38 +286,15 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
     );
   }
 
-  const lessonLabel =
-    mod.displayNumber?.trim() ||
-    (nav ? `${nav.chapterIndex + 1}.${nav.currentIdx + 1}` : "");
-
   return (
     <div className="mx-auto max-w-[1280px] px-7 lg:px-14 py-6 lg:py-10">
       <LessonBackButton trainingSlug={slug} lang={lang} />
-      {/* Breadcrumb */}
-      <nav className="text-[12px] text-ink/40 mb-5 flex flex-wrap items-center gap-1.5">
-        <Link href={`/training/${slug}`} className="hover:text-ink transition-colors">
-          {loc(training.title, lang)}
-        </Link>
-        {nav?.parent && (
-          <>
-            <span>/</span>
-            <span>{loc(nav.parent.title, lang)}</span>
-          </>
-        )}
-        <span>/</span>
-        <span className="text-ink">
-          {lessonLabel} {loc(mod.title, lang)}
-        </span>
-      </nav>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 lg:gap-8">
         {/* Main column */}
         <div className="min-w-0">
-          {/* Module title */}
+          {/* Lesson title */}
           <div className="mb-5">
-            <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-1.5">
-              {s.module} {nav ? nav.chapterIndex + 1 : mod.sortOrder + 1} &middot; {lessonLabel}
-            </p>
             <h1 className="font-display text-[clamp(22px,2.8vw,32px)] font-black leading-[1.05] tracking-[-0.02em] mb-2">
               {loc(mod.title, lang)}
             </h1>
@@ -354,9 +331,6 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
           {/* Workbook (training-level) */}
           <WorkbookCard trainingId={training._id} lang={lang} />
 
-          {/* Personal notes (rich-text editor, bookmarks inline) */}
-          {!hasForm && <NotesEditor moduleId={mod._id} lang={lang} />}
-
           {/* Quiz */}
           {mod.quizRequired && <QuizSection moduleId={mod._id} lang={lang} />}
 
@@ -385,6 +359,9 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
           />
         )}
       </div>
+
+      {/* Notes editor — full width below the grid */}
+      {!hasForm && <NotesEditor moduleId={mod._id} lang={lang} />}
     </div>
   );
 }
