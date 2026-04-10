@@ -288,11 +288,10 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
 
   return (
     <div className="mx-auto max-w-[1280px] px-7 lg:px-14 py-6 lg:py-10">
-      <LessonBackButton trainingSlug={slug} lang={lang} />
-
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 lg:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 lg:gap-8 lg:items-start">
         {/* Main column */}
         <div className="min-w-0">
+          <LessonBackButton trainingSlug={slug} lang={lang} />
           {/* Lesson title */}
           <div className="mb-5">
             <h1 className="font-display text-[clamp(22px,2.8vw,32px)] font-black leading-[1.05] tracking-[-0.02em] mb-2">
