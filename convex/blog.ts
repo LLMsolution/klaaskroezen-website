@@ -124,7 +124,8 @@ export const listAll = query({
   args: {},
   handler: async (ctx) => {
     await requireAdmin(ctx);
-    return await ctx.db.query("blogPosts").order("desc").collect();
+    const posts = await ctx.db.query("blogPosts").collect();
+    return posts.sort((a, b) => b.publishedAt - a.publishedAt);
   },
 });
 
