@@ -143,6 +143,15 @@ export function seedBoekContent(): PageSeed {
         { title: "Audiobook", price: "€ 22.50", priceNote: "Narrated by Klaas", description: "Listen on the go, during workouts or at home on the couch.", features: ["Listen instantly", "Narrated by the author", "Perfect for on the go"], href: "/checkout/boek-luisterboek?lang=en", cta: "Order audiobook" },
       ],
     }),
+    makeContent(SLUG, "bestellen", "book-pricing", "de", {
+      label: "Bestellen",
+      heading: "W\u00e4hlen Sie Ihr Format.",
+      formats: [
+        { title: "E-Book", price: "\u20ac 22,50", priceNote: "Sofortiger Zugang", description: "Sofort lesen auf Ihrem Computer, Tablet oder Smartphone.", features: ["Heute noch anfangen", "Sofortiger Zugang nach Zahlung"], href: "/checkout/boek-ebook?lang=de", cta: "E-Book bestellen" },
+        { title: "Hard Copy", price: "\u20ac 32,50", priceNote: "Inkl. MwSt. \u00b7 Kostenloser Versand", description: "Das physische Buch, geliefert innerhalb eines Werktages. Die beliebteste Option.", features: ["Lieferung innerhalb eines Werktages", "Kostenloser Versand", "MwSt. inklusive"], href: "/checkout/boek-hardcopy?lang=de", cta: "Buch bestellen", featured: "true" },
+        { title: "H\u00f6rbuch", price: "\u20ac 22,50", priceNote: "Vorgelesen von Klaas", description: "H\u00f6ren Sie unterwegs, beim Sport oder zu Hause auf dem Sofa.", features: ["Sofort anh\u00f6ren", "Vorgelesen vom Autor", "Ideal f\u00fcr unterwegs"], href: "/checkout/boek-luisterboek?lang=de", cta: "H\u00f6rbuch bestellen" },
+      ],
+    }),
     // ── Videos ──
     makeContent(SLUG, "videos", "videos", "nl", {
       eyebrow: "Bekijk",
