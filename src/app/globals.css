@@ -12,6 +12,11 @@
   --font-body: var(--font-dm-sans), 'Helvetica Neue', sans-serif;
 }
 
+/* ── Hide site footer on admin pages ── */
+body:has(.admin-page) footer {
+  display: none;
+}
+
 /* ── Remove default focus rings — we use border-copper instead ── */
 input:focus, textarea:focus, select:focus {
   outline: none !important;
