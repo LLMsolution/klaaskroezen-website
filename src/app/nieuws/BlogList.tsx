@@ -15,13 +15,6 @@ const CATEGORIES = [
   { key: "persoonlijk", nl: "Persoonlijk", en: "Personal", de: "Persönlich" },
 ];
 
-const TIME_FILTERS = [
-  { key: "12m", nl: "Afgelopen 12 maanden", en: "Last 12 months", de: "Letzte 12 Monate", months: 12 },
-  { key: "6m", nl: "Afgelopen 6 maanden", en: "Last 6 months", de: "Letzte 6 Monate", months: 6 },
-  { key: "3m", nl: "Afgelopen 3 maanden", en: "Last 3 months", de: "Letzte 3 Monate", months: 3 },
-  { key: "all", nl: "Alles", en: "All time", de: "Alle Zeit", months: 0 },
-];
-
 const PER_PAGE = 12;
 const NO_ARTICLES = { nl: "Geen artikelen gevonden.", en: "No articles found.", de: "Keine Artikel gefunden." };
 
@@ -33,7 +26,6 @@ function formatDate(ts: number, lang: Lang) {
 
 export function BlogList({ lang }: { lang: Lang }) {
   const [category, setCategory] = useState("all");
-  const [timeFilter, setTimeFilter] = useState("12m");
   const [page, setPage] = useState(0);
 
   // Fetch all posts (no cursor — we need total count for pages)
@@ -43,15 +35,7 @@ export function BlogList({ lang }: { lang: Lang }) {
     limit: 500, // Get all for pagination
   });
 
-  // Apply time filter client-side
-  const rawPosts = result?.posts ?? [];
-  const allPosts = timeFilter === "all"
-    ? rawPosts
-    : rawPosts.filter((p) => {
-        const months = TIME_FILTERS.find((t) => t.key === timeFilter)?.months ?? 12;
-        const cutoff = Date.now() - months * 30 * 24 * 60 * 60 * 1000;
-        return p.publishedAt >= cutoff;
-      });
+  const allPosts = result?.posts ?? [];
   const totalPages = Math.ceil(allPosts.length / PER_PAGE);
   const pagePosts = allPosts.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
   const isLoading = result === undefined;
@@ -61,48 +45,23 @@ export function BlogList({ lang }: { lang: Lang }) {
     setPage(0);
   }
 
-  function handleTimeChange(key: string) {
-    setTimeFilter(key);
-    setPage(0);
-  }
-
   return (
     <div>
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-10">
-        {/* Category filter */}
-        <div className="flex gap-2 flex-wrap">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.key}
-              onClick={() => handleCategoryChange(cat.key)}
-              className={`text-[12px] px-4 py-2 rounded-[2px] cursor-pointer transition-colors ${
-                category === cat.key
-                  ? "bg-copper text-paper"
-                  : "border border-rule text-ink/50 hover:text-ink hover:border-ink/30"
-              }`}
-            >
-              {cat[lang]}
-            </button>
-          ))}
-        </div>
-
-        {/* Time filter */}
-        <div className="flex gap-2 flex-wrap sm:ml-auto">
-          {TIME_FILTERS.map((tf) => (
-            <button
-              key={tf.key}
-              onClick={() => handleTimeChange(tf.key)}
-              className={`text-[11px] px-3 py-1.5 rounded-[2px] cursor-pointer transition-colors ${
-                timeFilter === tf.key
-                  ? "bg-ink text-paper"
-                  : "text-ink/30 hover:text-ink/60"
-              }`}
-            >
-              {tf[lang]}
-            </button>
-          ))}
-        </div>
+      {/* Category filter */}
+      <div className="flex gap-2 mb-10 flex-wrap">
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat.key}
+            onClick={() => handleCategoryChange(cat.key)}
+            className={`text-[12px] px-4 py-2 rounded-[2px] cursor-pointer transition-colors ${
+              category === cat.key
+                ? "bg-copper text-paper"
+                : "border border-rule text-ink/50 hover:text-ink hover:border-ink/30"
+            }`}
+          >
+            {cat[lang]}
+          </button>
+        ))}
       </div>
 
       {/* Skeleton loading */}

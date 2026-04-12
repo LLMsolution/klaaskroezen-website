@@ -55,6 +55,13 @@ const CATEGORIES = [
   { key: "persoonlijk", label: "Persoonlijk" },
 ];
 
+const TIME_FILTERS = [
+  { key: "3m", label: "3 maanden" },
+  { key: "6m", label: "6 maanden" },
+  { key: "12m", label: "12 maanden" },
+  { key: "all", label: "Alles" },
+];
+
 export function BlogTab() {
   const posts = useQuery(api.blog.listAll);
   const createPost = useMutation(api.blog.createPost);
@@ -65,6 +72,8 @@ export function BlogTab() {
 
   const [view, setView] = useState<View>("list");
   const [editId, setEditId] = useState<Id<"blogPosts"> | null>(null);
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterTime, setFilterTime] = useState("all");
 
   // Form state
   const [slug, setSlug] = useState("");
@@ -309,22 +318,49 @@ export function BlogTab() {
   }
 
   // ── List view ──
+
+  // Apply filters
+  const filteredPosts = (posts ?? []).filter((post) => {
+    if (filterCategory !== "all" && post.category !== filterCategory) return false;
+    if (filterTime !== "all") {
+      const months = { "3m": 3, "6m": 6, "12m": 12 }[filterTime] ?? 0;
+      const cutoff = Date.now() - months * 30 * 24 * 60 * 60 * 1000;
+      if (post.publishedAt < cutoff) return false;
+    }
+    return true;
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40">
-          {posts.length} artikelen
+          {filteredPosts.length} van {posts.length} artikelen
         </p>
         <button onClick={() => { resetForm(); setView("create"); }} className="bg-copper text-paper px-4 py-2 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer">
           + Nieuw artikel
         </button>
       </div>
 
-      {posts.length === 0 ? (
-        <EmptyState text="Nog geen artikelen." />
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="flex gap-1.5 flex-wrap">
+          <button onClick={() => setFilterCategory("all")} className={`text-[11px] px-3 py-1.5 rounded-[2px] cursor-pointer transition-colors ${filterCategory === "all" ? "bg-copper text-paper" : "border border-rule text-ink/40 hover:text-ink"}`}>Alles</button>
+          {CATEGORIES.map((c) => (
+            <button key={c.key} onClick={() => setFilterCategory(c.key)} className={`text-[11px] px-3 py-1.5 rounded-[2px] cursor-pointer transition-colors ${filterCategory === c.key ? "bg-copper text-paper" : "border border-rule text-ink/40 hover:text-ink"}`}>{c.label}</button>
+          ))}
+        </div>
+        <div className="flex gap-1.5">
+          {TIME_FILTERS.map((tf) => (
+            <button key={tf.key} onClick={() => setFilterTime(tf.key)} className={`text-[11px] px-3 py-1.5 rounded-[2px] cursor-pointer transition-colors ${filterTime === tf.key ? "bg-ink text-paper" : "text-ink/30 hover:text-ink/60"}`}>{tf.label}</button>
+          ))}
+        </div>
+      </div>
+
+      {filteredPosts.length === 0 ? (
+        <EmptyState text="Geen artikelen gevonden met deze filters." />
       ) : (
         <div className="space-y-2">
-          {posts.map((post) => (
+          {filteredPosts.map((post) => (
             <div key={post._id} className="flex items-center justify-between border border-rule rounded-[2px] px-4 py-3 hover:bg-warm/20 transition-colors">
               <div className="flex-1 min-w-0 mr-4">
                 <div className="flex items-center gap-2 mb-1">
