@@ -196,7 +196,7 @@ export const getPageContentAdmin = query({
 
 // ── Admin mutations ──
 
-/** Update content JSON for a section */
+/** Update (or create) content JSON for a section */
 export const updateSection = mutation({
   args: {
     pageSlug: v.string(),
@@ -222,13 +222,64 @@ export const updateSection = mutation({
       .first();
 
     if (!entry) {
-      throw new Error(`Sectie ${sectionId} niet gevonden voor ${pageSlug} (${lang}).`);
+      // Entry doesn't exist yet for this lang — create it with schema from NL entry
+      const nlEntry = await ctx.db
+        .query("siteContent")
+        .withIndex("by_page_section", (q) =>
+          q.eq("pageSlug", pageSlug).eq("sectionId", sectionId).eq("lang", "nl"),
+        )
+        .first();
+      await ctx.db.insert("siteContent", {
+        pageSlug,
+        sectionId,
+        lang,
+        content,
+        schema: nlEntry?.schema ?? "{}",
+        updatedAt: Date.now(),
+      });
+      return;
     }
 
     await ctx.db.patch(entry._id, {
       content,
       updatedAt: Date.now(),
     });
+
+    // When saving NL, propagate image fields to EN/DE entries that don't have their own
+    if (lang === "nl") {
+      const parsed = JSON.parse(content);
+      const nlImages: Record<string, string> = {};
+      for (const [k, v] of Object.entries(parsed)) {
+        if (typeof v === "string" && v.startsWith("convex:")) nlImages[k] = v;
+      }
+      if (Object.keys(nlImages).length > 0) {
+        for (const otherLang of ["en", "de"] as const) {
+          const otherEntry = await ctx.db
+            .query("siteContent")
+            .withIndex("by_page_section", (q) =>
+              q.eq("pageSlug", pageSlug).eq("sectionId", sectionId).eq("lang", otherLang),
+            )
+            .first();
+          if (!otherEntry) continue;
+          try {
+            const otherParsed = JSON.parse(otherEntry.content);
+            let changed = false;
+            for (const [k, v] of Object.entries(nlImages)) {
+              if (!otherParsed[k] || otherParsed[k] === "") {
+                otherParsed[k] = v;
+                changed = true;
+              }
+            }
+            if (changed) {
+              await ctx.db.patch(otherEntry._id, {
+                content: JSON.stringify(otherParsed),
+                updatedAt: Date.now(),
+              });
+            }
+          } catch { /* skip unparseable entries */ }
+        }
+      }
+    }
   },
 });
 
