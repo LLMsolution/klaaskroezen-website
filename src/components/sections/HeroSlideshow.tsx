@@ -128,7 +128,7 @@ export function HeroSlideshow({ images, slides: slidesProp }: { images?: Record<
         aria-hidden="true"
       />
 
-      {/* Quote with crossfade */}
+      {/* Quote with crossfade — all slides stacked via grid to prevent layout shift */}
       <figure className="absolute bottom-0 left-0 right-0 p-7 sm:p-[44px_48px] z-20">
         <div
           className="font-display text-[48px] sm:text-[58px] font-black text-copper leading-[0.6] mb-2.5"
@@ -136,28 +136,24 @@ export function HeroSlideshow({ images, slides: slidesProp }: { images?: Record<
         >
           &ldquo;
         </div>
-        {slides.map((slide, i) => (
-          <div
-            key={slide.author}
-            className="transition-opacity duration-[800ms] ease-in-out"
-            style={{
-              opacity: i === current ? 1 : 0,
-              position: i === current ? "relative" : "absolute",
-              bottom: i === current ? undefined : 0,
-              left: i === current ? undefined : 0,
-              right: i === current ? undefined : 0,
-            }}
-            aria-hidden={i !== current}
-          >
-            <blockquote className="font-display italic text-[16px] sm:text-[17px] text-paper/90 leading-[1.65]">
-              {slide.quote}
-            </blockquote>
-            <figcaption className="mt-3 text-[11px] font-medium tracking-[0.14em] uppercase text-paper/50">
-              {slide.author}&nbsp;&mdash; {slide.role}
-              {slide.detail && <> &middot; {slide.detail}</>}
-            </figcaption>
-          </div>
-        ))}
+        <div className="grid">
+          {slides.map((slide, i) => (
+            <div
+              key={slide.author}
+              className="col-start-1 row-start-1 transition-opacity duration-[800ms] ease-in-out"
+              style={{ opacity: i === current ? 1 : 0 }}
+              aria-hidden={i !== current}
+            >
+              <blockquote className="font-display italic text-[16px] sm:text-[17px] text-paper/90 leading-[1.65]">
+                {slide.quote}
+              </blockquote>
+              <figcaption className="mt-3 text-[11px] font-medium tracking-[0.14em] uppercase text-paper/50">
+                {slide.author}&nbsp;&mdash; {slide.role}
+                {slide.detail && <> &middot; {slide.detail}</>}
+              </figcaption>
+            </div>
+          ))}
+        </div>
       </figure>
 
       {/* Slide indicators */}
