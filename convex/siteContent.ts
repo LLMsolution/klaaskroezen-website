@@ -59,12 +59,27 @@ export const getPageContent = query({
       ? entries.filter((e) => e.lang === lang)
       : entries;
 
+    // Build NL image lookup for fallback (non-NL languages inherit NL images)
+    const nlImages: Record<string, Record<string, unknown>> = {};
+    if (lang && lang !== "nl") {
+      const nlEntries = entries.filter((e) => e.lang === "nl");
+      for (const entry of nlEntries) {
+        try {
+          const parsed = JSON.parse(entry.content);
+          nlImages[entry.sectionId] = extractImageFields(parsed);
+        } catch { /* skip */ }
+      }
+    }
+
     const result: Record<string, Record<string, unknown>> = {};
     for (const entry of filtered) {
       const key = lang ? entry.sectionId : `${entry.sectionId}_${entry.lang}`;
       try {
         const parsed = JSON.parse(entry.content);
-        result[key] = await resolveConvexUrls(ctx, parsed) as Record<string, unknown>;
+        // Merge NL images as fallback for empty image fields
+        const nlFallback = nlImages[entry.sectionId];
+        const merged = nlFallback ? mergeImageFallbacks(parsed, nlFallback) : parsed;
+        result[key] = await resolveConvexUrls(ctx, merged) as Record<string, unknown>;
       } catch {
         result[key] = {};
       }
@@ -72,6 +87,31 @@ export const getPageContent = query({
     return result;
   },
 });
+
+/** Extract fields that look like image refs (convex: or /images/) */
+function extractImageFields(obj: Record<string, unknown>): Record<string, unknown> {
+  const images: Record<string, unknown> = {};
+  for (const [key, val] of Object.entries(obj)) {
+    if (typeof val === "string" && (val.startsWith("convex:") || val.startsWith("/images/"))) {
+      images[key] = val;
+    }
+  }
+  return images;
+}
+
+/** Fill empty/missing image fields with NL fallback values */
+function mergeImageFallbacks(
+  target: Record<string, unknown>,
+  nlImages: Record<string, unknown>,
+): Record<string, unknown> {
+  const result = { ...target };
+  for (const [key, val] of Object.entries(nlImages)) {
+    if (!result[key] || result[key] === "") {
+      result[key] = val;
+    }
+  }
+  return result;
+}
 
 /** Get a single section's content */
 export const getSection = query({

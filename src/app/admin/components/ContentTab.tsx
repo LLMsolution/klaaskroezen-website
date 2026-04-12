@@ -104,6 +104,21 @@ function PageSections({ slug }: { slug: string }) {
     );
   }
 
+  /** For non-NL languages, fill empty image fields with NL values */
+  function withNlImageFallback(sectionId: string, lang: Lang, data: Record<string, unknown>): Record<string, unknown> {
+    if (lang === "nl") return data;
+    const nlEntry = contentEntries?.find((e) => e.sectionId === sectionId && e.lang === "nl");
+    if (!nlEntry?.parsedContent) return data;
+    const nlContent = nlEntry.parsedContent as Record<string, unknown>;
+    const result = { ...data };
+    for (const [key, val] of Object.entries(nlContent)) {
+      if (typeof val === "string" && val.startsWith("convex:") && (!result[key] || result[key] === "")) {
+        result[key] = val;
+      }
+    }
+    return result;
+  }
+
   function handleExpand(sectionId: string) {
     if (expandedSection === sectionId) {
       setExpandedSection(null);
@@ -115,7 +130,8 @@ function PageSections({ slug }: { slug: string }) {
     setError("");
     setSaved(null);
     const entry = getEntry(sectionId, activeLang);
-    setEditData(entry?.parsedContent ?? {});
+    const data = entry?.parsedContent ?? {};
+    setEditData(withNlImageFallback(sectionId, activeLang, data));
     pendingScrollRef.current = sectionId;
   }
 
@@ -123,7 +139,8 @@ function PageSections({ slug }: { slug: string }) {
     setActiveLang(lang);
     if (expandedSection) {
       const entry = getEntry(expandedSection, lang);
-      setEditData(entry?.parsedContent ?? {});
+      const data = entry?.parsedContent ?? {};
+      setEditData(withNlImageFallback(expandedSection, lang, data));
     }
     setSaved(null);
     setError("");
