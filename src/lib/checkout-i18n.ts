@@ -94,7 +94,7 @@ const translations = {
     totalSold: "exemplaren verkocht",
 
     // Exit intent
-    exitTitle: "Wacht — ga je weg?",
+    exitTitle: "Wacht, ga je weg?",
     exitBody: "Wist je dat je 30 dagen bedenktijd hebt? Geen risico.",
     exitCta: "Toch bestellen",
     exitDismiss: "Nee bedankt",
@@ -236,7 +236,7 @@ const translations = {
     totalTrained: "sales professionals trained",
     totalSold: "copies sold",
 
-    exitTitle: "Wait — leaving already?",
+    exitTitle: "Wait, leaving already?",
     exitBody: "Did you know you have a 30-day money-back guarantee? Zero risk.",
     exitCta: "Complete my order",
     exitDismiss: "No thanks",
@@ -372,7 +372,7 @@ const translations = {
     totalTrained: "Vertriebsprofis geschult",
     totalSold: "Exemplare verkauft",
 
-    exitTitle: "Warten \u2014 gehen Sie schon?",
+    exitTitle: "Warten, gehen Sie schon?",
     exitBody: "Wussten Sie, dass Sie eine 30-Tage-Geld-zur\u00fcck-Garantie haben? Null Risiko.",
     exitCta: "Bestellung abschlie\u00dfen",
     exitDismiss: "Nein danke",
