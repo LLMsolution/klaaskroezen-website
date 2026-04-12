@@ -72,9 +72,9 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
   const [payingMethod, setPayingMethod] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [quantity, setQuantity] = useState(1);
-  const [bookLang, setBookLang] = useState<Lang>(lang);
   const isBook = product?.type === "book";
   const availableBookLangs = (product as { availableBookLanguages?: string[] })?.availableBookLanguages ?? ["nl"];
+  const [bookLang, setBookLang] = useState<Lang>(availableBookLangs.includes(lang) ? lang : "nl");
   const bookLangAvailable = availableBookLangs.includes(bookLang);
 
   // Returning visitor recognition via localStorage
