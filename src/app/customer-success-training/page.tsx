@@ -47,6 +47,13 @@ export default async function CustomerSuccessTrainingPage() {
   const transformation = sectionOr(db, "transformation", { items: fallback.transformation });
   const audiences = sectionOr(db, "audiences", { items: fallback.audiences });
   const program = sectionOr(db, "program", fallback.program);
+  const trainingMethod = sectionOr<{
+    eyebrow?: string;
+    title?: string;
+    titleAccent?: string;
+    description?: string;
+    features?: { title: string; text: string }[];
+  }>(db, "training-method", {});
   const reviews = sectionOr(db, "reviews", { items: fallback.reviews });
   const pricing = sectionOr(db, "pricing", fallback.pricing);
   const crossLink = sectionOr(db, "cross-link", fallback.crossLink);
@@ -91,7 +98,14 @@ export default async function CustomerSuccessTrainingPage() {
         pricingAnchor={program.pricingAnchor}
       />
 
-      <TrainingMethod lang={lang} />
+      <TrainingMethod
+        lang={lang}
+        eyebrow={trainingMethod.eyebrow}
+        title={trainingMethod.title}
+        titleAccent={trainingMethod.titleAccent}
+        description={trainingMethod.description}
+        features={trainingMethod.features}
+      />
 
       <LogoBar />
 

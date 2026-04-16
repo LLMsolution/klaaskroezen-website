@@ -9,6 +9,7 @@ export function seedCstContent(): PageSeed {
     { id: "transformation", type: "transformation", active: true, sortOrder: 2 },
     { id: "audiences", type: "audiences", active: true, sortOrder: 3 },
     { id: "program", type: "program", active: true, sortOrder: 4 },
+    { id: "training-method", type: "training-method", active: true, sortOrder: 4.5 },
     { id: "reviews", type: "reviews", active: true, sortOrder: 5 },
     { id: "pricing", type: "pricing", active: true, sortOrder: 6 },
     { id: "cross-link", type: "cross-link", active: true, sortOrder: 7 },
@@ -108,6 +109,40 @@ export function seedCstContent(): PageSeed {
         { number: "04", title: "Handling Difficult Conversations with Ease", description: "Price increases, expectation management, disappointment — learn how to discuss difficult topics without damaging the relationship." },
         { number: "05", title: "Spotting Opportunities Without 'Selling'", description: "Recognise natural moments to offer added value. No upsell tricks, but genuine suggestions that help your customer move forward." },
         { number: "06", title: "From Customer to Ambassador", description: "Satisfied customers are good. Ambassadors are better. Learn how to turn customer contact into a growth engine for your organisation." },
+      ],
+    }),
+    // ── Training Method (Zo werkt het) ──
+    makeContent(SLUG, "training-method", "training-method", "nl", {
+      eyebrow: "Zo werkt het",
+      title: "Meer dan theorie.",
+      titleAccent: "Je brengt het in de praktijk.",
+      description: "Een combinatie van theorie en oefeningen. Ik neem je stap voor stap mee, voor wie geen filmpjes wil kijken.",
+      features: [
+        { title: "Eigen leeromgeving", text: "Een combinatie van theorie en oefeningen. Ik neem je stap voor stap mee, voor wie geen filmpjes wil kijken." },
+        { title: "Werkboek met opdrachten", text: "Opdrachten die aansluiten bij elke module, zodat je het geleerde direct toepast." },
+        { title: "Resultaat dat blijft", text: "Doordat je het in de praktijk brengt, beklijft het. Geen theorie die je na een week vergeet." },
+      ],
+    }),
+    makeContent(SLUG, "training-method", "training-method", "en", {
+      eyebrow: "How it works",
+      title: "More than theory.",
+      titleAccent: "You put it into practice.",
+      description: "A combination of theory and exercises. I take you through step by step — for anyone who doesn't want to watch videos.",
+      features: [
+        { title: "Own learning environment", text: "A combination of theory and exercises. I take you step by step, for those who don't want to watch videos." },
+        { title: "Workbook with exercises", text: "Exercises that match each module, so you immediately apply what you've learned." },
+        { title: "Results that last", text: "Because you put it into practice, it sticks. No theory you forget after a week." },
+      ],
+    }),
+    makeContent(SLUG, "training-method", "training-method", "de", {
+      eyebrow: "So funktioniert es",
+      title: "Mehr als Theorie.",
+      titleAccent: "Sie setzen es in die Praxis um.",
+      description: "Eine Kombination aus Theorie und Übungen. Ich nehme Sie Schritt für Schritt mit — für alle, die keine Filme schauen möchten.",
+      features: [
+        { title: "Eigene Lernumgebung", text: "Eine Kombination aus Theorie und Übungen. Ich nehme Sie Schritt für Schritt mit, für alle, die keine Filme schauen möchten." },
+        { title: "Arbeitsbuch mit Aufgaben", text: "Aufgaben, die zu jedem Modul passen, sodass Sie das Gelernte sofort anwenden." },
+        { title: "Nachhaltige Ergebnisse", text: "Weil Sie es in die Praxis umsetzen, bleibt es hängen. Keine Theorie, die Sie nach einer Woche vergessen." },
       ],
     }),
     // ── Reviews ──

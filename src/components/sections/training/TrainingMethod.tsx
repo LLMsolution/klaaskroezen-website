@@ -3,36 +3,38 @@ import { Label } from "@/components/ui/Label";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { t, type Lang } from "@/lib/i18n";
 
+type Feature = { title: string; text: string };
+
 interface TrainingMethodProps {
   lang: Lang;
   eyebrow?: string;
   title?: string;
   titleAccent?: string;
   description?: string;
+  features?: Feature[];
 }
 
 export function TrainingMethod({
   lang,
-  eyebrow = t(lang).training.methodEyebrow,
-  title = t(lang).training.methodTitle,
-  titleAccent = t(lang).training.methodAccent,
-  description = t(lang).training.methodDesc,
+  eyebrow,
+  title,
+  titleAccent,
+  description,
+  features,
 }: TrainingMethodProps) {
   const s = t(lang).training;
-  const features = [
-    {
-      title: s.methodFeature1Title,
-      text: s.methodFeature1Text,
-    },
-    {
-      title: s.methodFeature2Title,
-      text: s.methodFeature2Text,
-    },
-    {
-      title: s.methodFeature3Title,
-      text: s.methodFeature3Text,
-    },
-  ];
+  const resolvedEyebrow = eyebrow ?? s.methodEyebrow;
+  const resolvedTitle = title ?? s.methodTitle;
+  const resolvedTitleAccent = titleAccent ?? s.methodAccent;
+  const resolvedDescription = description ?? s.methodDesc;
+  const resolvedFeatures: Feature[] =
+    features && features.length > 0
+      ? features
+      : [
+          { title: s.methodFeature1Title, text: s.methodFeature1Text },
+          { title: s.methodFeature2Title, text: s.methodFeature2Text },
+          { title: s.methodFeature3Title, text: s.methodFeature3Text },
+        ];
 
   return (
     <section className="py-16 sm:py-[110px] border-b border-rule">
@@ -40,21 +42,21 @@ export function TrainingMethod({
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-px bg-rule border border-rule max-w-[900px] mx-auto">
           <div className="bg-paper p-8 sm:p-12 flex flex-col justify-center">
             <FadeIn>
-              <Label className="mb-3">{eyebrow}</Label>
+              <Label className="mb-3">{resolvedEyebrow}</Label>
               <h2 className="font-display text-[clamp(24px,3vw,36px)] font-black leading-[0.97] tracking-[-0.03em] mb-4">
-                {title}
+                {resolvedTitle}
                 <br />
                 <em className="italic font-normal text-ink/40">
-                  {titleAccent}
+                  {resolvedTitleAccent}
                 </em>
               </h2>
               <p className="text-[15px] sm:text-[16px] text-ink/70 leading-[1.8] max-w-[420px]">
-                {description}
+                {resolvedDescription}
               </p>
             </FadeIn>
           </div>
           <div className="bg-paper p-8 sm:p-12 flex flex-col justify-center gap-5">
-            {features.map((item) => (
+            {resolvedFeatures.map((item) => (
               <div key={item.title} className="flex items-start gap-3">
                 <span className="text-copper text-[14px] mt-0.5 shrink-0">
                   &#10003;

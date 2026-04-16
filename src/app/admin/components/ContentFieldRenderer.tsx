@@ -157,6 +157,16 @@ function ArrayField({
   const isSimple =
     field.itemFields!.length === 1 && field.itemFields![0].key === "value";
 
+  /** Read a simple-mode item as a plain string, accepting legacy {value: "..."} objects. */
+  function readSimpleValue(item: unknown): string {
+    if (typeof item === "string") return item;
+    if (item && typeof item === "object") {
+      const v = (item as { value?: unknown }).value;
+      if (typeof v === "string") return v;
+    }
+    return "";
+  }
+
   function addItem() {
     if (isSimple) {
       onChange([...items, ""]);
@@ -204,7 +214,7 @@ function ArrayField({
               {isSimple ? (
                 <input
                   type="text"
-                  value={(item as string) ?? ""}
+                  value={readSimpleValue(item)}
                   onChange={(e) => {
                     const updated = [...items];
                     updated[idx] = e.target.value;

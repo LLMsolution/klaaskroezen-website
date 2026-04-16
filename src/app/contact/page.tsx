@@ -27,6 +27,35 @@ export default async function ContactPage() {
   ]);
   const db = await loadPageContent("contact", lang);
   const hero = sectionOr(db, "hero", { image: "", imageAlt: s.imageAlt }) as { image?: string; imageAlt?: string };
+  const info = sectionOr<{
+    emailLabel?: string;
+    email?: string;
+    phoneLabel?: string;
+    phone?: string;
+    phoneHref?: string;
+    officeLabel?: string;
+    officeName?: string;
+    officeAddress1?: string;
+    officeAddress2?: string;
+    directContactLabel?: string;
+    planCallLabel?: string;
+    planCallUrl?: string;
+    linkedinUrl?: string;
+  }>(db, "contact-info", {});
+
+  const emailLabel = info.emailLabel ?? s.emailLabel;
+  const email = info.email ?? "klaas@klaaskroezen.com";
+  const phoneLabel = info.phoneLabel ?? s.phoneLabel;
+  const phone = info.phone ?? "+31 6 1809 8906";
+  const phoneHref = info.phoneHref ?? "+31618098906";
+  const officeLabel = info.officeLabel ?? s.officeLabel;
+  const officeName = info.officeName ?? s.officeName;
+  const officeAddress1 = info.officeAddress1 ?? s.officeAddress1;
+  const officeAddress2 = info.officeAddress2 ?? s.officeAddress2;
+  const directContactLabel = info.directContactLabel ?? s.directContact;
+  const planCallLabel = info.planCallLabel ?? s.planCall;
+  const planCallUrl = info.planCallUrl ?? "https://calendly.com/klaaskroezen";
+  const linkedinUrl = info.linkedinUrl ?? "https://www.linkedin.com/in/klaaskroezen/";
 
   return (
     <>
@@ -74,55 +103,55 @@ export default async function ContactPage() {
               <div className="space-y-8">
                 <div>
                   <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper block mb-2">
-                    {s.emailLabel}
+                    {emailLabel}
                   </span>
                   <a
-                    href="mailto:info@klaaskroezen.com"
+                    href={`mailto:${email}`}
                     className="text-[15px] text-ink/80 hover:text-ink transition-colors"
                   >
-                    info@klaaskroezen.com
+                    {email}
                   </a>
                 </div>
                 <div>
                   <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper block mb-2">
-                    {s.phoneLabel}
+                    {phoneLabel}
                   </span>
                   <a
-                    href="tel:+31618098906"
+                    href={`tel:${phoneHref}`}
                     className="text-[15px] text-ink/80 hover:text-ink transition-colors"
                   >
-                    +31 6 1809 8906
+                    {phone}
                   </a>
                 </div>
                 <div>
                   <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper block mb-2">
-                    {s.officeLabel}
+                    {officeLabel}
                   </span>
                   <p className="text-[15px] text-ink/80 leading-[1.7]">
-                    {s.officeName}
+                    {officeName}
                     <br />
-                    {s.officeAddress1}
+                    {officeAddress1}
                     <br />
-                    {s.officeAddress2}
+                    {officeAddress2}
                   </p>
                 </div>
 
                 <div className="pt-4 border-t border-rule">
                   <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper block mb-3">
-                    {s.directContact}
+                    {directContactLabel}
                   </span>
                   <div className="space-y-2.5">
                     <a
-                      href="https://calendly.com/klaaskroezen"
+                      href={planCallUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2.5 text-[14px] text-ink/65 hover:text-ink transition-colors"
                     >
                       <span className="text-copper text-[11px]">→</span>
-                      {s.planCall}
+                      {planCallLabel}
                     </a>
                     <a
-                      href="https://www.linkedin.com/in/klaaskroezen/"
+                      href={linkedinUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2.5 text-[14px] text-ink/65 hover:text-ink transition-colors"

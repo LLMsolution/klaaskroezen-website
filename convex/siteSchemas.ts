@@ -211,6 +211,41 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
     ],
   },
 
+  "training-method": {
+    type: "training-method",
+    label: "Zo werkt het (methode)",
+    fields: [
+      { key: "eyebrow", type: "text", label: "Eyebrow" },
+      { key: "title", type: "text", label: "Titel" },
+      { key: "titleAccent", type: "text", label: "Titel accent" },
+      { key: "description", type: "textarea", label: "Beschrijving" },
+      { key: "features", type: "array", label: "Features", itemFields: [
+        { key: "title", type: "text", label: "Titel" },
+        { key: "text", type: "textarea", label: "Tekst" },
+      ]},
+    ],
+  },
+
+  "contact-info": {
+    type: "contact-info",
+    label: "Contactgegevens (sidebar)",
+    fields: [
+      { key: "emailLabel", type: "text", label: "E-mail label" },
+      { key: "email", type: "text", label: "E-mailadres" },
+      { key: "phoneLabel", type: "text", label: "Telefoon label" },
+      { key: "phone", type: "text", label: "Telefoonnummer (display)" },
+      { key: "phoneHref", type: "text", label: "Telefoon link (tel:)" },
+      { key: "officeLabel", type: "text", label: "Kantoor label" },
+      { key: "officeName", type: "text", label: "Kantoor naam" },
+      { key: "officeAddress1", type: "text", label: "Adresregel 1" },
+      { key: "officeAddress2", type: "text", label: "Adresregel 2" },
+      { key: "directContactLabel", type: "text", label: "Direct contact label" },
+      { key: "planCallLabel", type: "text", label: "Plan gesprek label" },
+      { key: "planCallUrl", type: "text", label: "Plan gesprek URL" },
+      { key: "linkedinUrl", type: "text", label: "LinkedIn URL" },
+    ],
+  },
+
   "cross-link": {
     type: "cross-link",
     label: "Cross-link",
