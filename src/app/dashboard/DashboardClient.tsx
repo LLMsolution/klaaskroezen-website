@@ -4,17 +4,11 @@ import { useQuery, useMutation } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../../../convex/_generated/api";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { Lang } from "@/lib/i18n";
 import { ProfileEditor } from "./ProfileEditor";
 import { ProductCatalog } from "./ProductCatalog";
 import { DownloadsSection } from "./DownloadsSection";
-
-function getClientLocale(): Lang {
-  if (typeof document === "undefined") return "nl";
-  const match = document.cookie.match(/(?:^|;\s*)locale=(\w+)/);
-  return match?.[1] === "en" ? "en" : match?.[1] === "de" ? "de" : "nl";
-}
 
 const COPY: Record<Lang, { welcome: string; login: string; loginBody: string; loginCta: string; profile: string }> = {
   nl: { welcome: "Welkom", login: "Log in om je dashboard te bekijken.", loginBody: "Bekijk je aankopen, download je bestanden en beheer je account.", loginCta: "Inloggen", profile: "Mijn gegevens" },
@@ -22,7 +16,7 @@ const COPY: Record<Lang, { welcome: string; login: string; loginBody: string; lo
   de: { welcome: "Willkommen", login: "Melden Sie sich an, um Ihr Dashboard zu sehen.", loginBody: "Sehen Sie Ihre Einkaufe, laden Sie Dateien herunter und verwalten Sie Ihr Konto.", loginCta: "Anmelden", profile: "Meine Daten" },
 };
 
-export function DashboardClient() {
+export function DashboardClient({ initialLang }: { initialLang: Lang }) {
   const user = useQuery(api.users.getCurrentUser);
   const invoices = useQuery(api.users.getMyInvoices);
   const downloads = useQuery(api.users.getMyDownloads);
@@ -31,10 +25,11 @@ export function DashboardClient() {
   const profile = useQuery(api.users.getMyProfile);
   const updateMyProfile = useMutation(api.users.updateMyProfile);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [lang, setLang] = useState<Lang>("nl");
 
-  useEffect(() => { setLang(getClientLocale()); }, []);
-
+  // `initialLang` is read server-side from the cookie and refreshed on every
+  // request (page.tsx is force-dynamic), so a language switch is reflected
+  // immediately after router.refresh() without a full page reload.
+  const lang = initialLang;
   const copy = COPY[lang];
 
   if (user === undefined) {
