@@ -313,6 +313,7 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
               initialPosition={moduleWithProgress?.progress?.videoPosition ?? 0}
               onEnded={nav?.next ? handleVideoEnded : undefined}
               nextLessonTitle={nav?.next ? loc(nav.next.title, lang) : undefined}
+              lang={lang}
             />
           )}
 
@@ -323,6 +324,7 @@ export function ModulePageClient({ lang }: { lang: Lang }) {
                 src={moduleWithProgress.audioUrl}
                 initialPosition={moduleWithProgress?.progress?.videoPosition ?? 0}
                 onProgress={handleAudioProgress}
+                lang={lang}
               />
             </div>
           )}

@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import type { Lang } from "@/lib/i18n";
 
 interface Props {
   vimeoVideoId: string;
@@ -14,9 +15,49 @@ interface Props {
   onEnded?: () => void;
   /** Title of the next lesson to show in the end-of-video overlay. */
   nextLessonTitle?: string;
+  /** Language for UI overlays. Defaults to NL. */
+  lang?: Lang;
 }
 
 const COUNTDOWN_SECONDS = 10;
+
+const COPY: Record<Lang, {
+  videoLoading: string;
+  nextLesson: string;
+  autoStartPrefix: string;
+  secondSingular: string;
+  secondPlural: string;
+  startNow: string;
+  cancel: string;
+}> = {
+  nl: {
+    videoLoading: "Video laden...",
+    nextLesson: "Volgende les",
+    autoStartPrefix: "Start automatisch over",
+    secondSingular: "seconde",
+    secondPlural: "seconden",
+    startNow: "Nu starten",
+    cancel: "Annuleer",
+  },
+  en: {
+    videoLoading: "Loading video...",
+    nextLesson: "Next lesson",
+    autoStartPrefix: "Starts automatically in",
+    secondSingular: "second",
+    secondPlural: "seconds",
+    startNow: "Start now",
+    cancel: "Cancel",
+  },
+  de: {
+    videoLoading: "Video lädt...",
+    nextLesson: "Nächste Lektion",
+    autoStartPrefix: "Startet automatisch in",
+    secondSingular: "Sekunde",
+    secondPlural: "Sekunden",
+    startNow: "Jetzt starten",
+    cancel: "Abbrechen",
+  },
+};
 
 export function VideoPlayer({
   vimeoVideoId,
@@ -25,7 +66,9 @@ export function VideoPlayer({
   initialPosition,
   onEnded,
   nextLessonTitle,
+  lang = "nl",
 }: Props) {
+  const copy = COPY[lang];
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const updateProgress = useMutation(api.trainingProgress.updateVideoProgress);
   const lastSave = useRef(0);
@@ -38,24 +81,28 @@ export function VideoPlayer({
     onEndedRef.current = onEnded;
   }, [onEnded]);
 
-  const saveProgress = useCallback(
-    async (progress: number, position: number) => {
-      const now = Date.now();
-      if (now - lastSave.current < 10_000) return; // Debounce: max every 10 seconds
-      lastSave.current = now;
-      try {
-        await updateProgress({
-          moduleId,
-          trainingId,
-          videoProgress: Math.round(progress),
-          videoPosition: Math.round(position),
-        });
-      } catch {
-        // Silently fail on progress save
-      }
-    },
-    [moduleId, trainingId, updateProgress],
-  );
+  // Capture initialPosition once on mount — later updates of this prop (from
+  // re-queries of saved progress) must NOT re-mount the Vimeo player, otherwise
+  // the iframe reloads mid-playback and the video visually jumps back.
+  const initialPositionRef = useRef(initialPosition);
+
+  // Keep a stable ref to saveProgress so the mount effect below only runs once.
+  const saveProgressRef = useRef<(progress: number, position: number) => void>(() => {});
+  saveProgressRef.current = async (progress: number, position: number) => {
+    const now = Date.now();
+    if (now - lastSave.current < 10_000) return; // Debounce: max every 10 seconds
+    lastSave.current = now;
+    try {
+      await updateProgress({
+        moduleId,
+        trainingId,
+        videoProgress: Math.round(progress),
+        videoPosition: Math.round(position),
+      });
+    } catch {
+      // Silently fail on progress save
+    }
+  };
 
   useEffect(() => {
     // Load Vimeo Player SDK
@@ -70,14 +117,15 @@ export function VideoPlayer({
 
       const player = new Player(iframeRef.current);
 
-      // Set initial position
-      if (initialPosition > 0) {
-        player.setCurrentTime(initialPosition).catch(() => {});
+      // Set initial position (from captured ref — prop changes are ignored)
+      const start = initialPositionRef.current;
+      if (start > 0) {
+        player.setCurrentTime(start).catch(() => {});
       }
 
-      // Track progress
+      // Track progress — use stable ref so we don't retrigger this effect.
       player.on("timeupdate", (data: { seconds: number; percent: number; duration: number }) => {
-        saveProgress(data.percent * 100, data.seconds);
+        saveProgressRef.current(data.percent * 100, data.seconds);
       });
 
       // Auto-next overlay on video end
@@ -121,7 +169,10 @@ export function VideoPlayer({
       script.remove();
       if (countdownTimer.current) clearInterval(countdownTimer.current);
     };
-  }, [vimeoVideoId, initialPosition, saveProgress]);
+    // Intentionally only react to vimeoVideoId changes. `initialPosition` is
+    // captured via ref to avoid remounting the player every time progress is
+    // saved (which would cause the video to visually jump back a second).
+  }, [vimeoVideoId]);
 
   function cancelAutoNext() {
     if (countdownTimer.current) clearInterval(countdownTimer.current);
@@ -146,7 +197,7 @@ export function VideoPlayer({
         />
         {!loaded && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-ink/30 text-[14px]">Video laden...</div>
+            <div className="text-ink/30 text-[14px]">{copy.videoLoading}</div>
           </div>
         )}
 
@@ -154,28 +205,28 @@ export function VideoPlayer({
           <div className="absolute inset-0 bg-ink/85 flex items-center justify-center p-8">
             <div className="text-center max-w-[480px]">
               <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-3">
-                Volgende les
+                {copy.nextLesson}
               </p>
               <h3 className="font-display text-[24px] font-black text-paper mb-2 leading-[1.1]">
                 {nextLessonTitle}
               </h3>
               <p className="text-[13px] text-paper/60 mb-6">
-                Start automatisch over{" "}
+                {copy.autoStartPrefix}{" "}
                 <span className="font-medium text-copper tabular-nums">{countdown}</span>{" "}
-                seconde{countdown !== 1 ? "n" : ""}
+                {countdown !== 1 ? copy.secondPlural : copy.secondSingular}
               </p>
               <div className="flex gap-3 justify-center">
                 <button
                   onClick={goNextNow}
                   className="bg-copper text-paper px-6 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer"
                 >
-                  Nu starten
+                  {copy.startNow}
                 </button>
                 <button
                   onClick={cancelAutoNext}
                   className="border border-paper/30 text-paper px-6 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:border-paper/60 transition-colors rounded-[2px] cursor-pointer"
                 >
-                  Annuleer
+                  {copy.cancel}
                 </button>
               </div>
             </div>

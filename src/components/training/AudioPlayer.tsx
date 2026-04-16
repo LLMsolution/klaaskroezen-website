@@ -1,11 +1,25 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { Lang } from "@/lib/i18n";
 
 type AudioPlayerProps = {
   src: string;
   initialPosition?: number;
   onProgress?: (percent: number, positionSeconds: number) => void;
+  lang?: Lang;
+};
+
+const ARIA_COPY: Record<Lang, {
+  back15: string;
+  forward15: string;
+  play: string;
+  pause: string;
+  speed: string;
+}> = {
+  nl: { back15: "15 seconden terug", forward15: "15 seconden vooruit", play: "Afspelen", pause: "Pauzeren", speed: "Snelheid" },
+  en: { back15: "Back 15 seconds", forward15: "Forward 15 seconds", play: "Play", pause: "Pause", speed: "Speed" },
+  de: { back15: "15 Sekunden zurück", forward15: "15 Sekunden vorwärts", play: "Abspielen", pause: "Pausieren", speed: "Geschwindigkeit" },
 };
 
 function formatTime(seconds: number): string {
@@ -16,7 +30,8 @@ function formatTime(seconds: number): string {
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
 
-export function AudioPlayer({ src, initialPosition = 0, onProgress }: AudioPlayerProps) {
+export function AudioPlayer({ src, initialPosition = 0, onProgress, lang = "nl" }: AudioPlayerProps) {
+  const aria = ARIA_COPY[lang];
   const audioRef = useRef<HTMLAudioElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const lastSave = useRef(0);
@@ -172,7 +187,7 @@ export function AudioPlayer({ src, initialPosition = 0, onProgress }: AudioPlaye
           type="button"
           onClick={() => skip(-15)}
           className="w-9 h-9 flex items-center justify-center text-ink/50 hover:text-ink transition-colors cursor-pointer shrink-0"
-          aria-label="15 seconden terug"
+          aria-label={aria.back15}
         >
           <SkipBackIcon />
         </button>
@@ -182,7 +197,7 @@ export function AudioPlayer({ src, initialPosition = 0, onProgress }: AudioPlaye
           type="button"
           onClick={togglePlay}
           className="w-12 h-12 rounded-full bg-copper flex items-center justify-center text-paper hover:bg-copper-light transition-colors cursor-pointer shrink-0"
-          aria-label={playing ? "Pauzeren" : "Afspelen"}
+          aria-label={playing ? aria.pause : aria.play}
         >
           {playing ? <PauseIcon /> : <PlayIcon />}
         </button>
@@ -192,7 +207,7 @@ export function AudioPlayer({ src, initialPosition = 0, onProgress }: AudioPlaye
           type="button"
           onClick={() => skip(15)}
           className="w-9 h-9 flex items-center justify-center text-ink/50 hover:text-ink transition-colors cursor-pointer shrink-0"
-          aria-label="15 seconden vooruit"
+          aria-label={aria.forward15}
         >
           <SkipForwardIcon />
         </button>

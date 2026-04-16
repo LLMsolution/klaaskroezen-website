@@ -289,6 +289,7 @@ function ChapterRow({
             src={moduleWithProgress.audioUrl}
             initialPosition={progress?.videoPosition ?? 0}
             onProgress={handleProgress}
+            lang={lang}
           />
         </div>
       )}
