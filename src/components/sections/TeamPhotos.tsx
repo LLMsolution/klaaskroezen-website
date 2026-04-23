@@ -98,10 +98,8 @@ export async function TeamPhotos({ content }: TeamPhotosProps = {}) {
         {photos.map((photo, i) => (
           <div
             key={photo.key}
-            className={`group relative overflow-hidden bg-warm cursor-default ${
-              i === 0
-                ? "sm:row-span-2 h-[280px] sm:h-[500px]"
-                : "h-[220px] sm:h-[249px]"
+            className={`group relative overflow-hidden bg-warm cursor-default aspect-[5/4] ${
+              i === 0 ? "sm:row-span-2" : "sm:aspect-[5/2]"
             }`}
           >
             <Image

@@ -135,10 +135,10 @@ const SPECS: SpecEntry[] = [
   { imageKey: "home/slideshow-slide", displayWidth: 1200, displayHeight: 1200, aspectRatio: "1:1", context: "Home hero slideshow", pageSlug: "home" },
   // Training cards — aspect-video (16:9) in 50vw col
   { imageKey: "home/training-card", displayWidth: 1180, displayHeight: 664, aspectRatio: "16:9", context: "Training card thumbnail", pageSlug: "home" },
-  // Team photos — full-width grid, 50vw col. Referentie 1440px viewport → 720px col
-  // Large sm:h-[500px] → 720x500 ≈ 1.44:1 landscape. Small sm:h-[249px] → 720x249 ≈ 2.89:1
-  { imageKey: "home/team-photo-large", displayWidth: 1440, displayHeight: 1000, aspectRatio: "~1.44:1", context: "Team foto groot (1ste, row-span-2)", pageSlug: "home" },
-  { imageKey: "home/team-photo-small", displayWidth: 1440, displayHeight: 498, aspectRatio: "~2.89:1", context: "Team foto klein", pageSlug: "home" },
+  // Team photos — full-width grid met aspect-ratio: large 5:4 (1.25:1), small sm:5:2 (2.5:1).
+  // Schaalt met viewport, spec matcht frontend exact op elk scherm. Mobile: beide 5:4 (single col)
+  { imageKey: "home/team-photo-large", displayWidth: 1200, displayHeight: 960, aspectRatio: "5:4", context: "Team foto groot (1ste, row-span-2)", pageSlug: "home" },
+  { imageKey: "home/team-photo-small", displayWidth: 1200, displayHeight: 480, aspectRatio: "5:2", context: "Team foto klein", pageSlug: "home" },
   // Logo item — h-[26px] × auto width, 2x retina
   { imageKey: "home/logo-item", displayWidth: 200, displayHeight: 52, aspectRatio: "auto", context: "Logo item (26px × auto)", pageSlug: "home" },
 ];
