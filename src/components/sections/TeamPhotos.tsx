@@ -94,14 +94,14 @@ export async function TeamPhotos({ content }: TeamPhotosProps = {}) {
           </h2>
         </FadeIn>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-rule border-t border-rule">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-rule border-t border-rule max-w-[1180px] mx-auto">
         {photos.map((photo, i) => (
           <div
             key={photo.key}
             className={`group relative overflow-hidden bg-warm cursor-default ${
               i === 0
-                ? "sm:row-span-2 h-[360px] sm:h-[700px]"
-                : "h-[280px] sm:h-[350px]"
+                ? "sm:row-span-2 h-[420px] sm:h-[708px]"
+                : "h-[280px] sm:h-[354px]"
             }`}
           >
             <Image

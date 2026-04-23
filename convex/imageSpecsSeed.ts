@@ -135,9 +135,9 @@ const SPECS: SpecEntry[] = [
   { imageKey: "home/slideshow-slide", displayWidth: 1200, displayHeight: 1200, aspectRatio: "1:1", context: "Home hero slideshow", pageSlug: "home" },
   // Training cards — aspect-video (16:9) in 50vw col
   { imageKey: "home/training-card", displayWidth: 1180, displayHeight: 664, aspectRatio: "16:9", context: "Training card thumbnail", pageSlug: "home" },
-  // Team photos — first sm:h-[700px] (2 rows), others sm:h-[350px] in 50vw col (~720px on 1440)
-  { imageKey: "home/team-photo-large", displayWidth: 1200, displayHeight: 1200, aspectRatio: "1:1", context: "Team foto groot (1ste, row-span-2)", pageSlug: "home" },
-  { imageKey: "home/team-photo-small", displayWidth: 1200, displayHeight: 600, aspectRatio: "2:1", context: "Team foto klein", pageSlug: "home" },
+  // Team photos — grid max-w-[1180px] → 590px col. Large h-[708px] (5:6 portrait), small h-[354px] (5:3)
+  { imageKey: "home/team-photo-large", displayWidth: 1180, displayHeight: 1416, aspectRatio: "5:6", context: "Team foto groot (1ste, row-span-2)", pageSlug: "home" },
+  { imageKey: "home/team-photo-small", displayWidth: 1180, displayHeight: 708, aspectRatio: "5:3", context: "Team foto klein", pageSlug: "home" },
   // Logo item — h-[26px] × auto width, 2x retina
   { imageKey: "home/logo-item", displayWidth: 200, displayHeight: 52, aspectRatio: "auto", context: "Logo item (26px × auto)", pageSlug: "home" },
 ];

@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query, mutation, action } from "./_generated/server";
+import { query, mutation, action, internalMutation } from "./_generated/server";
 import { internal, api } from "./_generated/api";
 import { requireAdmin } from "./adminAuth";
 import { langValidator } from "./schema";
@@ -301,26 +301,18 @@ export const updateSection = mutation({
       return;
     }
 
-    // Capture the pre-patch NL content so we can tell "inherited" vs "explicit override" in EN/DE
-    let oldNlContent: Record<string, unknown> = {};
-    if (lang === "nl") {
-      try { oldNlContent = JSON.parse(entry.content); } catch { /* ignore */ }
-    }
-
     await ctx.db.patch(entry._id, {
       content,
       updatedAt: Date.now(),
     });
 
-    // When saving NL, propagate image fields to EN/DE recursively. Overwrite EN/DE image only
-    // when it was inherited (equal to old NL) or empty — explicit per-language overrides stay.
+    // When saving NL, propagate every image field to EN/DE recursively.
+    // NL is leading — any per-language image override is replaced on the next NL save.
     if (lang === "nl") {
       const newNlContent = JSON.parse(content) as Record<string, unknown>;
-      const newImagePaths = collectImagePaths(newNlContent).filter(
-        (p) => p.value !== getAtPath(oldNlContent, p.path),
-      );
+      const imagePaths = collectImagePaths(newNlContent);
 
-      if (newImagePaths.length > 0) {
+      if (imagePaths.length > 0) {
         for (const otherLang of ["en", "de"] as const) {
           const otherEntry = await ctx.db
             .query("siteContent")
@@ -333,12 +325,8 @@ export const updateSection = mutation({
           try { otherContent = JSON.parse(otherEntry.content); } catch { continue; }
 
           let changed = false;
-          for (const { path, value: newVal } of newImagePaths) {
-            const otherVal = getAtPath(otherContent, path);
-            const oldNlVal = getAtPath(oldNlContent, path);
-            const isEmpty = otherVal === undefined || otherVal === null || otherVal === "";
-            const isInherited = otherVal === oldNlVal;
-            if ((isEmpty || isInherited) && setIfPathExists(otherContent, path, newVal)) {
+          for (const { path, value: newVal } of imagePaths) {
+            if (getAtPath(otherContent, path) !== newVal && setIfPathExists(otherContent, path, newVal)) {
               changed = true;
             }
           }
@@ -351,6 +339,54 @@ export const updateSection = mutation({
         }
       }
     }
+  },
+});
+
+/** One-shot resync: copy every NL image field into existing EN/DE entries. */
+export const resyncImagesFromNL = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const nlEntries = await ctx.db
+      .query("siteContent")
+      .filter((q) => q.eq(q.field("lang"), "nl"))
+      .collect();
+
+    let updatedEntries = 0;
+    let updatedFields = 0;
+    for (const nlEntry of nlEntries) {
+      let nlContent: Record<string, unknown>;
+      try { nlContent = JSON.parse(nlEntry.content); } catch { continue; }
+      const paths = collectImagePaths(nlContent);
+      if (paths.length === 0) continue;
+
+      for (const otherLang of ["en", "de"] as const) {
+        const other = await ctx.db
+          .query("siteContent")
+          .withIndex("by_page_section", (q) =>
+            q.eq("pageSlug", nlEntry.pageSlug).eq("sectionId", nlEntry.sectionId).eq("lang", otherLang),
+          )
+          .first();
+        if (!other) continue;
+        let otherContent: Record<string, unknown>;
+        try { otherContent = JSON.parse(other.content); } catch { continue; }
+
+        let changed = false;
+        for (const { path, value } of paths) {
+          if (getAtPath(otherContent, path) !== value && setIfPathExists(otherContent, path, value)) {
+            changed = true;
+            updatedFields++;
+          }
+        }
+        if (changed) {
+          await ctx.db.patch(other._id, {
+            content: JSON.stringify(otherContent),
+            updatedAt: Date.now(),
+          });
+          updatedEntries++;
+        }
+      }
+    }
+    return { updatedEntries, updatedFields };
   },
 });
 
