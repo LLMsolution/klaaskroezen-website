@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { query, mutation, action, internalMutation } from "./_generated/server";
 import { internal, api } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
 import { requireAdmin } from "./adminAuth";
 import { langValidator } from "./schema";
 import { SECTION_SCHEMAS } from "./siteSchemas";
@@ -339,6 +340,65 @@ export const updateSection = mutation({
         }
       }
     }
+  },
+});
+
+/**
+ * Restore home slideshow slides whose convex: storage reference no longer resolves.
+ * Falls back to the original static image path (per seed) matched by slide index —
+ * author text is translated per language so index is the only stable key.
+ * Idempotent — only touches slides that are actually broken.
+ */
+export const restoreBrokenHomeSlideImages = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const slideFallbacksByIndex: Array<string | undefined> = [
+      "/images/hero/sales-excellence-group.jpeg",  // 0: Simon Kornblum
+      "/images/spreker/klaas-flipchart.jpeg",       // 1: Max de Weijer
+      "/images/training/visma-youserve-session.jpg",// 2: Michael Pilarczyk
+      "/images/team/heigo-group.jpeg",               // 3: Heigo Nederland
+      "/images/hero/customer-success-group.jpg",    // 4: Mark Tigchelaar
+    ];
+
+    let restored = 0;
+    for (const lang of ["nl", "en", "de"] as const) {
+      const entry = await ctx.db
+        .query("siteContent")
+        .withIndex("by_page_section", (q) =>
+          q.eq("pageSlug", "home").eq("sectionId", "slideshow").eq("lang", lang),
+        )
+        .first();
+      if (!entry) continue;
+      let content: Record<string, unknown>;
+      try { content = JSON.parse(entry.content); } catch { continue; }
+      const slides = (content as { slides?: unknown }).slides;
+      if (!Array.isArray(slides)) continue;
+
+      let changed = false;
+      for (let i = 0; i < slides.length; i++) {
+        const slide = slides[i];
+        if (!slide || typeof slide !== "object") continue;
+        const s = slide as Record<string, unknown>;
+        const img = s.image;
+        if (typeof img !== "string" || !img.startsWith("convex:")) continue;
+        const storageId = img.slice(7) as Id<"_storage">;
+        const url = await ctx.storage.getUrl(storageId);
+        if (url) continue; // ref resolves fine
+        const fallback = slideFallbacksByIndex[i];
+        if (fallback) {
+          s.image = fallback;
+          changed = true;
+          restored++;
+        }
+      }
+      if (changed) {
+        await ctx.db.patch(entry._id, {
+          content: JSON.stringify(content),
+          updatedAt: Date.now(),
+        });
+      }
+    }
+    return { restored };
   },
 });
 
