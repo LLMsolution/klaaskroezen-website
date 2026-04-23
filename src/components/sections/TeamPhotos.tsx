@@ -100,8 +100,8 @@ export async function TeamPhotos({ content }: TeamPhotosProps = {}) {
             key={photo.key}
             className={`group relative overflow-hidden bg-warm cursor-default ${
               i === 0
-                ? "sm:row-span-2 h-[280px] sm:h-[500px]"
-                : "h-[220px] sm:h-[249px]"
+                ? "sm:row-span-2 h-[360px] sm:h-[700px]"
+                : "h-[280px] sm:h-[350px]"
             }`}
           >
             <Image

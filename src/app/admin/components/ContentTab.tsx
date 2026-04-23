@@ -8,6 +8,37 @@ import { ContentFieldRenderer } from "./ContentFieldRenderer";
 import type { FieldSchema } from "../../../../convex/siteSchemas";
 import type { Lang } from "@/lib/i18n";
 
+function isImageRef(val: unknown): val is string {
+  return typeof val === "string" && (val.startsWith("convex:") || val.startsWith("/images/"));
+}
+
+/** Walk `nl` and copy every image-ref into `target` at the same path if target is empty there. */
+function mergeImagesRecursive(target: unknown, nl: unknown): void {
+  if (!nl || typeof nl !== "object") return;
+  if (Array.isArray(nl)) {
+    if (!Array.isArray(target)) return;
+    for (let i = 0; i < Math.min(target.length, nl.length); i++) {
+      const nlItem = nl[i];
+      if (isImageRef(nlItem)) {
+        if (!target[i] || target[i] === "") target[i] = nlItem;
+      } else {
+        mergeImagesRecursive(target[i], nlItem);
+      }
+    }
+    return;
+  }
+  if (typeof target !== "object" || target === null) return;
+  const tgt = target as Record<string, unknown>;
+  for (const [key, val] of Object.entries(nl as Record<string, unknown>)) {
+    if (isImageRef(val)) {
+      if (!tgt[key] || tgt[key] === "") tgt[key] = val;
+    } else if (val && typeof val === "object") {
+      if (tgt[key] === undefined) continue;
+      mergeImagesRecursive(tgt[key], val);
+    }
+  }
+}
+
 export function ContentTab() {
   const pages = useQuery(api.siteContent.listPages);
   const [selectedSlug, setSelectedSlug] = useState<string>("");
@@ -104,18 +135,17 @@ function PageSections({ slug }: { slug: string }) {
     );
   }
 
-  /** For non-NL languages, fill empty image fields with NL values */
+  /**
+   * For non-NL languages, fill empty image fields with NL values — recursively,
+   * so nested items[].image (team-photos, slideshow, cards, logos) also inherit.
+   */
   function withNlImageFallback(sectionId: string, lang: Lang, data: Record<string, unknown>): Record<string, unknown> {
     if (lang === "nl") return data;
     const nlEntry = contentEntries?.find((e) => e.sectionId === sectionId && e.lang === "nl");
     if (!nlEntry?.parsedContent) return data;
     const nlContent = nlEntry.parsedContent as Record<string, unknown>;
-    const result = { ...data };
-    for (const [key, val] of Object.entries(nlContent)) {
-      if (typeof val === "string" && val.startsWith("convex:") && (!result[key] || result[key] === "")) {
-        result[key] = val;
-      }
-    }
+    const result = JSON.parse(JSON.stringify(data)) as Record<string, unknown>;
+    mergeImagesRecursive(result, nlContent);
     return result;
   }
 

@@ -59,14 +59,13 @@ export const getPageContent = query({
       ? entries.filter((e) => e.lang === lang)
       : entries;
 
-    // Build NL image lookup for fallback (non-NL languages inherit NL images)
-    const nlImages: Record<string, Record<string, unknown>> = {};
+    // Build NL content lookup for image fallback (non-NL languages inherit NL images)
+    const nlContent: Record<string, Record<string, unknown>> = {};
     if (lang && lang !== "nl") {
       const nlEntries = entries.filter((e) => e.lang === "nl");
       for (const entry of nlEntries) {
         try {
-          const parsed = JSON.parse(entry.content);
-          nlImages[entry.sectionId] = extractImageFields(parsed);
+          nlContent[entry.sectionId] = JSON.parse(entry.content);
         } catch { /* skip */ }
       }
     }
@@ -76,8 +75,8 @@ export const getPageContent = query({
       const key = lang ? entry.sectionId : `${entry.sectionId}_${entry.lang}`;
       try {
         const parsed = JSON.parse(entry.content);
-        // Merge NL images as fallback for empty image fields
-        const nlFallback = nlImages[entry.sectionId];
+        // Merge NL images as fallback for empty image fields (recursive over arrays/objects)
+        const nlFallback = nlContent[entry.sectionId];
         const merged = nlFallback ? mergeImageFallbacks(parsed, nlFallback) : parsed;
         result[key] = await resolveConvexUrls(ctx, merged) as Record<string, unknown>;
       } catch {
@@ -88,26 +87,88 @@ export const getPageContent = query({
   },
 });
 
-/** Extract fields that look like image refs (convex: or /images/) */
-function extractImageFields(obj: Record<string, unknown>): Record<string, unknown> {
-  const images: Record<string, unknown> = {};
-  for (const [key, val] of Object.entries(obj)) {
-    if (typeof val === "string" && (val.startsWith("convex:") || val.startsWith("/images/"))) {
-      images[key] = val;
-    }
-  }
-  return images;
+type Path = (string | number)[];
+
+function isImageRef(val: unknown): val is string {
+  return typeof val === "string" && (val.startsWith("convex:") || val.startsWith("/images/"));
 }
 
-/** Fill empty/missing image fields with NL fallback values */
+/** Walk an arbitrary object and collect every image-ref string with its path. */
+function collectImagePaths(
+  obj: unknown,
+  prefix: Path = [],
+  out: { path: Path; value: string }[] = [],
+): { path: Path; value: string }[] {
+  if (isImageRef(obj)) {
+    out.push({ path: prefix, value: obj });
+    return out;
+  }
+  if (Array.isArray(obj)) {
+    obj.forEach((item, i) => collectImagePaths(item, [...prefix, i], out));
+    return out;
+  }
+  if (obj && typeof obj === "object") {
+    for (const [k, v] of Object.entries(obj)) {
+      collectImagePaths(v, [...prefix, k], out);
+    }
+  }
+  return out;
+}
+
+function getAtPath(obj: unknown, path: Path): unknown {
+  let cur: unknown = obj;
+  for (const seg of path) {
+    if (cur === null || cur === undefined) return undefined;
+    if (typeof seg === "number") {
+      if (!Array.isArray(cur)) return undefined;
+      cur = cur[seg];
+    } else {
+      if (typeof cur !== "object") return undefined;
+      cur = (cur as Record<string, unknown>)[seg];
+    }
+  }
+  return cur;
+}
+
+/** Set value at path only if the containing structure already exists. Returns true if set. */
+function setIfPathExists(obj: unknown, path: Path, value: unknown): boolean {
+  if (path.length === 0) return false;
+  let cur: unknown = obj;
+  for (let i = 0; i < path.length - 1; i++) {
+    const seg = path[i];
+    if (typeof seg === "number") {
+      if (!Array.isArray(cur) || cur[seg] === undefined) return false;
+      cur = cur[seg];
+    } else {
+      if (typeof cur !== "object" || cur === null) return false;
+      cur = (cur as Record<string, unknown>)[seg];
+    }
+  }
+  const last = path[path.length - 1];
+  if (typeof last === "number") {
+    if (!Array.isArray(cur)) return false;
+    cur[last] = value;
+    return true;
+  }
+  if (typeof cur !== "object" || cur === null) return false;
+  (cur as Record<string, unknown>)[last] = value;
+  return true;
+}
+
+/**
+ * Fill image fields in `target` with NL values wherever `target` is empty at that path.
+ * Recurses into objects and arrays so nested items[].image works.
+ */
 function mergeImageFallbacks(
   target: Record<string, unknown>,
-  nlImages: Record<string, unknown>,
+  nl: Record<string, unknown>,
 ): Record<string, unknown> {
-  const result = { ...target };
-  for (const [key, val] of Object.entries(nlImages)) {
-    if (!result[key] || result[key] === "") {
-      result[key] = val;
+  const result: Record<string, unknown> = JSON.parse(JSON.stringify(target));
+  const nlPaths = collectImagePaths(nl);
+  for (const { path, value } of nlPaths) {
+    const cur = getAtPath(result, path);
+    if (cur === undefined || cur === null || cur === "") {
+      setIfPathExists(result, path, value);
     }
   }
   return result;
@@ -240,19 +301,26 @@ export const updateSection = mutation({
       return;
     }
 
+    // Capture the pre-patch NL content so we can tell "inherited" vs "explicit override" in EN/DE
+    let oldNlContent: Record<string, unknown> = {};
+    if (lang === "nl") {
+      try { oldNlContent = JSON.parse(entry.content); } catch { /* ignore */ }
+    }
+
     await ctx.db.patch(entry._id, {
       content,
       updatedAt: Date.now(),
     });
 
-    // When saving NL, propagate image fields to EN/DE entries that don't have their own
+    // When saving NL, propagate image fields to EN/DE recursively. Overwrite EN/DE image only
+    // when it was inherited (equal to old NL) or empty — explicit per-language overrides stay.
     if (lang === "nl") {
-      const parsed = JSON.parse(content);
-      const nlImages: Record<string, string> = {};
-      for (const [k, v] of Object.entries(parsed)) {
-        if (typeof v === "string" && v.startsWith("convex:")) nlImages[k] = v;
-      }
-      if (Object.keys(nlImages).length > 0) {
+      const newNlContent = JSON.parse(content) as Record<string, unknown>;
+      const newImagePaths = collectImagePaths(newNlContent).filter(
+        (p) => p.value !== getAtPath(oldNlContent, p.path),
+      );
+
+      if (newImagePaths.length > 0) {
         for (const otherLang of ["en", "de"] as const) {
           const otherEntry = await ctx.db
             .query("siteContent")
@@ -261,22 +329,25 @@ export const updateSection = mutation({
             )
             .first();
           if (!otherEntry) continue;
-          try {
-            const otherParsed = JSON.parse(otherEntry.content);
-            let changed = false;
-            for (const [k, v] of Object.entries(nlImages)) {
-              if (!otherParsed[k] || otherParsed[k] === "") {
-                otherParsed[k] = v;
-                changed = true;
-              }
+          let otherContent: Record<string, unknown>;
+          try { otherContent = JSON.parse(otherEntry.content); } catch { continue; }
+
+          let changed = false;
+          for (const { path, value: newVal } of newImagePaths) {
+            const otherVal = getAtPath(otherContent, path);
+            const oldNlVal = getAtPath(oldNlContent, path);
+            const isEmpty = otherVal === undefined || otherVal === null || otherVal === "";
+            const isInherited = otherVal === oldNlVal;
+            if ((isEmpty || isInherited) && setIfPathExists(otherContent, path, newVal)) {
+              changed = true;
             }
-            if (changed) {
-              await ctx.db.patch(otherEntry._id, {
-                content: JSON.stringify(otherParsed),
-                updatedAt: Date.now(),
-              });
-            }
-          } catch { /* skip unparseable entries */ }
+          }
+          if (changed) {
+            await ctx.db.patch(otherEntry._id, {
+              content: JSON.stringify(otherContent),
+              updatedAt: Date.now(),
+            });
+          }
         }
       }
     }
