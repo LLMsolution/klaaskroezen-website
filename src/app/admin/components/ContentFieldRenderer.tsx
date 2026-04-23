@@ -236,7 +236,7 @@ function ArrayField({
                     }}
                     prefix={`${fieldKey}[${idx}]`}
                     pageSlug={pageSlug}
-                    sectionId={`${sectionId}-${field.key}`}
+                    sectionId={`${sectionId}-${field.key}-${idx}`}
                   />
                 </div>
               )}

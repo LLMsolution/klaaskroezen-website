@@ -4,6 +4,33 @@ import { requireAdmin } from "./adminAuth";
 
 // ── Public queries ──
 
+/**
+ * Given a content image key, resolve which imageSpecs key to look up.
+ * Handles indexed array item keys (e.g. "home/team-photos-items-1/image") by
+ * returning item-specific specs where needed, or stripping the index and
+ * falling back to the non-indexed mapping.
+ */
+function resolveContentKeyToSpec(imageKey: string): string | undefined {
+  // Exact match first
+  const direct = CONTENT_KEY_TO_SPEC[imageKey];
+  if (direct) return direct;
+
+  // Match indexed pattern: ".../<section>-items-<N>/<field>"
+  const indexed = imageKey.match(/^(.+)-(\d+)\/([^/]+)$/);
+  if (!indexed) return undefined;
+  const [, base, idxStr, field] = indexed;
+  const idx = Number(idxStr);
+
+  // Team photos: first (index 0) is the featured row-span-2 slot (5:4),
+  // all other items render as the wider small slot (5:2)
+  if (base === "home/team-photos-items" && field === "image") {
+    return idx === 0 ? "home/team-photo-large" : "home/team-photo-small";
+  }
+
+  // Generic fallback: drop the index and try the non-indexed content key
+  return CONTENT_KEY_TO_SPEC[`${base}/${field}`];
+}
+
 /** Map of content section keys to their matching imageSpecs key */
 const CONTENT_KEY_TO_SPEC: Record<string, string> = {
   // Over-ons
@@ -46,8 +73,8 @@ export const getSpecForKey = query({
       .first();
     if (direct) return direct;
 
-    // Content key mapping: look up the real spec via the mapping
-    const mappedKey = CONTENT_KEY_TO_SPEC[imageKey];
+    // Content key mapping: look up the real spec via the mapping (incl. indexed items)
+    const mappedKey = resolveContentKeyToSpec(imageKey);
     if (mappedKey) {
       const mapped = await ctx.db
         .query("imageSpecs")
