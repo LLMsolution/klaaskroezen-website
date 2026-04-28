@@ -46,9 +46,21 @@ export function ContentTab() {
   if (pages === undefined) return <Loading />;
   if (pages.length === 0) return <EmptyState text="Geen pagina's gevonden. Draai de seed eerst." />;
 
+  const PAGE_ORDER = [
+    "home",
+    "sales-excellence-training",
+    "customer-success-training",
+    "spreker",
+    "boek",
+    "over-ons",
+    "contact",
+  ];
   const sortedPages = [...pages].sort((a, b) => {
-    if (a.slug === "home") return -1;
-    if (b.slug === "home") return 1;
+    const ai = PAGE_ORDER.indexOf(a.slug);
+    const bi = PAGE_ORDER.indexOf(b.slug);
+    if (ai !== -1 && bi !== -1) return ai - bi;
+    if (ai !== -1) return -1;
+    if (bi !== -1) return 1;
     return a.title.nl.localeCompare(b.title.nl);
   });
 
