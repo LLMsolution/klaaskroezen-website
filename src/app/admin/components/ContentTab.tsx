@@ -46,7 +46,13 @@ export function ContentTab() {
   if (pages === undefined) return <Loading />;
   if (pages.length === 0) return <EmptyState text="Geen pagina's gevonden. Draai de seed eerst." />;
 
-  const slug = selectedSlug || pages[0].slug;
+  const sortedPages = [...pages].sort((a, b) => {
+    if (a.slug === "home") return -1;
+    if (b.slug === "home") return 1;
+    return a.title.nl.localeCompare(b.title.nl);
+  });
+
+  const slug = selectedSlug || sortedPages[0].slug;
 
   return (
     <div className="space-y-6">
@@ -60,7 +66,7 @@ export function ContentTab() {
           onChange={(e) => setSelectedSlug(e.target.value)}
           className="bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px] cursor-pointer"
         >
-          {pages.map((p) => (
+          {sortedPages.map((p) => (
             <option key={p.slug} value={p.slug}>
               {p.title.nl}
             </option>

@@ -134,7 +134,7 @@ export default async function OverOnsPage() {
       {/* Mission — full width dark */}
       <section className="bg-ink border-b border-paper/[0.07]">
         <div className="grid grid-cols-1 lg:grid-cols-2">
-          <div className="flex flex-col justify-center py-16 sm:py-[110px] px-7 sm:px-10 lg:pl-[max(3.5rem,calc((100vw-1180px)/2+3.5rem))] lg:pr-16">
+          <div className="order-2 lg:order-1 flex flex-col justify-center py-16 sm:py-[110px] px-7 sm:px-10 lg:pl-[max(3.5rem,calc((100vw-1180px)/2+3.5rem))] lg:pr-16">
             <FadeIn>
             <Label className="mb-3 text-copper-light">{mission.label}</Label>
             <h2 className="font-display text-[clamp(28px,3.8vw,48px)] font-black leading-[0.97] tracking-[-0.03em] text-paper mb-6">
@@ -162,7 +162,7 @@ export default async function OverOnsPage() {
             </div>
             </FadeIn>
           </div>
-          <div className="relative aspect-[4/3] lg:aspect-[4/3] overflow-hidden">
+          <div className="order-1 lg:order-2 relative aspect-[4/3] lg:aspect-[4/3] overflow-hidden">
             <Image
               src={(mission as { image?: string }).image || imgUrl(img, "about/klaas-kroezen-portrait-2.jpeg")}
               alt={mission.imageAlt}
