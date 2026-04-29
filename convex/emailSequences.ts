@@ -91,6 +91,7 @@ export const processSequenceStep = internalAction({
 
     const stepIndex = seq.stepsSent;
     const isNl = seq.lang === "nl";
+    const lang: "nl" | "en" | "de" = seq.lang === "nl" || seq.lang === "de" ? seq.lang : "en";
 
     // Dynamic: load templates from DB, fall back to hardcoded
     const dbTemplates = await ctx.runQuery(internal.emailSequences.getSequenceTemplates, {
@@ -122,16 +123,12 @@ export const processSequenceStep = internalAction({
     if (useDb) {
       const tpl = dbTemplates[stepIndex];
       // A/B test: randomly pick variant B if active and B content exists
-      const useB = tpl.abTestActive && tpl.htmlNlB && tpl.htmlEnB && Math.random() < 0.5;
+      const useB = !!(tpl.abTestActive && tpl.htmlNlB && tpl.htmlEnB && Math.random() < 0.5);
       variant = tpl.abTestActive ? (useB ? "B" : "A") : undefined;
 
-      subject = useB
-        ? (isNl ? (tpl.subjectNlB ?? tpl.subjectNl) : (tpl.subjectEnB ?? tpl.subjectEn))
-        : (isNl ? tpl.subjectNl : tpl.subjectEn);
-      const body = useB
-        ? (isNl ? (tpl.htmlNlB ?? tpl.htmlNl) : (tpl.htmlEnB ?? tpl.htmlEn))
-        : (isNl ? tpl.htmlNl : tpl.htmlEn);
-      html = buildSequenceEmailHtml(seq, { ...tpl, template: tpl.templateKey }, isNl, body);
+      subject = pickSubject(tpl, lang, useB);
+      const body = pickBody(tpl, lang, useB);
+      html = buildSequenceEmailHtml(seq, { ...tpl, template: tpl.templateKey }, lang, body);
       templateName = tpl.templateKey;
       currentDelay = tpl.delayDays;
       if (stepIndex + 1 < dbTemplates.length) nextDelay = dbTemplates[stepIndex + 1].delayDays;
@@ -145,26 +142,22 @@ export const processSequenceStep = internalAction({
 
       if (customTemplate && customTemplate.active) {
         // A/B test on custom template
-        const useB = customTemplate.abTestActive && customTemplate.htmlNlB && customTemplate.htmlEnB && Math.random() < 0.5;
+        const useB = !!(customTemplate.abTestActive && customTemplate.htmlNlB && customTemplate.htmlEnB && Math.random() < 0.5);
         variant = customTemplate.abTestActive ? (useB ? "B" : "A") : undefined;
 
-        subject = useB
-          ? (isNl ? (customTemplate.subjectNlB ?? customTemplate.subjectNl) : (customTemplate.subjectEnB ?? customTemplate.subjectEn))
-          : (isNl ? customTemplate.subjectNl : customTemplate.subjectEn);
-        const body = useB
-          ? (isNl ? (customTemplate.htmlNlB ?? customTemplate.htmlNl) : (customTemplate.htmlEnB ?? customTemplate.htmlEn))
-          : (isNl ? customTemplate.htmlNl : customTemplate.htmlEn);
-        html = buildSequenceEmailHtml(seq, { ...step, subjectNl: customTemplate.subjectNl, subjectEn: customTemplate.subjectEn }, isNl, body);
+        subject = pickSubject(customTemplate, lang, useB);
+        const body = pickBody(customTemplate, lang, useB);
+        html = buildSequenceEmailHtml(seq, { ...step, subjectNl: customTemplate.subjectNl, subjectEn: customTemplate.subjectEn }, lang, body);
       } else {
-        subject = isNl ? step.subjectNl : step.subjectEn;
-        html = buildSequenceEmailHtml(seq, step, isNl);
+        subject = lang === "nl" ? step.subjectNl : step.subjectEn;
+        html = buildSequenceEmailHtml(seq, step, lang);
       }
       templateName = step.template;
       currentDelay = step.delayDays;
       if (stepIndex + 1 < fallbackSteps.length) nextDelay = fallbackSteps[stepIndex + 1].delayDays;
     }
 
-    // Resolve template variables ({{name}}, {{firstName}}, {{product}}, {{training}})
+    // Resolve template variables ({{name}}, {{firstName}}, {{product}}, {{training}}, {{format}}, {{downloadUrl}})
     const purchase = await ctx.runQuery(internal.emailSequences.getPurchase, { purchaseId: seq.purchaseId });
     const buyerName = purchase?.buyerEmail
       ? (await ctx.runQuery(internal.emailSequences.getContactName, { email: purchase.buyerEmail }))
@@ -173,16 +166,21 @@ export const processSequenceStep = internalAction({
       ? [buyerName.firstName, buyerName.lastName].filter(Boolean).join(" ")
       : (purchase?.buyerEmail?.split("@")[0] ?? "");
     const firstName = buyerName?.firstName ?? name.split(" ")[0] ?? "";
+    const format = formatLabel(seq.product, seq.lang);
+    const downloadUrl = `${SITE_URL}/dashboard?lang=${seq.lang}#downloads`;
 
     html = html
       .replaceAll("{{name}}", name)
       .replaceAll("{{firstName}}", firstName)
       .replaceAll("{{product}}", seq.product)
-      .replaceAll("{{training}}", seq.product);
+      .replaceAll("{{training}}", seq.product)
+      .replaceAll("{{format}}", format)
+      .replaceAll("{{downloadUrl}}", downloadUrl);
     subject = subject
       .replaceAll("{{name}}", name)
       .replaceAll("{{firstName}}", firstName)
-      .replaceAll("{{product}}", seq.product);
+      .replaceAll("{{product}}", seq.product)
+      .replaceAll("{{format}}", format);
 
     // Send via core sendEmail in emails.ts
     await ctx.runAction(internal.emails.sendEmail, {
@@ -316,27 +314,72 @@ export const scheduleNextStep = internalMutation({
 function buildSequenceEmailHtml(
   seq: { email: string; product: string; productType: string; lang: string },
   step: { template: string; subjectNl: string; subjectEn: string },
-  isNl: boolean,
+  lang: "nl" | "en" | "de",
   customBody?: string,
 ): string {
   const crossSell = seq.productType === "book" ? "training" as const : "book" as const;
+  const layoutLang: "nl" | "en" = lang === "nl" ? "nl" : "en";
 
   if (customBody) {
-    return layout(customBody, { crossSell, lang: isNl ? "nl" : "en" });
+    return layout(customBody, { crossSell, lang: layoutLang });
   }
 
-  const content = getSequenceContent(step.template, isNl);
+  const content = getSequenceContent(step.template, lang);
+  const headingText = lang === "nl" ? step.subjectNl : step.subjectEn;
+  const ctaLabel = lang === "nl"
+    ? "Ga naar mijn dashboard"
+    : lang === "de"
+      ? "Zu meinem Dashboard"
+      : "Go to my dashboard";
   return layout(`
-${heading(isNl ? step.subjectNl : step.subjectEn)}
+${heading(headingText)}
 <div style="font-size:15px;color:#444;line-height:1.8;">
   ${content}
 </div>
-${sharedCtaButton(isNl ? "Ga naar mijn dashboard" : "Go to my dashboard", `${SITE_URL}/dashboard`)}
-${paragraph(isNl ? "— Klaas" : "— Klaas")}
-`, { crossSell, lang: isNl ? "nl" : "en" });
+${sharedCtaButton(ctaLabel, `${SITE_URL}/dashboard`)}
+${paragraph("— Klaas")}
+`, { crossSell, lang: layoutLang });
 }
 
-function getSequenceContent(template: string, isNl: boolean): string {
+type TemplateLike = {
+  subjectNl: string;
+  subjectEn: string;
+  subjectDe?: string;
+  subjectNlB?: string;
+  subjectEnB?: string;
+  subjectDeB?: string;
+  htmlNl: string;
+  htmlEn: string;
+  htmlDe?: string;
+  htmlNlB?: string;
+  htmlEnB?: string;
+  htmlDeB?: string;
+};
+
+function pickSubject(tpl: TemplateLike, lang: "nl" | "en" | "de", useB: boolean | undefined): string {
+  if (useB) {
+    if (lang === "nl") return tpl.subjectNlB ?? tpl.subjectNl;
+    if (lang === "de") return tpl.subjectDeB ?? tpl.subjectDe ?? tpl.subjectEnB ?? tpl.subjectEn;
+    return tpl.subjectEnB ?? tpl.subjectEn;
+  }
+  if (lang === "nl") return tpl.subjectNl;
+  if (lang === "de") return tpl.subjectDe ?? tpl.subjectEn;
+  return tpl.subjectEn;
+}
+
+function pickBody(tpl: TemplateLike, lang: "nl" | "en" | "de", useB: boolean | undefined): string {
+  if (useB) {
+    if (lang === "nl") return tpl.htmlNlB ?? tpl.htmlNl;
+    if (lang === "de") return tpl.htmlDeB ?? tpl.htmlDe ?? tpl.htmlEnB ?? tpl.htmlEn;
+    return tpl.htmlEnB ?? tpl.htmlEn;
+  }
+  if (lang === "nl") return tpl.htmlNl;
+  if (lang === "de") return tpl.htmlDe ?? tpl.htmlEn;
+  return tpl.htmlEn;
+}
+
+function getSequenceContent(template: string, lang: "nl" | "en" | "de"): string {
+  const isNl = lang === "nl";
   const content: Record<string, { nl: string; en: string }> = {
     "training-welcome": {
       nl: `<p>Welkom bij je training! Je kunt nu inloggen en direct beginnen.</p>
@@ -399,5 +442,16 @@ function getSequenceContent(template: string, isNl: boolean): string {
   };
 
   const c = content[template];
-  return c ? (isNl ? c.nl : c.en) : "<p>—</p>";
+  if (!c) return "<p>—</p>";
+  return isNl ? c.nl : c.en;
+}
+
+/** Translate a book product slug to a human-readable format label per language. */
+function formatLabel(productSlug: string, lang: "nl" | "en" | "de"): string {
+  const map: Record<string, Record<"nl" | "en" | "de", string>> = {
+    "boek-ebook": { nl: "E-book", en: "E-book", de: "E-Book" },
+    "boek-luisterboek": { nl: "Luisterboek", en: "Audiobook", de: "Hörbuch" },
+    "boek-hardcopy": { nl: "Hardcopy", en: "Hardcover", de: "Hardcover" },
+  };
+  return map[productSlug]?.[lang] ?? "";
 }

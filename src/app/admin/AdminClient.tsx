@@ -28,6 +28,7 @@ import { LayoutEditorTab } from "./components/LayoutEditorTab";
 import { PopupTab } from "./components/PopupTab";
 import { AdSpendTab } from "./components/AdSpendTab";
 import { AccountCatalogTab } from "./components/AccountCatalogTab";
+import { DigitalFilesTab } from "./components/DigitalFilesTab";
 
 const TAB_LABELS: Record<AdminTab, string> = {
   dashboard: "Dashboard",
@@ -35,6 +36,7 @@ const TAB_LABELS: Record<AdminTab, string> = {
   audiobooks: "Luisterboeken",
   "checkout-pages": "Betaalpagina's",
   discounts: "Kortingscodes",
+  "digital-files": "Digitale bestanden",
   orders: "Bestellingen",
   invoices: "Facturen",
   experiments: "Experimenten",
@@ -136,6 +138,7 @@ export function AdminClient() {
           {activeTab === "audiobooks" && <TrainingsTab filterType="audiobook" />}
           {activeTab === "checkout-pages" && <CheckoutPagesTab />}
           {activeTab === "discounts" && <DiscountsTab />}
+          {activeTab === "digital-files" && <DigitalFilesTab />}
           {activeTab === "orders" && <OrdersTab />}
           {activeTab === "invoices" && <InvoicesTab />}
           {activeTab === "experiments" && <ExperimentsTab />}

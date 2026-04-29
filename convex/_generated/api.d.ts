@@ -43,6 +43,7 @@ import type * as crmReporting from "../crmReporting.js";
 import type * as crmScoring from "../crmScoring.js";
 import type * as crons from "../crons.js";
 import type * as cstTrainingSeed from "../cstTrainingSeed.js";
+import type * as digitalFiles from "../digitalFiles.js";
 import type * as discussions from "../discussions.js";
 import type * as emailAdmin from "../emailAdmin.js";
 import type * as emailBroadcasts from "../emailBroadcasts.js";
@@ -137,6 +138,7 @@ declare const fullApi: ApiFromModules<{
   crmScoring: typeof crmScoring;
   crons: typeof crons;
   cstTrainingSeed: typeof cstTrainingSeed;
+  digitalFiles: typeof digitalFiles;
   discussions: typeof discussions;
   emailAdmin: typeof emailAdmin;
   emailBroadcasts: typeof emailBroadcasts;

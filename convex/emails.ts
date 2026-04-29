@@ -141,12 +141,16 @@ export const sendPurchaseConfirmation = internalAction({
     const invoice = await ctx.runQuery(internal.invoices.getInvoice, { invoiceId });
     if (!invoice) return;
 
-    const isNl = invoice.lang === "nl";
-    const subject = isNl
+    const lang: "nl" | "en" | "de" =
+      invoice.lang === "nl" || invoice.lang === "de" ? invoice.lang : "en";
+    const subject = lang === "nl"
       ? `Bevestiging & Factuur ${invoice.invoiceNumber}`
-      : `Confirmation & Invoice ${invoice.invoiceNumber}`;
+      : lang === "de"
+        ? `Bestätigung & Rechnung ${invoice.invoiceNumber}`
+        : `Confirmation & Invoice ${invoice.invoiceNumber}`;
 
-    const html = buildPurchaseConfirmationHtml(invoice, isNl);
+    const purchase = await ctx.runQuery(internal.emails.getPurchaseById, { purchaseId: invoice.purchaseId });
+    const html = buildPurchaseConfirmationHtml(invoice, lang, purchase?.product);
 
     await ctx.runAction(internal.emails.sendEmail, {
       to: invoice.buyerEmail,
@@ -268,6 +272,13 @@ export const getPendingOrder = internalQuery({
   },
 });
 
+export const getPurchaseById = internalQuery({
+  args: { purchaseId: v.id("purchases") },
+  handler: async (ctx, { purchaseId }) => {
+    return await ctx.db.get(purchaseId);
+  },
+});
+
 /** Gather everything the completion email needs in one query. */
 export const getCompletionRecipient = internalQuery({
   args: { userId: v.id("users"), trainingId: v.id("trainings") },
@@ -343,8 +354,8 @@ export const initializeTemplates = internalMutation({
       { key: "training-completion", type: "training", step: 3, delay: 30, subNl: "Gefeliciteerd — je hebt het gedaan!", subEn: "Congratulations — you did it!", nl: tpl.trainingCompletionNl("{{name}}", "{{training}}"), en: tpl.trainingCompletionNl("{{name}}", "{{training}}") },
 
       // -- Book sequence --
-      { key: "book-welcome", type: "book", step: 0, delay: 0, subNl: "Je boek is onderweg!", subEn: "Your book is on its way!", nl: tpl.bookWelcomeNl("{{name}}", "{{format}}"), en: tpl.bookWelcomeNl("{{name}}", "{{format}}") },
-      { key: "book-followup", type: "book", step: 1, delay: 5, subNl: "Hoe bevalt het boek?", subEn: "How are you enjoying the book?", nl: tpl.bookFollowUpNl("{{name}}"), en: tpl.bookFollowUpNl("{{name}}") },
+      { key: "book-welcome", type: "book", step: 0, delay: 0, subNl: "Bedankt voor je bestelling!", subEn: "Thank you for your order!", subDe: "Vielen Dank für Ihre Bestellung!", nl: tpl.bookWelcomeNl("{{name}}", "{{format}}"), en: tpl.bookWelcomeEn("{{name}}", "{{format}}"), de: tpl.bookWelcomeDe("{{name}}", "{{format}}") },
+      { key: "book-followup", type: "book", step: 1, delay: 5, subNl: "Hoe bevalt het boek?", subEn: "How are you enjoying the book?", subDe: "Wie gefällt Ihnen das Buch?", nl: tpl.bookFollowUpNl("{{name}}"), en: tpl.bookFollowUpEn("{{name}}"), de: tpl.bookFollowUpDe("{{name}}") },
 
       // -- Marketing --
       { key: "marketing-bestseller", type: "marketing", step: 0, delay: 0, subNl: "#1 Bestseller — Sales, Oprecht en Ontspannen", subEn: "#1 Bestseller — Sales, Honest & Relaxed", nl: tpl.marketingBestsellerNl(), en: tpl.marketingBestsellerNl() },
@@ -355,14 +366,17 @@ export const initializeTemplates = internalMutation({
     ];
 
     for (const t of allTemplates) {
+      const tt = t as typeof t & { subDe?: string; de?: string };
       await ctx.db.insert("emailTemplates", {
         templateKey: t.key,
         sequenceType: t.type,
         stepIndex: t.step,
         subjectNl: t.subNl,
         subjectEn: t.subEn,
+        subjectDe: tt.subDe,
         htmlNl: t.nl,
         htmlEn: t.en,
+        htmlDe: tt.de,
         delayDays: t.delay,
         active: true,
         updatedAt: now,
@@ -431,8 +445,12 @@ function buildPurchaseConfirmationHtml(
     noBtw: boolean;
     purchaseId: string;
   },
-  isNl: boolean,
+  lang: "nl" | "en" | "de",
+  productSlug?: string,
 ): string {
+  const t = (s: { nl: string; en: string; de: string }) => s[lang];
+  const layoutLang: "nl" | "en" = lang === "nl" ? "nl" : "en";
+
   const lineItemsHtml = invoice.lineItems
     .map((item) => `
       <tr>
@@ -442,44 +460,85 @@ function buildPurchaseConfirmationHtml(
     .join("");
 
   const btwLine = invoice.btwReversed
-    ? `<span style="color:${COPPER};">${isNl ? "BTW verlegd" : "VAT reverse charged"}</span>`
+    ? `<span style="color:${COPPER};">${t({ nl: "BTW verlegd", en: "VAT reverse charged", de: "Umkehrung der Steuerschuldnerschaft" })}</span>`
     : invoice.noBtw
-      ? `<span style="color:rgba(14,12,10,0.4);">${isNl ? "N.v.t." : "N/A"}</span>`
+      ? `<span style="color:rgba(14,12,10,0.4);">${t({ nl: "N.v.t.", en: "N/A", de: "Entfällt" })}</span>`
       : formatEuro(invoice.totalBtwCents);
 
   const firstName = invoice.buyerName.split(" ")[0];
 
+  const dashboardUrl = `${SITE_URL}/dashboard`;
+  const downloadsUrl = `${SITE_URL}/dashboard#downloads`;
+  let bookSection = "";
+  let primaryCta: { label: string; href: string } = {
+    label: t({ nl: "Ga naar mijn dashboard", en: "Go to my dashboard", de: "Zu meinem Dashboard" }),
+    href: dashboardUrl,
+  };
+
+  if (productSlug === "boek-ebook") {
+    bookSection = paragraph(t({
+      nl: "Je <strong>e-book</strong> staat klaar in je dashboard onder Downloads — direct te lezen op computer, tablet of telefoon.",
+      en: "Your <strong>e-book</strong> is ready in your dashboard under Downloads — read it right away on your computer, tablet, or phone.",
+      de: "Ihr <strong>E-Book</strong> steht in Ihrem Dashboard unter Downloads bereit — sofort lesbar auf Computer, Tablet oder Smartphone.",
+    }));
+    primaryCta = {
+      label: t({ nl: "Download je e-book", en: "Download your e-book", de: "E-Book herunterladen" }),
+      href: downloadsUrl,
+    };
+  } else if (productSlug === "boek-luisterboek") {
+    bookSection = paragraph(t({
+      nl: "Je <strong>luisterboek</strong> vind je in je dashboard onder Trainingen — luister onderweg, tijdens het sporten of thuis op de bank.",
+      en: "Your <strong>audiobook</strong> is in your dashboard under Trainings — listen on the go, while exercising, or at home.",
+      de: "Ihr <strong>Hörbuch</strong> finden Sie in Ihrem Dashboard unter Trainings — hören Sie unterwegs, beim Sport oder zu Hause.",
+    }));
+    primaryCta = {
+      label: t({ nl: "Naar je luisterboek", en: "Go to your audiobook", de: "Zu Ihrem Hörbuch" }),
+      href: dashboardUrl,
+    };
+  } else if (productSlug === "boek-hardcopy") {
+    bookSection = paragraph(t({
+      nl: "Je <strong>fysieke boek</strong> wordt binnen 2 werkdagen verzonden naar het adres dat je hebt opgegeven. Je ontvangt een aparte mail zodra het pakket onderweg is.",
+      en: "Your <strong>physical book</strong> ships within 2 business days to the address you provided. You'll receive a separate email once it's on its way.",
+      de: "Ihr <strong>physisches Buch</strong> wird innerhalb von 2 Werktagen an die angegebene Adresse versandt. Sie erhalten eine separate E-Mail, sobald das Paket unterwegs ist.",
+    }));
+  }
+
   return layout(`
-${heading(isNl ? "Bedankt voor je bestelling!" : "Thank you for your order!")}
-${paragraph(isNl
-  ? `Hoi ${firstName}, hieronder vind je je bestelling en factuurgegevens.`
-  : `Hi ${firstName}, below you'll find your order and invoice details.`)}
+${heading(t({ nl: "Bedankt voor je bestelling!", en: "Thank you for your order!", de: "Vielen Dank für Ihre Bestellung!" }))}
+${paragraph(t({
+  nl: `Hoi ${firstName}, hieronder vind je je bestelling en factuurgegevens.`,
+  en: `Hi ${firstName}, below you'll find your order and invoice details.`,
+  de: `Hallo ${firstName}, unten finden Sie Ihre Bestellung und Rechnungsdaten.`,
+}))}
+${bookSection}
 
 <p style="font-size:11px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:rgba(14,12,10,0.4);margin:0 0 12px;">
-  ${isNl ? "Factuurnummer" : "Invoice number"}: ${invoice.invoiceNumber}
+  ${t({ nl: "Factuurnummer", en: "Invoice number", de: "Rechnungsnummer" })}: ${invoice.invoiceNumber}
 </p>
 <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
   ${lineItemsHtml}
 </table>
 <table width="100%" cellpadding="0" cellspacing="0">
   <tr>
-    <td style="font-size:13px;color:rgba(14,12,10,0.5);padding:6px 0;">${isNl ? "Subtotaal" : "Subtotal"}</td>
+    <td style="font-size:13px;color:rgba(14,12,10,0.5);padding:6px 0;">${t({ nl: "Subtotaal", en: "Subtotal", de: "Zwischensumme" })}</td>
     <td style="font-size:13px;text-align:right;padding:6px 0;">${formatEuro(invoice.subtotalCents)}</td>
   </tr>
   <tr>
-    <td style="font-size:13px;color:rgba(14,12,10,0.5);padding:6px 0;">${isNl ? "BTW" : "VAT"}</td>
+    <td style="font-size:13px;color:rgba(14,12,10,0.5);padding:6px 0;">${t({ nl: "BTW", en: "VAT", de: "MwSt." })}</td>
     <td style="font-size:13px;text-align:right;padding:6px 0;">${btwLine}</td>
   </tr>
   <tr>
-    <td style="font-size:16px;font-weight:600;padding:12px 0;border-top:2px solid #0E0C0A;">${isNl ? "Totaal" : "Total"}</td>
+    <td style="font-size:16px;font-weight:600;padding:12px 0;border-top:2px solid #0E0C0A;">${t({ nl: "Totaal", en: "Total", de: "Gesamt" })}</td>
     <td style="font-size:16px;font-weight:600;text-align:right;padding:12px 0;border-top:2px solid #0E0C0A;">${formatEuro(invoice.totalCents)}</td>
   </tr>
 </table>
-${sharedCtaButton(isNl ? "Ga naar mijn dashboard" : "Go to my dashboard", `${SITE_URL}/dashboard`)}
-${paragraph(isNl
-  ? "Vragen? Mail naar info@klaaskroezen.com — we helpen je graag."
-  : "Questions? Email info@klaaskroezen.com — we're happy to help.")}
-`, { crossSell: "general", lang: isNl ? "nl" : "en" });
+${sharedCtaButton(primaryCta.label, primaryCta.href)}
+${paragraph(t({
+  nl: "Vragen? Mail naar info@klaaskroezen.com — we helpen je graag.",
+  en: "Questions? Email info@klaaskroezen.com — we're happy to help.",
+  de: "Fragen? Schreiben Sie an info@klaaskroezen.com — wir helfen Ihnen gerne.",
+}))}
+`, { crossSell: "general", lang: layoutLang });
 }
 
 function buildAbandonedCartHtml(

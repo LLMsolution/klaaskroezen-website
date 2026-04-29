@@ -144,7 +144,9 @@ export const getRevenueBreakdown = query({
 });
 
 /**
- * List recent orders (paginated).
+ * List recent orders (paginated). Joins each purchase with its originating
+ * pendingOrder via molliePaymentId so shipping address, quantity, and company
+ * are available for the admin table and Excel/CSV exports.
  */
 export const getOrders = query({
   args: { limit: v.optional(v.number()) },
@@ -154,34 +156,56 @@ export const getOrders = query({
     const purchases = await ctx.db
       .query("purchases")
       .order("desc")
-      .take(limit ?? 50);
+      .take(limit ?? 100);
 
-    // Enrich with user info
     const enriched = [];
     for (const purchase of purchases) {
-      if (!purchase.userId) {
-        enriched.push({
-          ...purchase,
-          userName: "\u2014",
-          userEmail: (purchase as any).buyerEmail ?? "\u2014",
-        });
-        continue;
+      // Join with pendingOrder for shipping + buyer details
+      const pending = purchase.molliePaymentId
+        ? await ctx.db
+            .query("pendingOrders")
+            .withIndex("by_mollie", (q) =>
+              q.eq("molliePaymentId", purchase.molliePaymentId),
+            )
+            .first()
+        : null;
+
+      let userName: string | undefined;
+      let userEmail: string | undefined;
+      if (purchase.userId) {
+        const user = await ctx.db.get(purchase.userId);
+        userName = user?.name ?? undefined;
+        const accounts = await ctx.db
+          .query("authAccounts")
+          .filter((q) => q.eq(q.field("userId"), purchase.userId))
+          .collect();
+        userEmail = accounts.find((a) => a.providerAccountId?.includes("@"))
+          ?.providerAccountId ?? user?.email ?? undefined;
       }
-      const user = await ctx.db.get(purchase.userId);
 
-      // Get email
-      const accounts = await ctx.db
-        .query("authAccounts")
-        .filter((q) => q.eq(q.field("userId"), purchase.userId))
-        .collect();
-      const emailAccount = accounts.find(
-        (a) => a.providerAccountId?.includes("@"),
-      );
+      const firstName = pending?.firstName ?? userName?.split(" ")[0] ?? "";
+      const lastName = pending?.lastName
+        ?? userName?.split(" ").slice(1).join(" ")
+        ?? "";
 
+      const fallbackName = `${firstName} ${lastName}`.trim();
       enriched.push({
         ...purchase,
-        userName: user?.name ?? "\u2014",
-        userEmail: emailAccount?.providerAccountId ?? user?.email ?? "\u2014",
+        userName: userName ?? (fallbackName || "\u2014"),
+        userEmail: userEmail ?? purchase.buyerEmail ?? "\u2014",
+        // Shipping + invoice fields from pendingOrder snapshot
+        firstName,
+        lastName,
+        company: pending?.company ?? undefined,
+        phone: pending?.phone ?? undefined,
+        country: pending?.country ?? undefined,
+        street: pending?.street ?? undefined,
+        houseNumber: pending?.houseNumber ?? undefined,
+        houseNumberSuffix: pending?.houseNumberSuffix ?? undefined,
+        postalCode: pending?.postalCode ?? undefined,
+        city: pending?.city ?? undefined,
+        quantity: pending?.quantity ?? 1,
+        bumps: pending?.bumps ?? [],
       });
     }
 

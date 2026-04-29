@@ -347,4 +347,13 @@ export const de = {
     homeCta: "Zur Startseite",
     trainingCta: "Trainings ansehen",
   },
+
+  // ─── Cookie Consent ───
+  cookieConsent: {
+    title: "Cookies & Datenschutz",
+    description: "Wir verwenden funktionale Cookies, die für den Betrieb dieser Website erforderlich sind. Mit Ihrer Zustimmung nutzen wir auch Analytics, um die Website zu verbessern.",
+    privacyLink: "Datenschutzerklärung lesen",
+    accept: "Akzeptieren",
+    deny: "Ablehnen",
+  },
 };

@@ -66,6 +66,7 @@ export default defineSchema({
     // Shipping address (required for physical products)
     street: v.optional(v.string()),
     houseNumber: v.optional(v.string()),
+    houseNumberSuffix: v.optional(v.string()),
     postalCode: v.optional(v.string()),
     city: v.optional(v.string()),
     quantity: v.optional(v.number()),
@@ -86,6 +87,8 @@ export default defineSchema({
     // A/B testing: which experiment and variant this order belongs to
     experimentSlug: v.optional(v.string()),
     experimentVariant: v.optional(v.string()),
+    // Digital products: explicit waiver of the right of withdrawal (Wet Consumentenkoop art. 6:230o lid 3)
+    agreedDigitalWaiver: v.optional(v.boolean()),
   })
     .index("by_email", ["email"])
     .index("by_mollie", ["molliePaymentId"])
@@ -131,7 +134,11 @@ export default defineSchema({
     fileName: v.string(),
     storageId: v.id("_storage"),
     fileType: v.string(),
-  }).index("by_product", ["product"]),
+    // Language edition. Optional for backwards compatibility — undefined = default (NL).
+    lang: v.optional(langValidator),
+  })
+    .index("by_product", ["product"])
+    .index("by_product_lang", ["product", "lang"]),
 
   // ── Invoices ──
   // Generated after successful payment, sequential numbering per year

@@ -168,16 +168,40 @@ export const processSuccessfulPayment = internalMutation({
       }
     }
 
-    // 9. Handle mailing opt-in
+    // 9. Handle mailing opt-in — make sure consent is recorded even if the CRM
+    //    contact does not exist yet (e.g. a brand-new buyer whose CRM hook
+    //    hasn't run). Create a contact synchronously here so the opt-in tag
+    //    cannot be lost.
     if (order.mailingOptIn) {
+      const email = order.email.toLowerCase();
       const contact = await ctx.db.query("contacts")
-        .withIndex("by_email", (q) => q.eq("email", order.email.toLowerCase()))
+        .withIndex("by_email", (q) => q.eq("email", email))
         .first();
       if (contact) {
         const tags = contact.tags || [];
         if (!tags.includes("mailing-optin")) {
           await ctx.db.patch(contact._id, { tags: [...tags, "mailing-optin"], unsubscribed: false });
+        } else if (contact.unsubscribed) {
+          await ctx.db.patch(contact._id, { unsubscribed: false });
         }
+      } else {
+        await ctx.db.insert("contacts", {
+          email,
+          firstName: order.firstName,
+          lastName: order.lastName,
+          phone: order.phone,
+          company: order.company,
+          engagementScore: 0,
+          intentScore: 0,
+          lastActivityAt: now,
+          source: "purchase",
+          sourceDetail: order.product,
+          tags: ["mailing-optin"],
+          unsubscribed: false,
+          lang: order.lang,
+          userId: userId ?? undefined,
+          createdAt: now,
+        });
       }
     }
 

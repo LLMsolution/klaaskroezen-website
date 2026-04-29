@@ -19,7 +19,7 @@ const COPY: Record<Lang, { welcome: string; login: string; loginBody: string; lo
 export function DashboardClient({ initialLang }: { initialLang: Lang }) {
   const user = useQuery(api.users.getCurrentUser);
   const invoices = useQuery(api.users.getMyInvoices);
-  const downloads = useQuery(api.users.getMyDownloads);
+  const downloads = useQuery(api.users.getMyDownloads, { lang: initialLang });
   const { signOut } = useAuthActions();
 
   const profile = useQuery(api.users.getMyProfile);
