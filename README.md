@@ -94,6 +94,25 @@ Doorloop dit voordat je de boek-checkout (e-book / luisterboek / hardcopy) live 
 - [ ] Resend dashboard: bounce-rate < 2%
 - [ ] Vercel logs: geen onverwachte fouten op `/checkout/*` of `/api/mollie/webhook`
 
+## Vercel deployment — Convex auto-deploy
+
+Vercel draait `npm run vercel-build` als override van `npm run build`. Dat script
+deployt eerst de Convex functies en draait daarna de Next.js build, zodat
+frontend en backend altijd in sync gaan. Zonder deze setup kan een deploy
+mismatched zijn (frontend nieuw, backend oud → server errors op queries).
+
+**Eénmalige setup:**
+
+1. Open Convex dashboard → het juiste project → **Settings** → **Generate Production Deploy Key**
+2. Kopieer de deploy key (begint met `prod:...`)
+3. Vercel dashboard → het project → **Settings** → **Environment Variables**
+4. Voeg toe: `CONVEX_DEPLOY_KEY` = `<key>` met scope **Production** (én **Preview** als je previews gebruikt)
+5. Redeploy: bij de volgende push naar `main` deployt Convex automatisch mee
+
+**Verifiëren**: in de Vercel build logs zie je `Deploying convex/...` voordat de Next.js build start.
+
+**Locale builds (`npm run build`) deployen Convex NIET** — alleen Vercel doet dit via `vercel-build`. Voor handmatige prod-deploy: `npx convex deploy --prod`.
+
 ## Development
 
 ```bash
