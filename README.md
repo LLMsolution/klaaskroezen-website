@@ -111,7 +111,7 @@ mismatched zijn (frontend nieuw, backend oud → server errors op queries).
 
 **Verifiëren**: in de Vercel build logs zie je `Deploying convex/...` voordat de Next.js build start.
 
-**Locale builds (`npm run build`) deployen Convex NIET** — alleen Vercel doet dit via `vercel-build`. Voor handmatige prod-deploy: `npx convex deploy --prod`.
+**Locale builds (`npm run build`) deployen Convex NIET** — alleen Vercel doet dit via `vercel-build`. Voor handmatige prod-deploy: `npx convex deploy` (deployt standaard naar prod; geen `--prod` flag).
 
 ## Development
 
