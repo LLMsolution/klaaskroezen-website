@@ -45,7 +45,7 @@ type CatalogItem = {
 export function ProductCatalog({ lang }: { lang: Lang }) {
   const catalog = useQuery(api.accountCatalog.getForLangWithAccess, { lang });
   const myTrainings = useQuery(api.trainingProgress.getMyTrainings);
-  const myDownloads = useQuery(api.users.getMyDownloads);
+  const myDownloads = useQuery(api.users.getMyDownloads, { lang });
   const copy = COPY[lang];
 
   if (catalog === undefined) return null;

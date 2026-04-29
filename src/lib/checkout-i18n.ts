@@ -123,6 +123,10 @@ const translations = {
     termsLink: "algemene voorwaarden",
     agreeTermsRequired: "Je moet akkoord gaan met de algemene voorwaarden",
     mailingOptIn: "Ja, houd me op de hoogte van tips en aanbiedingen",
+    digitalWaiver: "Ik bevestig dat ik per direct toegang wil tot dit digitale product en ga ermee akkoord dat mijn herroepingsrecht hiermee vervalt.",
+    digitalWaiverRequired: "Bevestig dat je per direct toegang wilt",
+    nlOnlyShipping: "Verzending alleen binnen Nederland — neem contact op voor andere landen.",
+    invalidPostalCode: "Voer een geldige Nederlandse postcode in (bijv. 1234 AB).",
 
     // Errors
     required: "Dit veld is verplicht",
@@ -261,6 +265,10 @@ const translations = {
     termsLink: "terms and conditions",
     agreeTermsRequired: "You must agree to the terms and conditions",
     mailingOptIn: "Yes, keep me updated with tips and offers",
+    digitalWaiver: "I confirm that I want immediate access to this digital product and agree that my right of withdrawal expires.",
+    digitalWaiverRequired: "Confirm that you want immediate access",
+    nlOnlyShipping: "Shipping is only available within the Netherlands — please contact us for other countries.",
+    invalidPostalCode: "Please enter a valid Dutch postal code (e.g. 1234 AB).",
 
     required: "This field is required",
     invalidEmail: "Please enter a valid email address",
@@ -397,6 +405,10 @@ const translations = {
     termsLink: "Allgemeinen Gesch\u00e4ftsbedingungen zu",
     agreeTermsRequired: "Sie m\u00fcssen den Allgemeinen Gesch\u00e4ftsbedingungen zustimmen",
     mailingOptIn: "Ja, halten Sie mich mit Tipps und Angeboten auf dem Laufenden",
+    digitalWaiver: "Ich best\u00e4tige, dass ich sofortigen Zugang zu diesem digitalen Produkt m\u00f6chte, und stimme zu, dass mein Widerrufsrecht damit erlischt.",
+    digitalWaiverRequired: "Best\u00e4tigen Sie, dass Sie sofortigen Zugang w\u00fcnschen",
+    nlOnlyShipping: "Versand nur innerhalb der Niederlande \u2014 bitte kontaktieren Sie uns f\u00fcr andere L\u00e4nder.",
+    invalidPostalCode: "Bitte geben Sie eine g\u00fcltige niederl\u00e4ndische Postleitzahl ein (z.B. 1234 AB).",
 
     required: "Dieses Feld ist erforderlich",
     invalidEmail: "Bitte geben Sie eine g\u00fcltige E-Mail-Adresse ein",

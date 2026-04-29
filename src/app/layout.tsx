@@ -1,13 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Analytics } from "@vercel/analytics/next";
 import { playfair, dmSans } from "@/lib/fonts";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { CookieConsent } from "@/components/layout/CookieConsent";
 import { JsonLd, organizationJsonLd } from "@/components/seo/JsonLd";
 import { SITE_URL } from "@/lib/site-config";
 import { ConvexProvider } from "@/components/providers/ConvexProvider";
+import { AnalyticsConsent } from "@/components/providers/AnalyticsConsent";
 import { BookPopup } from "@/components/ui/BookPopup";
 import { getLocale } from "@/lib/i18n/server";
 import "./globals.css";
@@ -67,8 +67,8 @@ export default async function RootLayout({
             <BookPopup lang={lang} />
             <main id="main-content" className="flex-1">{children}</main>
             <Footer lang={lang} />
-            <SpeedInsights />
-            <Analytics />
+            <CookieConsent lang={lang} />
+            <AnalyticsConsent />
           </ConvexProvider>
         </body>
       </html>

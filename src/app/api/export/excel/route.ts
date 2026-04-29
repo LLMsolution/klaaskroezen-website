@@ -1,18 +1,36 @@
 import { NextResponse } from "next/server";
 import ExcelJS from "exceljs";
+import { formatInitials, parseQuantity, splitHouseNumber } from "@/lib/order-formatting";
 
 type OrderRow = {
-  company: string;
+  company?: string;
   firstName: string;
   lastName: string;
-  street: string;
-  houseNumber: string;
-  postalCode: string;
-  city: string;
-  countryCode: string;
+  street?: string;
+  houseNumber?: string;
+  houseNumberSuffix?: string;
+  postalCode?: string;
+  city?: string;
+  countryCode?: string;
   email: string;
   quantity: number;
 };
+
+const HEADERS: { label: string; width: number }[] = [
+  { label: "Bedrijfsnaam", width: 25 },
+  { label: "Bedrijfsnaam2", width: 15 },
+  { label: "Afdeling", width: 15 },
+  { label: "Geslacht", width: 10 },
+  { label: "Voorletters", width: 12 },
+  { label: "Achternaam", width: 20 },
+  { label: "Postadres", width: 30 },
+  { label: "Huisnummer", width: 12 },
+  { label: "Huisnummertoevoeging", width: 18 },
+  { label: "Postcode", width: 10 },
+  { label: "Plaats", width: 20 },
+  { label: "Landcode", width: 10 },
+  { label: "Emailadres", width: 30 },
+];
 
 export async function POST(request: Request) {
   const { orders } = (await request.json()) as { orders: OrderRow[] };
@@ -23,54 +41,48 @@ export async function POST(request: Request) {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Verzendadressen");
 
-  // Header row
-  const headers = ["Bedrijfsnaam", "Voorletters", "Achternaam", "Postadres", "Huisnummer", "Postcode", "Plaats", "Landcode", "Emailadres"];
-  const headerRow = ws.addRow(headers);
+  ws.columns = HEADERS.map((h) => ({ header: h.label, width: h.width }));
+  const headerRow = ws.getRow(1);
   headerRow.eachCell((cell) => {
     cell.font = { bold: true, size: 10 };
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE8E4DF" } };
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE0E0E0" } };
     cell.border = { bottom: { style: "thin", color: { argb: "FFB5622A" } } };
   });
 
-  // Expand rows by quantity (1 row per book to ship)
   for (const order of orders) {
-    const initials = order.firstName
-      .split(/[\s-]+/)
-      .map((w) => w.charAt(0).toUpperCase() + ".")
-      .join("");
+    const split = splitHouseNumber(order.houseNumber);
+    const suffix = (order.houseNumberSuffix?.trim() || split.suffix).trim();
+    const number = split.number;
+    const initials = formatInitials(order.firstName);
+    const country = order.countryCode || "NL";
+    const rowCount = Math.max(1, parseQuantity(order.quantity));
 
-    const rowCount = Math.max(1, order.quantity);
     for (let i = 0; i < rowCount; i++) {
       ws.addRow([
         order.company || "",
+        "", // Bedrijfsnaam2
+        "", // Afdeling
+        "", // Geslacht
         initials,
         order.lastName,
-        order.street,
-        order.houseNumber,
-        order.postalCode,
-        order.city,
-        order.countryCode,
+        order.street || "",
+        number,
+        suffix,
+        order.postalCode || "",
+        order.city || "",
+        country,
         order.email,
       ]);
     }
   }
 
-  // Auto-width columns
-  ws.columns.forEach((col) => {
-    let maxLen = 10;
-    col.eachCell?.({ includeEmpty: false }, (cell) => {
-      const len = String(cell.value).length;
-      if (len > maxLen) maxLen = len;
-    });
-    col.width = Math.min(maxLen + 2, 40);
-  });
-
   const buffer = await wb.xlsx.writeBuffer();
+  const today = new Date().toISOString().slice(0, 10);
 
   return new NextResponse(buffer as ArrayBuffer, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="verzendadressen-${new Date().toISOString().slice(0, 10)}.xlsx"`,
+      "Content-Disposition": `attachment; filename="verzendadressen_${today}.xlsx"`,
     },
   });
 }

@@ -25,6 +25,7 @@ export const saveDraft = mutation({
     vatNumber: v.optional(v.string()),
     street: v.optional(v.string()),
     houseNumber: v.optional(v.string()),
+    houseNumberSuffix: v.optional(v.string()),
     postalCode: v.optional(v.string()),
     city: v.optional(v.string()),
     quantity: v.optional(v.number()),
@@ -58,6 +59,7 @@ export const saveDraft = mutation({
         vatNumber: args.vatNumber,
         street: args.street,
         houseNumber: args.houseNumber,
+        houseNumberSuffix: args.houseNumberSuffix,
         postalCode: args.postalCode,
         city: args.city,
         quantity: args.quantity,
@@ -124,6 +126,7 @@ export const createPendingOrder = mutation({
     vatNumber: v.optional(v.string()),
     street: v.optional(v.string()),
     houseNumber: v.optional(v.string()),
+    houseNumberSuffix: v.optional(v.string()),
     postalCode: v.optional(v.string()),
     city: v.optional(v.string()),
     quantity: v.optional(v.number()),
@@ -135,6 +138,7 @@ export const createPendingOrder = mutation({
     bookLang: v.optional(langValidator),
     experimentSlug: v.optional(v.string()),
     experimentVariant: v.optional(v.string()),
+    agreedDigitalWaiver: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     // Rate limit by email
@@ -170,6 +174,7 @@ export const createPendingOrder = mutation({
         vatNumber: args.vatNumber,
         street: args.street,
         houseNumber: args.houseNumber,
+        houseNumberSuffix: args.houseNumberSuffix,
         postalCode: args.postalCode,
         city: args.city,
         quantity: args.quantity,
@@ -181,6 +186,7 @@ export const createPendingOrder = mutation({
         bookLang: args.bookLang,
         experimentSlug: args.experimentSlug,
         experimentVariant: args.experimentVariant,
+        agreedDigitalWaiver: args.agreedDigitalWaiver,
       });
       return existing._id;
     }

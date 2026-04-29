@@ -44,6 +44,8 @@ interface Props {
   setPostalCode: (v: string) => void;
   city: string;
   setCity: (v: string) => void;
+  // Validation
+  postalError?: boolean;
   // Extras
   selectedBumps: string[];
   onToggleBump: (slug: string) => void;
@@ -86,6 +88,7 @@ export function CheckoutForm(props: Props) {
     country, setCountry,
     isBusiness, setIsBusiness, company, setCompany, companyWebsite, setCompanyWebsite, vatNumber, setVatNumber,
     street, setStreet, houseNumber, setHouseNumber, postalCode, setPostalCode, city, setCity,
+    postalError,
     selectedBumps, onToggleBump,
     useInstallments, setUseInstallments,
     discountCode, setDiscountCode, discountOpen, setDiscountOpen,
@@ -134,20 +137,23 @@ export function CheckoutForm(props: Props) {
         <input id="phone" name="phone" autoComplete="tel" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder={i18n.phonePlaceholder} className={fieldClass(phone)} />
       </div>
 
-      {/* Country */}
-      <div>
-        <label htmlFor="country" className={labelClass}>{i18n.country}</label>
-        <select id="country" name="country" autoComplete="country" value={country} onChange={(e) => setCountry(e.target.value)} className={selectFieldClass(country)}>
-          {Object.entries(i18n.countries).map(([code, name]) => (
-            <option key={code} value={code}>{name}</option>
-          ))}
-        </select>
-      </div>
+      {/* Country — hidden when shipping is required (NL-only) */}
+      {!needsShipping && (
+        <div>
+          <label htmlFor="country" className={labelClass}>{i18n.country}</label>
+          <select id="country" name="country" autoComplete="country" value={country} onChange={(e) => setCountry(e.target.value)} className={selectFieldClass(country)}>
+            {Object.entries(i18n.countries).map(([code, name]) => (
+              <option key={code} value={code}>{name}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
-      {/* Shipping address */}
+      {/* Shipping address — NL-only */}
       {needsShipping && (
         <div className="space-y-4">
           <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper">{i18n.shippingAddress}</p>
+          <p className="text-[12px] text-ink/50 -mt-2">{i18n.nlOnlyShipping}</p>
           <div className="grid grid-cols-[1fr_100px] gap-3">
             <div>
               <label htmlFor="street" className={labelClass}>{i18n.street}</label>
@@ -161,12 +167,33 @@ export function CheckoutForm(props: Props) {
           <div className="grid grid-cols-[140px_1fr] gap-3">
             <div>
               <label htmlFor="postalCode" className={labelClass}>{i18n.postalCode}</label>
-              <input id="postalCode" name="postalCode" autoComplete="postal-code" type="text" required value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder={i18n.postalCodePlaceholder} className={fieldClass(postalCode)} />
+              <input
+                id="postalCode"
+                name="postalCode"
+                autoComplete="postal-code"
+                type="text"
+                required
+                value={postalCode}
+                onChange={(e) => setPostalCode(e.target.value)}
+                placeholder={i18n.postalCodePlaceholder}
+                className={`${fieldClass(postalCode)} ${postalError ? "border-red-400" : ""}`}
+              />
+              {postalError && <p className="text-[12px] text-red-500 mt-1">{i18n.invalidPostalCode}</p>}
             </div>
             <div>
               <label htmlFor="city" className={labelClass}>{i18n.city}</label>
               <input id="city" name="city" autoComplete="address-level2" type="text" required value={city} onChange={(e) => setCity(e.target.value)} placeholder={i18n.cityPlaceholder} className={fieldClass(city)} />
             </div>
+          </div>
+          <div>
+            <label className={labelClass}>{i18n.country}</label>
+            <input
+              type="text"
+              value={i18n.countries.NL}
+              readOnly
+              aria-readonly
+              className={`${baseInput} bg-warm/30 border-warm cursor-not-allowed text-ink/70`}
+            />
           </div>
         </div>
       )}

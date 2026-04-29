@@ -13,6 +13,7 @@ type Order = {
   email: string;
   street?: string;
   houseNumber?: string;
+  houseNumberSuffix?: string;
   postalCode?: string;
   city?: string;
   countryCode?: string;
@@ -38,6 +39,7 @@ export function ExportButtons({ orders }: { orders: Order[] }) {
             lastName: o.lastName,
             street: o.street ?? "",
             houseNumber: o.houseNumber ?? "",
+            houseNumberSuffix: o.houseNumberSuffix ?? "",
             postalCode: o.postalCode ?? "",
             city: o.city ?? "",
             countryCode: o.countryCode ?? "NL",

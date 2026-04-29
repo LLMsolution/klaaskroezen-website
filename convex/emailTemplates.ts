@@ -6,7 +6,7 @@
 
 import {
   heading, subheading, paragraph, ctaButton, divider,
-  signature, signatureEn, quote, featureList,
+  signature, signatureEn, signatureDe, quote, featureList,
   COPPER, BOOK_COVER_URL, SITE_URL,
   type CrossSellContext,
 } from "./emailHelpers";
@@ -223,7 +223,7 @@ export function bookWelcomeNl(name: string, format: string): string {
   return `
 ${heading("Je boek is onderweg!")}
 ${paragraph(`Hoi ${name},`)}
-${paragraph(`Bedankt voor het bestellen van <strong>Sales, Oprecht en Ontspannen</strong> (${format}). ${format === "Hard Copy" ? "Je boek wordt binnen 1-2 werkdagen bezorgd met gratis verzending." : "Je download staat klaar in je dashboard."}`)}
+${paragraph(`Bedankt voor het bestellen van <strong>Sales, Oprecht en Ontspannen</strong> (${format}). Alles wat je nodig hebt staat klaar in je dashboard — voor digitale producten direct, voor het fysieke boek met verzendinformatie.`)}
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 24px auto; text-align: center;">
 <tr><td>
   <img src="${BOOK_COVER_URL}" alt="Sales, Oprecht en Ontspannen" width="160" style="display: block; margin: 0 auto; border-radius: 2px;" />
@@ -234,6 +234,42 @@ ${subheading("Leestip")}
 ${paragraph("Begin bij het Voorwoord en de Introductie. Ik leg daar uit waarom deze aanpak werkt en wat je kunt verwachten. Daarna kun je de hoofdstukken op volgorde doorlopen, of direct naar het onderwerp springen dat je het meest aanspreekt.")}
 ${ctaButton("Ga naar je dashboard", `${SITE_URL}/dashboard`)}
 ${signature()}
+`;
+}
+
+export function bookWelcomeEn(name: string, format: string): string {
+  return `
+${heading("Thank you for your order!")}
+${paragraph(`Hi ${name},`)}
+${paragraph(`Thank you for ordering <strong>Sales, Honest & Relaxed</strong> (${format}). Everything you need is ready in your dashboard — digital products are available immediately, the physical book ships within 2 business days.`)}
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin: 24px auto; text-align: center;">
+<tr><td>
+  <img src="${BOOK_COVER_URL}" alt="Sales, Honest & Relaxed" width="160" style="display: block; margin: 0 auto; border-radius: 2px;" />
+</td></tr>
+</table>
+${paragraph("I wrote this book because I believe sales is one of the most beautiful professions in the world — provided you do it in a way that feels right.")}
+${subheading("Reading tip")}
+${paragraph("Start with the foreword and introduction. There I explain why this approach works and what to expect. After that, you can read the chapters in order, or jump straight to the topic that resonates most with you.")}
+${ctaButton("Go to your dashboard", `${SITE_URL}/dashboard`)}
+${signatureEn()}
+`;
+}
+
+export function bookWelcomeDe(name: string, format: string): string {
+  return `
+${heading("Vielen Dank für Ihre Bestellung!")}
+${paragraph(`Hallo ${name},`)}
+${paragraph(`Vielen Dank für Ihre Bestellung von <strong>Sales, Oprecht & Ontspannen</strong> (${format}). Alles, was Sie brauchen, steht in Ihrem Dashboard bereit — digitale Produkte sofort verfügbar, das physische Buch wird innerhalb von 2 Werktagen versandt.`)}
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin: 24px auto; text-align: center;">
+<tr><td>
+  <img src="${BOOK_COVER_URL}" alt="Sales, Oprecht & Ontspannen" width="160" style="display: block; margin: 0 auto; border-radius: 2px;" />
+</td></tr>
+</table>
+${paragraph("Ich habe dieses Buch geschrieben, weil ich glaube, dass Vertrieb einer der schönsten Berufe der Welt ist — vorausgesetzt, man macht es auf eine Weise, die sich richtig anfühlt.")}
+${subheading("Lesetipp")}
+${paragraph("Beginnen Sie mit dem Vorwort und der Einleitung. Dort erkläre ich, warum dieser Ansatz funktioniert und was Sie erwartet. Anschließend können Sie die Kapitel der Reihe nach lesen oder direkt zu dem Thema springen, das Sie am meisten anspricht.")}
+${ctaButton("Zu Ihrem Dashboard", `${SITE_URL}/dashboard`)}
+${signatureDe()}
 `;
 }
 
@@ -252,6 +288,42 @@ ${paragraph("En als het boek je bevalt — een korte review op <a href='https://
 ${ctaButton("Bekijk de training", `${SITE_URL}/sales-excellence-training`)}
 ${paragraph("Van boek naar praktijk — de Sales Excellence Training bouwt verder op dezelfde methode, met persoonlijke begeleiding.")}
 ${signature()}
+`;
+}
+
+export function bookFollowUpEn(name: string): string {
+  return `
+${heading("How is the book treating you?")}
+${paragraph(`Hi ${name},`)}
+${paragraph("You've had a few days with <strong>Sales, Honest & Relaxed</strong>. I'm curious — have you had an insight you were able to apply right away?")}
+${quote("Selling shouldn't feel awkward. It should be something you do with pleasure and pride. Because it helps. Because it's right.")}
+${paragraph("Two things I'd like to share with you:")}
+${featureList([
+  "<strong>Share it.</strong> Know someone who should read this too? The book works best when your team speaks the same language.",
+  "<strong>Apply it.</strong> Pick one principle from the book and apply it in a conversation this week. Just one. That's all.",
+])}
+${paragraph("And if you enjoyed the book — a short review on <a href='https://www.managementboek.nl/boek/9789090409740' style='color: " + COPPER + ";'>Managementboek.nl</a> helps a lot to reach others.")}
+${ctaButton("Explore the training", `${SITE_URL}/sales-excellence-training`)}
+${paragraph("From book to practice — the Sales Excellence Training builds on the same method with personal guidance.")}
+${signatureEn()}
+`;
+}
+
+export function bookFollowUpDe(name: string): string {
+  return `
+${heading("Wie gefällt Ihnen das Buch?")}
+${paragraph(`Hallo ${name},`)}
+${paragraph("Sie haben jetzt ein paar Tage mit <strong>Sales, Oprecht & Ontspannen</strong> verbracht. Mich interessiert: Hatten Sie schon eine Erkenntnis, die Sie direkt anwenden konnten?")}
+${quote("Verkaufen sollte sich nicht unangenehm anfühlen. Es sollte etwas sein, das Sie mit Freude und Stolz tun. Weil es hilft. Weil es richtig ist.")}
+${paragraph("Zwei Dinge, die ich Ihnen mitgeben möchte:")}
+${featureList([
+  "<strong>Teilen Sie es.</strong> Kennen Sie jemanden, der das auch lesen sollte? Das Buch wirkt am besten, wenn Ihr Team dieselbe Sprache spricht.",
+  "<strong>Wenden Sie es an.</strong> Wählen Sie ein Prinzip aus dem Buch und wenden Sie es diese Woche in einem Gespräch an. Eins. Mehr braucht es nicht.",
+])}
+${paragraph("Und wenn Ihnen das Buch gefällt — eine kurze Rezension auf <a href='https://www.managementboek.nl/boek/9789090409740' style='color: " + COPPER + ";'>Managementboek.nl</a> hilft enorm, andere zu erreichen.")}
+${ctaButton("Training entdecken", `${SITE_URL}/sales-excellence-training`)}
+${paragraph("Vom Buch zur Praxis — das Sales Excellence Training baut mit persönlicher Begleitung auf derselben Methode auf.")}
+${signatureDe()}
 `;
 }
 

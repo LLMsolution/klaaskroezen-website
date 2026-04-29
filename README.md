@@ -52,6 +52,48 @@ Nieuwe website voor [klaaskroezen.com](https://www.klaaskroezen.com). Vervangt d
 
 Zie [AANPAK.md](AANPAK.md) voor het volledige migratieplan met alle fases.
 
+## Go-Live Checklist — Boek Checkout
+
+Doorloop dit voordat je de boek-checkout (e-book / luisterboek / hardcopy) live zet.
+
+### Convex environment
+
+- [ ] `MOLLIE_API_KEY` switchen van `test_*` naar `live_*` (`npx convex env set MOLLIE_API_KEY live_xxxxxxxx`)
+- [ ] `SITE_URL` zetten op `https://klaaskroezen.nl` (`npx convex env set SITE_URL https://klaaskroezen.nl`)
+- [ ] `MOLLIE_WEBHOOK_URL` (indien handmatig gezet) updaten naar productie-URL
+- [ ] `RESEND_API_KEY` is een live key
+- [ ] Resend domein `klaaskroezen.nl` is geverifieerd (DKIM/SPF) en het `from`-adres is omgezet naar `info@klaaskroezen.nl`
+
+### Admin & content
+
+- [ ] Per taal (NL/EN/DE) is een EPUB/PDF geüpload via Admin → Producten → Digitale bestanden voor `boek-ebook`
+- [ ] Per taal (NL/EN/DE) is een audiofile geüpload of de audiobook-training in Admin gepubliceerd
+- [ ] Audiobook-training heeft `linkedProducts: ["boek-luisterboek"]` zodat luisterboek-kopers automatisch toegang krijgen
+- [ ] Account catalog heeft entries voor `boek-ebook` (download), `boek-luisterboek` (audiobook + linkedTrainingSlug) en `boek-hardcopy` (physical)
+
+### Juridisch & privacy
+
+- [ ] Algemene Voorwaarden en Privacystatement zijn door een Nederlandse jurist gereviewd; concept-banner verwijderd
+- [ ] Cookie-banner verschijnt in incognito op `klaaskroezen.nl`
+- [ ] Klik &ldquo;Weiger&rdquo; → DevTools Network: geen requests naar `_vercel/insights` / `va.vercel-scripts.com`
+- [ ] Klik &ldquo;Accepteer&rdquo; na reset → analytics laadt
+- [ ] Herroepingsrecht-checkbox is verplicht op `/checkout/boek-ebook` en `/checkout/boek-luisterboek`, niet zichtbaar op `/checkout/boek-hardcopy`
+- [ ] Adresvalidatie blokkeert niet-NL postcodes op hardcopy
+
+### End-to-end test (live key, ~€1 testbedrag)
+
+- [ ] `boek-ebook` test-order → Mollie redirect → bedankt-pagina toont download CTA → mail bevat downloadlink → dashboard toont NL-bestand
+- [ ] `boek-luisterboek` test-order → bedankt-pagina linkt naar dashboard → audiobook-training is bereikbaar zonder paywall
+- [ ] `boek-hardcopy` test-order → adres NL-only → bedankt-pagina toont verzendinfo → admin Bestellingen toont order met adres
+- [ ] Bevestigingsmail bevat geen `{{...}}` placeholders en de juiste `{{format}}` substitutie
+- [ ] Newsletter opt-in: maak een nieuwe order met opt-in checkbox aan; controleer in Admin → CRM dat het contact bestaat met tag `mailing-optin`
+
+### Monitoring na go-live
+
+- [ ] Mollie dashboard: webhook events komen door (geen 5xx-fouten)
+- [ ] Resend dashboard: bounce-rate < 2%
+- [ ] Vercel logs: geen onverwachte fouten op `/checkout/*` of `/api/mollie/webhook`
+
 ## Development
 
 ```bash

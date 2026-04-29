@@ -6,6 +6,7 @@ type Tab =
   | "audiobooks"
   | "checkout-pages"
   | "discounts"
+  | "digital-files"
   | "orders"
   | "invoices"
   | "experiments"
@@ -56,6 +57,7 @@ const NAV: SectionOrItem[] = [
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M4 12V6a4 4 0 018 0v6" /><path d="M4 10v2a1 1 0 01-1 1H2v-4h1a1 1 0 011 1zM12 10v2a1 1 0 001 1h1v-4h-1a1 1 0 00-1 1z" /></svg>
     )},
     { key: "checkout-pages", label: "Betaalpagina's", icon: I("M2 2h12v12H2zM2 6h12M6 6v8") },
+    { key: "digital-files", label: "Digitale bestanden", icon: I("M3 2h7l3 3v9H3zM10 2v3h3M5 8h6M5 11h6") },
     { key: "account-catalog", label: "Mijn account", icon: I("M8 8a3 3 0 100-6 3 3 0 000 6zM2 14c0-2.2 2.7-4 6-4s6 1.8 6 4") },
     { key: "discounts", label: "Kortingscodes", icon: (
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M4 12l8-8" /><circle cx="5" cy="5" r="1.5" /><circle cx="11" cy="11" r="1.5" /></svg>

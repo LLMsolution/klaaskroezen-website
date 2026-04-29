@@ -347,4 +347,13 @@ export const nl = {
     homeCta: "Naar homepage",
     trainingCta: "Bekijk trainingen",
   },
+
+  // ─── Cookie Consent ───
+  cookieConsent: {
+    title: "Cookies & privacy",
+    description: "We gebruiken functionele cookies die nodig zijn voor de werking van deze site. Met jouw toestemming gebruiken we ook analytics om de site te verbeteren.",
+    privacyLink: "Lees ons privacystatement",
+    accept: "Accepteren",
+    deny: "Weigeren",
+  },
 };

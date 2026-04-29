@@ -347,4 +347,13 @@ export const en = {
     homeCta: "Go to homepage",
     trainingCta: "View trainings",
   },
+
+  // ─── Cookie Consent ───
+  cookieConsent: {
+    title: "Cookies & privacy",
+    description: "We use functional cookies needed for the site to work. With your consent we also use analytics to improve the site.",
+    privacyLink: "Read our privacy statement",
+    accept: "Accept",
+    deny: "Deny",
+  },
 };

@@ -69,6 +69,9 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [mailingOptIn, setMailingOptIn] = useState(false);
   const [termsError, setTermsError] = useState(false);
+  const [agreedDigitalWaiver, setAgreedDigitalWaiver] = useState(false);
+  const [waiverError, setWaiverError] = useState(false);
+  const [postalError, setPostalError] = useState(false);
   const [payingMethod, setPayingMethod] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [quantity, setQuantity] = useState(1);
@@ -255,12 +258,23 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
   // Dynamic shipping: main product OR any selected bump requires shipping
   const needsShipping = !!(product?.requiresShipping ||
     bumps.some(b => selectedBumps.includes(b.slug) && b.requiresShipping));
+  // Digital book products: e-book and audiobook → require explicit waiver of right of withdrawal
+  const requiresDigitalWaiver = product?.type === "book" && !needsShipping;
+  // NL postcode regex: 4 digits + optional space + 2 letters
+  const NL_POSTCODE_REGEX = /^\d{4}\s?[A-Za-z]{2}$/;
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setTermsError(false);
+    setWaiverError(false);
+    setPostalError(false);
 
     if (!agreedTerms) { setTermsError(true); return; }
+    if (requiresDigitalWaiver && !agreedDigitalWaiver) { setWaiverError(true); return; }
+    if (needsShipping && !NL_POSTCODE_REGEX.test(postalCode.trim())) {
+      setPostalError(true);
+      return;
+    }
 
     setPayingMethod(selectedMethod);
 
@@ -278,7 +292,9 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
       const orderId = await createPendingOrder({
         email, firstName, lastName,
         phone: phone || undefined,
-        product: productSlug, country, lang, isBusiness,
+        product: productSlug,
+        country: needsShipping ? "NL" : country,
+        lang, isBusiness,
         company: isBusiness ? company : undefined,
         companyWebsite: isBusiness && companyWebsite ? companyWebsite : undefined,
         vatNumber: isBusiness ? vatNumber : undefined,
@@ -295,6 +311,7 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
         bookLang: isBook ? bookLang : undefined,
         experimentSlug: experimentSlug || undefined,
         experimentVariant: experimentVariant || undefined,
+        agreedDigitalWaiver: requiresDigitalWaiver ? agreedDigitalWaiver : undefined,
       });
 
       // Free order (100% discount): skip Mollie, process directly, go to login
@@ -459,8 +476,9 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
               vatNumber={vatNumber} setVatNumber={setVatNumber}
               street={street} setStreet={setStreet}
               houseNumber={houseNumber} setHouseNumber={setHouseNumber}
-              postalCode={postalCode} setPostalCode={setPostalCode}
+              postalCode={postalCode} setPostalCode={(v) => { setPostalCode(v); setPostalError(false); }}
               city={city} setCity={setCity}
+              postalError={postalError}
               selectedBumps={selectedBumps} onToggleBump={toggleBump}
               useInstallments={useInstallments} setUseInstallments={setUseInstallments}
               discountCode={discountCode} setDiscountCode={setDiscountCode}
@@ -506,7 +524,7 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
               </div>
             )}
 
-            {/* Terms + mailing opt-in */}
+            {/* Terms + mailing opt-in + digital waiver */}
             <div className="space-y-3">
               <label className={`flex items-start gap-3 cursor-pointer group ${termsError ? "text-red-600" : ""}`}>
                 <input type="checkbox" checked={agreedTerms} onChange={(e) => { setAgreedTerms(e.target.checked); setTermsError(false); }} className={`w-4 h-4 mt-0.5 accent-copper cursor-pointer shrink-0 ${termsError ? "outline outline-2 outline-red-400" : ""}`} />
@@ -516,6 +534,19 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
                 </span>
               </label>
               {termsError && <p className="text-[12px] text-red-500 pl-7">{i18n.agreeTermsRequired}</p>}
+
+              {requiresDigitalWaiver && (
+                <>
+                  <label className={`flex items-start gap-3 cursor-pointer group ${waiverError ? "text-red-600" : ""}`}>
+                    <input type="checkbox" checked={agreedDigitalWaiver} onChange={(e) => { setAgreedDigitalWaiver(e.target.checked); setWaiverError(false); }} className={`w-4 h-4 mt-0.5 accent-copper cursor-pointer shrink-0 ${waiverError ? "outline outline-2 outline-red-400" : ""}`} />
+                    <span className={`text-[13px] leading-[1.5] ${waiverError ? "text-red-600" : "text-ink/60 group-hover:text-ink"} transition-colors`}>
+                      {i18n.digitalWaiver}
+                    </span>
+                  </label>
+                  {waiverError && <p className="text-[12px] text-red-500 pl-7">{i18n.digitalWaiverRequired}</p>}
+                </>
+              )}
+
               <label className="flex items-start gap-3 cursor-pointer group">
                 <input type="checkbox" checked={mailingOptIn} onChange={(e) => setMailingOptIn(e.target.checked)} className="w-4 h-4 mt-0.5 accent-copper cursor-pointer shrink-0" />
                 <span className="text-[13px] text-ink/40 group-hover:text-ink/60 transition-colors leading-[1.5]">{i18n.mailingOptIn}</span>

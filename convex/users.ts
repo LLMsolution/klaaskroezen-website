@@ -107,13 +107,16 @@ export const getMyInvoices = query({
 
 /**
  * Get downloadable files for the user based on their access rights.
+ * Filters by language with fallback: prefer the requested lang, fall back to NL,
+ * then to any file matching the product. Untagged files (lang=undefined) count as NL.
  */
 export const getMyDownloads = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { lang: v.optional(langValidator) },
+  handler: async (ctx, { lang }) => {
     const userId = await auth.getUserId(ctx);
     if (!userId) return [];
 
+    const preferredLang = lang ?? "nl";
     const now = Date.now();
     const allRights = await ctx.db
       .query("accessRights")
@@ -129,13 +132,27 @@ export const getMyDownloads = query({
         .withIndex("by_product", (q) => q.eq("product", right.resource))
         .collect();
 
-      for (const file of files) {
+      if (files.length === 0) continue;
+
+      // Prefer files matching the user's lang. Files without a lang field count as NL.
+      const matchingPreferred = files.filter(
+        (f) => (f.lang ?? "nl") === preferredLang,
+      );
+      const fallbackNl = files.filter((f) => (f.lang ?? "nl") === "nl");
+      const chosen = matchingPreferred.length > 0
+        ? matchingPreferred
+        : fallbackNl.length > 0
+          ? fallbackNl
+          : files;
+
+      for (const file of chosen) {
         const url = await ctx.storage.getUrl(file.storageId);
         if (url) {
           downloads.push({
             product: file.product,
             fileName: file.fileName,
             fileType: file.fileType,
+            lang: file.lang ?? "nl",
             url,
           });
         }

@@ -134,6 +134,13 @@ Best regards,<br />
 </p>`;
 }
 
+export function signatureDe(): string {
+  return `<p style="margin: 24px 0 0; font-size: 15px; line-height: 1.75; color: #444;">
+Mit freundlichen Grüßen,<br />
+<strong style="color: ${INK};">Klaas Kroezen</strong>
+</p>`;
+}
+
 export function quote(text: string): string {
   return `<blockquote style="margin: 16px 0; padding: 16px 20px; border-left: 3px solid ${COPPER}; background-color: #faf8f5; font-size: 15px; line-height: 1.75; color: #555; font-style: italic;">${text}</blockquote>`;
 }

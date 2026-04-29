@@ -15,11 +15,16 @@
 | Domeinmigratie .com → .nl | done | 2026-04-09 |
 | Admin Trainings: sortable + per-lang workbook | done | 2026-04-09 |
 | Admin bugfixes: Popup width, AdSpend tooltip | done | 2026-04-09 |
+| Boek Checkout Go-Live | in-review (#30) | 2026-04-29 |
 
 ## Current Focus
-Homepage + Remaining Images — [plan](.agents/plans/homepage-and-remaining-images.md)
+No features in progress
 
 ## Recent Activity
+- 2026-04-29: Boek Checkout Go-Live PR created (#30) — 37 files, multilingual emails + admin orders + Excel 13 kolommen
+- 2026-04-29: Boek Checkout Go-Live implementation completed (12 taken, build slaagt — concept-AV/Privacy nog jurist-review pending)
+- 2026-04-29: Boek Checkout Go-Live execution started (feat/boek-checkout-go-live branch)
+- 2026-04-29: Boek Checkout Go-Live plan created (12 taken, juridisch + email + admin digitale bestanden + AV concept-revisie)
 - 2026-04-09: Admin Trainings drag-and-drop + manual display numbers + per-lang workbook PDF
 - 2026-04-09: Domeinmigratie klaaskroezen.com → klaaskroezen.nl (SITE_URL via env)
 - 2026-04-09: Admin fixes — PopupTab fullwidth + Ad Spend tooltip label/format
