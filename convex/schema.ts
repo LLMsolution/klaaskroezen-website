@@ -784,10 +784,41 @@ export default defineSchema({
     availableBookLanguages: v.optional(
       v.array(v.union(v.literal("nl"), v.literal("en"), v.literal("de"))),
     ),
+    // High-level product variant — single source of truth used by emails,
+    // bedankt-page, dashboard etc. instead of hardcoded slug checks.
+    productVariant: v.optional(
+      v.union(
+        v.literal("ebook"),
+        v.literal("audiobook"),
+        v.literal("hardcopy"),
+        v.literal("online-course"),
+        v.literal("coaching"),
+        v.literal("event"),
+      ),
+    ),
   })
     .index("by_slug", ["slug"])
     .index("by_active", ["active", "sortOrder"])
     .index("by_type", ["type"]),
+
+  // ── Translation Glossary ──
+  // Admin-managed dictionary used by AI translation prompt. Each entry either
+  // preserves a term in source language ("preserve") or supplies fixed
+  // translations ("translate"). Sent in the system prompt on every call.
+  translationGlossary: defineTable({
+    termNl: v.string(),
+    // Lowercased copy of termNl used as a stable lookup key.
+    termNlLower: v.string(),
+    mode: v.union(v.literal("preserve"), v.literal("translate")),
+    en: v.optional(v.string()),
+    de: v.optional(v.string()),
+    caseSensitive: v.boolean(),
+    notes: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_term_lower", ["termNlLower"])
+    .index("by_updated", ["updatedAt"]),
 
   // ── Account Catalog ──
   // Admin-configured per-language list of products shown on the user dashboard.

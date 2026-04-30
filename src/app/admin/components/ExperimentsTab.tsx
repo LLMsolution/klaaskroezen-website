@@ -323,15 +323,7 @@ function CreateExperimentForm({ onDone }: { onDone: () => void }) {
         <div className="grid grid-cols-3 gap-4">
           <div>
             <label className={labelClass}>Product</label>
-            <select value={product} onChange={(e) => setProduct(e.target.value)} className={inputClass}>
-              <option value="*">Alle producten</option>
-              <option value="set-online">SET Online</option>
-              <option value="set-coaching">SET Coaching</option>
-              <option value="cst-online">CST Online</option>
-              <option value="cst-coaching">CST Coaching</option>
-              <option value="boek-hardcopy">Boek Hard Copy</option>
-              <option value="boek-ebook">E-book</option>
-            </select>
+            <ProductDropdown product={product} onChange={setProduct} className={inputClass} />
           </div>
           <div>
             <label className={labelClass}>Variant A naam</label>
@@ -355,5 +347,30 @@ function CreateExperimentForm({ onDone }: { onDone: () => void }) {
         </div>
       </form>
     </div>
+  );
+}
+
+function ProductDropdown({
+  product,
+  onChange,
+  className,
+}: {
+  product: string;
+  onChange: (slug: string) => void;
+  className: string;
+}) {
+  const products = useQuery(api.checkoutProducts.listAll);
+  return (
+    <select value={product} onChange={(e) => onChange(e.target.value)} className={className}>
+      <option value="*">Alle producten</option>
+      {(products ?? [])
+        .filter((p) => p.active)
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((p) => (
+          <option key={p.slug} value={p.slug}>
+            {p.shortName?.nl ?? p.name?.nl ?? p.slug}
+          </option>
+        ))}
+    </select>
   );
 }

@@ -11,7 +11,6 @@ type QuestionType = "multiple_choice" | "multiple_select" | "open" | "scale";
 type MultilangString = { nl: string; en: string; de?: string };
 type OptionState = { nl: string; en: string; de: string; correct: boolean };
 
-const DEEPL_TARGET: Record<Lang, string> = { nl: "NL", en: "EN-US", de: "DE" };
 
 interface Props {
   moduleId: Id<"trainingModules">;
@@ -294,13 +293,13 @@ function AddQuestionForm({
   onSubmit: () => void;
   onCancel: () => void;
 }) {
-  const translateField = useAction(api.blogTranslate.translateField);
+  const translateField = useAction(api.aiTranslate.translateField);
   const [translating, setTranslating] = useState(false);
   const inputCls = "w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]";
 
   async function translate(text: string): Promise<string> {
     if (editLang === "nl" || !text.trim()) return "";
-    return translateField({ text, targetLang: DEEPL_TARGET[editLang] });
+    return translateField({ text, targetLang: editLang, sourceLang: "nl" });
   }
 
   async function translateAllFromNl() {

@@ -47,6 +47,18 @@ const nextConfig: NextConfig = {
         destination: "/over-ons",
         permanent: true,
       },
+      // Marketing landing pages migrated to /training/[slug]/marketing — keep
+      // SEO equity by 301'ing the old paths.
+      {
+        source: "/sales-excellence-training",
+        destination: "/training/set-online/marketing",
+        permanent: true,
+      },
+      {
+        source: "/customer-success-training",
+        destination: "/training/cst-online/marketing",
+        permanent: true,
+      },
     ];
   },
 };

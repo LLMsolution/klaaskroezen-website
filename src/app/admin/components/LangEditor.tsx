@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { DeepLButton } from "./DeepLButton";
+import { TranslateButton } from "./TranslateButton";
 
 export type Lang = "nl" | "en" | "de";
 export const LANGS: Lang[] = ["nl", "en", "de"];
@@ -73,7 +73,7 @@ export function LangField({
           </p>
           <div className="flex items-center gap-3">
             {lang !== "nl" && sourceNl.trim() && (
-              <DeepLButton
+              <TranslateButton
                 sourceText={sourceNl}
                 targets={[lang]}
                 onTranslated={handleDeepL}
@@ -103,7 +103,7 @@ export function LangField({
           {label} <span className="text-ink/30">({lang.toUpperCase()})</span>
         </p>
         {lang !== "nl" && sourceNl.trim() && (
-          <DeepLButton
+          <TranslateButton
             sourceText={sourceNl}
             targets={[lang]}
             onTranslated={handleDeepL}

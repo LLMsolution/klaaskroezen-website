@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { fetchQuery } from "convex/nextjs";
 import { UpsellClient } from "@/components/checkout/UpsellClient";
 import { PaymentVerifier } from "@/components/checkout/PaymentVerifier";
 import type { Lang } from "@/lib/i18n";
+import { api } from "../../../../convex/_generated/api";
 
 export const metadata: Metadata = {
   title: "Bedankt voor je bestelling",
   robots: { index: false, follow: false },
 };
 
-type StepVariant = "training" | "boek-ebook" | "boek-luisterboek" | "boek-hardcopy";
+type StepVariant = "training" | "ebook" | "audiobook" | "hardcopy";
 
 const NEXT_STEPS: Record<StepVariant, Record<Lang, { icon: string; text: string }[]>> = {
   training: {
@@ -29,7 +31,7 @@ const NEXT_STEPS: Record<StepVariant, Record<Lang, { icon: string; text: string 
       { icon: "🎯", text: "Planen Sie Ihre erste Sitzung — der beste Zeitpunkt ist jetzt" },
     ],
   },
-  "boek-ebook": {
+  ebook: {
     nl: [
       { icon: "📧", text: "Check je inbox voor de bevestigingsmail met je downloadlink" },
       { icon: "📥", text: "Je e-book staat klaar in je dashboard onder Downloads" },
@@ -46,7 +48,7 @@ const NEXT_STEPS: Record<StepVariant, Record<Lang, { icon: string; text: string 
       { icon: "💡", text: "Beginnen Sie mit Kapitel 1 — dort liegt das Fundament" },
     ],
   },
-  "boek-luisterboek": {
+  audiobook: {
     nl: [
       { icon: "📧", text: "Check je inbox voor de bevestigingsmail" },
       { icon: "🎧", text: "Je luisterboek staat klaar in je dashboard onder Trainingen" },
@@ -63,7 +65,7 @@ const NEXT_STEPS: Record<StepVariant, Record<Lang, { icon: string; text: string 
       { icon: "💡", text: "Hören Sie unterwegs, beim Sport oder zu Hause auf dem Sofa" },
     ],
   },
-  "boek-hardcopy": {
+  hardcopy: {
     nl: [
       { icon: "📧", text: "Check je inbox voor de bevestigingsmail met je orderdetails" },
       { icon: "📦", text: "Je boek wordt binnen 2 werkdagen verzonden naar je adres" },
@@ -82,10 +84,22 @@ const NEXT_STEPS: Record<StepVariant, Record<Lang, { icon: string; text: string 
   },
 };
 
-function resolveVariant(productSlug: string): StepVariant {
-  if (productSlug === "boek-ebook") return "boek-ebook";
-  if (productSlug === "boek-luisterboek") return "boek-luisterboek";
-  if (productSlug === "boek-hardcopy" || productSlug.startsWith("boek")) return "boek-hardcopy";
+async function resolveVariant(productSlug: string): Promise<StepVariant> {
+  if (!productSlug) return "training";
+  try {
+    const product = await fetchQuery(api.checkoutProducts.getBySlug, { slug: productSlug });
+    const v = product?.productVariant;
+    if (v === "ebook") return "ebook";
+    if (v === "audiobook") return "audiobook";
+    if (v === "hardcopy") return "hardcopy";
+    if (v === "online-course" || v === "coaching" || v === "event") return "training";
+  } catch {
+    // fall through to slug-based fallback
+  }
+  // Fallback for products without productVariant set yet.
+  if (productSlug === "boek-ebook") return "ebook";
+  if (productSlug === "boek-luisterboek") return "audiobook";
+  if (productSlug.startsWith("boek")) return "hardcopy";
   return "training";
 }
 
@@ -94,15 +108,15 @@ const PRIMARY_CTA: Record<StepVariant, { href: string; label: Record<Lang, strin
     href: "/dashboard",
     label: { nl: "Ga naar mijn dashboard", en: "Go to my dashboard", de: "Zu meinem Dashboard" },
   },
-  "boek-ebook": {
+  ebook: {
     href: "/dashboard#downloads",
     label: { nl: "Download je e-book", en: "Download your e-book", de: "E-Book herunterladen" },
   },
-  "boek-luisterboek": {
+  audiobook: {
     href: "/dashboard",
     label: { nl: "Naar je luisterboek", en: "Go to your audiobook", de: "Zu Ihrem Hörbuch" },
   },
-  "boek-hardcopy": {
+  hardcopy: {
     href: "/dashboard",
     label: { nl: "Ga naar mijn dashboard", en: "Go to my dashboard", de: "Zu meinem Dashboard" },
   },
@@ -118,7 +132,7 @@ export default async function ThankYouPage({
   const productSlug = sp.product || "";
   const orderId = sp.orderId;
   const lang: Lang = sp.lang === "en" ? "en" : sp.lang === "de" ? "de" : "nl";
-  const variant = resolveVariant(productSlug);
+  const variant = await resolveVariant(productSlug);
   const steps = NEXT_STEPS[variant][lang];
   const primaryCta = PRIMARY_CTA[variant];
 

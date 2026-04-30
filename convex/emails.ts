@@ -150,7 +150,10 @@ export const sendPurchaseConfirmation = internalAction({
         : `Confirmation & Invoice ${invoice.invoiceNumber}`;
 
     const purchase = await ctx.runQuery(internal.emails.getPurchaseById, { purchaseId: invoice.purchaseId });
-    const html = buildPurchaseConfirmationHtml(invoice, lang, purchase?.product);
+    const productVariant = purchase?.product
+      ? await ctx.runQuery(internal.emails.getProductVariantBySlug, { slug: purchase.product })
+      : undefined;
+    const html = buildPurchaseConfirmationHtml(invoice, lang, purchase?.product, productVariant ?? undefined);
 
     await ctx.runAction(internal.emails.sendEmail, {
       to: invoice.buyerEmail,
@@ -276,6 +279,18 @@ export const getPurchaseById = internalQuery({
   args: { purchaseId: v.id("purchases") },
   handler: async (ctx, { purchaseId }) => {
     return await ctx.db.get(purchaseId);
+  },
+});
+
+/** Look up a product's variant by slug — used by transactional email branching. */
+export const getProductVariantBySlug = internalQuery({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const product = await ctx.db
+      .query("checkoutProducts")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    return product?.productVariant;
   },
 });
 
@@ -433,6 +448,8 @@ export const getModuleTitle = internalQuery({
    6. HTML EMAIL BUILDERS (private)
    ═══════════════════════════════════════════ */
 
+type ProductVariant = "ebook" | "audiobook" | "hardcopy" | "online-course" | "coaching" | "event";
+
 function buildPurchaseConfirmationHtml(
   invoice: {
     buyerName: string;
@@ -447,6 +464,7 @@ function buildPurchaseConfirmationHtml(
   },
   lang: "nl" | "en" | "de",
   productSlug?: string,
+  productVariant?: ProductVariant,
 ): string {
   const t = (s: { nl: string; en: string; de: string }) => s[lang];
   const layoutLang: "nl" | "en" = lang === "nl" ? "nl" : "en";
@@ -475,7 +493,18 @@ function buildPurchaseConfirmationHtml(
     href: dashboardUrl,
   };
 
-  if (productSlug === "boek-ebook") {
+  // Resolve effective variant — prefer DB value, fall back to legacy slug check.
+  const effectiveVariant: ProductVariant | undefined =
+    productVariant ??
+    (productSlug === "boek-ebook"
+      ? "ebook"
+      : productSlug === "boek-luisterboek"
+        ? "audiobook"
+        : productSlug === "boek-hardcopy"
+          ? "hardcopy"
+          : undefined);
+
+  if (effectiveVariant === "ebook") {
     bookSection = paragraph(t({
       nl: "Je <strong>e-book</strong> staat klaar in je dashboard onder Downloads — direct te lezen op computer, tablet of telefoon.",
       en: "Your <strong>e-book</strong> is ready in your dashboard under Downloads — read it right away on your computer, tablet, or phone.",
@@ -485,7 +514,7 @@ function buildPurchaseConfirmationHtml(
       label: t({ nl: "Download je e-book", en: "Download your e-book", de: "E-Book herunterladen" }),
       href: downloadsUrl,
     };
-  } else if (productSlug === "boek-luisterboek") {
+  } else if (effectiveVariant === "audiobook") {
     bookSection = paragraph(t({
       nl: "Je <strong>luisterboek</strong> vind je in je dashboard onder Trainingen — luister onderweg, tijdens het sporten of thuis op de bank.",
       en: "Your <strong>audiobook</strong> is in your dashboard under Trainings — listen on the go, while exercising, or at home.",
@@ -495,7 +524,7 @@ function buildPurchaseConfirmationHtml(
       label: t({ nl: "Naar je luisterboek", en: "Go to your audiobook", de: "Zu Ihrem Hörbuch" }),
       href: dashboardUrl,
     };
-  } else if (productSlug === "boek-hardcopy") {
+  } else if (effectiveVariant === "hardcopy") {
     bookSection = paragraph(t({
       nl: "Je <strong>fysieke boek</strong> wordt binnen 2 werkdagen verzonden naar het adres dat je hebt opgegeven. Je ontvangt een aparte mail zodra het pakket onderweg is.",
       en: "Your <strong>physical book</strong> ships within 2 business days to the address you provided. You'll receive a separate email once it's on its way.",

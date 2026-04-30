@@ -7,7 +7,7 @@ import Link from "next/link";
 import { ExportButtons } from "./ExportButtons";
 import { OrdersFilterPanel, type OrdersFilterState } from "./OrdersFilterPanel";
 import {
-  PRODUCT_NAMES,
+  useProductNames,
   formatPrice,
   formatDateTime,
   Th,
@@ -75,6 +75,7 @@ const DEFAULT_FILTERS: OrdersFilterState = {
 
 function OrdersList() {
   const orders = useQuery(api.admin.getOrders, { limit: 500 });
+  const PRODUCT_NAMES = useProductNames();
   const [filters, setFilters] = useState<OrdersFilterState>(DEFAULT_FILTERS);
   const [sortField, setSortField] = useState<SortField>("paidAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
@@ -386,6 +387,7 @@ function BolcomOrdersList() {
 
 function CartsList() {
   const carts = useQuery(api.admin.getPendingCarts, { limit: 100 });
+  const PRODUCT_NAMES = useProductNames();
   if (!carts) return <Loading />;
   if (carts.length === 0) return <EmptyState text="Geen open winkelmandjes." />;
 

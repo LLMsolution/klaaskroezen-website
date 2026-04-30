@@ -415,7 +415,7 @@ function BlogTranslateButton({ title, excerpt, body, onTranslated }: {
   body: string;
   onTranslated: (fields: { title: string; excerpt: string; body: string }, lang: "nl" | "en" | "de") => void;
 }) {
-  const translateField = useAction(api.blogTranslate.translateField);
+  const translateField = useAction(api.aiTranslate.translateField);
   const [loading, setLoading] = useState(false);
   const [targetLang, setTargetLang] = useState<"en" | "de">("en");
 
@@ -423,11 +423,10 @@ function BlogTranslateButton({ title, excerpt, body, onTranslated }: {
     if (!title.trim()) return;
     setLoading(true);
     try {
-      const langCode = targetLang === "en" ? "EN-US" : "DE";
       const [tTitle, tExcerpt, tBody] = await Promise.all([
-        translateField({ text: title, targetLang: langCode, html: false }),
-        translateField({ text: excerpt, targetLang: langCode, html: false }),
-        translateField({ text: body, targetLang: langCode, html: false }),
+        translateField({ text: title, targetLang, sourceLang: "nl", html: false }),
+        translateField({ text: excerpt, targetLang, sourceLang: "nl", html: false }),
+        translateField({ text: body, targetLang, sourceLang: "nl", html: true }),
       ]);
       onTranslated({ title: tTitle, excerpt: tExcerpt, body: tBody }, targetLang);
     } catch {

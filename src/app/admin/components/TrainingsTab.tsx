@@ -8,7 +8,7 @@ import Image from "next/image";
 import { Loading, EmptyState, formatDate } from "./shared";
 import { TrainingEditor } from "./TrainingEditor";
 import { TrainingParticipantsTab } from "./TrainingParticipantsTab";
-import { DeepLButton } from "./DeepLButton";
+import { TranslateButton } from "./TranslateButton";
 
 type View = "list" | "create" | "edit" | "participants";
 
@@ -110,7 +110,7 @@ export function TrainingsTab({ filterType }: { filterType?: "training" | "audiob
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-[12px] text-ink/50">Titel (NL)</label>
-              <DeepLButton sourceText={titleNl} onTranslated={(t) => { setTitleEn(t.en ?? titleEn); setTitleDe(t.de ?? titleDe); }} />
+              <TranslateButton sourceText={titleNl} onTranslated={(t) => { setTitleEn(t.en ?? titleEn); setTitleDe(t.de ?? titleDe); }} />
             </div>
             <input type="text" value={titleNl} onChange={(e) => setTitleNl(e.target.value)} className="w-full bg-transparent border border-rule px-4 py-2.5 text-[14px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
           </div>
@@ -119,7 +119,7 @@ export function TrainingsTab({ filterType }: { filterType?: "training" | "audiob
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-[12px] text-ink/50">Beschrijving (NL)</label>
-              <DeepLButton sourceText={descNl} onTranslated={(t) => { setDescEn(t.en ?? descEn); setDescDe(t.de ?? descDe); }} />
+              <TranslateButton sourceText={descNl} onTranslated={(t) => { setDescEn(t.en ?? descEn); setDescDe(t.de ?? descDe); }} />
             </div>
             <textarea value={descNl} onChange={(e) => setDescNl(e.target.value)} rows={3} className="w-full bg-transparent border border-rule px-4 py-2.5 text-[14px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
           </div>

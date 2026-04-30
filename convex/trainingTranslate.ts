@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { action, internalMutation, internalQuery, mutation } from "./_generated/server";
+import { action, internalMutation, internalQuery, mutation, type ActionCtx } from "./_generated/server";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { requireAdmin } from "./adminAuth";
@@ -10,38 +10,20 @@ import {
   MODULE_DESC_MAP,
 } from "./trainingDeTranslations";
 
-/** Translate text via DeepL REST API */
+/** Translate via the AI engine (OpenRouter + glossary). Throws on failure. */
 async function translateText(
-  authKey: string,
+  ctx: ActionCtx,
   text: string,
   targetLang: string,
 ): Promise<string> {
   if (!text || !text.trim()) return text;
-  const isFree = authKey.endsWith(":fx");
-  const baseUrl = isFree
-    ? "https://api-free.deepl.com/v2/translate"
-    : "https://api.deepl.com/v2/translate";
-
-  const res = await fetch(baseUrl, {
-    method: "POST",
-    headers: {
-      Authorization: `DeepL-Auth-Key ${authKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      text,
-      target_lang: targetLang,
-      source_lang: "NL",
-    }),
+  const result = await ctx.runAction(internal.aiTranslate.translate, {
+    text,
+    targetLang,
+    sourceLang: "nl",
   });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`DeepL API error ${res.status}: ${err}`);
-  }
-
-  const data = await res.json();
-  return data.translations[0].text as string;
+  if (!result.ok) throw new Error(result.error);
+  return result.text;
 }
 
 // ── Internal queries (no auth, called by the action) ──
@@ -333,9 +315,6 @@ export const translateAllTrainingsToDe = action({
     ctx,
     { overwrite = false },
   ): Promise<{ trainingsUpdated: number; modulesUpdated: number; skipped: number }> => {
-    const authKey = process.env.DEEPL_AUTH_KEY;
-    if (!authKey) throw new Error("DEEPL_AUTH_KEY not configured");
-
     const trainings: Training[] = await ctx.runQuery(internal.trainingTranslate.listAllTrainingsInternal);
 
     let trainingsUpdated = 0;
@@ -343,16 +322,15 @@ export const translateAllTrainingsToDe = action({
     let skipped = 0;
 
     for (const t of trainings) {
-      // Training title/description
       const needTitle = overwrite || !t.title.de || !t.title.de.trim();
       const needDesc = overwrite || !t.description.de || !t.description.de.trim();
 
       const trainingPatch: { titleDe?: string; descDe?: string } = {};
       if (needTitle && t.title.nl) {
-        trainingPatch.titleDe = await translateText(authKey, t.title.nl, "DE");
+        trainingPatch.titleDe = await translateText(ctx, t.title.nl, "de");
       }
       if (needDesc && t.description.nl) {
-        trainingPatch.descDe = await translateText(authKey, t.description.nl, "DE");
+        trainingPatch.descDe = await translateText(ctx, t.description.nl, "de");
       }
       if (Object.keys(trainingPatch).length > 0) {
         await ctx.runMutation(internal.trainingTranslate.patchTrainingDe, {
@@ -364,7 +342,6 @@ export const translateAllTrainingsToDe = action({
         skipped++;
       }
 
-      // Modules
       const modules: TrainingModule[] = await ctx.runQuery(
         internal.trainingTranslate.listModulesForTrainingInternal,
         { trainingId: t._id },
@@ -376,10 +353,10 @@ export const translateAllTrainingsToDe = action({
 
         const modPatch: { titleDe?: string; descDe?: string } = {};
         if (needModTitle && m.title.nl) {
-          modPatch.titleDe = await translateText(authKey, m.title.nl, "DE");
+          modPatch.titleDe = await translateText(ctx, m.title.nl, "de");
         }
         if (needModDesc && m.description.nl) {
-          modPatch.descDe = await translateText(authKey, m.description.nl, "DE");
+          modPatch.descDe = await translateText(ctx, m.description.nl, "de");
         }
         if (Object.keys(modPatch).length > 0) {
           await ctx.runMutation(internal.trainingTranslate.patchModuleDe, {
