@@ -136,9 +136,13 @@ export default defineSchema({
     fileType: v.string(),
     // Language edition. Optional for backwards compatibility — undefined = default (NL).
     lang: v.optional(langValidator),
+    // Distribution format. e-book gets epub + pdf, audiobook is a separate
+    // training (not stored here). Optional for backwards compatibility.
+    format: v.optional(v.union(v.literal("epub"), v.literal("pdf"))),
   })
     .index("by_product", ["product"])
-    .index("by_product_lang", ["product", "lang"]),
+    .index("by_product_lang", ["product", "lang"])
+    .index("by_product_lang_format", ["product", "lang", "format"]),
 
   // ── Invoices ──
   // Generated after successful payment, sequential numbering per year

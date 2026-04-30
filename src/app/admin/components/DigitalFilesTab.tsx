@@ -6,10 +6,14 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 
 type Lang = "nl" | "en" | "de";
+type Format = "epub" | "pdf";
 
-const PRODUCTS: { slug: string; label: string }[] = [
-  { slug: "boek-ebook", label: "E-book — Sales, Oprecht en Ontspannen" },
-  { slug: "boek-luisterboek", label: "Luisterboek — Sales, Oprecht en Ontspannen" },
+const PRODUCTS: { slug: string; label: string; formats: Format[] }[] = [
+  {
+    slug: "boek-ebook",
+    label: "E-book — Sales, Oprecht en Ontspannen",
+    formats: ["epub", "pdf"],
+  },
 ];
 
 const LANGS: { value: Lang; label: string }[] = [
@@ -18,10 +22,21 @@ const LANGS: { value: Lang; label: string }[] = [
   { value: "de", label: "Deutsch" },
 ];
 
+const FORMAT_LABEL: Record<Format, string> = {
+  epub: "EPUB",
+  pdf: "PDF",
+};
+
+const FORMAT_ACCEPT: Record<Format, string> = {
+  epub: ".epub,application/epub+zip",
+  pdf: ".pdf,application/pdf",
+};
+
 type DigitalFileRow = {
   _id: Id<"digitalFiles">;
   product: string;
   lang: Lang;
+  format?: Format;
   fileName: string;
   fileType: string;
   url: string | null;
@@ -35,7 +50,10 @@ export function DigitalFilesTab() {
 
   const fileMap = useMemo(() => {
     const map = new Map<string, DigitalFileRow>();
-    (files ?? []).forEach((f) => map.set(`${f.product}::${f.lang}`, f as DigitalFileRow));
+    (files ?? []).forEach((f) => {
+      const key = `${f.product}::${f.lang}::${f.format ?? "unknown"}`;
+      map.set(key, f as DigitalFileRow);
+    });
     return map;
   }, [files]);
 
@@ -54,11 +72,16 @@ export function DigitalFilesTab() {
           Digitale bestanden
         </p>
         <h2 className="font-display text-[28px] font-black leading-tight mt-2">
-          E-book & luisterboek per taal
+          E-book per taal en formaat
         </h2>
         <p className="text-[14px] text-ink/60 mt-2 max-w-[640px]">
-          Upload per product en taal het juiste bestand. Kopers krijgen automatisch het bestand in
-          hun gekozen taal in hun dashboard. Vervangen verwijdert het oude bestand uit storage.
+          Upload per taal beide formaten (EPUB voor e-readers, PDF voor desktop/print).
+          Kopers krijgen automatisch beide bestanden in hun gekozen taal.
+          Vervangen verwijdert het oude bestand uit storage.
+        </p>
+        <p className="text-[12px] text-ink/40 mt-3 max-w-[640px]">
+          Het luisterboek is geen download maar een eigen omgeving — beheer dat onder
+          <strong className="text-ink/60"> Producten → Luisterboeken</strong>.
         </p>
       </header>
 
@@ -72,35 +95,46 @@ export function DigitalFilesTab() {
               <h3 className="font-display text-[20px] font-bold mt-1">{product.label}</h3>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+          <div className="space-y-6">
             {LANGS.map((lang) => (
-              <FileSlot
-                key={lang.value}
-                product={product.slug}
-                lang={lang.value}
-                langLabel={lang.label}
-                file={fileMap.get(`${product.slug}::${lang.value}`)}
-                onUpload={async (uploadFile) => {
-                  const url = await generateUploadUrl();
-                  const res = await fetch(url, {
-                    method: "POST",
-                    headers: { "Content-Type": uploadFile.type || "application/octet-stream" },
-                    body: uploadFile,
-                  });
-                  if (!res.ok) throw new Error("Upload mislukt");
-                  const { storageId } = (await res.json()) as { storageId: Id<"_storage"> };
-                  await saveFile({
-                    product: product.slug,
-                    lang: lang.value,
-                    storageId,
-                    fileName: uploadFile.name,
-                    fileType: uploadFile.type || "application/octet-stream",
-                  });
-                }}
-                onDelete={async (id) => {
-                  await deleteFile({ id });
-                }}
-              />
+              <div key={lang.value}>
+                <p className="text-[12px] font-medium text-ink/70 mb-2">{lang.label}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {product.formats.map((format) => (
+                    <FileSlot
+                      key={format}
+                      product={product.slug}
+                      lang={lang.value}
+                      format={format}
+                      formatLabel={FORMAT_LABEL[format]}
+                      accept={FORMAT_ACCEPT[format]}
+                      file={fileMap.get(`${product.slug}::${lang.value}::${format}`)}
+                      onUpload={async (uploadFile) => {
+                        const url = await generateUploadUrl();
+                        const res = await fetch(url, {
+                          method: "POST",
+                          headers: { "Content-Type": uploadFile.type || "application/octet-stream" },
+                          body: uploadFile,
+                        });
+                        if (!res.ok) throw new Error("Upload mislukt");
+                        const { storageId } = (await res.json()) as { storageId: Id<"_storage"> };
+                        await saveFile({
+                          product: product.slug,
+                          lang: lang.value,
+                          format,
+                          storageId,
+                          fileName: uploadFile.name,
+                          fileType: uploadFile.type || "application/octet-stream",
+                        });
+                      }}
+                      onDelete={async (id) => {
+                        await deleteFile({ id });
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </section>
@@ -110,16 +144,17 @@ export function DigitalFilesTab() {
 }
 
 function FileSlot({
-  product,
-  lang,
-  langLabel,
+  formatLabel,
+  accept,
   file,
   onUpload,
   onDelete,
 }: {
   product: string;
   lang: Lang;
-  langLabel: string;
+  format: Format;
+  formatLabel: string;
+  accept: string;
   file: DigitalFileRow | undefined;
   onUpload: (file: File) => Promise<void>;
   onDelete: (id: Id<"digitalFiles">) => Promise<void>;
@@ -146,7 +181,7 @@ function FileSlot({
   return (
     <div className="border border-rule rounded-[2px] p-4 bg-warm/20">
       <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40 mb-3">
-        {langLabel}
+        {formatLabel}
       </p>
 
       {file ? (
@@ -189,7 +224,7 @@ function FileSlot({
           disabled={uploading}
           className="w-full border-2 border-dashed border-rule hover:border-copper/40 rounded-[2px] py-6 text-center text-[12px] text-ink/40 cursor-pointer disabled:opacity-50"
         >
-          {uploading ? "Uploaden..." : "Upload bestand"}
+          {uploading ? "Uploaden..." : `Upload ${formatLabel}`}
         </button>
       )}
 
@@ -197,11 +232,9 @@ function FileSlot({
       <input
         ref={inputRef}
         type="file"
-        accept=".epub,.pdf,.mp3,.m4b,.zip,application/epub+zip,application/pdf,audio/*"
+        accept={accept}
         onChange={handleFileChange}
         className="hidden"
-        data-product={product}
-        data-lang={lang}
       />
     </div>
   );

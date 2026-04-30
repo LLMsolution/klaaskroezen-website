@@ -3,6 +3,8 @@ import { mutation, query } from "./_generated/server";
 import { requireAdmin } from "./adminAuth";
 import { langValidator } from "./schema";
 
+const formatValidator = v.union(v.literal("epub"), v.literal("pdf"));
+
 /** Generate a one-time upload URL for the admin file upload flow. */
 export const generateUploadUrl = mutation({
   args: {},
@@ -12,11 +14,15 @@ export const generateUploadUrl = mutation({
   },
 });
 
-/** Save (or replace) the digital file for a product + language combination. */
+/**
+ * Save (or replace) the digital file for a product + language + format combination.
+ * One row per (product, lang, format) — uploading the same combo replaces the previous file.
+ */
 export const saveFile = mutation({
   args: {
     product: v.string(),
     lang: langValidator,
+    format: formatValidator,
     storageId: v.id("_storage"),
     fileName: v.string(),
     fileType: v.string(),
@@ -26,8 +32,8 @@ export const saveFile = mutation({
 
     const existing = await ctx.db
       .query("digitalFiles")
-      .withIndex("by_product_lang", (q) =>
-        q.eq("product", args.product).eq("lang", args.lang),
+      .withIndex("by_product_lang_format", (q) =>
+        q.eq("product", args.product).eq("lang", args.lang).eq("format", args.format),
       )
       .first();
 
@@ -44,6 +50,7 @@ export const saveFile = mutation({
     return await ctx.db.insert("digitalFiles", {
       product: args.product,
       lang: args.lang,
+      format: args.format,
       storageId: args.storageId,
       fileName: args.fileName,
       fileType: args.fileType,
@@ -74,6 +81,7 @@ export const listAll = query({
         _id: f._id,
         product: f.product,
         lang: f.lang ?? "nl",
+        format: f.format,
         fileName: f.fileName,
         fileType: f.fileType,
         url: await ctx.storage.getUrl(f.storageId),

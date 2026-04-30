@@ -21,7 +21,7 @@ function formatPrice(cents: number): string {
   return `€ ${(cents / 100).toFixed(2).replace(".", ",")}`;
 }
 
-type Download = { url: string; fileName: string; product: string; fileType: string };
+type Download = { url: string; fileName: string; product: string; fileType: string; format?: "epub" | "pdf" };
 type Invoice = { _id: string; invoiceNumber: string; paidAt: number; totalCents: number; purchaseId: string };
 
 const COPY: Record<Lang, { downloads: string; invoices: string; view: string }> = {
@@ -64,7 +64,14 @@ export function DownloadsSection({
                     </svg>
                   </div>
                   <div>
-                    <p className="text-[14px] font-medium text-ink group-hover:text-copper transition-colors">{file.fileName}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-[14px] font-medium text-ink group-hover:text-copper transition-colors">{file.fileName}</p>
+                      {file.format && (
+                        <span className="text-[10px] font-medium tracking-[0.1em] uppercase text-copper/80 border border-copper/30 px-1.5 py-0.5 rounded-[2px]">
+                          {file.format}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[12px] text-ink/40">{PRODUCT_NAMES[file.product] || file.product}</p>
                   </div>
                 </div>

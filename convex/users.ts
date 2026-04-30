@@ -153,6 +153,7 @@ export const getMyDownloads = query({
             fileName: file.fileName,
             fileType: file.fileType,
             lang: file.lang ?? "nl",
+            format: file.format,
             url,
           });
         }
