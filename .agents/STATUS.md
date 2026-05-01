@@ -15,12 +15,16 @@
 | Domeinmigratie .com → .nl | done | 2026-04-09 |
 | Admin Trainings: sortable + per-lang workbook | done | 2026-04-09 |
 | Admin bugfixes: Popup width, AdSpend tooltip | done | 2026-04-09 |
-| Boek Checkout Go-Live | in-review (#30) | 2026-04-29 |
+| Boek Checkout Go-Live | done | 2026-04-29 |
+| Dynamic Admin + AI Translations | in-review (#33) | 2026-04-30 |
+| Legal Completeness | in-review (#34) | 2026-05-01 |
 
 ## Current Focus
 No features in progress
 
 ## Recent Activity
+- 2026-05-01: Legal Completeness PR created (#34) — herroepingsformulier, datalek-clausule, account self-service (export + delete), KvK in footer, cookie reset
+- 2026-04-30: Dynamic Admin + AI Translations PR created (#33) — 38 files, productVariant refactor + OpenRouter glossary + dynamic marketing pages
 - 2026-04-29: Boek Checkout Go-Live PR created (#30) — 37 files, multilingual emails + admin orders + Excel 13 kolommen
 - 2026-04-29: Boek Checkout Go-Live implementation completed (12 taken, build slaagt — concept-AV/Privacy nog jurist-review pending)
 - 2026-04-29: Boek Checkout Go-Live execution started (feat/boek-checkout-go-live branch)
