@@ -9,6 +9,7 @@ import type { Lang } from "@/lib/i18n";
 import { ProfileEditor } from "./ProfileEditor";
 import { ProductCatalog } from "./ProductCatalog";
 import { DownloadsSection } from "./DownloadsSection";
+import { AccountActions } from "./AccountActions";
 
 const COPY: Record<Lang, { welcome: string; login: string; loginBody: string; loginCta: string; profile: string }> = {
   nl: { welcome: "Welkom", login: "Log in om je dashboard te bekijken.", loginBody: "Bekijk je aankopen, download je bestanden en beheer je account.", loginCta: "Inloggen", profile: "Mijn gegevens" },
@@ -102,6 +103,8 @@ export function DashboardClient({ initialLang }: { initialLang: Lang }) {
           />
         )}
       </section>
+
+      <AccountActions lang={lang} />
     </div>
   );
 }

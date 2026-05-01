@@ -124,6 +124,9 @@ export function Footer({ lang }: { lang: Lang }) {
                 <br />
                 1901&nbsp;ZL Castricum
               </li>
+              <li className="text-paper/40 text-[12px] leading-[1.6] pt-1">
+                KvK&nbsp;30204462
+              </li>
             </ul>
           </div>
         </div>
