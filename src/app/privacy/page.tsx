@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { Label } from "@/components/ui/Label";
 import { FadeIn } from "@/components/ui/FadeIn";
+import { CookieResetButton } from "@/components/ui/CookieResetButton";
 
 export const metadata: Metadata = {
   title: "Privacystatement",
@@ -163,10 +164,11 @@ export default function PrivacyPage() {
             <h3 className={H3}>6.4 Toestemming intrekken</h3>
             <p className={P}>
               Je kunt je toestemming voor analytische cookies op elk moment
-              intrekken door je browser-instellingen te resetten of de
-              localStorage van klaaskroezen.nl te wissen. De cookie-banner
-              verschijnt dan opnieuw, waarna je een nieuwe keuze kunt maken.
+              intrekken. Klik op onderstaande knop om je opgeslagen voorkeur
+              te wissen — de cookie-banner verschijnt dan opnieuw, waarna je
+              een nieuwe keuze kunt maken.
             </p>
+            <CookieResetButton />
 
             <h2 className={H2} id="rechten">7. Jouw rechten</h2>
             <p className={P}>
@@ -210,10 +212,22 @@ export default function PrivacyPage() {
               <li className={LI}><Bullet /><span>Rolgebaseerde toegang tot het admin-paneel</span></li>
               <li className={LI}><Bullet /><span>Wachtwoorden opgeslagen als one-way hash (geen plain text)</span></li>
               <li className={LI}><Bullet /><span>Regelmatige software-updates en security-patches</span></li>
-              <li className={LI}><Bullet /><span>Datalekprocedure conform AVG art. 33-34</span></li>
             </ul>
 
-            <h2 className={H2} id="klacht">10. Klacht indienen bij de Autoriteit Persoonsgegevens</h2>
+            <h2 className={H2} id="datalekken">10. Datalekken</h2>
+            <p className={P}>
+              Wij hanteren een datalek&shy;procedure conform de Algemene
+              Verordening Gegevens&shy;bescherming (AVG art. 33 en 34):
+            </p>
+            <ul className={ULIST}>
+              <li className={LI}><Bullet /><span>Bij een geconstateerd datalek beoordelen we direct de aard, omvang en mogelijke gevolgen.</span></li>
+              <li className={LI}><Bullet /><span>Indien het datalek waarschijnlijk een risico met zich meebrengt voor de rechten en vrijheden van betrokkenen, melden wij dit zonder onredelijke vertraging — en in elk geval binnen <strong className="text-ink">72 uur</strong> na ontdekking — bij de Autoriteit Persoonsgegevens.</span></li>
+              <li className={LI}><Bullet /><span>Wanneer het datalek waarschijnlijk een <strong className="text-ink">hoog risico</strong> oplevert voor betrokkenen, informeren wij hen onverwijld in begrijpelijke taal, inclusief de aard van het lek, getroffen maatregelen en contactgegevens.</span></li>
+              <li className={LI}><Bullet /><span>Alle datalekken worden geregistreerd in een intern register, ongeacht of zij gemeld zijn aan de AP.</span></li>
+              <li className={LI}><Bullet /><span>Vermoed je een datalek? Neem direct contact op via <a href="mailto:info@klaaskroezen.com" className="text-copper hover:text-copper-light transition-colors">info@klaaskroezen.com</a>.</span></li>
+            </ul>
+
+            <h2 className={H2} id="klacht">11. Klacht indienen bij de Autoriteit Persoonsgegevens</h2>
             <p className={P}>
               Als je vindt dat wij niet zorgvuldig met je persoonsgegevens omgaan,
               vragen we je eerst contact met ons op te nemen zodat we kunnen
@@ -224,7 +238,7 @@ export default function PrivacyPage() {
               </a>.
             </p>
 
-            <h2 className={H2} id="wijzigingen">11. Wijzigingen in dit privacystatement</h2>
+            <h2 className={H2} id="wijzigingen">12. Wijzigingen in dit privacystatement</h2>
             <p className={P}>
               We behouden ons het recht voor dit privacystatement te wijzigen,
               bijvoorbeeld omdat wet- en regelgeving wijzigt of omdat we nieuwe

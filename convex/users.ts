@@ -295,3 +295,181 @@ export const updateMyProfile = mutation({
     }
   },
 });
+
+/**
+ * Export all data we hold about the current user (AVG art. 20 portability).
+ * Returns a JSON-serializable object with profile, purchases, invoices,
+ * access rights, bookmarks, notes and module progress. Buyer email + invoice
+ * snapshots remain on `purchases`/`invoices` for fiscal retention even after
+ * an account is deleted; this export reflects the data still attached to the
+ * authenticated userId.
+ */
+export const exportMyData = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Niet ingelogd.");
+
+    const user = await ctx.db.get(userId);
+    const accounts = await ctx.db
+      .query("authAccounts")
+      .filter((q) => q.eq(q.field("userId"), userId))
+      .collect();
+    const email = accounts.find((a) => a.providerAccountId?.includes("@"))
+      ?.providerAccountId ?? user?.email ?? "";
+
+    const contact = await ctx.db
+      .query("contacts")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+
+    const purchases = await ctx.db
+      .query("purchases")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    const invoices: Array<Record<string, unknown>> = [];
+    for (const purchase of purchases) {
+      const invoice = await ctx.db
+        .query("invoices")
+        .withIndex("by_purchase", (q) => q.eq("purchaseId", purchase._id))
+        .first();
+      if (invoice) invoices.push(invoice);
+    }
+
+    const accessRights = await ctx.db
+      .query("accessRights")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    const bookmarks = await ctx.db
+      .query("bookmarks")
+      .withIndex("by_user_module", (q) => q.eq("userId", userId))
+      .collect();
+
+    const userNotes = await ctx.db
+      .query("userNotes")
+      .withIndex("by_user_module", (q) => q.eq("userId", userId))
+      .collect();
+
+    const moduleProgress = await ctx.db
+      .query("moduleProgress")
+      .withIndex("by_user_training", (q) => q.eq("userId", userId))
+      .collect();
+
+    const trainingCompletions = await ctx.db
+      .query("trainingCompletions")
+      .withIndex("by_user_training", (q) => q.eq("userId", userId))
+      .collect();
+
+    return {
+      exportedAt: new Date().toISOString(),
+      account: {
+        userId,
+        name: user?.name ?? null,
+        email,
+      },
+      profile: contact
+        ? {
+            firstName: contact.firstName,
+            lastName: contact.lastName,
+            phone: contact.phone,
+            company: contact.company,
+            website: contact.website,
+            linkedin: contact.linkedin,
+            tags: contact.tags,
+            unsubscribed: contact.unsubscribed,
+            lang: contact.lang,
+            createdAt: contact.createdAt,
+          }
+        : null,
+      purchases,
+      invoices,
+      accessRights,
+      bookmarks,
+      notes: userNotes,
+      moduleProgress,
+      trainingCompletions,
+    };
+  },
+});
+
+/**
+ * Anonymize and remove the current user's account (AVG art. 17 right to be
+ * forgotten). Orders, invoices and purchase records are KEPT but detached
+ * from userId — buyerEmail snapshots remain on the invoice for the 7-year
+ * fiscal retention obligation. Profile, notes, bookmarks, progress and CRM
+ * contact are deleted. The user record itself is anonymized so the auth
+ * session breaks on next request.
+ */
+export const deleteMyAccount = mutation({
+  args: { confirm: v.literal("VERWIJDER MIJN ACCOUNT") },
+  handler: async (ctx) => {
+    const userId = await auth.getUserId(ctx);
+    if (!userId) throw new Error("Niet ingelogd.");
+
+    // Detach userId from purchases (keep purchase row for fiscal retention)
+    const purchases = await ctx.db
+      .query("purchases")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+    for (const p of purchases) {
+      await ctx.db.patch(p._id, { userId: undefined });
+    }
+
+    // Revoke all access rights
+    const rights = await ctx.db
+      .query("accessRights")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+    for (const r of rights) {
+      await ctx.db.delete(r._id);
+    }
+
+    // Delete bookmarks, notes, progress
+    const bookmarks = await ctx.db
+      .query("bookmarks")
+      .withIndex("by_user_module", (q) => q.eq("userId", userId))
+      .collect();
+    for (const b of bookmarks) await ctx.db.delete(b._id);
+
+    const notes = await ctx.db
+      .query("userNotes")
+      .withIndex("by_user_module", (q) => q.eq("userId", userId))
+      .collect();
+    for (const n of notes) await ctx.db.delete(n._id);
+
+    const modProgress = await ctx.db
+      .query("moduleProgress")
+      .withIndex("by_user_training", (q) => q.eq("userId", userId))
+      .collect();
+    for (const p of modProgress) await ctx.db.delete(p._id);
+
+    const completions = await ctx.db
+      .query("trainingCompletions")
+      .withIndex("by_user_training", (q) => q.eq("userId", userId))
+      .collect();
+    for (const c of completions) await ctx.db.delete(c._id);
+
+    // Delete CRM contact
+    const contact = await ctx.db
+      .query("contacts")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+    if (contact) await ctx.db.delete(contact._id);
+
+    // Remove auth accounts (email + OAuth)
+    const accounts = await ctx.db
+      .query("authAccounts")
+      .filter((q) => q.eq(q.field("userId"), userId))
+      .collect();
+    for (const a of accounts) await ctx.db.delete(a._id);
+
+    // Anonymize user row (cannot delete cleanly because Convex auth holds
+    // references; clearing identifying fields breaks the session safely).
+    await ctx.db.patch(userId, {
+      name: undefined,
+      email: undefined,
+    });
+  },
+});

@@ -134,8 +134,11 @@ export default function AlgemeneVoorwaardenPage() {
               herroepingstermijn van 14 kalenderdagen vanaf de dag van ontvangst.
               De klant kan binnen deze termijn de overeenkomst zonder opgaaf van
               redenen ontbinden door een melding te sturen naar
-              info@klaaskroezen.com (bij voorkeur met gebruik van het modelformulier
-              voor herroeping). Het boek dient ongebruikt en in de oorspronkelijke
+              info@klaaskroezen.com (bij voorkeur met gebruik van het{" "}
+              <a href="/herroepingsformulier" className="text-copper hover:text-copper-light underline">
+                modelformulier voor herroeping
+              </a>
+              ). Het boek dient ongebruikt en in de oorspronkelijke
               staat te worden teruggestuurd. Retourkosten komen voor rekening van
               de klant. Het reeds betaalde bedrag wordt binnen 14 dagen na
               ontvangst van de retour terugbetaald.
