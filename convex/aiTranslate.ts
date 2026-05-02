@@ -102,7 +102,7 @@ async function callOpenRouter(
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
         "HTTP-Referer": "https://klaaskroezen.nl",
-        "X-Title": "Klaas Kroezen — Admin Translate",
+        "X-Title": "Klaas Kroezen Admin Translate",
       },
       body: JSON.stringify(body),
     });
