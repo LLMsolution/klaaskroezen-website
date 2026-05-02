@@ -6,7 +6,7 @@ import { internal, api } from "./_generated/api";
 
 type Lang = "nl" | "en" | "de";
 
-const MODEL = "anthropic/claude-haiku-4-5-20251001";
+const MODEL = "anthropic/claude-haiku-4.5";
 const ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 
 const LANG_NAMES: Record<Lang, string> = {
