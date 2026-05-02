@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { t, type Lang } from "@/lib/i18n";
+import { FooterAccountActions } from "./FooterAccountActions";
 
 export function Footer({ lang }: { lang: Lang }) {
   const s = t(lang).footer;
@@ -136,7 +137,7 @@ export function Footer({ lang }: { lang: Lang }) {
           <p className="text-[12px] text-paper/40">
             &copy; {new Date().getFullYear()} Klaas Kroezen. {s.copyright}
           </p>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-x-4 gap-y-2 items-center">
             {legalLinks.map((link) => (
               <Link
                 key={link.href}
@@ -146,6 +147,7 @@ export function Footer({ lang }: { lang: Lang }) {
                 {link.label}
               </Link>
             ))}
+            <FooterAccountActions lang={lang} />
           </div>
         </div>
       </div>
