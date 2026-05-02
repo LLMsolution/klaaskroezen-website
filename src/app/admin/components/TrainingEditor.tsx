@@ -7,7 +7,7 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import { Loading } from "./shared";
 import { QuizEditor } from "./QuizEditor";
 import { ModuleAudioField } from "./ModuleFields";
-import { DeepLButton } from "./DeepLButton";
+import { TranslateButton } from "./TranslateButton";
 import { Section, InlineForm, WorkbookSection, CoverImageSection } from "./TrainingEditorSections";
 import { TrainingModuleSortable, type SortableModule } from "./TrainingModuleSortable";
 import { LangTabs, LangField, mergeLang, type Lang } from "./LangEditor";
@@ -341,7 +341,7 @@ function AudiobookChapterExpanded({ chapter, hasAudio, audioFile, onUpdateModule
       <div>
         <div className="flex items-center justify-between mb-1">
           <p className="text-[11px] text-ink/50">Titel (NL)</p>
-          <DeepLButton sourceText={titleNl} onTranslated={(t) => { markDirty(setTitleEn, t.en ?? titleEn); markDirty(setTitleDe, t.de ?? titleDe); }} />
+          <TranslateButton sourceText={titleNl} onTranslated={(t) => { markDirty(setTitleEn, t.en ?? titleEn); markDirty(setTitleDe, t.de ?? titleDe); }} />
         </div>
         <input value={titleNl} onChange={(e) => markDirty(setTitleNl, e.target.value)}
           className="w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />

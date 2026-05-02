@@ -24,6 +24,7 @@ type Tab =
   | "crm-contacts"
   | "crm-reports"
   | "account-catalog"
+  | "translation-glossary"
   | "settings";
 
 export type AdminTab = Tab;
@@ -110,10 +111,15 @@ const NAV: SectionOrItem[] = [
     { key: "crm-reports", label: "Rapportages", icon: I("M3 13V7M7 13V4M11 13V2M2 14h12") },
   ]},
 
-  // Instellingen — standalone
-  { type: "item", item: { key: "settings", label: "Instellingen", icon: (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><circle cx="8" cy="8" r="2.5" /><path d="M8 2v2M8 12v2M2 8h2M12 8h2M3.8 3.8l1.4 1.4M10.8 10.8l1.4 1.4M3.8 12.2l1.4-1.4M10.8 5.2l1.4-1.4" /></svg>
-  )}},
+  // INSTELLINGEN
+  { type: "section", label: "Instellingen", items: [
+    { key: "translation-glossary", label: "Vertaalwoordenboek", icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M3 2h7a3 3 0 013 3v9H6a3 3 0 01-3-3z" /><path d="M3 11a3 3 0 003 3" /><path d="M6 5h4M6 8h3" /></svg>
+    )},
+    { key: "settings", label: "Algemeen", icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.3"><circle cx="8" cy="8" r="2.5" /><path d="M8 2v2M8 12v2M2 8h2M12 8h2M3.8 3.8l1.4 1.4M10.8 10.8l1.4 1.4M3.8 12.2l1.4-1.4M10.8 5.2l1.4-1.4" /></svg>
+    )},
+  ]},
 ];
 
 interface Props {

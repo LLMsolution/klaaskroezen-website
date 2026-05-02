@@ -23,4 +23,11 @@ export const rateLimiter = new RateLimiter(components.rateLimiter, {
     period: HOUR,
     capacity: 3,
   },
+  // AI translation: 100 calls per hour per admin to bound OpenRouter costs.
+  aiTranslate: {
+    kind: "token bucket",
+    rate: 100,
+    period: HOUR,
+    capacity: 100,
+  },
 });

@@ -166,7 +166,8 @@ export const processSequenceStep = internalAction({
       ? [buyerName.firstName, buyerName.lastName].filter(Boolean).join(" ")
       : (purchase?.buyerEmail?.split("@")[0] ?? "");
     const firstName = buyerName?.firstName ?? name.split(" ")[0] ?? "";
-    const format = formatLabel(seq.product, seq.lang);
+    const productVariant = await ctx.runQuery(internal.emails.getProductVariantBySlug, { slug: seq.product });
+    const format = formatLabel(productVariant ?? undefined, seq.product, seq.lang);
     const downloadUrl = `${SITE_URL}/dashboard?lang=${seq.lang}#downloads`;
 
     html = html
@@ -446,12 +447,27 @@ function getSequenceContent(template: string, lang: "nl" | "en" | "de"): string 
   return isNl ? c.nl : c.en;
 }
 
-/** Translate a book product slug to a human-readable format label per language. */
-function formatLabel(productSlug: string, lang: "nl" | "en" | "de"): string {
-  const map: Record<string, Record<"nl" | "en" | "de", string>> = {
-    "boek-ebook": { nl: "E-book", en: "E-book", de: "E-Book" },
-    "boek-luisterboek": { nl: "Luisterboek", en: "Audiobook", de: "Hörbuch" },
-    "boek-hardcopy": { nl: "Hardcopy", en: "Hardcover", de: "Hardcover" },
+/**
+ * Translate a productVariant (or legacy book slug) to a human-readable format label per language.
+ * Variant takes precedence; slug fallback keeps existing rows working until backfill.
+ */
+function formatLabel(
+  productVariant: string | undefined,
+  productSlug: string,
+  lang: "nl" | "en" | "de",
+): string {
+  const variantMap: Record<string, Record<"nl" | "en" | "de", string>> = {
+    ebook: { nl: "E-book", en: "E-book", de: "E-Book" },
+    audiobook: { nl: "Luisterboek", en: "Audiobook", de: "Hörbuch" },
+    hardcopy: { nl: "Hardcopy", en: "Hardcover", de: "Hardcover" },
   };
-  return map[productSlug]?.[lang] ?? "";
+  if (productVariant && variantMap[productVariant]) {
+    return variantMap[productVariant][lang];
+  }
+  const slugMap: Record<string, Record<"nl" | "en" | "de", string>> = {
+    "boek-ebook": variantMap.ebook,
+    "boek-luisterboek": variantMap.audiobook,
+    "boek-hardcopy": variantMap.hardcopy,
+  };
+  return slugMap[productSlug]?.[lang] ?? "";
 }

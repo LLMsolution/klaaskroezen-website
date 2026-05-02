@@ -29,6 +29,7 @@ import { PopupTab } from "./components/PopupTab";
 import { AdSpendTab } from "./components/AdSpendTab";
 import { AccountCatalogTab } from "./components/AccountCatalogTab";
 import { DigitalFilesTab } from "./components/DigitalFilesTab";
+import { TranslationGlossaryTab } from "./components/TranslationGlossaryTab";
 
 const TAB_LABELS: Record<AdminTab, string> = {
   dashboard: "Dashboard",
@@ -54,6 +55,7 @@ const TAB_LABELS: Record<AdminTab, string> = {
   "crm-contacts": "Contacten",
   "crm-reports": "Rapportages",
   "account-catalog": "Mijn account",
+  "translation-glossary": "Vertaalwoordenboek",
   settings: "Instellingen",
 };
 
@@ -156,6 +158,7 @@ export function AdminClient() {
           {activeTab === "crm-contacts" && <CrmContactsTab />}
           {activeTab === "crm-reports" && <CrmReportsTab />}
           {activeTab === "account-catalog" && <AccountCatalogTab />}
+          {activeTab === "translation-glossary" && <TranslationGlossaryTab />}
           {activeTab === "settings" && <SettingsTab />}
         </div>
       </div>

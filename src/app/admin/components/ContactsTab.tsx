@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import {
-  PRODUCT_NAMES,
+  useProductNames,
   formatPrice,
   formatDate,
   formatDateTime,
@@ -17,6 +17,7 @@ import {
 
 export function ContactsTab() {
   const contacts = useQuery(api.admin.getMailingList);
+  const PRODUCT_NAMES = useProductNames();
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
 
   if (!contacts) return <Loading />;

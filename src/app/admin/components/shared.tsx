@@ -1,14 +1,6 @@
 "use client";
 
-export const PRODUCT_NAMES: Record<string, string> = {
-  "set-online": "SET Online",
-  "set-coaching": "SET Coaching",
-  "cst-online": "CST Online",
-  "cst-coaching": "CST Coaching",
-  "boek-ebook": "E-book",
-  "boek-hardcopy": "Hard Copy",
-  "boek-luisterboek": "Luisterboek",
-};
+export { PRODUCT_NAMES, useProductNames } from "@/lib/product-names";
 
 export function formatPrice(cents: number): string {
   return `€ ${(cents / 100).toFixed(2).replace(".", ",")}`;

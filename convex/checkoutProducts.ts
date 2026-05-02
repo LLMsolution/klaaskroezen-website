@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { query, mutation, internalQuery } from "./_generated/server";
+import { query, mutation, internalQuery, internalMutation } from "./_generated/server";
 import { requireAdmin } from "./adminAuth";
 
 // ── Helpers ──
@@ -203,6 +203,16 @@ const productFields = {
   availableBookLanguages: v.optional(
     v.array(v.union(v.literal("nl"), v.literal("en"), v.literal("de"))),
   ),
+  productVariant: v.optional(
+    v.union(
+      v.literal("ebook"),
+      v.literal("audiobook"),
+      v.literal("hardcopy"),
+      v.literal("online-course"),
+      v.literal("coaching"),
+      v.literal("event"),
+    ),
+  ),
 };
 
 export const createProduct = mutation({
@@ -295,5 +305,41 @@ export const reorderProducts = mutation({
     for (let i = 0; i < orderedIds.length; i++) {
       await ctx.db.patch(orderedIds[i], { sortOrder: i });
     }
+  },
+});
+
+// ── One-shot backfill ──
+// Maps the existing slugs to the new productVariant enum.
+// Run once after deploy via: npx convex run checkoutProducts:backfillProductVariants
+const SLUG_VARIANT_MAP: Record<string, "ebook" | "audiobook" | "hardcopy" | "online-course" | "coaching" | "event"> = {
+  "boek-ebook": "ebook",
+  "boek-luisterboek": "audiobook",
+  "boek-hardcopy": "hardcopy",
+  "set-online": "online-course",
+  "set-coaching": "coaching",
+  "cst-online": "online-course",
+  "cst-coaching": "coaching",
+};
+
+export const backfillProductVariants = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const products = await ctx.db.query("checkoutProducts").collect();
+    const updated: string[] = [];
+    const skipped: string[] = [];
+    for (const p of products) {
+      if (p.productVariant) {
+        skipped.push(`${p.slug} (already ${p.productVariant})`);
+        continue;
+      }
+      const variant = SLUG_VARIANT_MAP[p.slug];
+      if (!variant) {
+        skipped.push(`${p.slug} (no mapping)`);
+        continue;
+      }
+      await ctx.db.patch(p._id, { productVariant: variant });
+      updated.push(`${p.slug} → ${variant}`);
+    }
+    return { updated, skipped, totalProducts: products.length };
   },
 });

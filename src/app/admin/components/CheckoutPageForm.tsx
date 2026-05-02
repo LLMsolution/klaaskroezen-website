@@ -5,13 +5,23 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { ImageUpload } from "./ImageUpload";
-import { DeepLButton } from "./DeepLButton";
+import { TranslateButton } from "./TranslateButton";
 
 type ProductType = "training" | "book";
 type ProductSubType = "training" | "book" | "event";
+type ProductVariant = "ebook" | "audiobook" | "hardcopy" | "online-course" | "coaching" | "event";
 type MockupType = "tablet" | "phone" | "audio";
 type BumpOverride = { bumpSlug: string; priceCents: number };
 type QtyTier = { quantity: number; unitPriceCents: number; savingsPercent: number };
+
+const VARIANT_LABELS: Record<ProductVariant, string> = {
+  ebook: "E-book",
+  audiobook: "Luisterboek",
+  hardcopy: "Hardcopy boek",
+  "online-course": "Online cursus",
+  coaching: "Coaching / live training",
+  event: "Event",
+};
 
 interface ProductData {
   _id: Id<"checkoutProducts">;
@@ -38,6 +48,7 @@ interface ProductData {
   accessDurationDays?: number;
   mockupType?: MockupType;
   availableBookLanguages?: ("nl" | "en" | "de")[];
+  productVariant?: ProductVariant;
 }
 
 interface Props {
@@ -104,6 +115,7 @@ export function CheckoutPageForm({ product, onBack }: Props) {
   const [hasTiers, setHasTiers] = useState(!!product?.quantityTiers?.length);
   const [tiers, setTiers] = useState<QtyTier[]>(product?.quantityTiers ?? [{ quantity: 1, unitPriceCents: 0, savingsPercent: 0 }]);
   const [bookLanguages, setBookLanguages] = useState<("nl" | "en" | "de")[]>(product?.availableBookLanguages ?? ["nl"]);
+  const [productVariant, setProductVariant] = useState<ProductVariant | "">(product?.productVariant ?? "");
 
   // Section visibility
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -135,6 +147,7 @@ export function CheckoutPageForm({ product, onBack }: Props) {
       accessDurationDays: accessDurationDays ? Number(accessDurationDays) : undefined,
       mockupType: mockupType || undefined,
       availableBookLanguages: type === "book" ? bookLanguages : undefined,
+      productVariant: productVariant || undefined,
     };
     try {
       if (isEdit) {
@@ -206,7 +219,7 @@ export function CheckoutPageForm({ product, onBack }: Props) {
             <div>
               <div className="flex items-center justify-between">
                 <label className={L}>Korte naam NL</label>
-                <DeepLButton sourceText={shortNameNl} onTranslated={(t) => { setShortNameEn(t.en ?? shortNameEn); setShortNameDe(t.de ?? shortNameDe); }} />
+                <TranslateButton sourceText={shortNameNl} onTranslated={(t) => { setShortNameEn(t.en ?? shortNameEn); setShortNameDe(t.de ?? shortNameDe); }} />
               </div>
               <input value={shortNameNl} onChange={(e) => setShortNameNl(e.target.value)} placeholder="SET Online" className={I} />
             </div>
@@ -226,6 +239,16 @@ export function CheckoutPageForm({ product, onBack }: Props) {
                 <option value="training">Training</option>
                 <option value="book">Boek</option>
               </select>
+            </div>
+            <div>
+              <label className={L}>Variant</label>
+              <select value={productVariant} onChange={(e) => setProductVariant(e.target.value as ProductVariant | "")} className={I}>
+                <option value="">— (geen variant)</option>
+                {(Object.keys(VARIANT_LABELS) as ProductVariant[]).map((v) => (
+                  <option key={v} value={v}>{VARIANT_LABELS[v]}</option>
+                ))}
+              </select>
+              <p className="text-[10px] text-ink/30 mt-1">Stuurt e-mails, downloads en bedankpagina aan</p>
             </div>
             <div className="flex items-end gap-3">
               <label className="flex items-center gap-2 cursor-pointer text-[12px] text-ink/50">
@@ -264,7 +287,7 @@ export function CheckoutPageForm({ product, onBack }: Props) {
           <div>
             <div className="flex items-center justify-between">
               <label className={L}>Volledige naam NL</label>
-              <DeepLButton sourceText={nameNl} onTranslated={(t) => { setNameEn(t.en ?? nameEn); setNameDe(t.de ?? nameDe); }} />
+              <TranslateButton sourceText={nameNl} onTranslated={(t) => { setNameEn(t.en ?? nameEn); setNameDe(t.de ?? nameDe); }} />
             </div>
             <input value={nameNl} onChange={(e) => setNameNl(e.target.value)} className={I} />
           </div>
@@ -281,7 +304,7 @@ export function CheckoutPageForm({ product, onBack }: Props) {
           <div>
             <div className="flex items-center justify-between">
               <label className={L}>Beschrijving NL</label>
-              <DeepLButton sourceText={descNl} onTranslated={(t) => { setDescEn(t.en ?? descEn); setDescDe(t.de ?? descDe); }} />
+              <TranslateButton sourceText={descNl} onTranslated={(t) => { setDescEn(t.en ?? descEn); setDescDe(t.de ?? descDe); }} />
             </div>
             <textarea value={descNl} onChange={(e) => setDescNl(e.target.value)} rows={2} className={I} />
           </div>
@@ -339,7 +362,7 @@ export function CheckoutPageForm({ product, onBack }: Props) {
       {/* Features / Content */}
       <Section title="Features" open={openSections.content} onToggle={() => toggle("content")}>
         <div className="mb-3">
-          <DeepLButton
+          <TranslateButton
             sourceText={featuresNl.filter(f => f.trim()).join("\n---\n")}
             label="Vertaal alle features"
             onTranslated={(t) => {

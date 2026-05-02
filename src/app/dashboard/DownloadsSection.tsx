@@ -2,16 +2,7 @@
 
 import Link from "next/link";
 import type { Lang } from "@/lib/i18n";
-
-const PRODUCT_NAMES: Record<string, string> = {
-  "set-online": "Sales Excellence Training — Online",
-  "set-coaching": "Sales Excellence Training — Coaching",
-  "cst-online": "Customer Success Training — Online",
-  "cst-coaching": "Customer Success Training — Coaching",
-  "boek-ebook": "Sales, Oprecht & Ontspannen — E-book",
-  "boek-hardcopy": "Sales, Oprecht & Ontspannen — Hard Copy",
-  "boek-luisterboek": "Sales, Oprecht & Ontspannen — Luisterboek",
-};
+import { useProductNames } from "@/lib/product-names";
 
 function formatDate(ts: number): string {
   return new Date(ts).toLocaleDateString("nl-NL", { year: "numeric", month: "long", day: "numeric" });
@@ -40,6 +31,7 @@ export function DownloadsSection({
   lang: Lang;
 }) {
   const copy = COPY[lang];
+  const PRODUCT_NAMES = useProductNames(lang, "name");
   const hasDownloads = downloads && downloads.length > 0;
   const hasInvoices = invoices && invoices.length > 0;
 

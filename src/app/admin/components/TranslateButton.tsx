@@ -4,11 +4,6 @@ import { useState } from "react";
 import { useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 
-const DEEPL_LANGS: Record<string, string> = {
-  en: "EN-US",
-  de: "DE",
-};
-
 interface Props {
   /** The source text (always NL) */
   sourceText: string;
@@ -23,11 +18,11 @@ interface Props {
 }
 
 /**
- * "Vertaal met DeepL" button.
- * Calls Convex action that uses DeepL REST API — key stays in Convex env only.
+ * "Vertaal" button — uses the AI translation engine (OpenRouter + glossary)
+ * via Convex action. Source language is assumed to be Dutch.
  */
-export function DeepLButton({ sourceText, targets = ["en", "de"], onTranslated, label, html = false }: Props) {
-  const translateField = useAction(api.blogTranslate.translateField);
+export function TranslateButton({ sourceText, targets = ["en", "de"], onTranslated, label, html = false }: Props) {
+  const translateField = useAction(api.aiTranslate.translateField);
   const [loading, setLoading] = useState(false);
 
   async function handleTranslate() {
@@ -36,16 +31,16 @@ export function DeepLButton({ sourceText, targets = ["en", "de"], onTranslated, 
     try {
       const results: Record<string, string> = {};
       for (const lang of targets) {
-        const translated = await translateField({
+        results[lang] = await translateField({
           text: sourceText,
-          targetLang: DEEPL_LANGS[lang],
+          targetLang: lang,
+          sourceLang: "nl",
           html,
         });
-        results[lang] = translated;
       }
       onTranslated(results);
     } catch {
-      // silently fail
+      // silently fail — caller can re-attempt
     } finally {
       setLoading(false);
     }
@@ -66,7 +61,7 @@ export function DeepLButton({ sourceText, targets = ["en", "de"], onTranslated, 
           <path d="M22 22l-5-10-5 10" /><path d="M14 18h6" />
         </svg>
       )}
-      {label || (loading ? "Vertalen..." : "Vertaal met DeepL")}
+      {label || (loading ? "Vertalen..." : "Vertaal")}
     </button>
   );
 }

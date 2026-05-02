@@ -8,13 +8,7 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 type Lang = "nl" | "en" | "de";
 type Format = "epub" | "pdf";
 
-const PRODUCTS: { slug: string; label: string; formats: Format[] }[] = [
-  {
-    slug: "boek-ebook",
-    label: "E-book — Sales, Oprecht en Ontspannen",
-    formats: ["epub", "pdf"],
-  },
-];
+const EBOOK_FORMATS: Format[] = ["epub", "pdf"];
 
 const LANGS: { value: Lang; label: string }[] = [
   { value: "nl", label: "Nederlands" },
@@ -44,6 +38,7 @@ type DigitalFileRow = {
 
 export function DigitalFilesTab() {
   const files = useQuery(api.digitalFiles.listAll);
+  const allProducts = useQuery(api.checkoutProducts.listAll);
   const generateUploadUrl = useMutation(api.digitalFiles.generateUploadUrl);
   const saveFile = useMutation(api.digitalFiles.saveFile);
   const deleteFile = useMutation(api.digitalFiles.deleteFile);
@@ -57,7 +52,19 @@ export function DigitalFilesTab() {
     return map;
   }, [files]);
 
-  if (files === undefined) {
+  const ebookProducts = useMemo(() => {
+    if (!allProducts) return [];
+    return allProducts
+      .filter((p) => p.productVariant === "ebook" && p.active)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((p) => ({
+        slug: p.slug,
+        label: p.name?.nl ?? p.shortName?.nl ?? p.slug,
+        formats: EBOOK_FORMATS,
+      }));
+  }, [allProducts]);
+
+  if (files === undefined || allProducts === undefined) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="w-6 h-6 border-2 border-copper/30 border-t-copper rounded-full animate-spin" />
@@ -85,7 +92,13 @@ export function DigitalFilesTab() {
         </p>
       </header>
 
-      {PRODUCTS.map((product) => (
+      {ebookProducts.length === 0 && (
+        <p className="text-[13px] text-ink/40">
+          Geen e-book producten gevonden. Maak in Producten → Betaalpagina&apos;s een product met variant &quot;E-book&quot; aan.
+        </p>
+      )}
+
+      {ebookProducts.map((product) => (
         <section key={product.slug} className="border border-rule rounded-[2px] p-6">
           <div className="flex items-baseline justify-between mb-4">
             <div>

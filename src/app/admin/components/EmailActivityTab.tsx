@@ -5,7 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import {
-  PRODUCT_NAMES,
+  useProductNames,
   formatDate,
   formatDateTime,
   StatCard,
@@ -340,6 +340,7 @@ function ActiveSequencesPanel() {
   const sequences = useQuery(api.admin.getSequences);
   const initTemplates = useMutation(api.admin.initEmailTemplates);
   const templates = useQuery(api.admin.getEmailTemplates);
+  const PRODUCT_NAMES = useProductNames();
 
   if (sequences === undefined || templates === undefined) return <Loading />;
 

@@ -6,7 +6,7 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { Loading, EmptyState } from "./shared";
 import { AdminImageUpload } from "./AdminImageUpload";
-import { DeepLButton } from "./DeepLButton";
+import { TranslateButton } from "./TranslateButton";
 
 type ReviewType = "training" | "book";
 
@@ -153,7 +153,7 @@ export function CheckoutReviewsPanel({ onBack }: Props) {
             <div>
               <div className="flex items-center justify-between">
                 <label className={labelClass}>Rol (NL)</label>
-                <DeepLButton sourceText={form.roleNl} onTranslated={(t) => setForm({ ...form, roleEn: t.en ?? form.roleEn, roleDe: t.de ?? form.roleDe })} />
+                <TranslateButton sourceText={form.roleNl} onTranslated={(t) => setForm({ ...form, roleEn: t.en ?? form.roleEn, roleDe: t.de ?? form.roleDe })} />
               </div>
               <input value={form.roleNl} onChange={(e) => setForm({ ...form, roleNl: e.target.value })} placeholder="Directeur Bedrijf X" className={inputClass} />
             </div>
@@ -170,7 +170,7 @@ export function CheckoutReviewsPanel({ onBack }: Props) {
           <div>
             <div className="flex items-center justify-between">
               <label className={labelClass}>Review tekst (NL)</label>
-              <DeepLButton sourceText={form.textNl} onTranslated={(t) => setForm({ ...form, textEn: t.en ?? form.textEn, textDe: t.de ?? form.textDe })} />
+              <TranslateButton sourceText={form.textNl} onTranslated={(t) => setForm({ ...form, textEn: t.en ?? form.textEn, textDe: t.de ?? form.textDe })} />
             </div>
             <textarea value={form.textNl} onChange={(e) => setForm({ ...form, textNl: e.target.value })} rows={3} className={inputClass} />
           </div>
