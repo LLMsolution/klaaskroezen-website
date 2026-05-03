@@ -24,7 +24,7 @@ type GlossaryEntry = {
   notes?: string;
 };
 
-/** Normalise inbound language codes (DeepL "EN-US"/"DE" or short codes). */
+/** Normalise inbound language codes ("EN-US"/"DE" legacy variants or short codes). */
 function normaliseLang(input: string): Lang {
   const v = input.trim().toLowerCase();
   if (v.startsWith("en")) return "en";

@@ -445,7 +445,7 @@ function BlogTranslateButton({ title, excerpt, body, onTranslated }: {
       </select>
       <button type="button" onClick={handleTranslate} disabled={loading || !title.trim()}
         className="text-[11px] text-copper hover:text-copper-light cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
-        {loading ? "Vertalen..." : "Vertaal artikel met DeepL"}
+        {loading ? "Vertalen..." : "Vertaal artikel"}
       </button>
     </div>
   );

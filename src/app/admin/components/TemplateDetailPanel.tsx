@@ -3,6 +3,7 @@
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { AbTestPanel } from "./AbTestPanel";
 import { EmailAIPanel } from "./EmailAIPanel";
+import { TranslateButton } from "./TranslateButton";
 import { layout } from "../../../../convex/emailHelpers";
 
 type PreviewWidth = "desktop" | "tablet" | "mobile";
@@ -116,9 +117,18 @@ export function TemplateDetailPanel({
         {/* Subject fields */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2">
-              Onderwerp (NL)
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50">
+                Onderwerp (NL)
+              </label>
+              <TranslateButton
+                sourceText={editSubjectNl}
+                onTranslated={(t) => {
+                  setEditSubjectEn(t.en ?? editSubjectEn);
+                  setEditSubjectDe(t.de ?? editSubjectDe);
+                }}
+              />
+            </div>
             <input
               type="text"
               value={editSubjectNl}
@@ -260,9 +270,22 @@ export function TemplateDetailPanel({
           ) : editMode === "edit" ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div>
-                <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40 mb-2">
-                  HTML ({previewLang.toUpperCase()})
-                </p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40">
+                    HTML ({previewLang.toUpperCase()})
+                  </p>
+                  {previewLang === "nl" && (
+                    <TranslateButton
+                      sourceText={editHtmlNl}
+                      onTranslated={(t) => {
+                        setEditHtmlEn(t.en ?? editHtmlEn);
+                        setEditHtmlDe(t.de ?? editHtmlDe);
+                      }}
+                      html
+                      label="Vertaal HTML naar EN+DE"
+                    />
+                  )}
+                </div>
                 <textarea
                   value={currentHtml}
                   onChange={(e) => setCurrentHtml(e.target.value)}

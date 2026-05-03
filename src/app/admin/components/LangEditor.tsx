@@ -29,9 +29,10 @@ export function LangTabs({ value, onChange }: { value: Lang; onChange: (l: Lang)
 /**
  * Single-language editable field bound to one entry of a multilang object.
  *
- * - On lang=nl, no DeepL button (it's the source).
- * - On lang≠nl, a DeepL "Vertaal vanuit NL" button appears; clicking translates
- *   `sourceNl` to the active lang and writes into this field (via `onSave`).
+ * - On lang=nl, no translate button (it's the source).
+ * - On lang≠nl, a "Vertaal vanuit NL" button appears; clicking translates
+ *   `sourceNl` via the AI translate action to the active lang and writes
+ *   into this field (via `onSave`).
  */
 export function LangField({
   label,
@@ -57,7 +58,7 @@ export function LangField({
   useEffect(() => { setVal(value); }, [value]);
   const cls = "w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]";
 
-  async function handleDeepL(translations: Record<string, string>) {
+  async function handleTranslate(translations: Record<string, string>) {
     const translated = translations[lang];
     if (!translated) return;
     setVal(translated);
@@ -76,7 +77,7 @@ export function LangField({
               <TranslateButton
                 sourceText={sourceNl}
                 targets={[lang]}
-                onTranslated={handleDeepL}
+                onTranslated={handleTranslate}
                 html={html}
                 label={`Vertaal vanuit NL`}
               />
@@ -106,7 +107,7 @@ export function LangField({
           <TranslateButton
             sourceText={sourceNl}
             targets={[lang]}
-            onTranslated={handleDeepL}
+            onTranslated={handleTranslate}
             html={html}
             label={`Vertaal vanuit NL`}
           />

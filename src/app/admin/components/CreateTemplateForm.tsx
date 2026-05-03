@@ -3,6 +3,7 @@
 import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useState } from "react";
+import { TranslateButton } from "./TranslateButton";
 
 export function CreateTemplateForm({ onDone }: { onDone: () => void }) {
   const createTemplate = useMutation(api.emailAdmin.createTemplate);
@@ -74,7 +75,16 @@ export function CreateTemplateForm({ onDone }: { onDone: () => void }) {
           </div>
         </div>
         <div>
-          <label className={labelClass}>Onderwerp (NL)</label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50">Onderwerp (NL)</label>
+            <TranslateButton
+              sourceText={subjectNl}
+              onTranslated={(t) => {
+                setSubjectEn(t.en ?? subjectEn);
+                setSubjectDe(t.de ?? subjectDe);
+              }}
+            />
+          </div>
           <input value={subjectNl} onChange={(e) => setSubjectNl(e.target.value)} required placeholder="Welkom bij je training" className={inputClass} />
         </div>
         <div>

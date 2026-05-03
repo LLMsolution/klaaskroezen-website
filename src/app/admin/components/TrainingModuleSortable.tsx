@@ -317,7 +317,7 @@ function ExpandedModuleBody({
 
   return (
     <div className="border-t border-rule p-4 space-y-3 bg-warm/5">
-      {/* Title & description in the active lang (with DeepL button for non-NL) */}
+      {/* Title & description in the active lang (with AI translate button for non-NL) */}
       <LangField
         label="Module titel"
         value={mod.title[editLang] ?? ""}
