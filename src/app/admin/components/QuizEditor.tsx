@@ -252,7 +252,7 @@ export function QuizEditor({ moduleId, editLang, onBack }: Props) {
   );
 }
 
-/* ─── Add question form (single active lang + DeepL) ─── */
+/* ─── Add question form (single active lang + AI translate) ─── */
 
 function AddQuestionForm({
   editLang,
@@ -359,7 +359,7 @@ function AddQuestionForm({
         </select>
       </div>
 
-      {/* NL source — always visible so DeepL has something to translate from */}
+      {/* NL source — always visible so the translator has something to translate from */}
       <div className="mb-3">
         <label className="block text-[11px] text-ink/50 mb-1">Vraag (NL — bron)</label>
         <textarea

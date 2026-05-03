@@ -5,6 +5,7 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { useState } from "react";
 import { layout } from "../../../../convex/emailHelpers";
+import { TranslateButton } from "./TranslateButton";
 
 type AbTestPanelProps = {
   templateId: Id<"emailTemplates">;
@@ -117,9 +118,16 @@ export function AbTestPanel({
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-1.5">
-                Onderwerp B (NL)
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50">
+                  Onderwerp B (NL)
+                </label>
+                <TranslateButton
+                  sourceText={subNlB}
+                  targets={["en"]}
+                  onTranslated={(t) => setSubEnB(t.en ?? subEnB)}
+                />
+              </div>
               <input
                 type="text"
                 value={subNlB}
@@ -141,23 +149,34 @@ export function AbTestPanel({
           </div>
 
           <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50">
-                HTML B
-              </label>
-              <div className="flex border border-rule rounded-[2px] overflow-hidden">
-                {(["nl", "en", "de"] as const).map((l) => (
-                  <button
-                    key={l}
-                    onClick={() => setEditLang(l)}
-                    className={`text-[10px] px-2 py-1 cursor-pointer transition-colors ${
-                      editLang === l ? "bg-copper text-paper" : "text-ink/50 hover:bg-warm/30"
-                    }`}
-                  >
-                    {l.toUpperCase()}
-                  </button>
-                ))}
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-2">
+                <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50">
+                  HTML B
+                </label>
+                <div className="flex border border-rule rounded-[2px] overflow-hidden">
+                  {(["nl", "en", "de"] as const).map((l) => (
+                    <button
+                      key={l}
+                      onClick={() => setEditLang(l)}
+                      className={`text-[10px] px-2 py-1 cursor-pointer transition-colors ${
+                        editLang === l ? "bg-copper text-paper" : "text-ink/50 hover:bg-warm/30"
+                      }`}
+                    >
+                      {l.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
               </div>
+              {editLang === "nl" && (
+                <TranslateButton
+                  sourceText={htmlNl}
+                  targets={["en"]}
+                  onTranslated={(t) => setHtmlEn(t.en ?? htmlEn)}
+                  html
+                  label="Vertaal HTML naar EN"
+                />
+              )}
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               <textarea

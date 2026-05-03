@@ -61,6 +61,7 @@ export function DigitalFilesTab() {
         slug: p.slug,
         label: p.name?.nl ?? p.shortName?.nl ?? p.slug,
         formats: EBOOK_FORMATS,
+        availableLangs: (p.availableBookLanguages ?? ["nl", "en", "de"]) as Lang[],
       }));
   }, [allProducts]);
 
@@ -110,7 +111,7 @@ export function DigitalFilesTab() {
           </div>
 
           <div className="space-y-6">
-            {LANGS.map((lang) => (
+            {LANGS.filter((lang) => product.availableLangs.includes(lang.value)).map((lang) => (
               <div key={lang.value}>
                 <p className="text-[12px] font-medium text-ink/70 mb-2">{lang.label}</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

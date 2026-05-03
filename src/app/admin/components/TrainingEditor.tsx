@@ -337,7 +337,7 @@ function AudiobookChapterExpanded({ chapter, hasAudio, audioFile, onUpdateModule
 
   return (
     <div className="border-t border-rule/50 p-4 space-y-3 bg-warm/5">
-      {/* Title NL with DeepL */}
+      {/* Title NL with AI translate */}
       <div>
         <div className="flex items-center justify-between mb-1">
           <p className="text-[11px] text-ink/50">Titel (NL)</p>
