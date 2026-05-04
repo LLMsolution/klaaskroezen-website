@@ -145,7 +145,24 @@ function HourlyChart({ data }: { data: HourlyRow[] }) {
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: 0 }}>
             <XAxis dataKey="hour" tick={{ fontSize: 9, fill: "#0E0C0A", opacity: 0.3 }} tickLine={false} axisLine={false} interval={2} />
-            <YAxis tick={{ fontSize: 10, fill: "#0E0C0A", opacity: 0.3 }} tickLine={false} axisLine={false} tickFormatter={(v) => `${(Number(v) / 100).toFixed(0)}`} width={35} />
+            <YAxis
+              yAxisId="spend"
+              orientation="left"
+              tick={{ fontSize: 10, fill: "#B5622A", opacity: 0.7 }}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(v) => `\u20AC${(Number(v) / 100).toFixed(0)}`}
+              width={42}
+            />
+            <YAxis
+              yAxisId="clicks"
+              orientation="right"
+              tick={{ fontSize: 10, fill: "#3B82F6", opacity: 0.7 }}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(v) => String(Math.round(Number(v)))}
+              width={32}
+            />
             <Tooltip
               contentStyle={{ fontSize: 12, border: "1px solid #EDE9E2", borderRadius: 2, background: "#F7F4EF" }}
               formatter={(value, name) => {
@@ -160,8 +177,8 @@ function HourlyChart({ data }: { data: HourlyRow[] }) {
               }}
             />
             <Legend wrapperStyle={{ fontSize: 11 }} />
-            <Bar dataKey="spend" name="Spend" fill="#B5622A" radius={[2, 2, 0, 0]} />
-            <Bar dataKey="clicks" name="Clicks" fill="#3B82F6" radius={[2, 2, 0, 0]} />
+            <Bar yAxisId="spend" dataKey="spend" name="Spend" fill="#B5622A" radius={[2, 2, 0, 0]} />
+            <Bar yAxisId="clicks" dataKey="clicks" name="Clicks" fill="#3B82F6" radius={[2, 2, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
