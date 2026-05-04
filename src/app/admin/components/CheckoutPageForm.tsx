@@ -5,7 +5,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { ImageUpload } from "./ImageUpload";
-import { TranslateButton } from "./TranslateButton";
+import { TranslateFromButton } from "./TranslateFromButton";
 
 type ProductType = "training" | "book";
 type ProductSubType = "training" | "book" | "event";
@@ -217,18 +217,39 @@ export function CheckoutPageForm({ product, onBack }: Props) {
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <label className={L}>Korte naam NL</label>
-                <TranslateButton sourceText={shortNameNl} onTranslated={(t) => { setShortNameEn(t.en ?? shortNameEn); setShortNameDe(t.de ?? shortNameDe); }} />
+                <TranslateFromButton
+                  targetLang="nl"
+                  sourcesAvailable={{ en: shortNameEn, de: shortNameDe }}
+                  onTranslated={setShortNameNl}
+                  compact
+                />
               </div>
               <input value={shortNameNl} onChange={(e) => setShortNameNl(e.target.value)} placeholder="SET Online" className={I} />
             </div>
             <div>
-              <label className={L}>Korte naam EN</label>
+              <div className="flex items-center justify-between gap-2">
+                <label className={L}>Korte naam EN</label>
+                <TranslateFromButton
+                  targetLang="en"
+                  sourcesAvailable={{ nl: shortNameNl, de: shortNameDe }}
+                  onTranslated={setShortNameEn}
+                  compact
+                />
+              </div>
               <input value={shortNameEn} onChange={(e) => setShortNameEn(e.target.value)} placeholder="SET Online" className={I} />
             </div>
             <div>
-              <label className={L}>Korte naam DE</label>
+              <div className="flex items-center justify-between gap-2">
+                <label className={L}>Korte naam DE</label>
+                <TranslateFromButton
+                  targetLang="de"
+                  sourcesAvailable={{ nl: shortNameNl, en: shortNameEn }}
+                  onTranslated={setShortNameDe}
+                  compact
+                />
+              </div>
               <input value={shortNameDe} onChange={(e) => setShortNameDe(e.target.value)} placeholder="SET Online" className={I} />
             </div>
           </div>
@@ -285,35 +306,77 @@ export function CheckoutPageForm({ product, onBack }: Props) {
       <Section title="Naam & Beschrijving" open={openSections.basis} onToggle={() => toggle("basis")}>
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <label className={L}>Volledige naam NL</label>
-              <TranslateButton sourceText={nameNl} onTranslated={(t) => { setNameEn(t.en ?? nameEn); setNameDe(t.de ?? nameDe); }} />
+              <TranslateFromButton
+                targetLang="nl"
+                sourcesAvailable={{ en: nameEn, de: nameDe }}
+                onTranslated={setNameNl}
+                compact
+              />
             </div>
             <input value={nameNl} onChange={(e) => setNameNl(e.target.value)} className={I} />
           </div>
           <div>
-            <label className={L}>Volledige naam EN</label>
+            <div className="flex items-center justify-between gap-2">
+              <label className={L}>Volledige naam EN</label>
+              <TranslateFromButton
+                targetLang="en"
+                sourcesAvailable={{ nl: nameNl, de: nameDe }}
+                onTranslated={setNameEn}
+                compact
+              />
+            </div>
             <input value={nameEn} onChange={(e) => setNameEn(e.target.value)} className={I} />
           </div>
           <div>
-            <label className={L}>Volledige naam DE</label>
+            <div className="flex items-center justify-between gap-2">
+              <label className={L}>Volledige naam DE</label>
+              <TranslateFromButton
+                targetLang="de"
+                sourcesAvailable={{ nl: nameNl, en: nameEn }}
+                onTranslated={setNameDe}
+                compact
+              />
+            </div>
             <input value={nameDe} onChange={(e) => setNameDe(e.target.value)} className={I} />
           </div>
         </div>
         <div className="grid grid-cols-3 gap-3">
           <div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <label className={L}>Beschrijving NL</label>
-              <TranslateButton sourceText={descNl} onTranslated={(t) => { setDescEn(t.en ?? descEn); setDescDe(t.de ?? descDe); }} />
+              <TranslateFromButton
+                targetLang="nl"
+                sourcesAvailable={{ en: descEn, de: descDe }}
+                onTranslated={setDescNl}
+                compact
+              />
             </div>
             <textarea value={descNl} onChange={(e) => setDescNl(e.target.value)} rows={2} className={I} />
           </div>
           <div>
-            <label className={L}>Beschrijving EN</label>
+            <div className="flex items-center justify-between gap-2">
+              <label className={L}>Beschrijving EN</label>
+              <TranslateFromButton
+                targetLang="en"
+                sourcesAvailable={{ nl: descNl, de: descDe }}
+                onTranslated={setDescEn}
+                compact
+              />
+            </div>
             <textarea value={descEn} onChange={(e) => setDescEn(e.target.value)} rows={2} className={I} />
           </div>
           <div>
-            <label className={L}>Beschrijving DE</label>
+            <div className="flex items-center justify-between gap-2">
+              <label className={L}>Beschrijving DE</label>
+              <TranslateFromButton
+                targetLang="de"
+                sourcesAvailable={{ nl: descNl, en: descEn }}
+                onTranslated={setDescDe}
+                compact
+              />
+            </div>
             <textarea value={descDe} onChange={(e) => setDescDe(e.target.value)} rows={2} className={I} />
           </div>
         </div>
@@ -361,19 +424,20 @@ export function CheckoutPageForm({ product, onBack }: Props) {
 
       {/* Features / Content */}
       <Section title="Features" open={openSections.content} onToggle={() => toggle("content")}>
-        <div className="mb-3">
-          <TranslateButton
-            sourceText={featuresNl.filter(f => f.trim()).join("\n---\n")}
-            label="Vertaal alle features"
-            onTranslated={(t) => {
-              if (t.en) setFeaturesEn(t.en.split("\n---\n").map(s => s.trim()).filter(Boolean));
-              if (t.de) setFeaturesDe(t.de.split("\n---\n").map(s => s.trim()).filter(Boolean));
-            }}
-          />
-        </div>
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <p className={L}>NL</p>
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <p className={L}>NL</p>
+              <TranslateFromButton
+                targetLang="nl"
+                sourcesAvailable={{
+                  en: featuresEn.filter(f => f.trim()).join("\n---\n"),
+                  de: featuresDe.filter(f => f.trim()).join("\n---\n"),
+                }}
+                onTranslated={(text) => setFeaturesNl(text.split("\n---\n").map(s => s.trim()).filter(Boolean))}
+                compact
+              />
+            </div>
             {featuresNl.map((f, i) => (
               <div key={i} className="flex gap-1 mb-1.5">
                 <input value={f} onChange={(e) => { const n = [...featuresNl]; n[i] = e.target.value; setFeaturesNl(n); }} className={I} placeholder={`Feature ${i + 1}`} />
@@ -383,7 +447,18 @@ export function CheckoutPageForm({ product, onBack }: Props) {
             <button type="button" onClick={() => setFeaturesNl([...featuresNl, ""])} className="text-[11px] text-copper cursor-pointer">+ toevoegen</button>
           </div>
           <div>
-            <p className={L}>EN</p>
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <p className={L}>EN</p>
+              <TranslateFromButton
+                targetLang="en"
+                sourcesAvailable={{
+                  nl: featuresNl.filter(f => f.trim()).join("\n---\n"),
+                  de: featuresDe.filter(f => f.trim()).join("\n---\n"),
+                }}
+                onTranslated={(text) => setFeaturesEn(text.split("\n---\n").map(s => s.trim()).filter(Boolean))}
+                compact
+              />
+            </div>
             {featuresEn.map((f, i) => (
               <div key={i} className="flex gap-1 mb-1.5">
                 <input value={f} onChange={(e) => { const n = [...featuresEn]; n[i] = e.target.value; setFeaturesEn(n); }} className={I} placeholder={`Feature ${i + 1}`} />
@@ -393,7 +468,18 @@ export function CheckoutPageForm({ product, onBack }: Props) {
             <button type="button" onClick={() => setFeaturesEn([...featuresEn, ""])} className="text-[11px] text-copper cursor-pointer">+ toevoegen</button>
           </div>
           <div>
-            <p className={L}>DE</p>
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <p className={L}>DE</p>
+              <TranslateFromButton
+                targetLang="de"
+                sourcesAvailable={{
+                  nl: featuresNl.filter(f => f.trim()).join("\n---\n"),
+                  en: featuresEn.filter(f => f.trim()).join("\n---\n"),
+                }}
+                onTranslated={(text) => setFeaturesDe(text.split("\n---\n").map(s => s.trim()).filter(Boolean))}
+                compact
+              />
+            </div>
             {featuresDe.map((f, i) => (
               <div key={i} className="flex gap-1 mb-1.5">
                 <input value={f} onChange={(e) => { const n = [...featuresDe]; n[i] = e.target.value; setFeaturesDe(n); }} className={I} placeholder={`Feature ${i + 1}`} />

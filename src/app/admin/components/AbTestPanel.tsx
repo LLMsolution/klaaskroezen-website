@@ -5,7 +5,7 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { useState } from "react";
 import { layout } from "../../../../convex/emailHelpers";
-import { TranslateButton } from "./TranslateButton";
+import { TranslateFromButton } from "./TranslateFromButton";
 
 type AbTestPanelProps = {
   templateId: Id<"emailTemplates">;
@@ -118,14 +118,15 @@ export function AbTestPanel({
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center justify-between mb-1.5 gap-2">
                 <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50">
                   Onderwerp B (NL)
                 </label>
-                <TranslateButton
-                  sourceText={subNlB}
-                  targets={["en"]}
-                  onTranslated={(t) => setSubEnB(t.en ?? subEnB)}
+                <TranslateFromButton
+                  targetLang="nl"
+                  sourcesAvailable={{ en: subEnB }}
+                  onTranslated={setSubNlB}
+                  compact
                 />
               </div>
               <input
@@ -136,9 +137,17 @@ export function AbTestPanel({
               />
             </div>
             <div>
-              <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-1.5">
-                Subject B (EN)
-              </label>
+              <div className="flex items-center justify-between mb-1.5 gap-2">
+                <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50">
+                  Subject B (EN)
+                </label>
+                <TranslateFromButton
+                  targetLang="en"
+                  sourcesAvailable={{ nl: subNlB }}
+                  onTranslated={setSubEnB}
+                  compact
+                />
+              </div>
               <input
                 type="text"
                 value={subEnB}
@@ -168,15 +177,21 @@ export function AbTestPanel({
                   ))}
                 </div>
               </div>
-              {editLang === "nl" && (
-                <TranslateButton
-                  sourceText={htmlNl}
-                  targets={["en"]}
-                  onTranslated={(t) => setHtmlEn(t.en ?? htmlEn)}
-                  html
-                  label="Vertaal HTML naar EN"
-                />
-              )}
+              <TranslateFromButton
+                targetLang={editLang}
+                sourcesAvailable={{
+                  nl: editLang === "nl" ? "" : htmlNl,
+                  en: editLang === "en" ? "" : htmlEn,
+                  de: editLang === "de" ? "" : htmlDe,
+                }}
+                onTranslated={(translated) => {
+                  if (editLang === "nl") setHtmlNl(translated);
+                  else if (editLang === "en") setHtmlEn(translated);
+                  else setHtmlDe(translated);
+                }}
+                html
+                compact
+              />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               <textarea

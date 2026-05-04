@@ -3,7 +3,7 @@
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { AbTestPanel } from "./AbTestPanel";
 import { EmailAIPanel } from "./EmailAIPanel";
-import { TranslateButton } from "./TranslateButton";
+import { TranslateFromButton } from "./TranslateFromButton";
 import { layout } from "../../../../convex/emailHelpers";
 
 type PreviewWidth = "desktop" | "tablet" | "mobile";
@@ -117,16 +117,15 @@ export function TemplateDetailPanel({
         {/* Subject fields */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-2 gap-2">
               <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50">
                 Onderwerp (NL)
               </label>
-              <TranslateButton
-                sourceText={editSubjectNl}
-                onTranslated={(t) => {
-                  setEditSubjectEn(t.en ?? editSubjectEn);
-                  setEditSubjectDe(t.de ?? editSubjectDe);
-                }}
+              <TranslateFromButton
+                targetLang="nl"
+                sourcesAvailable={{ en: editSubjectEn, de: editSubjectDe }}
+                onTranslated={setEditSubjectNl}
+                compact
               />
             </div>
             <input
@@ -137,9 +136,17 @@ export function TemplateDetailPanel({
             />
           </div>
           <div>
-            <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2">
-              Subject (EN)
-            </label>
+            <div className="flex items-center justify-between mb-2 gap-2">
+              <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50">
+                Subject (EN)
+              </label>
+              <TranslateFromButton
+                targetLang="en"
+                sourcesAvailable={{ nl: editSubjectNl, de: editSubjectDe }}
+                onTranslated={setEditSubjectEn}
+                compact
+              />
+            </div>
             <input
               type="text"
               value={editSubjectEn}
@@ -148,9 +155,17 @@ export function TemplateDetailPanel({
             />
           </div>
           <div>
-            <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2">
-              Betreff (DE)
-            </label>
+            <div className="flex items-center justify-between mb-2 gap-2">
+              <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50">
+                Betreff (DE)
+              </label>
+              <TranslateFromButton
+                targetLang="de"
+                sourcesAvailable={{ nl: editSubjectNl, en: editSubjectEn }}
+                onTranslated={setEditSubjectDe}
+                compact
+              />
+            </div>
             <input
               type="text"
               value={editSubjectDe}
@@ -270,21 +285,26 @@ export function TemplateDetailPanel({
           ) : editMode === "edit" ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div>
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-2 gap-2">
                   <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40">
                     HTML ({previewLang.toUpperCase()})
                   </p>
-                  {previewLang === "nl" && (
-                    <TranslateButton
-                      sourceText={editHtmlNl}
-                      onTranslated={(t) => {
-                        setEditHtmlEn(t.en ?? editHtmlEn);
-                        setEditHtmlDe(t.de ?? editHtmlDe);
-                      }}
-                      html
-                      label="Vertaal HTML naar EN+DE"
-                    />
-                  )}
+                  <TranslateFromButton
+                    targetLang={previewLang}
+                    sourcesAvailable={{
+                      nl: previewLang === "nl" ? "" : editHtmlNl,
+                      en: previewLang === "en" ? "" : editHtmlEn,
+                      de: previewLang === "de" ? "" : editHtmlDe,
+                    }}
+                    onTranslated={(translated) => {
+                      setCurrentHtml(translated);
+                      if (previewLang === "nl") setEditHtmlNl(translated);
+                      else if (previewLang === "en") setEditHtmlEn(translated);
+                      else setEditHtmlDe(translated);
+                    }}
+                    html
+                    compact
+                  />
                 </div>
                 <textarea
                   value={currentHtml}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { TranslateButton } from "./TranslateButton";
+import { TranslateFromButton } from "./TranslateFromButton";
 
 export type Lang = "nl" | "en" | "de";
 export const LANGS: Lang[] = ["nl", "en", "de"];
@@ -29,15 +29,14 @@ export function LangTabs({ value, onChange }: { value: Lang; onChange: (l: Lang)
 /**
  * Single-language editable field bound to one entry of a multilang object.
  *
- * - On lang=nl, no translate button (it's the source).
- * - On lang≠nl, a "Vertaal vanuit NL" button appears; clicking translates
- *   `sourceNl` via the AI translate action to the active lang and writes
- *   into this field (via `onSave`).
+ * The "Vertaal vanuit ▾" button lets the admin pick any other language as
+ * source and translates it into the active lang only. Other languages are
+ * never touched.
  */
 export function LangField({
   label,
   value,
-  sourceNl,
+  allValues,
   lang,
   onSave,
   multiline,
@@ -46,7 +45,7 @@ export function LangField({
 }: {
   label: string;
   value: string;
-  sourceNl: string;
+  allValues: { nl?: string; en?: string; de?: string };
   lang: Lang;
   onSave: (v: string) => Promise<void>;
   multiline?: boolean;
@@ -58,9 +57,7 @@ export function LangField({
   useEffect(() => { setVal(value); }, [value]);
   const cls = "w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]";
 
-  async function handleTranslate(translations: Record<string, string>) {
-    const translated = translations[lang];
-    if (!translated) return;
+  async function handleTranslated(translated: string) {
     setVal(translated);
     await onSave(translated);
   }
@@ -73,15 +70,13 @@ export function LangField({
             {label} <span className="text-ink/30">({lang.toUpperCase()})</span>
           </p>
           <div className="flex items-center gap-3">
-            {lang !== "nl" && sourceNl.trim() && (
-              <TranslateButton
-                sourceText={sourceNl}
-                targets={[lang]}
-                onTranslated={handleTranslate}
-                html={html}
-                label={`Vertaal vanuit NL`}
-              />
-            )}
+            <TranslateFromButton
+              targetLang={lang}
+              sourcesAvailable={allValues}
+              onTranslated={handleTranslated}
+              html={html}
+              compact
+            />
             <button
               onClick={() => { setVal(value); setEditing(true); }}
               className="text-[11px] text-copper hover:text-copper-light cursor-pointer"
@@ -103,15 +98,13 @@ export function LangField({
         <p className="text-[11px] text-ink/50">
           {label} <span className="text-ink/30">({lang.toUpperCase()})</span>
         </p>
-        {lang !== "nl" && sourceNl.trim() && (
-          <TranslateButton
-            sourceText={sourceNl}
-            targets={[lang]}
-            onTranslated={handleTranslate}
-            html={html}
-            label={`Vertaal vanuit NL`}
-          />
-        )}
+        <TranslateFromButton
+          targetLang={lang}
+          sourcesAvailable={allValues}
+          onTranslated={handleTranslated}
+          html={html}
+          compact
+        />
       </div>
       {multiline ? (
         <textarea value={val} onChange={(e) => setVal(e.target.value)} rows={3} className={cls} />

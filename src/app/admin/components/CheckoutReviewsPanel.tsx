@@ -6,7 +6,7 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { Loading, EmptyState } from "./shared";
 import { AdminImageUpload } from "./AdminImageUpload";
-import { TranslateButton } from "./TranslateButton";
+import { TranslateFromButton } from "./TranslateFromButton";
 
 type ReviewType = "training" | "book";
 
@@ -151,35 +151,77 @@ export function CheckoutReviewsPanel({ onBack }: Props) {
 
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <label className={labelClass}>Rol (NL)</label>
-                <TranslateButton sourceText={form.roleNl} onTranslated={(t) => setForm({ ...form, roleEn: t.en ?? form.roleEn, roleDe: t.de ?? form.roleDe })} />
+                <TranslateFromButton
+                  targetLang="nl"
+                  sourcesAvailable={{ en: form.roleEn, de: form.roleDe }}
+                  onTranslated={(t) => setForm({ ...form, roleNl: t })}
+                  compact
+                />
               </div>
               <input value={form.roleNl} onChange={(e) => setForm({ ...form, roleNl: e.target.value })} placeholder="Directeur Bedrijf X" className={inputClass} />
             </div>
             <div>
-              <label className={labelClass}>Rol (EN)</label>
+              <div className="flex items-center justify-between gap-2">
+                <label className={labelClass}>Rol (EN)</label>
+                <TranslateFromButton
+                  targetLang="en"
+                  sourcesAvailable={{ nl: form.roleNl, de: form.roleDe }}
+                  onTranslated={(t) => setForm({ ...form, roleEn: t })}
+                  compact
+                />
+              </div>
               <input value={form.roleEn} onChange={(e) => setForm({ ...form, roleEn: e.target.value })} placeholder="Director Company X" className={inputClass} />
             </div>
             <div>
-              <label className={labelClass}>Rolle (DE)</label>
+              <div className="flex items-center justify-between gap-2">
+                <label className={labelClass}>Rolle (DE)</label>
+                <TranslateFromButton
+                  targetLang="de"
+                  sourcesAvailable={{ nl: form.roleNl, en: form.roleEn }}
+                  onTranslated={(t) => setForm({ ...form, roleDe: t })}
+                  compact
+                />
+              </div>
               <input value={form.roleDe} onChange={(e) => setForm({ ...form, roleDe: e.target.value })} placeholder="Direktor Firma X" className={inputClass} />
             </div>
           </div>
 
           <div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <label className={labelClass}>Review tekst (NL)</label>
-              <TranslateButton sourceText={form.textNl} onTranslated={(t) => setForm({ ...form, textEn: t.en ?? form.textEn, textDe: t.de ?? form.textDe })} />
+              <TranslateFromButton
+                targetLang="nl"
+                sourcesAvailable={{ en: form.textEn, de: form.textDe }}
+                onTranslated={(t) => setForm({ ...form, textNl: t })}
+                compact
+              />
             </div>
             <textarea value={form.textNl} onChange={(e) => setForm({ ...form, textNl: e.target.value })} rows={3} className={inputClass} />
           </div>
           <div>
-            <label className={labelClass}>Review tekst (EN)</label>
+            <div className="flex items-center justify-between gap-2">
+              <label className={labelClass}>Review tekst (EN)</label>
+              <TranslateFromButton
+                targetLang="en"
+                sourcesAvailable={{ nl: form.textNl, de: form.textDe }}
+                onTranslated={(t) => setForm({ ...form, textEn: t })}
+                compact
+              />
+            </div>
             <textarea value={form.textEn} onChange={(e) => setForm({ ...form, textEn: e.target.value })} rows={3} className={inputClass} />
           </div>
           <div>
-            <label className={labelClass}>Review-Text (DE)</label>
+            <div className="flex items-center justify-between gap-2">
+              <label className={labelClass}>Review-Text (DE)</label>
+              <TranslateFromButton
+                targetLang="de"
+                sourcesAvailable={{ nl: form.textNl, en: form.textEn }}
+                onTranslated={(t) => setForm({ ...form, textDe: t })}
+                compact
+              />
+            </div>
             <textarea value={form.textDe} onChange={(e) => setForm({ ...form, textDe: e.target.value })} rows={3} className={inputClass} />
           </div>
 

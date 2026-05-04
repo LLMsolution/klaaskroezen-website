@@ -7,7 +7,7 @@ import type { Id } from "../../../../convex/_generated/dataModel";
 import { Loading } from "./shared";
 import { QuizEditor } from "./QuizEditor";
 import { ModuleAudioField } from "./ModuleFields";
-import { TranslateButton } from "./TranslateButton";
+import { TranslateFromButton } from "./TranslateFromButton";
 import { Section, InlineForm, WorkbookSection, CoverImageSection } from "./TrainingEditorSections";
 import { TrainingModuleSortable, type SortableModule } from "./TrainingModuleSortable";
 import { LangTabs, LangField, mergeLang, type Lang } from "./LangEditor";
@@ -149,7 +149,7 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
           <LangField
             label="Titel"
             value={t.title[editLang] ?? ""}
-            sourceNl={t.title.nl}
+            allValues={t.title}
             lang={editLang}
             onSave={async (v) => {
               await updateTraining({ id: trainingId, title: mergeLang(t.title, editLang, v) });
@@ -158,7 +158,7 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
           <LangField
             label="Beschrijving"
             value={t.description[editLang] ?? ""}
-            sourceNl={t.description.nl}
+            allValues={t.description}
             lang={editLang}
             multiline
             onSave={async (v) => {
@@ -337,23 +337,44 @@ function AudiobookChapterExpanded({ chapter, hasAudio, audioFile, onUpdateModule
 
   return (
     <div className="border-t border-rule/50 p-4 space-y-3 bg-warm/5">
-      {/* Title NL with AI translate */}
+      {/* Title per lang met AI vertaal-knop per veld */}
       <div>
-        <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center justify-between gap-2 mb-1">
           <p className="text-[11px] text-ink/50">Titel (NL)</p>
-          <TranslateButton sourceText={titleNl} onTranslated={(t) => { markDirty(setTitleEn, t.en ?? titleEn); markDirty(setTitleDe, t.de ?? titleDe); }} />
+          <TranslateFromButton
+            targetLang="nl"
+            sourcesAvailable={{ en: titleEn, de: titleDe }}
+            onTranslated={(t) => markDirty(setTitleNl, t)}
+            compact
+          />
         </div>
         <input value={titleNl} onChange={(e) => markDirty(setTitleNl, e.target.value)}
           className="w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <p className="text-[11px] text-ink/50 mb-1">Titel (EN)</p>
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <p className="text-[11px] text-ink/50">Titel (EN)</p>
+            <TranslateFromButton
+              targetLang="en"
+              sourcesAvailable={{ nl: titleNl, de: titleDe }}
+              onTranslated={(t) => markDirty(setTitleEn, t)}
+              compact
+            />
+          </div>
           <input value={titleEn} onChange={(e) => markDirty(setTitleEn, e.target.value)}
             className="w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
         </div>
         <div>
-          <p className="text-[11px] text-ink/50 mb-1">Titel (DE)</p>
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <p className="text-[11px] text-ink/50">Titel (DE)</p>
+            <TranslateFromButton
+              targetLang="de"
+              sourcesAvailable={{ nl: titleNl, en: titleEn }}
+              onTranslated={(t) => markDirty(setTitleDe, t)}
+              compact
+            />
+          </div>
           <input value={titleDe} onChange={(e) => markDirty(setTitleDe, e.target.value)}
             className="w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
         </div>

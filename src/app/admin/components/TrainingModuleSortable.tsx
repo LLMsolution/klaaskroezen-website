@@ -321,7 +321,7 @@ function ExpandedModuleBody({
       <LangField
         label="Module titel"
         value={mod.title[editLang] ?? ""}
-        sourceNl={mod.title.nl}
+        allValues={mod.title}
         lang={editLang}
         onSave={async (v) => {
           await onUpdateModule({ id: mod._id, title: mergeLang(mod.title, editLang, v) });
@@ -330,7 +330,7 @@ function ExpandedModuleBody({
       <LangField
         label="Module beschrijving"
         value={mod.description[editLang] ?? ""}
-        sourceNl={mod.description.nl}
+        allValues={mod.description}
         lang={editLang}
         multiline
         onSave={async (v) => {
@@ -471,7 +471,7 @@ function SortableLessonRow({
               <LangField
                 label="Les titel"
                 value={lesson.title[editLang] ?? ""}
-                sourceNl={lesson.title.nl}
+                allValues={lesson.title}
                 lang={editLang}
                 onSave={async (v) => {
                   await onUpdateModule({ id: lesson._id, title: mergeLang(lesson.title, editLang, v) });
@@ -480,7 +480,7 @@ function SortableLessonRow({
               <LangField
                 label="Les beschrijving"
                 value={lesson.description[editLang] ?? ""}
-                sourceNl={lesson.description.nl}
+                allValues={lesson.description}
                 lang={editLang}
                 multiline
                 onSave={async (v) => {

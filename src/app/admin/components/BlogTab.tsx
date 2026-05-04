@@ -297,7 +297,18 @@ export function BlogTab() {
               ))}
             </div>
             <div className="mt-2">
-              <BlogTranslateButton title={title} excerpt={excerpt} body={body} onTranslated={(t, lang) => { setTitle(t.title); setExcerpt(t.excerpt); setBody(t.body); setLang(lang); }} />
+              <BlogTranslateButton
+                title={title}
+                excerpt={excerpt}
+                body={body}
+                sourceLang={lang}
+                onTranslated={(t, target) => {
+                  setTitle(t.title);
+                  setExcerpt(t.excerpt);
+                  setBody(t.body);
+                  setLang(target);
+                }}
+              />
             </div>
           </div>
           <div>
@@ -409,24 +420,32 @@ export function BlogTab() {
 
 /* ─── Blog translate button: translates title+excerpt+body to EN or DE ─── */
 
-function BlogTranslateButton({ title, excerpt, body, onTranslated }: {
+function BlogTranslateButton({ title, excerpt, body, sourceLang, onTranslated }: {
   title: string;
   excerpt: string;
   body: string;
+  sourceLang: "nl" | "en" | "de";
   onTranslated: (fields: { title: string; excerpt: string; body: string }, lang: "nl" | "en" | "de") => void;
 }) {
   const translateField = useAction(api.aiTranslate.translateField);
   const [loading, setLoading] = useState(false);
-  const [targetLang, setTargetLang] = useState<"en" | "de">("en");
+  const targetCandidates = (["nl", "en", "de"] as const).filter((l) => l !== sourceLang);
+  const [targetLang, setTargetLang] = useState<"nl" | "en" | "de">(targetCandidates[0] ?? "en");
+
+  // If sourceLang changes (user switched form lang), make sure target stays valid.
+  if (targetLang === sourceLang) {
+    const fallback = targetCandidates[0] ?? "en";
+    if (fallback !== targetLang) setTargetLang(fallback);
+  }
 
   async function handleTranslate() {
     if (!title.trim()) return;
     setLoading(true);
     try {
       const [tTitle, tExcerpt, tBody] = await Promise.all([
-        translateField({ text: title, targetLang, sourceLang: "nl", html: false }),
-        translateField({ text: excerpt, targetLang, sourceLang: "nl", html: false }),
-        translateField({ text: body, targetLang, sourceLang: "nl", html: true }),
+        translateField({ text: title, targetLang, sourceLang, html: false }),
+        translateField({ text: excerpt, targetLang, sourceLang, html: false }),
+        translateField({ text: body, targetLang, sourceLang, html: true }),
       ]);
       onTranslated({ title: tTitle, excerpt: tExcerpt, body: tBody }, targetLang);
     } catch {
@@ -437,11 +456,17 @@ function BlogTranslateButton({ title, excerpt, body, onTranslated }: {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <select value={targetLang} onChange={(e) => setTargetLang(e.target.value as "en" | "de")}
-        className="text-[11px] border border-rule rounded-[2px] px-2 py-1 bg-transparent text-ink/60 cursor-pointer">
-        <option value="en">EN</option>
-        <option value="de">DE</option>
+    <div className="flex items-center gap-2 flex-wrap">
+      <span className="text-[11px] text-ink/50">Vertaal {sourceLang.toUpperCase()} →</span>
+      <select
+        value={targetLang}
+        onChange={(e) => setTargetLang(e.target.value as "nl" | "en" | "de")}
+        disabled={loading}
+        className="text-[11px] border border-rule rounded-[2px] px-2 py-1 bg-transparent text-ink/60 cursor-pointer"
+      >
+        {targetCandidates.map((l) => (
+          <option key={l} value={l}>{l.toUpperCase()}</option>
+        ))}
       </select>
       <button type="button" onClick={handleTranslate} disabled={loading || !title.trim()}
         className="text-[11px] text-copper hover:text-copper-light cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">

@@ -5,8 +5,11 @@ import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Loading, EmptyState } from "./shared";
 import { ContentFieldRenderer } from "./ContentFieldRenderer";
+import { TranslateRecordButton } from "./TranslateRecordButton";
 import type { FieldSchema } from "../../../../convex/siteSchemas";
 import type { Lang } from "@/lib/i18n";
+
+const ALL_LANGS: Lang[] = ["nl", "en", "de"];
 
 function isImageRef(val: unknown): val is string {
   return typeof val === "string" && (val.startsWith("convex:") || val.startsWith("/images/"));
@@ -115,8 +118,8 @@ function PageSections({ slug }: { slug: string }) {
   const [saved, setSaved] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [translatingSection, setTranslatingSection] = useState<string | null>(null);
-  const [translatingPage, setTranslatingPage] = useState<Lang | null>(null);
   const [pageTranslateMsg, setPageTranslateMsg] = useState<string | null>(null);
+  const [sectionSourceLang, setSectionSourceLang] = useState<Record<string, Lang>>({});
 
   // Refs for scrolling to sections
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -228,12 +231,25 @@ function PageSections({ slug }: { slug: string }) {
     }
   }
 
-  async function handleTranslateSection(sectionId: string) {
-    if (activeLang === "nl") return;
+  function sectionAvailableSources(sectionId: string): Lang[] {
+    return ALL_LANGS.filter((l) => {
+      if (l === activeLang) return false;
+      const e = contentEntries?.find((x) => x.sectionId === sectionId && x.lang === l);
+      return Boolean(e?.parsedContent);
+    });
+  }
+
+  async function handleTranslateSection(sectionId: string, sourceLang: Lang) {
+    if (sourceLang === activeLang) return;
     setTranslatingSection(sectionId);
     setError("");
     try {
-      await translateSection({ pageSlug: slug, sectionId, targetLang: activeLang });
+      await translateSection({
+        pageSlug: slug,
+        sectionId,
+        sourceLang,
+        targetLang: activeLang,
+      });
       setSaved(sectionId);
       setTimeout(() => setSaved(null), 2000);
     } catch (err) {
@@ -243,49 +259,39 @@ function PageSections({ slug }: { slug: string }) {
     }
   }
 
-  async function handleTranslatePage(targetLang: Lang) {
-    if (targetLang === "nl") return;
-    setTranslatingPage(targetLang);
+  async function handleTranslatePage(sourceLang: Lang, targetLang: Lang) {
     setPageTranslateMsg(null);
     setError("");
-    try {
-      const res = await translatePage({ pageSlug: slug, targetLang });
-      setPageTranslateMsg(
-        res.failed > 0
-          ? `${res.translated} vertaald, ${res.failed} mislukt: ${res.errors.slice(0, 2).join("; ")}`
-          : `${res.translated} secties vertaald naar ${targetLang.toUpperCase()}.`,
-      );
-      setTimeout(() => setPageTranslateMsg(null), 6000);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Vertaling mislukt.");
-    } finally {
-      setTranslatingPage(null);
+    const res = await translatePage({ pageSlug: slug, sourceLang, targetLang });
+    setPageTranslateMsg(
+      res.failed > 0
+        ? `${res.translated} vertaald, ${res.failed} mislukt: ${res.errors.slice(0, 2).join("; ")}`
+        : `${res.translated} secties vertaald (${sourceLang.toUpperCase()} → ${targetLang.toUpperCase()}).`,
+    );
+    setTimeout(() => setPageTranslateMsg(null), 6000);
+  }
+
+  function pageAvailableLangs(): Lang[] {
+    const present = new Set<Lang>();
+    for (const e of contentEntries ?? []) {
+      if (e.parsedContent) present.add(e.lang as Lang);
     }
+    return ALL_LANGS.filter((l) => present.has(l));
   }
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40">
           {sortedSections.length} secties
         </p>
-        <div className="flex items-center gap-2">
-          {pageTranslateMsg && (
-            <span className="text-[11px] text-ink/60">{pageTranslateMsg}</span>
-          )}
-          {(["en", "de"] as const).map((lang) => (
-            <button
-              key={lang}
-              type="button"
-              onClick={() => handleTranslatePage(lang)}
-              disabled={translatingPage !== null}
-              className="text-[11px] font-medium px-3 py-1.5 rounded-[2px] cursor-pointer bg-copper/10 text-copper hover:bg-copper/20 transition-colors disabled:opacity-40"
-              title={`Vertaal alle secties NL → ${lang.toUpperCase()} (AI + glossary)`}
-            >
-              {translatingPage === lang ? `Bezig met ${lang.toUpperCase()}...` : `Vertaal pagina → ${lang.toUpperCase()}`}
-            </button>
-          ))}
-        </div>
+        <TranslateRecordButton
+          availableLangs={pageAvailableLangs()}
+          onTranslate={handleTranslatePage}
+          defaultSource="nl"
+          defaultTarget={activeLang !== "nl" ? activeLang : "en"}
+          resultMessage={pageTranslateMsg}
+        />
       </div>
 
       {sortedSections.map((section) => {
@@ -350,34 +356,57 @@ function PageSections({ slug }: { slug: string }) {
                       {lang.toUpperCase()}
                     </button>
                   ))}
-                  {activeLang !== "nl" && (
-                    <div className="ml-auto flex items-center gap-2">
-                      <button
-                        onClick={() => handleTranslateSection(section.id)}
-                        disabled={translatingSection === section.id}
-                        className="text-[11px] font-medium px-3 py-1.5 rounded-[2px] cursor-pointer bg-copper text-paper hover:bg-copper-light transition-colors disabled:opacity-40"
-                        title={`AI-vertaling NL → ${activeLang.toUpperCase()} (gebruikt vertaalwoordenboek)`}
-                      >
-                        {translatingSection === section.id
-                          ? "Vertalen..."
-                          : `Vertaal vanuit NL → ${activeLang.toUpperCase()}`}
-                      </button>
-                      <button
-                        onClick={() => {
-                          const nlEntry = contentEntries?.find(
-                            (e) => e.sectionId === section.id && e.lang === "nl",
-                          );
-                          if (nlEntry?.parsedContent) {
-                            setEditData({ ...(nlEntry.parsedContent as Record<string, unknown>) });
+                  {(() => {
+                    const sources = sectionAvailableSources(section.id);
+                    if (sources.length === 0) return null;
+                    const picked = sectionSourceLang[section.id] ?? sources[0];
+                    return (
+                      <div className="ml-auto flex items-center gap-2">
+                        <span className="text-[11px] text-ink/50">Vertaal vanuit</span>
+                        <select
+                          value={picked}
+                          onChange={(e) =>
+                            setSectionSourceLang((prev) => ({
+                              ...prev,
+                              [section.id]: e.target.value as Lang,
+                            }))
                           }
-                        }}
-                        className="text-[11px] font-medium px-3 py-1.5 rounded-[2px] cursor-pointer bg-copper/10 text-copper hover:bg-copper/20 transition-colors"
-                        title="Kopieer NL content (zonder vertalen) als basis"
-                      >
-                        ← Kopieer NL
-                      </button>
-                    </div>
-                  )}
+                          disabled={translatingSection === section.id}
+                          className="text-[11px] bg-paper border border-rule px-2 py-1.5 rounded-[2px] text-ink focus:border-copper focus:outline-none cursor-pointer"
+                        >
+                          {sources.map((l) => (
+                            <option key={l} value={l}>
+                              {l.toUpperCase()}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          onClick={() => handleTranslateSection(section.id, picked)}
+                          disabled={translatingSection === section.id}
+                          className="text-[11px] font-medium px-3 py-1.5 rounded-[2px] cursor-pointer bg-copper text-paper hover:bg-copper-light transition-colors disabled:opacity-40"
+                          title={`AI-vertaling ${picked.toUpperCase()} → ${activeLang.toUpperCase()} (vertaalwoordenboek)`}
+                        >
+                          {translatingSection === section.id
+                            ? "Vertalen..."
+                            : `Vertaal → ${activeLang.toUpperCase()}`}
+                        </button>
+                        <button
+                          onClick={() => {
+                            const sourceEntry = contentEntries?.find(
+                              (e) => e.sectionId === section.id && e.lang === picked,
+                            );
+                            if (sourceEntry?.parsedContent) {
+                              setEditData({ ...(sourceEntry.parsedContent as Record<string, unknown>) });
+                            }
+                          }}
+                          className="text-[11px] font-medium px-3 py-1.5 rounded-[2px] cursor-pointer bg-copper/10 text-copper hover:bg-copper/20 transition-colors"
+                          title={`Kopieer ${picked.toUpperCase()} content (zonder vertalen) als basis`}
+                        >
+                          ← Kopieer {picked.toUpperCase()}
+                        </button>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Form fields */}

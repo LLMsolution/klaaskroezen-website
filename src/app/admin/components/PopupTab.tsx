@@ -6,7 +6,7 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { AdminImageUpload } from "./AdminImageUpload";
 import { Loading } from "./shared";
-import { TranslateButton } from "./TranslateButton";
+import { TranslateFromButton } from "./TranslateFromButton";
 
 type I18nField = { nl: string; en: string; de: string };
 
@@ -233,37 +233,45 @@ function I18nFieldGroup({
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <label className={LABEL}>{label}</label>
-        <TranslateButton
-          sourceText={value.nl}
-          onTranslated={(t) => onChange({ ...value, en: t.en ?? value.en, de: t.de ?? value.de })}
-          html={multiline}
-        />
-      </div>
+      <label className={LABEL}>{label}</label>
       <div className="grid grid-cols-3 gap-3">
-        {langs.map(({ key, label: langLabel }) => (
-          <div key={key}>
-            <span className={LANG_LABEL}>{langLabel}</span>
-            {multiline ? (
-              <textarea
-                value={value[key]}
-                onChange={(e) => onChange({ ...value, [key]: e.target.value })}
-                placeholder={placeholder?.[key] ?? ""}
-                rows={3}
-                className={`${INPUT} resize-none`}
-              />
-            ) : (
-              <input
-                type="text"
-                value={value[key]}
-                onChange={(e) => onChange({ ...value, [key]: e.target.value })}
-                placeholder={placeholder?.[key] ?? ""}
-                className={INPUT}
-              />
-            )}
-          </div>
-        ))}
+        {langs.map(({ key, label: langLabel }) => {
+          const others: { nl?: string; en?: string; de?: string } = {};
+          for (const l of langs) {
+            if (l.key !== key) others[l.key] = value[l.key];
+          }
+          return (
+            <div key={key}>
+              <div className="flex items-center justify-between gap-2">
+                <span className={LANG_LABEL}>{langLabel}</span>
+                <TranslateFromButton
+                  targetLang={key as "nl" | "en" | "de"}
+                  sourcesAvailable={others}
+                  onTranslated={(t) => onChange({ ...value, [key]: t })}
+                  html={multiline}
+                  compact
+                />
+              </div>
+              {multiline ? (
+                <textarea
+                  value={value[key]}
+                  onChange={(e) => onChange({ ...value, [key]: e.target.value })}
+                  placeholder={placeholder?.[key] ?? ""}
+                  rows={3}
+                  className={`${INPUT} resize-none`}
+                />
+              ) : (
+                <input
+                  type="text"
+                  value={value[key]}
+                  onChange={(e) => onChange({ ...value, [key]: e.target.value })}
+                  placeholder={placeholder?.[key] ?? ""}
+                  className={INPUT}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

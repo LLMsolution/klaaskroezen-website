@@ -8,7 +8,7 @@ import Image from "next/image";
 import { Loading, EmptyState, formatDate } from "./shared";
 import { TrainingEditor } from "./TrainingEditor";
 import { TrainingParticipantsTab } from "./TrainingParticipantsTab";
-import { TranslateButton } from "./TranslateButton";
+import { TranslateFromButton } from "./TranslateFromButton";
 
 type View = "list" | "create" | "edit" | "participants";
 
@@ -107,24 +107,57 @@ export function TrainingsTab({ filterType }: { filterType?: "training" | "audiob
         <div className="grid grid-cols-3 gap-4 mb-4">
           <Field label="Slug" value={slug} onChange={setSlug} placeholder="sales-excellence-training" />
           <div /><div />
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-[12px] text-ink/50">Titel (NL)</label>
-              <TranslateButton sourceText={titleNl} onTranslated={(t) => { setTitleEn(t.en ?? titleEn); setTitleDe(t.de ?? titleDe); }} />
-            </div>
-            <input type="text" value={titleNl} onChange={(e) => setTitleNl(e.target.value)} className="w-full bg-transparent border border-rule px-4 py-2.5 text-[14px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
-          </div>
-          <Field label="Titel (EN)" value={titleEn} onChange={setTitleEn} />
-          <Field label="Titel (DE)" value={titleDe} onChange={setTitleDe} />
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-[12px] text-ink/50">Beschrijving (NL)</label>
-              <TranslateButton sourceText={descNl} onTranslated={(t) => { setDescEn(t.en ?? descEn); setDescDe(t.de ?? descDe); }} />
-            </div>
-            <textarea value={descNl} onChange={(e) => setDescNl(e.target.value)} rows={3} className="w-full bg-transparent border border-rule px-4 py-2.5 text-[14px] text-ink focus:border-copper focus:outline-none rounded-[2px]" />
-          </div>
-          <Field label="Beschrijving (EN)" value={descEn} onChange={setDescEn} multiline />
-          <Field label="Beschrijving (DE)" value={descDe} onChange={setDescDe} multiline />
+          <FieldWithTranslate
+            label="Titel (NL)"
+            value={titleNl}
+            onChange={setTitleNl}
+            targetLang="nl"
+            sources={{ en: titleEn, de: titleDe }}
+            onTranslated={setTitleNl}
+          />
+          <FieldWithTranslate
+            label="Titel (EN)"
+            value={titleEn}
+            onChange={setTitleEn}
+            targetLang="en"
+            sources={{ nl: titleNl, de: titleDe }}
+            onTranslated={setTitleEn}
+          />
+          <FieldWithTranslate
+            label="Titel (DE)"
+            value={titleDe}
+            onChange={setTitleDe}
+            targetLang="de"
+            sources={{ nl: titleNl, en: titleEn }}
+            onTranslated={setTitleDe}
+          />
+          <FieldWithTranslate
+            label="Beschrijving (NL)"
+            value={descNl}
+            onChange={setDescNl}
+            multiline
+            targetLang="nl"
+            sources={{ en: descEn, de: descDe }}
+            onTranslated={setDescNl}
+          />
+          <FieldWithTranslate
+            label="Beschrijving (EN)"
+            value={descEn}
+            onChange={setDescEn}
+            multiline
+            targetLang="en"
+            sources={{ nl: descNl, de: descDe }}
+            onTranslated={setDescEn}
+          />
+          <FieldWithTranslate
+            label="Beschrijving (DE)"
+            value={descDe}
+            onChange={setDescDe}
+            multiline
+            targetLang="de"
+            sources={{ nl: descNl, en: descEn }}
+            onTranslated={setDescDe}
+          />
         </div>
 
         <button
@@ -284,6 +317,45 @@ function Field({
           placeholder={placeholder}
           className={cls}
         />
+      )}
+    </div>
+  );
+}
+
+function FieldWithTranslate({
+  label,
+  value,
+  onChange,
+  multiline,
+  targetLang,
+  sources,
+  onTranslated,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  multiline?: boolean;
+  targetLang: "nl" | "en" | "de";
+  sources: { nl?: string; en?: string; de?: string };
+  onTranslated: (v: string) => void;
+}) {
+  const cls =
+    "w-full bg-transparent border border-rule px-4 py-2.5 text-[14px] text-ink focus:border-copper focus:outline-none rounded-[2px]";
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1.5 gap-2">
+        <label className="text-[12px] text-ink/50">{label}</label>
+        <TranslateFromButton
+          targetLang={targetLang}
+          sourcesAvailable={sources}
+          onTranslated={onTranslated}
+          compact
+        />
+      </div>
+      {multiline ? (
+        <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={3} className={cls} />
+      ) : (
+        <input type="text" value={value} onChange={(e) => onChange(e.target.value)} className={cls} />
       )}
     </div>
   );
