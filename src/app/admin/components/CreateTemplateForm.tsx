@@ -3,7 +3,7 @@
 import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useState } from "react";
-import { TranslateButton } from "./TranslateButton";
+import { TranslateFromButton } from "./TranslateFromButton";
 
 export function CreateTemplateForm({ onDone }: { onDone: () => void }) {
   const createTemplate = useMutation(api.emailAdmin.createTemplate);
@@ -75,24 +75,39 @@ export function CreateTemplateForm({ onDone }: { onDone: () => void }) {
           </div>
         </div>
         <div>
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-2 gap-2">
             <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50">Onderwerp (NL)</label>
-            <TranslateButton
-              sourceText={subjectNl}
-              onTranslated={(t) => {
-                setSubjectEn(t.en ?? subjectEn);
-                setSubjectDe(t.de ?? subjectDe);
-              }}
+            <TranslateFromButton
+              targetLang="nl"
+              sourcesAvailable={{ en: subjectEn, de: subjectDe }}
+              onTranslated={setSubjectNl}
+              compact
             />
           </div>
           <input value={subjectNl} onChange={(e) => setSubjectNl(e.target.value)} required placeholder="Welkom bij je training" className={inputClass} />
         </div>
         <div>
-          <label className={labelClass}>Subject (EN)</label>
+          <div className="flex items-center justify-between mb-2 gap-2">
+            <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50">Subject (EN)</label>
+            <TranslateFromButton
+              targetLang="en"
+              sourcesAvailable={{ nl: subjectNl, de: subjectDe }}
+              onTranslated={setSubjectEn}
+              compact
+            />
+          </div>
           <input value={subjectEn} onChange={(e) => setSubjectEn(e.target.value)} placeholder="Welcome to your training" className={inputClass} />
         </div>
         <div>
-          <label className={labelClass}>Betreff (DE)</label>
+          <div className="flex items-center justify-between mb-2 gap-2">
+            <label className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50">Betreff (DE)</label>
+            <TranslateFromButton
+              targetLang="de"
+              sourcesAvailable={{ nl: subjectNl, en: subjectEn }}
+              onTranslated={setSubjectDe}
+              compact
+            />
+          </div>
           <input value={subjectDe} onChange={(e) => setSubjectDe(e.target.value)} placeholder="Willkommen bei Ihrem Training" className={inputClass} />
         </div>
         {error && <p className="text-[12px] text-red-500">{error}</p>}

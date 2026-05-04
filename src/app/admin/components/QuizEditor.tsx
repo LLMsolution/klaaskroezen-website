@@ -295,30 +295,40 @@ function AddQuestionForm({
 }) {
   const translateField = useAction(api.aiTranslate.translateField);
   const [translating, setTranslating] = useState(false);
+  const ALL: ("nl" | "en" | "de")[] = ["nl", "en", "de"];
+  const sourceCandidates = ALL.filter((l) => {
+    if (l === editLang) return false;
+    if ((qText[l] ?? "").trim()) return true;
+    if (options.some((o) => (o[l] ?? "").trim())) return true;
+    if ((scaleLabels[l] ?? "").trim()) return true;
+    return false;
+  });
+  const [sourceLang, setSourceLang] = useState<"nl" | "en" | "de">(sourceCandidates[0] ?? "nl");
+  const effectiveSource = sourceCandidates.includes(sourceLang) ? sourceLang : (sourceCandidates[0] ?? "nl");
   const inputCls = "w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]";
 
-  async function translate(text: string): Promise<string> {
-    if (editLang === "nl" || !text.trim()) return "";
-    return translateField({ text, targetLang: editLang, sourceLang: "nl" });
+  async function translate(text: string, src: "nl" | "en" | "de"): Promise<string> {
+    if (src === editLang || !text.trim()) return "";
+    return translateField({ text, targetLang: editLang, sourceLang: src });
   }
 
-  async function translateAllFromNl() {
-    if (editLang === "nl") return;
+  async function translateAllFrom(src: "nl" | "en" | "de") {
+    if (src === editLang) return;
     setTranslating(true);
     try {
       const next: MultilangString = { ...qText };
-      if (qText.nl) next[editLang] = await translate(qText.nl);
+      if (qText[src]) next[editLang] = await translate(qText[src] ?? "", src);
       setQText(next);
 
       const nextOptions: OptionState[] = [];
       for (const o of options) {
-        const translated = o.nl ? await translate(o.nl) : "";
+        const translated = o[src] ? await translate(o[src] ?? "", src) : "";
         nextOptions.push({ ...o, [editLang]: translated });
       }
       setOptions(nextOptions);
 
-      if (scaleLabels.nl) {
-        setScaleLabels({ ...scaleLabels, [editLang]: await translate(scaleLabels.nl) });
+      if (scaleLabels[src]) {
+        setScaleLabels({ ...scaleLabels, [editLang]: await translate(scaleLabels[src] ?? "", src) });
       }
     } finally {
       setTranslating(false);
@@ -331,17 +341,30 @@ function AddQuestionForm({
 
   return (
     <div className="border border-copper/20 rounded-[2px] p-5 bg-copper/[0.02]">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
         <h3 className="text-[13px] font-medium text-ink">Nieuwe vraag ({editLang.toUpperCase()})</h3>
-        {editLang !== "nl" && (
-          <button
-            type="button"
-            onClick={translateAllFromNl}
-            disabled={translating || !qText.nl.trim()}
-            className="text-[11px] text-copper hover:text-copper-light cursor-pointer disabled:opacity-40"
-          >
-            {translating ? "Vertalen..." : "Vertaal alles vanuit NL"}
-          </button>
+        {sourceCandidates.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-ink/50">Vertaal vanuit</span>
+            <select
+              value={effectiveSource}
+              onChange={(e) => setSourceLang(e.target.value as "nl" | "en" | "de")}
+              disabled={translating}
+              className="text-[11px] bg-paper border border-rule px-2 py-1 rounded-[2px] text-ink focus:border-copper focus:outline-none cursor-pointer"
+            >
+              {sourceCandidates.map((l) => (
+                <option key={l} value={l}>{l.toUpperCase()}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => translateAllFrom(effectiveSource)}
+              disabled={translating}
+              className="text-[11px] text-copper hover:text-copper-light cursor-pointer disabled:opacity-40"
+            >
+              {translating ? "Vertalen..." : `Vertaal alles → ${editLang.toUpperCase()}`}
+            </button>
+          </div>
         )}
       </div>
       {error && <p className="text-red-600 text-[13px] mb-3">{error}</p>}
