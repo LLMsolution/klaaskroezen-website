@@ -206,12 +206,11 @@ ${paragraph(`Je hebt de <strong>${training}</strong> volledig afgerond. Dat is e
 ${paragraph("Je hebt nu een fundament dat je de rest van je carriere zal dragen. Niet een setje trucjes, maar een manier van werken die past bij wie je bent.")}
 ${subheading("Wat nu?")}
 ${featureList([
-  "Download je certificaat via je dashboard",
   "Pas de principes toe en deel je resultaten",
   "Overweeg de training voor je team",
 ])}
 ${paragraph("Ik zou het heel fijn vinden als je me laat weten hoe de training je heeft geholpen. Een korte reply op deze mail is genoeg — het motiveert me enorm.")}
-${ctaButton("Download je certificaat", `${SITE_URL}/dashboard`)}
+${ctaButton("Naar je dashboard", `${SITE_URL}/dashboard`)}
 ${quote("Het creeren van fans is de snelste weg naar duurzaam succes.")}
 ${signature()}
 `;

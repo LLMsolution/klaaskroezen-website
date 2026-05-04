@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
-import { useQuery } from "convex/react";
+import { useQuery, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { TurnstileWidget } from "@/components/ui/TurnstileWidget";
 import { t, type Lang } from "@/lib/i18n";
 
 interface Props {
@@ -13,10 +14,12 @@ interface Props {
 export function LoginForm({ lang }: Props) {
   const s = t(lang).login;
   const { signIn } = useAuthActions();
+  const verifyTurnstile = useAction(api.turnstile.verify);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   const inputClass =
     "w-full bg-transparent border border-rule px-4 py-3 text-[15px] text-ink placeholder:text-ink/30 focus:border-copper focus:outline-none focus-visible:outline-none focus:ring-0 transition-colors rounded-[2px]";
@@ -54,12 +57,24 @@ export function LoginForm({ lang }: Props) {
       return;
     }
 
+    if (!turnstileToken) {
+      setError(s.errorMagicLink);
+      return;
+    }
+
     setLoading(true);
     try {
+      const verifyRes = await verifyTurnstile({ token: turnstileToken });
+      if (!verifyRes.ok) {
+        setError(s.errorMagicLink);
+        setTurnstileToken(null);
+        return;
+      }
       await signIn("resend", { email, lang });
       setMagicLinkSent(true);
     } catch {
       setError(s.errorMagicLink);
+      setTurnstileToken(null);
     } finally {
       setLoading(false);
     }
@@ -132,7 +147,16 @@ export function LoginForm({ lang }: Props) {
             autoFocus
           />
         </div>
-        <button type="submit" disabled={loading} className={btnPrimary}>
+        <TurnstileWidget
+          onVerify={setTurnstileToken}
+          onExpire={() => setTurnstileToken(null)}
+          onError={() => setTurnstileToken(null)}
+        />
+        <button
+          type="submit"
+          disabled={loading || !turnstileToken}
+          className={btnPrimary}
+        >
           {loading ? s.magicLinkSending : s.magicLinkCta}
         </button>
       </form>

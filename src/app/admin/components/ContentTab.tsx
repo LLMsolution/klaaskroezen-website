@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Loading, EmptyState } from "./shared";
 import { ContentFieldRenderer } from "./ContentFieldRenderer";
@@ -105,6 +105,8 @@ function PageSections({ slug }: { slug: string }) {
   const contentEntries = useQuery(api.siteContent.getPageContentAdmin, { slug });
   const updateSection = useMutation(api.siteContent.updateSection);
   const toggleSection = useMutation(api.siteContent.toggleSection);
+  const translateSection = useAction(api.siteContentTranslate.translateSection);
+  const translatePage = useAction(api.siteContentTranslate.translatePage);
 
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [activeLang, setActiveLang] = useState<Lang>("nl");
@@ -112,6 +114,9 @@ function PageSections({ slug }: { slug: string }) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [translatingSection, setTranslatingSection] = useState<string | null>(null);
+  const [translatingPage, setTranslatingPage] = useState<Lang | null>(null);
+  const [pageTranslateMsg, setPageTranslateMsg] = useState<string | null>(null);
 
   // Refs for scrolling to sections
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -223,11 +228,65 @@ function PageSections({ slug }: { slug: string }) {
     }
   }
 
+  async function handleTranslateSection(sectionId: string) {
+    if (activeLang === "nl") return;
+    setTranslatingSection(sectionId);
+    setError("");
+    try {
+      await translateSection({ pageSlug: slug, sectionId, targetLang: activeLang });
+      setSaved(sectionId);
+      setTimeout(() => setSaved(null), 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Vertaling mislukt.");
+    } finally {
+      setTranslatingSection(null);
+    }
+  }
+
+  async function handleTranslatePage(targetLang: Lang) {
+    if (targetLang === "nl") return;
+    setTranslatingPage(targetLang);
+    setPageTranslateMsg(null);
+    setError("");
+    try {
+      const res = await translatePage({ pageSlug: slug, targetLang });
+      setPageTranslateMsg(
+        res.failed > 0
+          ? `${res.translated} vertaald, ${res.failed} mislukt: ${res.errors.slice(0, 2).join("; ")}`
+          : `${res.translated} secties vertaald naar ${targetLang.toUpperCase()}.`,
+      );
+      setTimeout(() => setPageTranslateMsg(null), 6000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Vertaling mislukt.");
+    } finally {
+      setTranslatingPage(null);
+    }
+  }
+
   return (
     <div className="space-y-2">
-      <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40 mb-3">
-        {sortedSections.length} secties
-      </p>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40">
+          {sortedSections.length} secties
+        </p>
+        <div className="flex items-center gap-2">
+          {pageTranslateMsg && (
+            <span className="text-[11px] text-ink/60">{pageTranslateMsg}</span>
+          )}
+          {(["en", "de"] as const).map((lang) => (
+            <button
+              key={lang}
+              type="button"
+              onClick={() => handleTranslatePage(lang)}
+              disabled={translatingPage !== null}
+              className="text-[11px] font-medium px-3 py-1.5 rounded-[2px] cursor-pointer bg-copper/10 text-copper hover:bg-copper/20 transition-colors disabled:opacity-40"
+              title={`Vertaal alle secties NL → ${lang.toUpperCase()} (AI + glossary)`}
+            >
+              {translatingPage === lang ? `Bezig met ${lang.toUpperCase()}...` : `Vertaal pagina → ${lang.toUpperCase()}`}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {sortedSections.map((section) => {
         const isExpanded = expandedSection === section.id;
@@ -292,20 +351,32 @@ function PageSections({ slug }: { slug: string }) {
                     </button>
                   ))}
                   {activeLang !== "nl" && (
-                    <button
-                      onClick={() => {
-                        const nlEntry = contentEntries?.find(
-                          (e) => e.sectionId === section.id && e.lang === "nl",
-                        );
-                        if (nlEntry?.parsedContent) {
-                          setEditData({ ...(nlEntry.parsedContent as Record<string, unknown>) });
-                        }
-                      }}
-                      className="text-[11px] font-medium px-3 py-1.5 rounded-[2px] cursor-pointer bg-copper/10 text-copper hover:bg-copper/20 transition-colors ml-auto"
-                      title="Kopieer NL content om als basis voor vertaling te gebruiken"
-                    >
-                      ← Kopieer NL
-                    </button>
+                    <div className="ml-auto flex items-center gap-2">
+                      <button
+                        onClick={() => handleTranslateSection(section.id)}
+                        disabled={translatingSection === section.id}
+                        className="text-[11px] font-medium px-3 py-1.5 rounded-[2px] cursor-pointer bg-copper text-paper hover:bg-copper-light transition-colors disabled:opacity-40"
+                        title={`AI-vertaling NL → ${activeLang.toUpperCase()} (gebruikt vertaalwoordenboek)`}
+                      >
+                        {translatingSection === section.id
+                          ? "Vertalen..."
+                          : `Vertaal vanuit NL → ${activeLang.toUpperCase()}`}
+                      </button>
+                      <button
+                        onClick={() => {
+                          const nlEntry = contentEntries?.find(
+                            (e) => e.sectionId === section.id && e.lang === "nl",
+                          );
+                          if (nlEntry?.parsedContent) {
+                            setEditData({ ...(nlEntry.parsedContent as Record<string, unknown>) });
+                          }
+                        }}
+                        className="text-[11px] font-medium px-3 py-1.5 rounded-[2px] cursor-pointer bg-copper/10 text-copper hover:bg-copper/20 transition-colors"
+                        title="Kopieer NL content (zonder vertalen) als basis"
+                      >
+                        ← Kopieer NL
+                      </button>
+                    </div>
                   )}
                 </div>
 

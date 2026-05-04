@@ -7,7 +7,6 @@ import { useState } from "react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lang } from "@/lib/i18n";
-import { CertificateButton } from "./CertificateButton";
 import { AudiobookOverview } from "./AudiobookOverview";
 import { WorkbookCard } from "./WorkbookCard";
 import { NotesDownloadButton } from "./NotesDownloadButton";
@@ -199,11 +198,7 @@ function TrainingContent({
           {tcI18n.myMaterial}
         </h3>
         <WorkbookCard trainingId={training._id} lang={lang} />
-        <NotesDownloadButton trainingId={training._id} lang={lang} />
       </div>
-
-      {/* Certificate */}
-      <CertificateButton trainingId={training._id} trainingTitle={loc(training.title, lang)} />
 
       {/* Modules — hierarchical or flat */}
       <div className="space-y-3">
@@ -325,6 +320,11 @@ function TrainingContent({
             </div>
           );
         })}
+      </div>
+
+      {/* Download alle notities (onderaan) */}
+      <div className="mt-10">
+        <NotesDownloadButton trainingId={training._id} lang={lang} />
       </div>
     </div>
   );

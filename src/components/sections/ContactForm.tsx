@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { FadeIn } from "@/components/ui/FadeIn";
+import { TurnstileWidget } from "@/components/ui/TurnstileWidget";
 import { t, type Lang } from "@/lib/i18n";
 
 interface FormData {
@@ -20,7 +21,7 @@ interface Props {
 
 export function ContactForm({ lang }: Props) {
   const s = t(lang).contactForm;
-  const submitContact = useMutation(api.contactForm.submit);
+  const submitContact = useAction(api.contactForm.submit);
 
   const [form, setForm] = useState<FormData>({
     naam: "",
@@ -32,6 +33,7 @@ export function ContactForm({ lang }: Props) {
   const [status, setStatus] = useState<
     "idle" | "sending" | "sent" | "error"
   >("idle");
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   function update(field: keyof FormData, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -39,6 +41,10 @@ export function ContactForm({ lang }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!turnstileToken) {
+      setStatus("error");
+      return;
+    }
     setStatus("sending");
 
     try {
@@ -48,12 +54,14 @@ export function ContactForm({ lang }: Props) {
         phone: form.telefoon || undefined,
         subject: form.onderwerp || s.fallbackSubject,
         message: form.bericht,
-        turnstileVerified: true, // TODO: integrate Turnstile widget
+        turnstileToken,
       });
       setStatus("sent");
       setForm({ naam: "", email: "", telefoon: "", onderwerp: "", bericht: "" });
+      setTurnstileToken(null);
     } catch {
       setStatus("error");
+      setTurnstileToken(null);
     }
   }
 
@@ -161,11 +169,18 @@ export function ContactForm({ lang }: Props) {
           />
         </div>
 
+        {/* Turnstile bot-check */}
+        <TurnstileWidget
+          onVerify={setTurnstileToken}
+          onExpire={() => setTurnstileToken(null)}
+          onError={() => setTurnstileToken(null)}
+        />
+
         {/* Submit */}
         <div className="flex items-center gap-5">
           <button
             type="submit"
-            disabled={status === "sending"}
+            disabled={status === "sending" || !turnstileToken}
             className="inline-flex items-center gap-2.5 bg-copper text-paper px-7 py-3.5 text-[13px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors disabled:opacity-50 rounded-[2px] cursor-pointer"
           >
             {status === "sending" ? s.sending : s.submit}

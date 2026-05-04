@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, internalMutation, internalQuery, internalAction } from "./_generated/server";
+import { action, internalMutation, internalQuery, internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { rateLimiter } from "./rateLimits";
 import { contactNotification, contactConfirmationNl, TEMPLATE_OPTIONS } from "./emailTemplates";
@@ -7,18 +7,41 @@ import { layout } from "./emailHelpers";
 
 const FROM = "Klaas Kroezen <info@llmsolution.nl>";
 
-// Store the contact form submission
-export const submit = mutation({
-  args: {
-    name: v.string(),
-    email: v.string(),
-    phone: v.optional(v.string()),
-    company: v.optional(v.string()),
-    subject: v.string(),
-    message: v.string(),
-    turnstileVerified: v.boolean(),
+const submitArgs = {
+  name: v.string(),
+  email: v.string(),
+  phone: v.optional(v.string()),
+  company: v.optional(v.string()),
+  subject: v.string(),
+  message: v.string(),
+};
+
+/**
+ * Public submit — verifies the Turnstile token server-side, then writes
+ * the submission via an internal mutation. Frontend MUST send a fresh token
+ * from the TurnstileWidget; we never trust a client-side "verified" flag.
+ */
+export const submit = action({
+  args: { ...submitArgs, turnstileToken: v.string() },
+  handler: async (ctx, args): Promise<string> => {
+    const { turnstileToken, ...rest } = args;
+    const verifyRes = await ctx.runAction(internal.turnstile.verifyInternal, {
+      token: turnstileToken,
+    });
+    if (!verifyRes.ok) {
+      throw new Error(`Bot-check mislukt: ${verifyRes.error}`);
+    }
+    return await ctx.runMutation(internal.contactForm.submitInternal, rest);
   },
-  handler: async (ctx, args) => {
+});
+
+/**
+ * Internal mutation — does the actual DB write + side-effects. Only callable
+ * after the public action has verified the Turnstile token.
+ */
+export const submitInternal = internalMutation({
+  args: submitArgs,
+  handler: async (ctx, args): Promise<string> => {
     // Rate limit by email address
     const { ok, retryAfter } = await rateLimiter.limit(ctx, "contactForm", {
       key: args.email,
@@ -31,6 +54,7 @@ export const submit = mutation({
 
     const id = await ctx.db.insert("contactSubmissions", {
       ...args,
+      turnstileVerified: true,
       emailSent: false,
       createdAt: Date.now(),
     });

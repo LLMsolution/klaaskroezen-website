@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useConvexAuth } from "convex/react";
-import { useMutation } from "convex/react";
+import { useMutation, useAction } from "convex/react";
 import { api } from "../../../convex/_generated/api";
+import { TurnstileWidget } from "@/components/ui/TurnstileWidget";
 import { t, type Lang } from "@/lib/i18n";
 import Link from "next/link";
 
@@ -16,6 +17,7 @@ export function RegisterForm({ lang }: { lang: Lang }) {
   const { signIn } = useAuthActions();
   const { isAuthenticated } = useConvexAuth();
   const completeRegistration = useMutation(api.users.completeRegistration);
+  const verifyTurnstile = useAction(api.turnstile.verify);
 
   const [email, setEmail] = useState(() => {
     if (typeof window !== "undefined") {
@@ -33,6 +35,7 @@ export function RegisterForm({ lang }: { lang: Lang }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   // After magic link click: user is authenticated → complete registration
   useEffect(() => {
@@ -64,6 +67,10 @@ export function RegisterForm({ lang }: { lang: Lang }) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email || !firstName) return;
+    if (!turnstileToken) {
+      setError(loginS.errorMagicLink);
+      return;
+    }
     setError("");
     setLoading(true);
 
@@ -73,10 +80,17 @@ export function RegisterForm({ lang }: { lang: Lang }) {
     }));
 
     try {
+      const verifyRes = await verifyTurnstile({ token: turnstileToken });
+      if (!verifyRes.ok) {
+        setError(loginS.errorMagicLink);
+        setTurnstileToken(null);
+        return;
+      }
       await signIn("resend", { email, lang });
       setMagicLinkSent(true);
     } catch {
       setError(loginS.errorMagicLink);
+      setTurnstileToken(null);
     } finally {
       setLoading(false);
     }
@@ -152,11 +166,18 @@ export function RegisterForm({ lang }: { lang: Lang }) {
         </div>
       </div>
 
+      {/* Turnstile bot-check */}
+      <TurnstileWidget
+        onVerify={setTurnstileToken}
+        onExpire={() => setTurnstileToken(null)}
+        onError={() => setTurnstileToken(null)}
+      />
+
       {/* Error */}
       {error && <p className="text-[13px] text-red-500">{error}</p>}
 
       {/* Submit */}
-      <button type="submit" disabled={loading || !email || !firstName}
+      <button type="submit" disabled={loading || !email || !firstName || !turnstileToken}
         className="w-full bg-copper text-paper py-3.5 text-[13px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer disabled:opacity-50">
         {loading ? s.sending : s.submitCta}
       </button>
