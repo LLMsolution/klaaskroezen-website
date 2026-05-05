@@ -190,9 +190,11 @@ export function CheckoutReviews({ productType, productSlug, lang, logos = DEFAUL
         </div>
       </div>
 
-      <p className="text-[13px] text-ink/40 text-center">
-        {{ nl: "340+ sales professionals getraind in 21 landen", en: "340+ sales professionals trained across 21 countries", de: "340+ Vertriebsprofis in 21 Ländern geschult" }[lang]}
-      </p>
+      {productType === "training" && (
+        <p className="text-[13px] text-ink/40 text-center">
+          {{ nl: "340+ sales professionals getraind in 21 landen", en: "340+ sales professionals trained across 21 countries", de: "340+ Vertriebsprofis in 21 Ländern geschult" }[lang]}
+        </p>
+      )}
 
       {productType === "training" && (
         <div>
