@@ -631,6 +631,35 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
       { key: "dismiss", type: "text", label: "Annuleer-knop" },
     ],
   },
+
+  "trust-stats": {
+    type: "trust-stats",
+    label: "Trust-stats (rating + getallen)",
+    fields: [
+      { key: "ratingValue", type: "text", label: "Rating cijfer (bijv. 9.1)" },
+      { key: "ratingLabel", type: "text", label: "Rating label" },
+      { key: "trainedText", type: "text", label: "Trainings-stat (alleen op training-checkouts)" },
+      { key: "soldText", type: "text", label: "Boek-stat (alleen op boek-checkouts)" },
+    ],
+  },
+
+  "trusted-by": {
+    type: "trusted-by",
+    label: "Vertrouwd door (logo wall, alleen training)",
+    fields: [
+      { key: "label", type: "text", label: "Sectie-label" },
+      {
+        key: "logos",
+        type: "array",
+        label: "Logo's",
+        itemFields: [
+          { key: "image", type: "image-path", label: "Logo afbeelding" },
+          { key: "alt", type: "text", label: "Alt tekst" },
+          { key: "width", type: "number", label: "Breedte (px)" },
+        ],
+      },
+    ],
+  },
 };
 
 /** Get the schema for a section type */
