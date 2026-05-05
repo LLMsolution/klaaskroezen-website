@@ -8,6 +8,7 @@ import { seedSprekerContent } from "./siteSeedSpreker";
 import { seedOverOnsContent } from "./siteSeedOverOns";
 import { seedContactContent } from "./siteSeedContact";
 import { seedHomeContent } from "./siteSeedHome";
+import { seedCheckoutSharedContent } from "./siteSeedCheckout";
 
 type SectionDef = {
   id: string;
@@ -56,6 +57,7 @@ function getAllSeeds(): PageSeed[] {
   return [
     seedHomeContent(), seedSetContent(), seedCstContent(), seedBoekContent(),
     seedSprekerContent(), seedOverOnsContent(), seedContactContent(),
+    seedCheckoutSharedContent(),
   ];
 }
 

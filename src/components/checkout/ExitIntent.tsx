@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { t, type Lang } from "@/lib/checkout-i18n";
 
 interface Props {
@@ -12,6 +14,23 @@ export function ExitIntent({ lang, show }: Props) {
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const i18n = t(lang);
+
+  // Admin-editable copy (siteContent page "checkout-shared", section "exit-intent")
+  // Falls back to checkout-i18n constants while DB content is loading or empty.
+  const dbContent = useQuery(api.siteContent.getPageContent, {
+    slug: "checkout-shared",
+    lang,
+  });
+  const exitData = (dbContent?.["exit-intent"] ?? {}) as {
+    title?: string;
+    body?: string;
+    cta?: string;
+    dismiss?: string;
+  };
+  const exitTitle = exitData.title?.trim() || i18n.exitTitle;
+  const exitBody = exitData.body?.trim() || i18n.exitBody;
+  const exitCta = exitData.cta?.trim() || i18n.exitCta;
+  const exitDismiss = exitData.dismiss?.trim() || i18n.exitDismiss;
 
   const handleMouseLeave = useCallback(
     (e: MouseEvent) => {
@@ -74,10 +93,10 @@ export function ExitIntent({ lang, show }: Props) {
         </div>
 
         <h3 className="font-display text-[22px] font-bold text-center leading-[1.2] mb-2">
-          {i18n.exitTitle}
+          {exitTitle}
         </h3>
         <p className="text-[15px] text-ink/60 text-center leading-[1.7] mb-6">
-          {i18n.exitBody}
+          {exitBody}
         </p>
 
         <button
@@ -88,7 +107,7 @@ export function ExitIntent({ lang, show }: Props) {
           }}
           className="w-full bg-copper text-paper py-3.5 text-[13px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer mb-3"
         >
-          {i18n.exitCta}
+          {exitCta}
         </button>
 
         <button
@@ -99,7 +118,7 @@ export function ExitIntent({ lang, show }: Props) {
           }}
           className="w-full text-[13px] text-ink/40 hover:text-ink/60 transition-colors cursor-pointer text-center"
         >
-          {i18n.exitDismiss}
+          {exitDismiss}
         </button>
       </div>
     </div>

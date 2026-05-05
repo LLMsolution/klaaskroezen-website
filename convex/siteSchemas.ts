@@ -620,6 +620,17 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
       { key: "guarantees", type: "array", label: "Garantie items", itemFields: [{ key: "value", type: "text", label: "Item" }] },
     ],
   },
+
+  "exit-intent": {
+    type: "exit-intent",
+    label: "Exit-intent popup",
+    fields: [
+      { key: "title", type: "text", label: "Titel" },
+      { key: "body", type: "textarea", label: "Tekst" },
+      { key: "cta", type: "text", label: "Hoofdknop (toch bestellen)" },
+      { key: "dismiss", type: "text", label: "Annuleer-knop" },
+    ],
+  },
 };
 
 /** Get the schema for a section type */
