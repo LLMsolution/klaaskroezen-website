@@ -60,7 +60,7 @@ export const en = {
     cstTitle: "Customer Success Training",
     benefits: "Benefits",
     benefit1: "Instant online access",
-    benefit2: "10% results or money back",
+    benefit2: "Not enthusiastic after the kick-off? Then you pay nothing.",
     benefit3: "25+ years of experience",
   },
 

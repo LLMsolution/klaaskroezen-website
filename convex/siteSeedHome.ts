@@ -41,7 +41,7 @@ export function seedHomeContent(): PageSeed {
       description: "Eén methode, twee doelgroepen. Kies de training die bij jouw rol past.",
       ctaPrimary: "Sales Excellence Training",
       ctaSecondary: "Customer Success Training",
-      guarantees: ["Direct online toegang", "10% resultaat of geld terug", "25+ jaar ervaring"],
+      guarantees: ["Direct online toegang", "Niet enthousiast na de kick-off? Dan betaal je niets.", "25+ jaar ervaring"],
     }),
 
     // ── Slideshow (NL) ──
@@ -197,7 +197,7 @@ export function seedHomeContent(): PageSeed {
       description: "One method, two audiences. Choose the training that fits your role.",
       ctaPrimary: "Sales Excellence Training",
       ctaSecondary: "Customer Success Training",
-      guarantees: ["Instant online access", "10% results or money back", "25+ years of experience"],
+      guarantees: ["Instant online access", "Not enthusiastic after the kick-off? Then you pay nothing.", "25+ years of experience"],
     }),
     makeContent(SLUG, "slideshow", "home-slideshow", "en", {
       slides: [
@@ -337,7 +337,7 @@ export function seedHomeContent(): PageSeed {
       description: "Eine Methode, zwei Zielgruppen. Wählen Sie das Training, das zu Ihrer Rolle passt.",
       ctaPrimary: "Sales Excellence Training",
       ctaSecondary: "Customer Success Training",
-      guarantees: ["Sofortiger Online-Zugang", "10% Ergebnis oder Geld zurück", "25+ Jahre Erfahrung"],
+      guarantees: ["Sofortiger Online-Zugang", "Nicht begeistert nach dem Kick-off? Dann zahlen Sie nichts.", "25+ Jahre Erfahrung"],
     }),
     makeContent(SLUG, "slideshow", "home-slideshow", "de", {
       slides: [
