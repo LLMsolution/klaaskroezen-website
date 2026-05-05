@@ -109,11 +109,44 @@ interface ReviewsProps {
   logos?: Array<{ src: string; alt: string; w: number }>;
 }
 
-export function CheckoutReviews({ productType, productSlug, lang, logos = DEFAULT_TRUST_LOGOS }: ReviewsProps) {
+export function CheckoutReviews({ productType, productSlug, lang, logos }: ReviewsProps) {
   const reviews = useQuery(api.checkoutReviews.listForProduct, {
     productType,
     productSlug,
   });
+
+  // Admin-editable copy (siteContent page "checkout-shared")
+  const dbContent = useQuery(api.siteContent.getPageContent, {
+    slug: "checkout-shared",
+    lang,
+  });
+  const stats = (dbContent?.["trust-stats"] ?? {}) as {
+    ratingValue?: string;
+    ratingLabel?: string;
+    trainedText?: string;
+    soldText?: string;
+  };
+  const trustedBy = (dbContent?.["trusted-by"] ?? {}) as {
+    label?: string;
+    logos?: Array<{ image?: string; alt?: string; width?: number }>;
+  };
+
+  const ratingValue = stats.ratingValue?.trim() || "9.1";
+  const ratingLabel =
+    stats.ratingLabel?.trim() ||
+    { nl: "Gemiddelde beoordeling", en: "Average rating", de: "Durchschnittsbewertung" }[lang];
+  const productStat =
+    productType === "training"
+      ? stats.trainedText?.trim() ||
+        { nl: "340+ sales professionals getraind in 21 landen", en: "340+ sales professionals trained across 21 countries", de: "340+ Vertriebsprofis in 21 Ländern geschult" }[lang]
+      : stats.soldText?.trim() || "";
+  const trustedByLabel =
+    trustedBy.label?.trim() ||
+    { nl: "Vertrouwd door", en: "Trusted by", de: "Vertraut von" }[lang];
+  const dbLogos = (trustedBy.logos ?? [])
+    .filter((l) => l.image && l.alt)
+    .map((l) => ({ src: l.image as string, alt: l.alt as string, w: l.width ?? 56 }));
+  const finalLogos = logos ?? (dbLogos.length > 0 ? dbLogos : DEFAULT_TRUST_LOGOS);
 
   return (
     <div className="space-y-8">
@@ -177,32 +210,28 @@ export function CheckoutReviews({ productType, productSlug, lang, logos = DEFAUL
       )}
 
       <div className="flex items-center justify-center gap-3 py-4 border border-rule rounded-[2px] bg-warm/30">
-        <span className="font-display text-[24px] font-bold text-copper">9.1</span>
+        <span className="font-display text-[24px] font-bold text-copper">{ratingValue}</span>
         <div>
           <div className="flex gap-0.5 text-copper text-[10px]">
             {"★★★★★".split("").map((star, i) => (
               <span key={i}>{star}</span>
             ))}
           </div>
-          <p className="text-[11px] text-ink/40 mt-0.5">
-            {{ nl: "Gemiddelde beoordeling", en: "Average rating", de: "Durchschnittsbewertung" }[lang]}
-          </p>
+          <p className="text-[11px] text-ink/40 mt-0.5">{ratingLabel}</p>
         </div>
       </div>
 
-      {productType === "training" && (
-        <p className="text-[13px] text-ink/40 text-center">
-          {{ nl: "340+ sales professionals getraind in 21 landen", en: "340+ sales professionals trained across 21 countries", de: "340+ Vertriebsprofis in 21 Ländern geschult" }[lang]}
-        </p>
+      {productStat && (
+        <p className="text-[13px] text-ink/40 text-center">{productStat}</p>
       )}
 
       {productType === "training" && (
         <div>
           <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/30 text-center mb-4">
-            {{ nl: "Vertrouwd door", en: "Trusted by", de: "Vertraut von" }[lang]}
+            {trustedByLabel}
           </p>
           <div className="flex items-center justify-center gap-6 flex-wrap opacity-40 grayscale">
-            {logos.map((logo) => (
+            {finalLogos.map((logo) => (
               <Image
                 key={logo.alt}
                 src={logo.src}
