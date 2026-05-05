@@ -473,7 +473,7 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
       { key: "setSalesTitle", type: "text", label: "Titel Sales Excellence card" },
       { key: "forCS", type: "text", label: "Label klantcontact" },
       { key: "cstTitle", type: "text", label: "Titel Customer Success card" },
-      { key: "benefits", type: "array", label: "Trust items", itemFields: [{ key: "value", type: "text", label: "Item" }] },
+      { key: "guarantees", type: "array", label: "Trust / garantie items", itemFields: [{ key: "value", type: "text", label: "Item" }] },
     ],
   },
 
