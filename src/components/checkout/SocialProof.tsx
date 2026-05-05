@@ -21,6 +21,31 @@ export function SocialProof({ productSlug, lang, country }: Props) {
   const i18n = t(lang);
   const sessionRef = useRef<string>("");
 
+  const dbContent = useQuery(api.siteContent.getPageContent, {
+    slug: "checkout-shared",
+    lang,
+  });
+  const toasts = (dbContent?.["social-proof-toasts"] ?? {}) as {
+    peopleViewing?: string;
+    purchasedLabel?: string;
+    purchasedFromLabel?: string;
+    minutesAgo?: string;
+    hoursAgo?: string;
+    justNow?: string;
+  };
+  const peopleViewingLabel = toasts.peopleViewing?.trim() || i18n.peopleViewing;
+  const minutesAgoLabel = toasts.minutesAgo?.trim() || i18n.minutesAgo;
+  const hoursAgoLabel = toasts.hoursAgo?.trim() || i18n.hoursAgo;
+  const justNowLabel =
+    toasts.justNow?.trim() ||
+    { nl: "zojuist", en: "just now", de: "gerade eben" }[lang];
+  const purchasedLabel =
+    toasts.purchasedLabel?.trim() ||
+    { nl: "Iemand heeft dit gekocht", en: "Someone purchased this", de: "Jemand hat dies gekauft" }[lang];
+  const purchasedFromTemplate =
+    toasts.purchasedFromLabel?.trim() ||
+    { nl: "Iemand uit {country} heeft dit gekocht", en: "Someone from {country} purchased this", de: "Jemand aus {country} hat dies gekauft" }[lang];
+
   // Generate stable session ID
   useEffect(() => {
     sessionRef.current =
@@ -94,9 +119,17 @@ export function SocialProof({ productSlug, lang, country }: Props) {
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
 
-    if (hours > 0) return `${hours} ${i18n.hoursAgo}`;
-    if (minutes > 0) return `${minutes} ${i18n.minutesAgo}`;
-    return { nl: "zojuist", en: "just now", de: "gerade eben" }[lang];
+    if (hours > 0) return `${hours} ${hoursAgoLabel}`;
+    if (minutes > 0) return `${minutes} ${minutesAgoLabel}`;
+    return justNowLabel;
+  }
+
+  function formatPurchaseLine(): string {
+    if (country && COUNTRY_REGIONS[country]) {
+      const countryName = COUNTRY_REGIONS[country][lang];
+      return purchasedFromTemplate.replace("{country}", countryName);
+    }
+    return purchasedLabel;
   }
 
   return (
@@ -109,7 +142,7 @@ export function SocialProof({ productSlug, lang, country }: Props) {
             <span className="relative inline-flex rounded-full h-2 w-2 bg-copper" />
           </span>
           <span className="text-[12px] text-ink/60">
-            {activeCount} {i18n.peopleViewing}
+            {activeCount} {peopleViewingLabel}
           </span>
         </div>
       )}
@@ -133,11 +166,7 @@ export function SocialProof({ productSlug, lang, country }: Props) {
               </svg>
             </div>
             <div>
-              <p className="text-[13px] text-ink/70">
-                {country && COUNTRY_REGIONS[country]
-                  ? { nl: `Iemand uit ${COUNTRY_REGIONS[country].nl} heeft dit gekocht`, en: `Someone from ${COUNTRY_REGIONS[country].en} purchased this`, de: `Jemand aus ${COUNTRY_REGIONS[country].de} hat dies gekauft` }[lang]
-                  : { nl: "Iemand heeft dit gekocht", en: "Someone purchased this", de: "Jemand hat dies gekauft" }[lang]}
-              </p>
+              <p className="text-[13px] text-ink/70">{formatPurchaseLine()}</p>
               <p className="text-[11px] text-ink/40 mt-0.5">
                 {timeAgo(currentPurchase.paidAt)}
               </p>

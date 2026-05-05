@@ -660,6 +660,30 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
       },
     ],
   },
+
+  "trust-badges": {
+    type: "trust-badges",
+    label: "Trust badges (garantie + SSL + betaling)",
+    fields: [
+      { key: "guarantee", type: "text", label: "Garantie titel" },
+      { key: "guaranteeSub", type: "textarea", label: "Garantie subtitel" },
+      { key: "secureSsl", type: "text", label: "SSL label" },
+      { key: "securePayment", type: "text", label: "Betaling label" },
+    ],
+  },
+
+  "social-proof-toasts": {
+    type: "social-proof-toasts",
+    label: "Social proof toasts (live visitors + recent purchase)",
+    fields: [
+      { key: "peopleViewing", type: "text", label: "Live visitors label (bv. 'mensen bekijken deze pagina nu')" },
+      { key: "purchasedLabel", type: "text", label: "Recent purchase — zonder land (bv. 'Iemand heeft dit gekocht')" },
+      { key: "purchasedFromLabel", type: "text", label: "Recent purchase — met land. Gebruik {country} voor het land." },
+      { key: "minutesAgo", type: "text", label: "Minuten-geleden label" },
+      { key: "hoursAgo", type: "text", label: "Uur-geleden label" },
+      { key: "justNow", type: "text", label: "Zojuist label" },
+    ],
+  },
 };
 
 /** Get the schema for a section type */

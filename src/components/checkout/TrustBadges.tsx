@@ -1,5 +1,7 @@
 "use client";
 
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { t, type Lang } from "@/lib/checkout-i18n";
 
 interface Props {
@@ -8,6 +10,21 @@ interface Props {
 
 export function TrustBadges({ lang }: Props) {
   const i18n = t(lang);
+
+  const dbContent = useQuery(api.siteContent.getPageContent, {
+    slug: "checkout-shared",
+    lang,
+  });
+  const badges = (dbContent?.["trust-badges"] ?? {}) as {
+    guarantee?: string;
+    guaranteeSub?: string;
+    secureSsl?: string;
+    securePayment?: string;
+  };
+  const guarantee = badges.guarantee?.trim() || i18n.guarantee;
+  const guaranteeSub = badges.guaranteeSub?.trim() || i18n.guaranteeSub;
+  const secureSsl = badges.secureSsl?.trim() || i18n.secureSsl;
+  const securePayment = badges.securePayment?.trim() || i18n.securePayment;
 
   return (
     <div className="mt-8 space-y-4">
@@ -28,9 +45,9 @@ export function TrustBadges({ lang }: Props) {
           </svg>
         </div>
         <div>
-          <p className="text-[13px] font-medium text-ink">{i18n.guarantee}</p>
+          <p className="text-[13px] font-medium text-ink">{guarantee}</p>
           <p className="text-[12px] text-ink/50 mt-0.5 leading-[1.5]">
-            {i18n.guaranteeSub}
+            {guaranteeSub}
           </p>
         </div>
       </div>
@@ -49,11 +66,11 @@ export function TrustBadges({ lang }: Props) {
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
-          <span className="text-[11px] tracking-[0.05em]">{i18n.secureSsl}</span>
+          <span className="text-[11px] tracking-[0.05em]">{secureSsl}</span>
         </div>
         <div className="w-px h-4 bg-rule" />
         <span className="text-[11px] text-ink/30 tracking-[0.05em]">
-          {i18n.securePayment}
+          {securePayment}
         </span>
       </div>
 
