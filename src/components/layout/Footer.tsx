@@ -1,9 +1,49 @@
 import Link from "next/link";
 import { t, type Lang } from "@/lib/i18n";
+import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
 
-export function Footer({ lang }: { lang: Lang }) {
+type FooterContent = {
+  description?: string;
+  pagesLabel?: string;
+  contactLabel?: string;
+  footerNavAriaLabel?: string;
+  email?: string;
+  phoneDisplay?: string;
+  phoneHref?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  kvk?: string;
+  instagramUrl?: string;
+  youtubeUrl?: string;
+  linkedinUrl?: string;
+  copyright?: string;
+  privacyLabel?: string;
+  termsLabel?: string;
+};
+
+export async function Footer({ lang }: { lang: Lang }) {
   const s = t(lang).footer;
   const n = t(lang).nav;
+
+  const db = await loadPageContent("site-shared", lang);
+  const f = sectionOr<FooterContent>(db, "footer", {});
+
+  const description = f.description?.trim() || s.description;
+  const pagesLabel = f.pagesLabel?.trim() || s.pages;
+  const contactLabel = f.contactLabel?.trim() || s.contact;
+  const footerNavAria = f.footerNavAriaLabel?.trim() || s.footerNav;
+  const email = f.email?.trim() || "klaas@klaaskroezen.com";
+  const phoneDisplay = f.phoneDisplay?.trim() || "+31 6 1809 8906";
+  const phoneHref = f.phoneHref?.trim() || "+31618098906";
+  const addressLine1 = f.addressLine1?.trim() || "Oude Parklaan 111";
+  const addressLine2 = f.addressLine2?.trim() || "1901 ZL Castricum";
+  const kvk = f.kvk?.trim() || "KvK 30204462";
+  const instagramUrl = f.instagramUrl?.trim() || "https://www.instagram.com/klaaskroezen/";
+  const youtubeUrl = f.youtubeUrl?.trim() || "https://www.youtube.com/@klaaskroezen";
+  const linkedinUrl = f.linkedinUrl?.trim() || "https://www.linkedin.com/in/klaaskroezen/";
+  const copyrightLabel = f.copyright?.trim() || s.copyright;
+  const privacyLabel = f.privacyLabel?.trim() || s.privacy;
+  const termsLabel = f.termsLabel?.trim() || s.terms;
 
   const navLinks = [
     { href: "/sales-excellence-training", label: n.setTitle },
@@ -15,8 +55,8 @@ export function Footer({ lang }: { lang: Lang }) {
   ];
 
   const legalLinks = [
-    { href: "/privacy", label: s.privacy },
-    { href: "/algemene-voorwaarden", label: s.terms },
+    { href: "/privacy", label: privacyLabel },
+    { href: "/algemene-voorwaarden", label: termsLabel },
   ];
 
   return (
@@ -32,13 +72,13 @@ export function Footer({ lang }: { lang: Lang }) {
               Klaas Kroezen
             </Link>
             <p className="text-[14px] text-paper/55 leading-[1.75] mt-4 max-w-[320px]">
-              {s.description}
+              {description}
             </p>
 
             {/* Social icons */}
             <div className="flex gap-4 mt-5">
               <a
-                href="https://www.instagram.com/klaaskroezen/"
+                href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
@@ -51,7 +91,7 @@ export function Footer({ lang }: { lang: Lang }) {
                 </svg>
               </a>
               <a
-                href="https://www.youtube.com/@klaaskroezen"
+                href={youtubeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="YouTube"
@@ -63,7 +103,7 @@ export function Footer({ lang }: { lang: Lang }) {
                 </svg>
               </a>
               <a
-                href="https://www.linkedin.com/in/klaaskroezen/"
+                href={linkedinUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"
@@ -79,9 +119,9 @@ export function Footer({ lang }: { lang: Lang }) {
           </div>
 
           {/* Navigation */}
-          <nav aria-label={s.footerNav}>
+          <nav aria-label={footerNavAria}>
             <h3 className="text-[11px] font-medium tracking-[0.18em] uppercase text-paper/45 mb-4">
-              {s.pages}
+              {pagesLabel}
             </h3>
             <ul className="flex flex-col gap-2.5 list-none">
               {navLinks.map((link) => (
@@ -100,32 +140,32 @@ export function Footer({ lang }: { lang: Lang }) {
           {/* Contact */}
           <div>
             <h3 className="text-[11px] font-medium tracking-[0.18em] uppercase text-paper/45 mb-4">
-              {s.contact}
+              {contactLabel}
             </h3>
             <ul className="flex flex-col gap-2.5 list-none text-[14px] text-paper/60">
               <li>
                 <a
-                  href="mailto:klaas@klaaskroezen.com"
+                  href={`mailto:${email}`}
                   className="hover:text-paper transition-colors duration-150 outline-none focus-visible:text-paper"
                 >
-                  klaas@klaaskroezen.com
+                  {email}
                 </a>
               </li>
               <li>
                 <a
-                  href="tel:+31618098906"
+                  href={`tel:${phoneHref}`}
                   className="hover:text-paper transition-colors duration-150 outline-none focus-visible:text-paper"
                 >
-                  +31&nbsp;6&nbsp;1809&nbsp;8906
+                  {phoneDisplay}
                 </a>
               </li>
               <li className="text-paper/50 leading-[1.6]">
-                Oude Parklaan&nbsp;111
+                {addressLine1}
                 <br />
-                1901&nbsp;ZL Castricum
+                {addressLine2}
               </li>
               <li className="text-paper/40 text-[12px] leading-[1.6] pt-1">
-                KvK&nbsp;30204462
+                {kvk}
               </li>
             </ul>
           </div>
@@ -134,7 +174,7 @@ export function Footer({ lang }: { lang: Lang }) {
         {/* Bottom bar */}
         <div className="mt-10 sm:mt-14 pt-6 border-t border-paper/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <p className="text-[12px] text-paper/40">
-            &copy; {new Date().getFullYear()} Klaas Kroezen. {s.copyright}
+            &copy; {new Date().getFullYear()} Klaas Kroezen. {copyrightLabel}
           </p>
           <div className="flex gap-4">
             {legalLinks.map((link) => (

@@ -2,12 +2,33 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { CONSENT_CHANGE_EVENT, readConsent, writeConsent } from "@/lib/cookie-consent";
 import { t, type Lang } from "@/lib/i18n";
 
 export function CookieConsent({ lang }: { lang: Lang }) {
   const [decided, setDecided] = useState<boolean | null>(null);
-  const copy = t(lang).cookieConsent;
+  const fallback = t(lang).cookieConsent;
+
+  const dbContent = useQuery(api.siteContent.getPageContent, {
+    slug: "site-shared",
+    lang,
+  });
+  const banner = (dbContent?.["cookie-banner"] ?? {}) as {
+    title?: string;
+    description?: string;
+    privacyLink?: string;
+    accept?: string;
+    deny?: string;
+  };
+  const copy = {
+    title: banner.title?.trim() || fallback.title,
+    description: banner.description?.trim() || fallback.description,
+    privacyLink: banner.privacyLink?.trim() || fallback.privacyLink,
+    accept: banner.accept?.trim() || fallback.accept,
+    deny: banner.deny?.trim() || fallback.deny,
+  };
 
   useEffect(() => {
     setDecided(readConsent() !== null);

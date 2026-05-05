@@ -684,6 +684,41 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
       { key: "justNow", type: "text", label: "Zojuist label" },
     ],
   },
+
+  "site-footer": {
+    type: "site-footer",
+    label: "Footer",
+    fields: [
+      { key: "description", type: "textarea", label: "Brand-omschrijving (onder logo)" },
+      { key: "pagesLabel", type: "text", label: "Kop boven nav-links (bv. 'Pagina's')" },
+      { key: "contactLabel", type: "text", label: "Kop boven contact-blok (bv. 'Contact')" },
+      { key: "footerNavAriaLabel", type: "text", label: "Aria-label van footer-navigatie" },
+      { key: "email", type: "text", label: "Email-adres" },
+      { key: "phoneDisplay", type: "text", label: "Telefoonnummer (zichtbaar)" },
+      { key: "phoneHref", type: "text", label: "Telefoonnummer (tel: link, bv. +31618098906)" },
+      { key: "addressLine1", type: "text", label: "Adres regel 1" },
+      { key: "addressLine2", type: "text", label: "Adres regel 2 (postcode + plaats)" },
+      { key: "kvk", type: "text", label: "KvK-tekst (bv. 'KvK 30204462')" },
+      { key: "instagramUrl", type: "text", label: "Instagram URL" },
+      { key: "youtubeUrl", type: "text", label: "YouTube URL" },
+      { key: "linkedinUrl", type: "text", label: "LinkedIn URL" },
+      { key: "copyright", type: "text", label: "Copyright tekst (na © jaartal naam)" },
+      { key: "privacyLabel", type: "text", label: "Label privacy-link" },
+      { key: "termsLabel", type: "text", label: "Label algemene voorwaarden link" },
+    ],
+  },
+
+  "cookie-banner": {
+    type: "cookie-banner",
+    label: "Cookie banner",
+    fields: [
+      { key: "title", type: "text", label: "Eyebrow (bv. 'Cookies')" },
+      { key: "description", type: "textarea", label: "Tekst" },
+      { key: "privacyLink", type: "text", label: "Label privacy-link" },
+      { key: "accept", type: "text", label: "Accepteer-knop" },
+      { key: "deny", type: "text", label: "Weiger-knop" },
+    ],
+  },
 };
 
 /** Get the schema for a section type */

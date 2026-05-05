@@ -58,6 +58,7 @@ export function ContentTab() {
     "over-ons",
     "contact",
     "checkout-shared",
+    "site-shared",
   ];
   const sortedPages = [...pages].sort((a, b) => {
     const ai = PAGE_ORDER.indexOf(a.slug);
