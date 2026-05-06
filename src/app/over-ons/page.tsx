@@ -7,17 +7,17 @@ import { TrainingCta } from "@/components/sections/training/TrainingCta";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { JsonLd, personJsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/lib/i18n/server";
-import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
+import { loadPageContent, loadPageMeta, sectionOr } from "@/lib/site-content-loader";
 import { loadSiteImages, imgUrl } from "@/lib/site-images";
 import { getOverOnsContent } from "./content";
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLocale();
   const c = getOverOnsContent(lang);
-  return {
+  return await loadPageMeta("over-ons", lang, {
     title: c.meta.title,
     description: c.meta.description,
-  };
+  });
 }
 
 export default async function OverOnsPage() {

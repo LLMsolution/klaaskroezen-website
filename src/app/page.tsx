@@ -13,11 +13,11 @@ import { BookTeaser } from "@/components/sections/BookTeaser";
 import { FinaleCta } from "@/components/sections/FinaleCta";
 import { JsonLd, websiteJsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/lib/i18n/server";
-import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
+import { loadPageContent, loadPageMeta, sectionOr } from "@/lib/site-content-loader";
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLocale();
-  return {
+  return await loadPageMeta("home", lang, {
     title: {
       nl: "Klaas Kroezen — Meer omzet, minder stress",
       en: "Klaas Kroezen — More revenue, less stress",
@@ -28,7 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
       en: "Sales and Customer Success trainings by Klaas Kroezen. Honest and relaxed selling. 25+ years of experience across 21 countries, 9.1 rating.",
       de: "Sales- und Customer-Success-Trainings von Klaas Kroezen. Ehrlich und entspannt verkaufen. 25+ Jahre Erfahrung in 21 Landern, 9.1 Bewertung.",
     }[lang],
-  };
+  });
 }
 
 type Section = Record<string, unknown>;

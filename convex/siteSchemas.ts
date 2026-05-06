@@ -719,6 +719,15 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
       { key: "deny", type: "text", label: "Weiger-knop" },
     ],
   },
+
+  "page-meta": {
+    type: "page-meta",
+    label: "SEO metadata (Google snippet)",
+    fields: [
+      { key: "title", type: "text", label: "Page title (≤70 tekens, getoond in browsertab + Google)" },
+      { key: "description", type: "textarea", label: "Meta description (≤160 tekens, getoond in Google snippet)" },
+    ],
+  },
 };
 
 /** Get the schema for a section type */

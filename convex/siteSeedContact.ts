@@ -4,11 +4,26 @@ const SLUG = "contact";
 
 export function seedContactContent(): PageSeed {
   const sections = [
+    { id: "page-meta", type: "page-meta", active: true, sortOrder: -1 },
     { id: "hero", type: "hero-about", active: true, sortOrder: 0 },
     { id: "contact-info", type: "contact-info", active: true, sortOrder: 1 },
   ];
 
   const content = [
+    // ── SEO metadata ──
+    makeContent(SLUG, "page-meta", "page-meta", "nl", {
+      title: "Contact",
+      description: "Neem contact op met Klaas Kroezen voor sales- en customer success trainingen, sprekersopdrachten of vragen over het boek.",
+    }),
+    makeContent(SLUG, "page-meta", "page-meta", "en", {
+      title: "Contact",
+      description: "Get in touch with Klaas Kroezen for sales and customer success trainings, speaking engagements or questions about the book.",
+    }),
+    makeContent(SLUG, "page-meta", "page-meta", "de", {
+      title: "Kontakt",
+      description: "Nehmen Sie Kontakt mit Klaas Kroezen auf für Sales- und Customer-Success-Trainings, Vorträge oder Fragen zum Buch.",
+    }),
+
     // Hero — reuse hero-about schema (label, title, image, bio)
     makeContent(SLUG, "hero", "hero-about", "nl", {
       label: "Contact",

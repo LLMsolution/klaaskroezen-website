@@ -4,6 +4,7 @@ const SLUG = "boek";
 
 export function seedBoekContent(): PageSeed {
   const sections = [
+    { id: "page-meta", type: "page-meta", active: true, sortOrder: -1 },
     { id: "hero", type: "hero-book", active: true, sortOrder: 0 },
     { id: "book-preview", type: "book-preview", active: true, sortOrder: 1 },
     { id: "program", type: "program", active: true, sortOrder: 2 },
@@ -22,6 +23,20 @@ export function seedBoekContent(): PageSeed {
   }));
 
   const content = [
+    // ── SEO metadata ──
+    makeContent(SLUG, "page-meta", "page-meta", "nl", {
+      title: "Boek — Sales, Oprecht en Ontspannen",
+      description: "Bestseller van Klaas Kroezen. Leer hoe je met oprechtheid en ontspanning structureel beter verkoopt. Beschikbaar als hardcopy, e-book en luisterboek.",
+    }),
+    makeContent(SLUG, "page-meta", "page-meta", "en", {
+      title: "Book — Sales, Honest & Relaxed",
+      description: "Bestseller by Klaas Kroezen. Learn how to sell structurally better with authenticity and ease. Available as hardcopy, e-book and audiobook.",
+    }),
+    makeContent(SLUG, "page-meta", "page-meta", "de", {
+      title: "Buch — Sales, Ehrlich & Entspannt",
+      description: "Bestseller von Klaas Kroezen. Lernen Sie, wie Sie mit Aufrichtigkeit und Gelassenheit strukturell besser verkaufen. Erhältlich als Hardcover, E-Book und Hörbuch.",
+    }),
+
     // ── Hero ──
     makeContent(SLUG, "hero", "hero-book", "nl", {
       label: "Bestseller",

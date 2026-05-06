@@ -4,6 +4,7 @@ const SLUG = "home";
 
 export function seedHomeContent(): PageSeed {
   const sections = [
+    { id: "page-meta", type: "page-meta", active: true, sortOrder: -1 },
     { id: "hero", type: "home-hero", active: true, sortOrder: 0 },
     { id: "slideshow", type: "home-slideshow", active: true, sortOrder: 1 },
     { id: "logos", type: "home-logos", active: true, sortOrder: 2 },
@@ -17,6 +18,20 @@ export function seedHomeContent(): PageSeed {
   ];
 
   const content = [
+    // ── SEO metadata ──
+    makeContent(SLUG, "page-meta", "page-meta", "nl", {
+      title: "Klaas Kroezen — Meer omzet, minder stress",
+      description: "Sales- en Customer Success trainingen van Klaas Kroezen. Oprecht en ontspannen verkopen. 25+ jaar ervaring, 21 landen, 9.1 beoordeling.",
+    }),
+    makeContent(SLUG, "page-meta", "page-meta", "en", {
+      title: "Klaas Kroezen — More revenue, less stress",
+      description: "Sales and Customer Success trainings by Klaas Kroezen. Honest and relaxed selling. 25+ years of experience across 21 countries, 9.1 rating.",
+    }),
+    makeContent(SLUG, "page-meta", "page-meta", "de", {
+      title: "Klaas Kroezen — Mehr Umsatz, weniger Stress",
+      description: "Sales- und Customer-Success-Trainings von Klaas Kroezen. Ehrlich und entspannt verkaufen. 25+ Jahre Erfahrung in 21 Ländern, 9.1 Bewertung.",
+    }),
+
     // ── Hero copy (NL) ──
     makeContent(SLUG, "hero", "home-hero", "nl", {
       eyebrow: "Oprecht. Ontspannen. Winnen.",

@@ -17,17 +17,17 @@ import { Faq } from "@/components/sections/Faq";
 import { BookPreview } from "@/components/sections/BookPreview";
 import { JsonLd, bookJsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/lib/i18n/server";
-import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
+import { loadPageContent, loadPageMeta, sectionOr } from "@/lib/site-content-loader";
 import { loadSiteImages, imgUrl } from "@/lib/site-images";
 import { getBoekContent } from "./content";
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLocale();
   const c = getBoekContent(lang);
-  return {
+  return await loadPageMeta("boek", lang, {
     title: c.meta.title,
     description: c.meta.description,
-  };
+  });
 }
 
 export default async function BoekPage() {

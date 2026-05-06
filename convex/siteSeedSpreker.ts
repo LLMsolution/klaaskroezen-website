@@ -4,6 +4,7 @@ const SLUG = "spreker";
 
 export function seedSprekerContent(): PageSeed {
   const sections = [
+    { id: "page-meta", type: "page-meta", active: true, sortOrder: -1 },
     { id: "hero", type: "hero", active: true, sortOrder: 0 },
     { id: "audiences", type: "audiences", active: true, sortOrder: 1 },
     { id: "content-block", type: "content-block", active: true, sortOrder: 2 },
@@ -16,6 +17,20 @@ export function seedSprekerContent(): PageSeed {
   ];
 
   const content = [
+    // ── SEO metadata ──
+    makeContent(SLUG, "page-meta", "page-meta", "nl", {
+      title: "Spreker — Klaas Kroezen",
+      description: "Boek Klaas Kroezen als spreker. Inspirerende keynotes en workshops over sales, klantgerichtheid en commerciële groei — oprecht en ontspannen.",
+    }),
+    makeContent(SLUG, "page-meta", "page-meta", "en", {
+      title: "Speaker — Klaas Kroezen",
+      description: "Book Klaas Kroezen as a speaker. Inspiring keynotes and workshops on sales, customer focus and commercial growth — genuine and relaxed.",
+    }),
+    makeContent(SLUG, "page-meta", "page-meta", "de", {
+      title: "Redner — Klaas Kroezen",
+      description: "Buchen Sie Klaas Kroezen als Redner. Inspirierende Keynotes und Workshops zu Vertrieb, Kundenorientierung und kommerziellem Wachstum — aufrichtig und entspannt.",
+    }),
+
     // ── Hero ──
     makeContent(SLUG, "hero", "hero", "nl", {
       eyebrow: "Spreker & Keynote",
