@@ -4,6 +4,7 @@ const SLUG = "sales-excellence-training";
 
 export function seedSetContent(): PageSeed {
   const sections = [
+    { id: "page-meta", type: "page-meta", active: true, sortOrder: -1 },
     { id: "hero", type: "hero", active: true, sortOrder: 0 },
     { id: "pain-points", type: "pain-points", active: true, sortOrder: 1 },
     { id: "transformation", type: "transformation", active: true, sortOrder: 2 },
@@ -18,6 +19,20 @@ export function seedSetContent(): PageSeed {
   ];
 
   const content = [
+    // ── SEO metadata ──
+    makeContent(SLUG, "page-meta", "page-meta", "nl", {
+      title: "Sales Excellence Training",
+      description: "Meer omzet met minder druk. Leer hoe je met oprechtheid en ontspanning structureel beter verkoopt. Voor verkopers, accountmanagers en salesteams.",
+    }),
+    makeContent(SLUG, "page-meta", "page-meta", "en", {
+      title: "Sales Excellence Training",
+      description: "More revenue with less pressure. Learn how to sell structurally better with authenticity and ease. For sales professionals, account managers and teams.",
+    }),
+    makeContent(SLUG, "page-meta", "page-meta", "de", {
+      title: "Sales Excellence Training",
+      description: "Mehr Umsatz mit weniger Druck. Lernen Sie, wie Sie mit Aufrichtigkeit und Gelassenheit strukturell besser verkaufen — für Sales-Profis, Account Manager und Teams.",
+    }),
+
     // ── Hero NL ──
     makeContent(SLUG, "hero", "hero", "nl", {
       eyebrow: "Sales Excellence Training",

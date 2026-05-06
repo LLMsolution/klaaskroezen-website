@@ -61,3 +61,25 @@ export function sectionOr<T>(
   if (data && Object.keys(data).length > 0) return unwrapValues(data) as T;
   return fallback;
 }
+
+/**
+ * Helper for `generateMetadata()`. Loads the `page-meta` section of a page
+ * and returns title + description with hardcoded fallbacks so SEO never
+ * breaks if the DB is empty or unreachable.
+ */
+export async function loadPageMeta(
+  slug: string,
+  lang: Lang,
+  fallback: { title: string; description: string },
+): Promise<{ title: string; description: string }> {
+  try {
+    const db = await loadPageContent(slug, lang);
+    const meta = sectionOr<{ title?: string; description?: string }>(db, "page-meta", {});
+    return {
+      title: meta.title?.trim() || fallback.title,
+      description: meta.description?.trim() || fallback.description,
+    };
+  } catch {
+    return fallback;
+  }
+}

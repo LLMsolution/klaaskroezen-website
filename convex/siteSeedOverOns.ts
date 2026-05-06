@@ -4,6 +4,7 @@ const SLUG = "over-ons";
 
 export function seedOverOnsContent(): PageSeed {
   const sections = [
+    { id: "page-meta", type: "page-meta", active: true, sortOrder: -1 },
     { id: "hero", type: "hero-about", active: true, sortOrder: 0 },
     { id: "journey", type: "journey", active: true, sortOrder: 1 },
     { id: "mission", type: "mission", active: true, sortOrder: 2 },
@@ -13,6 +14,20 @@ export function seedOverOnsContent(): PageSeed {
   ];
 
   const content = [
+    // ── SEO metadata ──
+    makeContent(SLUG, "page-meta", "page-meta", "nl", {
+      title: "Over Ons",
+      description: "Leer Klaas Kroezen en zijn team kennen. 25+ jaar ervaring in sales en customer success, nu volledig gericht op het begeleiden van teams naar meer omzet met minder stress.",
+    }),
+    makeContent(SLUG, "page-meta", "page-meta", "en", {
+      title: "About Us",
+      description: "Meet Klaas Kroezen and his team. 25+ years of experience in sales and customer success, now fully dedicated to guiding teams towards more revenue with less stress.",
+    }),
+    makeContent(SLUG, "page-meta", "page-meta", "de", {
+      title: "Über Uns",
+      description: "Lernen Sie Klaas Kroezen und sein Team kennen. Über 25 Jahre Erfahrung in Sales und Customer Success, heute voll und ganz darauf ausgerichtet, Teams zu mehr Umsatz mit weniger Stress zu führen.",
+    }),
+
     // ── Hero ──
     makeContent(SLUG, "hero", "hero-about", "nl", {
       label: "Over Klaas",

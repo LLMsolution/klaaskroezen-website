@@ -4,6 +4,7 @@ const SLUG = "customer-success-training";
 
 export function seedCstContent(): PageSeed {
   const sections = [
+    { id: "page-meta", type: "page-meta", active: true, sortOrder: -1 },
     { id: "hero", type: "hero", active: true, sortOrder: 0 },
     { id: "pain-points", type: "pain-points", active: true, sortOrder: 1 },
     { id: "transformation", type: "transformation", active: true, sortOrder: 2 },
@@ -18,6 +19,20 @@ export function seedCstContent(): PageSeed {
   ];
 
   const content = [
+    // ── SEO metadata ──
+    makeContent(SLUG, "page-meta", "page-meta", "nl", {
+      title: "Customer Success Training",
+      description: "Maak van klanten fans. Leer hoe je vanuit klantcontact bijdraagt aan groei, retentie en ambassadeurschap — ontspannen en oprecht.",
+    }),
+    makeContent(SLUG, "page-meta", "page-meta", "en", {
+      title: "Customer Success Training",
+      description: "Turn customers into fans. Learn how customer interactions drive growth, retention and advocacy — relaxed and genuine.",
+    }),
+    makeContent(SLUG, "page-meta", "page-meta", "de", {
+      title: "Customer Success Training",
+      description: "Machen Sie aus Kunden Fans. Erfahren Sie, wie Kundeninteraktionen zu Wachstum, Bindung und Weiterempfehlung beitragen — entspannt und aufrichtig.",
+    }),
+
     // ── Hero ──
     makeContent(SLUG, "hero", "hero", "nl", {
       eyebrow: "Customer Success Training",

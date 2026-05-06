@@ -14,17 +14,17 @@ import { TrainingMethod } from "@/components/sections/training/TrainingMethod";
 import { Faq } from "@/components/sections/Faq";
 import { JsonLd, courseJsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/lib/i18n/server";
-import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
+import { loadPageContent, loadPageMeta, sectionOr } from "@/lib/site-content-loader";
 import { loadSiteImages } from "@/lib/site-images";
 import { getSetContent } from "./content";
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLocale();
   const c = getSetContent(lang);
-  return {
+  return await loadPageMeta("sales-excellence-training", lang, {
     title: c.meta.title,
     description: c.meta.description,
-  };
+  });
 }
 
 export default async function SalesExcellenceTrainingPage() {

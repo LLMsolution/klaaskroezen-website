@@ -8,17 +8,17 @@ import { TrainingCta } from "@/components/sections/training/TrainingCta";
 import { Faq } from "@/components/sections/Faq";
 import { JsonLd, personJsonLd, speakerServiceJsonLd } from "@/components/seo/JsonLd";
 import { getLocale } from "@/lib/i18n/server";
-import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
+import { loadPageContent, loadPageMeta, sectionOr } from "@/lib/site-content-loader";
 import { loadSiteImages, imgUrl } from "@/lib/site-images";
 import { getSprekerContent } from "./content";
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLocale();
   const c = getSprekerContent(lang);
-  return {
+  return await loadPageMeta("spreker", lang, {
     title: c.meta.title,
     description: c.meta.description,
-  };
+  });
 }
 
 export default async function SprekerPage() {

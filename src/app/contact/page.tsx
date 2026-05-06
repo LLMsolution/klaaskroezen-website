@@ -8,15 +8,15 @@ import { JsonLd, contactPageJsonLd } from "@/components/seo/JsonLd";
 import { t } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n/server";
 import { loadSiteImages, imgUrl } from "@/lib/site-images";
-import { loadPageContent, sectionOr } from "@/lib/site-content-loader";
+import { loadPageContent, loadPageMeta, sectionOr } from "@/lib/site-content-loader";
 
 export async function generateMetadata(): Promise<Metadata> {
   const lang = await getLocale();
   const s = t(lang).contact;
-  return {
+  return await loadPageMeta("contact", lang, {
     title: s.label,
     description: s.intro,
-  };
+  });
 }
 
 export default async function ContactPage() {
