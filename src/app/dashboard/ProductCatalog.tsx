@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Lang } from "@/lib/i18n";
@@ -177,7 +178,7 @@ function OwnedCard({ item, name, lang, copy, training, download }: {
     }
   }
 
-  // Download → one link per file (PDF, EPUB, etc.)
+  // Download → single file or ZIP bundle for multiple files
   if (action === "download" && download && download.length > 0) {
     if (download.length === 1) {
       const f = download[0];
@@ -189,17 +190,9 @@ function OwnedCard({ item, name, lang, copy, training, download }: {
         </a>
       );
     }
+    const zipName = item.slug.replace(/-ebook$/, "").replace(/-/g, "-") + ".zip";
     return (
-      <div className="border border-copper/30 bg-copper/[0.03] rounded-[2px] divide-y divide-copper/10">
-        {download.map((f, i) => (
-          <a key={i} href={f.url} download={f.fileName} className="flex items-center gap-4 p-4 hover:border-copper/50 transition-colors group">
-            {i === 0 && <ProductImage image={item.image} name={name} />}
-            {i > 0 && <div className="w-14 shrink-0" />}
-            <div className="flex-1 min-w-0"><p className="text-[14px] font-medium text-ink group-hover:text-copper transition-colors truncate">{name}{f.format ? ` — ${f.format.toUpperCase()}` : ""}</p></div>
-            <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-copper shrink-0">{copy.download}</span>
-          </a>
-        ))}
-      </div>
+      <DownloadZipCard image={item.image} name={name} files={download} zipName={zipName} downloadLabel={copy.download} />
     );
   }
 
@@ -227,6 +220,56 @@ function OwnedCard({ item, name, lang, copy, training, download }: {
         <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-copper">{copy.owned}</span>
       </div>
     </div>
+  );
+}
+
+function DownloadZipCard({ image, name, files, zipName, downloadLabel }: {
+  image?: string; name: string;
+  files: DownloadFile[]; zipName: string; downloadLabel: string;
+}) {
+  const [loading, setLoading] = useState(false);
+
+  async function handleDownload() {
+    setLoading(true);
+    try {
+      const { zipSync } = await import("fflate");
+      const entries: Record<string, Uint8Array> = {};
+      await Promise.all(
+        files.map(async (f) => {
+          const res = await fetch(f.url);
+          const buf = await res.arrayBuffer();
+          entries[f.fileName] = new Uint8Array(buf);
+        }),
+      );
+      const zipped = zipSync(entries);
+      const blob = new Blob([zipped.buffer as ArrayBuffer], { type: "application/zip" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = zipName;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleDownload}
+      disabled={loading}
+      className="w-full flex items-center gap-4 p-4 border border-copper/30 bg-copper/[0.03] rounded-[2px] hover:border-copper/50 transition-colors group text-left disabled:opacity-60"
+    >
+      <ProductImage image={image} name={name} />
+      <div className="flex-1 min-w-0">
+        <p className="text-[14px] font-medium text-ink group-hover:text-copper transition-colors truncate">{name}</p>
+        <p className="text-[11px] text-ink/40 mt-0.5">{files.map((f) => f.format?.toUpperCase()).filter(Boolean).join(" + ")}</p>
+      </div>
+      <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-copper shrink-0">
+        {loading ? "..." : downloadLabel}
+      </span>
+    </button>
   );
 }
 
