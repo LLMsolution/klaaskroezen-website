@@ -171,7 +171,7 @@ export const getMyDownloads = query({
         if (url) {
           downloads.push({
             product: file.product,
-            fileName: file.fileName,
+            fileName: file.downloadFileName ?? file.fileName,
             fileType: file.fileType,
             lang: file.lang ?? "nl",
             format: file.format,
