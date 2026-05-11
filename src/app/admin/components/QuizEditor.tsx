@@ -295,6 +295,7 @@ function AddQuestionForm({
 }) {
   const translateField = useAction(api.aiTranslate.translateField);
   const [translating, setTranslating] = useState(false);
+  const [translateError, setTranslateError] = useState("");
   const ALL: ("nl" | "en" | "de")[] = ["nl", "en", "de"];
   const sourceCandidates = ALL.filter((l) => {
     if (l === editLang) return false;
@@ -315,6 +316,7 @@ function AddQuestionForm({
   async function translateAllFrom(src: "nl" | "en" | "de") {
     if (src === editLang) return;
     setTranslating(true);
+    setTranslateError("");
     try {
       const next: MultilangString = { ...qText };
       if (qText[src]) next[editLang] = await translate(qText[src] ?? "", src);
@@ -330,6 +332,8 @@ function AddQuestionForm({
       if (scaleLabels[src]) {
         setScaleLabels({ ...scaleLabels, [editLang]: await translate(scaleLabels[src] ?? "", src) });
       }
+    } catch (err) {
+      setTranslateError(err instanceof Error ? err.message : "Vertaling mislukt.");
     } finally {
       setTranslating(false);
     }
@@ -368,6 +372,7 @@ function AddQuestionForm({
         )}
       </div>
       {error && <p className="text-red-600 text-[13px] mb-3">{error}</p>}
+      {translateError && <p className="text-[11px] text-red-500 mb-3">{translateError}</p>}
 
       <div className="mb-3">
         <label className="block text-[11px] text-ink/50 mb-1">Type</label>

@@ -428,7 +428,7 @@ export const sendDiscussionNotification = internalAction({
     `;
 
     await ctx.runAction(internal.emails.sendEmail, {
-      to: "klaas@klaaskroezen.com",
+      to: "klaas@klaaskroezen.nl",
       subject: `Nieuwe vraag in ${moduleTitle} — ${userName}`,
       html,
       template: "discussion-notification",

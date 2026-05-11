@@ -15,7 +15,7 @@ export function seedSiteSharedContent(): PageSeed {
   ];
 
   const FOOTER_SHARED = {
-    email: "klaas@klaaskroezen.com",
+    email: "klaas@klaaskroezen.nl",
     phoneDisplay: "+31 6 1809 8906",
     phoneHref: "+31618098906",
     addressLine1: "Oude Parklaan 111",

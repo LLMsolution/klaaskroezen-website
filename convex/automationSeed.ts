@@ -20,7 +20,7 @@ export const seed = internalMutation({
         trigger: "score_threshold" as const,
         action: "notify_team" as const,
         triggerConfig: JSON.stringify({ scoreType: "intent", threshold: 40 }),
-        actionConfig: JSON.stringify({ notifyEmail: "klaas@klaaskroezen.com" }),
+        actionConfig: JSON.stringify({ notifyEmail: "klaas@klaaskroezen.nl" }),
       },
       {
         name: "Checkout verlaten → Lead aanmaken",
@@ -41,14 +41,14 @@ export const seed = internalMutation({
         trigger: "purchase" as const,
         action: "notify_team" as const,
         triggerConfig: JSON.stringify({}),
-        actionConfig: JSON.stringify({ notifyEmail: "klaas@klaaskroezen.com" }),
+        actionConfig: JSON.stringify({ notifyEmail: "klaas@klaaskroezen.nl" }),
       },
       {
         name: "14 dagen inactief → Lead opvolgen",
         trigger: "inactivity" as const,
         action: "notify_team" as const,
         triggerConfig: JSON.stringify({ inactiveDays: 14 }),
-        actionConfig: JSON.stringify({ notifyEmail: "klaas@klaaskroezen.com" }),
+        actionConfig: JSON.stringify({ notifyEmail: "klaas@klaaskroezen.nl" }),
       },
     ];
 

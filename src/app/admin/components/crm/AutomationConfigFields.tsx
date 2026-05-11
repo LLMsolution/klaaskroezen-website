@@ -45,7 +45,7 @@ export type ActionConfigState = {
 };
 
 export const DEFAULT_ACTION_CONFIG: ActionConfigState = {
-  notifyEmail: "klaas@klaaskroezen.com",
+  notifyEmail: "klaas@klaaskroezen.nl",
   templateKey: "",
   subject: "",
   sequenceName: "",

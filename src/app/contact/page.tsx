@@ -44,7 +44,7 @@ export default async function ContactPage() {
   }>(db, "contact-info", {});
 
   const emailLabel = info.emailLabel ?? s.emailLabel;
-  const email = info.email ?? "klaas@klaaskroezen.com";
+  const email = info.email ?? "klaas@klaaskroezen.nl";
   const phoneLabel = info.phoneLabel ?? s.phoneLabel;
   const phone = info.phone ?? "+31 6 1809 8906";
   const phoneHref = info.phoneHref ?? "+31618098906";

@@ -32,7 +32,7 @@ type FormState = {
 const EMPTY_LOCALIZED: Localized = { nl: "", en: "", de: "" };
 
 const DEFAULT_FORM: FormState = {
-  recipientEmail: "klaas@klaaskroezen.com",
+  recipientEmail: "klaas@klaaskroezen.nl",
   introText: { nl: "Vul dit formulier in om verder te gaan.", en: "", de: "" },
   submitLabel: { nl: "Versturen", en: "Submit", de: "Absenden" },
   fields: [],
@@ -263,7 +263,7 @@ export function LessonFormEditor({ moduleId }: Props) {
           type="email"
           value={form.recipientEmail}
           onChange={(e) => patch("recipientEmail", e.target.value)}
-          placeholder="klaas@klaaskroezen.com"
+          placeholder="klaas@klaaskroezen.nl"
           className={inputCls}
         />
       </div>
