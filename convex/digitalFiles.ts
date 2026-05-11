@@ -58,6 +58,15 @@ export const saveFile = mutation({
   },
 });
 
+/** Update the download filename shown to the buyer (does not rename the stored file). */
+export const updateDownloadFileName = mutation({
+  args: { id: v.id("digitalFiles"), downloadFileName: v.string() },
+  handler: async (ctx, { id, downloadFileName }) => {
+    await requireAdmin(ctx);
+    await ctx.db.patch(id, { downloadFileName: downloadFileName.trim() || undefined });
+  },
+});
+
 /** Delete a digital file (also removes the underlying storage blob). */
 export const deleteFile = mutation({
   args: { id: v.id("digitalFiles") },
@@ -83,6 +92,7 @@ export const listAll = query({
         lang: f.lang ?? "nl",
         format: f.format,
         fileName: f.fileName,
+        downloadFileName: f.downloadFileName,
         fileType: f.fileType,
         url: await ctx.storage.getUrl(f.storageId),
       })),
