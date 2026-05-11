@@ -6,7 +6,7 @@ type Ctx = QueryCtx | MutationCtx;
 
 // Bootstrap admin emails — used as fallback when adminEmails table is empty
 const SEED_ADMIN_EMAILS = [
-  "klaas@klaaskroezen.com",
+  "klaas@klaaskroezen.nl",
   "timlind18@icloud.com",
   "yvon@yvonkruger.nl",
 ];

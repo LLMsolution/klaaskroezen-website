@@ -188,8 +188,8 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
         </Section>
       )}
 
-      {/* Werkboek */}
-      <WorkbookSection trainingId={trainingId} editLang={editLang} />
+      {/* Werkboek — niet relevant voor luisterboeken */}
+      {!isAudiobook && <WorkbookSection trainingId={trainingId} editLang={editLang} />}
 
       {/* Audiobook: flat chapter list */}
       {isAudiobook ? (

@@ -61,7 +61,7 @@ export function seedContactContent(): PageSeed {
     // Contact Info (sidebar)
     makeContent(SLUG, "contact-info", "contact-info", "nl", {
       emailLabel: "E-mail",
-      email: "klaas@klaaskroezen.com",
+      email: "klaas@klaaskroezen.nl",
       phoneLabel: "Telefoon",
       phone: "+31 6 1809 8906",
       phoneHref: "+31618098906",
@@ -76,7 +76,7 @@ export function seedContactContent(): PageSeed {
     }),
     makeContent(SLUG, "contact-info", "contact-info", "en", {
       emailLabel: "Email",
-      email: "klaas@klaaskroezen.com",
+      email: "klaas@klaaskroezen.nl",
       phoneLabel: "Phone",
       phone: "+31 6 1809 8906",
       phoneHref: "+31618098906",
@@ -91,7 +91,7 @@ export function seedContactContent(): PageSeed {
     }),
     makeContent(SLUG, "contact-info", "contact-info", "de", {
       emailLabel: "E-Mail",
-      email: "klaas@klaaskroezen.com",
+      email: "klaas@klaaskroezen.nl",
       phoneLabel: "Telefon",
       phone: "+31 6 1809 8906",
       phoneHref: "+31618098906",

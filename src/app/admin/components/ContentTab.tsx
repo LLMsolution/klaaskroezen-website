@@ -122,12 +122,24 @@ function PageSections({ slug }: { slug: string }) {
   const [translatingSection, setTranslatingSection] = useState<string | null>(null);
   const [pageTranslateMsg, setPageTranslateMsg] = useState<string | null>(null);
   const [sectionSourceLang, setSectionSourceLang] = useState<Record<string, Lang>>({});
+  const [pendingRefreshSection, setPendingRefreshSection] = useState<string | null>(null);
 
   // Refs for scrolling to sections
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const setSectionRef = useCallback((id: string, el: HTMLDivElement | null) => {
     sectionRefs.current[id] = el;
   }, []);
+
+  // After section translate: refresh editData when Convex pushes the update
+  useEffect(() => {
+    if (!pendingRefreshSection || !contentEntries) return;
+    const entry = getEntry(pendingRefreshSection, activeLang);
+    if (entry?.parsedContent) {
+      setEditData(withNlImageFallback(pendingRefreshSection, activeLang, entry.parsedContent as Record<string, unknown>));
+      setPendingRefreshSection(null);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contentEntries, pendingRefreshSection]);
 
   // Scroll to section after expand — wait for DOM to render expanded content
   const pendingScrollRef = useRef<string | null>(null);
@@ -254,6 +266,8 @@ function PageSections({ slug }: { slug: string }) {
       });
       setSaved(sectionId);
       setTimeout(() => setSaved(null), 2000);
+      // Trigger editData refresh when Convex pushes the updated content
+      setPendingRefreshSection(sectionId);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Vertaling mislukt.");
     } finally {
@@ -264,13 +278,20 @@ function PageSections({ slug }: { slug: string }) {
   async function handleTranslatePage(sourceLang: Lang, targetLang: Lang) {
     setPageTranslateMsg(null);
     setError("");
-    const res = await translatePage({ pageSlug: slug, sourceLang, targetLang });
-    setPageTranslateMsg(
-      res.failed > 0
-        ? `${res.translated} vertaald, ${res.failed} mislukt: ${res.errors.slice(0, 2).join("; ")}`
-        : `${res.translated} secties vertaald (${sourceLang.toUpperCase()} → ${targetLang.toUpperCase()}).`,
-    );
-    setTimeout(() => setPageTranslateMsg(null), 6000);
+    // Close any open section so the user re-opens it to see fresh translated content
+    setExpandedSection(null);
+    setEditData(null);
+    try {
+      const res = await translatePage({ pageSlug: slug, sourceLang, targetLang });
+      setPageTranslateMsg(
+        res.failed > 0
+          ? `${res.translated} vertaald, ${res.failed} mislukt: ${res.errors.slice(0, 2).join("; ")}`
+          : `${res.translated} secties vertaald (${sourceLang.toUpperCase()} → ${targetLang.toUpperCase()}).`,
+      );
+      setTimeout(() => setPageTranslateMsg(null), 6000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Paginavertaling mislukt.");
+    }
   }
 
   function pageAvailableLangs(): Lang[] {

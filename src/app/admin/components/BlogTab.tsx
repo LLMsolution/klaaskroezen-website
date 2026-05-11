@@ -429,6 +429,7 @@ function BlogTranslateButton({ title, excerpt, body, sourceLang, onTranslated }:
 }) {
   const translateField = useAction(api.aiTranslate.translateField);
   const [loading, setLoading] = useState(false);
+  const [translateError, setTranslateError] = useState("");
   const targetCandidates = (["nl", "en", "de"] as const).filter((l) => l !== sourceLang);
   const [targetLang, setTargetLang] = useState<"nl" | "en" | "de">(targetCandidates[0] ?? "en");
 
@@ -441,37 +442,43 @@ function BlogTranslateButton({ title, excerpt, body, sourceLang, onTranslated }:
   async function handleTranslate() {
     if (!title.trim()) return;
     setLoading(true);
+    setTranslateError("");
     try {
       const [tTitle, tExcerpt, tBody] = await Promise.all([
         translateField({ text: title, targetLang, sourceLang, html: false }),
         translateField({ text: excerpt, targetLang, sourceLang, html: false }),
-        translateField({ text: body, targetLang, sourceLang, html: true }),
+        translateField({ text: body, targetLang, sourceLang, html: false }),
       ]);
       onTranslated({ title: tTitle, excerpt: tExcerpt, body: tBody }, targetLang);
-    } catch {
-      // silently fail
+    } catch (err) {
+      setTranslateError(err instanceof Error ? err.message : "Vertaling mislukt.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
-      <span className="text-[11px] text-ink/50">Vertaal {sourceLang.toUpperCase()} →</span>
-      <select
-        value={targetLang}
-        onChange={(e) => setTargetLang(e.target.value as "nl" | "en" | "de")}
-        disabled={loading}
-        className="text-[11px] border border-rule rounded-[2px] px-2 py-1 bg-transparent text-ink/60 cursor-pointer"
-      >
-        {targetCandidates.map((l) => (
-          <option key={l} value={l}>{l.toUpperCase()}</option>
-        ))}
-      </select>
-      <button type="button" onClick={handleTranslate} disabled={loading || !title.trim()}
-        className="text-[11px] text-copper hover:text-copper-light cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
-        {loading ? "Vertalen..." : "Vertaal artikel"}
-      </button>
+    <div className="space-y-1">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[11px] text-ink/50">Vertaal {sourceLang.toUpperCase()} →</span>
+        <select
+          value={targetLang}
+          onChange={(e) => setTargetLang(e.target.value as "nl" | "en" | "de")}
+          disabled={loading}
+          className="text-[11px] border border-rule rounded-[2px] px-2 py-1 bg-transparent text-ink/60 cursor-pointer"
+        >
+          {targetCandidates.map((l) => (
+            <option key={l} value={l}>{l.toUpperCase()}</option>
+          ))}
+        </select>
+        <button type="button" onClick={handleTranslate} disabled={loading || !title.trim()}
+          className="text-[11px] text-copper hover:text-copper-light cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+          {loading ? "Vertalen..." : "Vertaal artikel"}
+        </button>
+      </div>
+      {translateError && (
+        <p className="text-[11px] text-red-500">{translateError}</p>
+      )}
     </div>
   );
 }

@@ -43,6 +43,7 @@ export function TranslateFromButton({
   const translateField = useAction(api.aiTranslate.translateField);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Close menu on outside click.
@@ -68,6 +69,7 @@ export function TranslateFromButton({
     if (!text || !text.trim()) return;
     setOpen(false);
     setLoading(true);
+    setError("");
     try {
       const translated = await translateField({
         text,
@@ -76,8 +78,10 @@ export function TranslateFromButton({
         html,
       });
       onTranslated(translated);
-    } catch {
-      // silent — caller can re-attempt
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Vertaling mislukt.";
+      setError(msg);
+      setTimeout(() => setError(""), 6000);
     } finally {
       setLoading(false);
     }
@@ -98,7 +102,7 @@ export function TranslateFromButton({
             ? "Geen broncontent beschikbaar in andere talen"
             : `Vertaal naar ${LANG_LABEL[targetLang]}`
         }
-        className={`inline-flex items-center gap-1.5 ${sizeClass} font-medium rounded-[2px] cursor-pointer transition-colors bg-copper/10 text-copper hover:bg-copper/20 disabled:opacity-40 disabled:cursor-not-allowed`}
+        className={`inline-flex items-center gap-1.5 ${sizeClass} font-medium rounded-[2px] cursor-pointer transition-colors ${error ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-copper/10 text-copper hover:bg-copper/20"} disabled:opacity-40 disabled:cursor-not-allowed`}
       >
         {loading ? (
           <span className="inline-block w-3 h-3 border border-copper/30 border-t-copper rounded-full animate-spin" />
@@ -108,13 +112,21 @@ export function TranslateFromButton({
             <path d="M22 22l-5-10-5 10" /><path d="M14 18h6" />
           </svg>
         )}
-        {label ?? (loading ? "Vertalen..." : "Vertaal vanuit")}
-        <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" className="shrink-0">
-          <path d="M3 4.5L6 7.5L9 4.5" />
-        </svg>
+        {label ?? (loading ? "Vertalen..." : error ? "Fout — opnieuw?" : "Vertaal vanuit")}
+        {!loading && (
+          <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" className="shrink-0">
+            <path d="M3 4.5L6 7.5L9 4.5" />
+          </svg>
+        )}
       </button>
 
-      {open && (
+      {error && (
+        <div className="absolute z-40 mt-1 right-0 w-[280px] bg-red-50 border border-red-200 rounded-[2px] px-3 py-2 text-[11px] text-red-600 shadow-md">
+          {error}
+        </div>
+      )}
+
+      {open && !error && (
         <div className="absolute z-30 mt-1 right-0 min-w-[160px] bg-paper border border-rule rounded-[2px] shadow-md py-1">
           {candidates.map((source) => (
             <button

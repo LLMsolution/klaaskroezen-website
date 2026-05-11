@@ -32,7 +32,7 @@ export async function Footer({ lang }: { lang: Lang }) {
   const pagesLabel = f.pagesLabel?.trim() || s.pages;
   const contactLabel = f.contactLabel?.trim() || s.contact;
   const footerNavAria = f.footerNavAriaLabel?.trim() || s.footerNav;
-  const email = f.email?.trim() || "klaas@klaaskroezen.com";
+  const email = f.email?.trim() || "klaas@klaaskroezen.nl";
   const phoneDisplay = f.phoneDisplay?.trim() || "+31 6 1809 8906";
   const phoneHref = f.phoneHref?.trim() || "+31618098906";
   const addressLine1 = f.addressLine1?.trim() || "Oude Parklaan 111";
