@@ -277,7 +277,7 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
 
 /* ─── Audiobook flat chapter list ─── */
 
-type Mod = { _id: Id<"trainingModules">; title: { nl: string; en?: string; de?: string }; description: { nl: string }; sortOrder: number; audioStorageId?: Id<"_storage">; audioFileName?: string };
+type Mod = { _id: Id<"trainingModules">; title: { nl: string; en?: string; de?: string }; description: { nl: string }; sortOrder: number; audioStorageId?: Id<"_storage">; audioFileName?: string; audioDurationSeconds?: number };
 type ModMut = ReturnType<typeof useMutation<typeof api.trainingModules.updateModule>>;
 type ModDel = ReturnType<typeof useMutation<typeof api.trainingModules.deleteModule>>;
 type GenUrl = ReturnType<typeof useMutation<typeof api.trainings.generateUploadUrl>>;
@@ -314,6 +314,7 @@ function AudiobookChapterList({ chapters, addingChapter, formTitle, saving, onTo
         {chapters.map((ch, idx) => {
           const hasAudio = !!(ch as Record<string, unknown>).audioStorageId;
           const audioFile = (ch as Record<string, unknown>).audioFileName as string | undefined;
+          const audioDurationSeconds = (ch as Record<string, unknown>).audioDurationSeconds as number | undefined;
           const isExpanded = expandedId === ch._id;
 
           return (
@@ -323,7 +324,9 @@ function AudiobookChapterList({ chapters, addingChapter, formTitle, saving, onTo
                 <span className="text-[13px] font-medium text-ink/25 w-7 text-center">{String(idx + 1).padStart(2, "0")}</span>
                 <p className="text-[13px] font-medium text-ink flex-1">{ch.title.nl}</p>
                 {hasAudio ? (
-                  <span className="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded-[2px]">MP3: {audioFile || "audio"}</span>
+                  <span className="text-[10px] text-green-600 bg-green-50 px-2 py-0.5 rounded-[2px]">
+                    MP3{audioDurationSeconds ? ` · ${Math.floor(audioDurationSeconds / 60)}:${String(audioDurationSeconds % 60).padStart(2, "0")}` : ""}
+                  </span>
                 ) : (
                   <span className="text-[10px] text-ink/25">MP3 uploaden</span>
                 )}
@@ -335,6 +338,7 @@ function AudiobookChapterList({ chapters, addingChapter, formTitle, saving, onTo
                   chapter={ch}
                   hasAudio={hasAudio}
                   audioFile={audioFile}
+                  audioDurationSeconds={audioDurationSeconds}
                   onUpdateModule={onUpdateModule}
                   onDeleteModule={onDeleteModule}
                   generateUploadUrl={generateUploadUrl}
@@ -352,8 +356,8 @@ function AudiobookChapterList({ chapters, addingChapter, formTitle, saving, onTo
 
 /* ─── Expanded chapter card for audiobooks ─── */
 
-function AudiobookChapterExpanded({ chapter, hasAudio, audioFile, onUpdateModule, onDeleteModule, generateUploadUrl, saveAudio, removeAudio }: {
-  chapter: Mod; hasAudio: boolean; audioFile?: string;
+function AudiobookChapterExpanded({ chapter, hasAudio, audioFile, audioDurationSeconds, onUpdateModule, onDeleteModule, generateUploadUrl, saveAudio, removeAudio }: {
+  chapter: Mod; hasAudio: boolean; audioFile?: string; audioDurationSeconds?: number;
   onUpdateModule: ModMut; onDeleteModule: ModDel; generateUploadUrl: GenUrl; saveAudio: AudioSave; removeAudio: AudioRm;
 }) {
   const [titleNl, setTitleNl] = useState(chapter.title.nl);
@@ -430,6 +434,7 @@ function AudiobookChapterExpanded({ chapter, hasAudio, audioFile, onUpdateModule
         moduleId={chapter._id}
         hasAudio={hasAudio}
         fileName={audioFile}
+        durationSeconds={audioDurationSeconds}
         onUpload={async (file) => {
           const url = await generateUploadUrl();
           const res = await fetch(url, { method: "POST", headers: { "Content-Type": file.type }, body: file });

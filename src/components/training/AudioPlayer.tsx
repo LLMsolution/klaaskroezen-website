@@ -7,6 +7,7 @@ type AudioPlayerProps = {
   src: string;
   initialPosition?: number;
   onProgress?: (percent: number, positionSeconds: number) => void;
+  onDurationDetected?: (seconds: number) => void;
   lang?: Lang;
 };
 
@@ -30,7 +31,7 @@ function formatTime(seconds: number): string {
 
 const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
 
-export function AudioPlayer({ src, initialPosition = 0, onProgress, lang = "nl" }: AudioPlayerProps) {
+export function AudioPlayer({ src, initialPosition = 0, onProgress, onDurationDetected, lang = "nl" }: AudioPlayerProps) {
   const aria = ARIA_COPY[lang];
   const audioRef = useRef<HTMLAudioElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
@@ -79,6 +80,9 @@ export function AudioPlayer({ src, initialPosition = 0, onProgress, lang = "nl" 
       if (!audio) return;
       setDuration(audio.duration);
       setReady(true);
+      if (onDurationDetected && audio.duration > 0) {
+        onDurationDetected(Math.round(audio.duration));
+      }
     }
     function onEnded() {
       setPlaying(false);
@@ -95,7 +99,7 @@ export function AudioPlayer({ src, initialPosition = 0, onProgress, lang = "nl" 
       audio.removeEventListener("loadedmetadata", onLoadedMetadata);
       audio.removeEventListener("ended", onEnded);
     };
-  }, [reportProgress, onProgress]);
+  }, [reportProgress, onProgress, onDurationDetected]);
 
   function togglePlay() {
     const audio = audioRef.current;

@@ -1,13 +1,12 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { useState, useCallback } from "react";
 import Image from "next/image";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import type { Lang } from "@/lib/i18n";
 import { AudioPlayer } from "./AudioPlayer";
-import { useMutation } from "convex/react";
 
 type LocalizedStr = { nl: string; en: string; de?: string };
 function loc(obj: LocalizedStr, lang: Lang): string {
@@ -213,6 +212,7 @@ function ChapterRow({
     isActive ? { moduleId: chapter._id } : "skip",
   );
   const updateProgress = useMutation(api.trainingProgress.updateVideoProgress);
+  const saveAudioDuration = useMutation(api.trainingModules.saveAudioDuration);
 
   const handleProgress = useCallback(
     async (percent: number, positionSeconds: number) => {
@@ -289,6 +289,9 @@ function ChapterRow({
             src={moduleWithProgress.audioUrl}
             initialPosition={progress?.videoPosition ?? 0}
             onProgress={handleProgress}
+            onDurationDetected={!chapter.audioDurationSeconds ? (s) => {
+              saveAudioDuration({ moduleId: chapter._id, durationSeconds: s }).catch(() => {});
+            } : undefined}
             lang={lang}
           />
         </div>
