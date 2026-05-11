@@ -263,12 +263,15 @@ export const updateTraining = mutation({
     const training = await ctx.db.get(id);
     if (!training) throw new Error("Training niet gevonden.");
 
-    if (updates.slug && updates.slug !== training.slug) {
+    const oldSlug = training.slug;
+    const newSlug = updates.slug;
+
+    if (newSlug && newSlug !== oldSlug) {
       const conflict = await ctx.db
         .query("trainings")
-        .withIndex("by_slug", (q) => q.eq("slug", updates.slug!))
+        .withIndex("by_slug", (q) => q.eq("slug", newSlug))
         .first();
-      if (conflict) throw new Error(`Slug "${updates.slug}" is al in gebruik.`);
+      if (conflict) throw new Error(`Slug "${newSlug}" is al in gebruik.`);
     }
 
     const patch: Record<string, unknown> = {};
@@ -277,6 +280,23 @@ export const updateTraining = mutation({
     }
     if (Object.keys(patch).length > 0) {
       await ctx.db.patch(id, patch);
+    }
+
+    // Cascade slug change to accountCatalog items that reference the old slug
+    if (newSlug && newSlug !== oldSlug) {
+      const catalogs = await ctx.db.query("accountCatalog").collect();
+      for (const catalog of catalogs) {
+        const hasRef = catalog.items.some((item) => item.linkedTrainingSlug === oldSlug);
+        if (hasRef) {
+          await ctx.db.patch(catalog._id, {
+            items: catalog.items.map((item) =>
+              item.linkedTrainingSlug === oldSlug
+                ? { ...item, linkedTrainingSlug: newSlug }
+                : item
+            ),
+          });
+        }
+      }
     }
   },
 });

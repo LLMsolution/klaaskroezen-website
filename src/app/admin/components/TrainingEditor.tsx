@@ -35,6 +35,9 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
   const [formTitle, setFormTitle] = useState("");
   const [saving, setSaving] = useState(false);
   const [editLang, setEditLang] = useState<Lang>("nl");
+  const [editingSlug, setEditingSlug] = useState(false);
+  const [slugDraft, setSlugDraft] = useState("");
+  const [slugError, setSlugError] = useState("");
 
   if (!trainingData || modules === undefined) return <Loading />;
   const t = trainingData.find((tr) => tr._id === trainingId);
@@ -115,7 +118,43 @@ export function TrainingEditor({ trainingId, onBack }: Props) {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="font-display text-[24px] font-black tracking-[-0.02em]">{t.title.nl}</h2>
-          <p className="text-[13px] text-ink/40">/{t.slug}</p>
+          {editingSlug ? (
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[13px] text-ink/40">/</span>
+              <input
+                autoFocus
+                value={slugDraft}
+                onChange={(e) => {
+                  setSlugDraft(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-"));
+                  setSlugError("");
+                }}
+                className="text-[13px] border border-copper px-2 py-0.5 rounded-[2px] bg-paper focus:outline-none w-64"
+              />
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!slugDraft.trim() || slugDraft === t.slug) { setEditingSlug(false); return; }
+                  try {
+                    await updateTraining({ id: trainingId, slug: slugDraft });
+                    setEditingSlug(false);
+                    setSlugError("");
+                  } catch (err) {
+                    setSlugError(err instanceof Error ? err.message : "Fout bij opslaan.");
+                  }
+                }}
+                className="text-[11px] text-copper hover:text-copper-light cursor-pointer font-medium"
+              >Opslaan</button>
+              <button type="button" onClick={() => { setEditingSlug(false); setSlugError(""); }} className="text-[11px] text-ink/40 hover:text-ink cursor-pointer">Annuleer</button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => { setSlugDraft(t.slug); setEditingSlug(true); setSlugError(""); }}
+              className="text-[13px] text-ink/40 hover:text-copper cursor-pointer text-left"
+              title="Klik om slug te bewerken"
+            >/{t.slug}</button>
+          )}
+          {slugError && <p className="text-[11px] text-red-500 mt-1">{slugError}</p>}
         </div>
         <div className="flex items-center gap-3">
           <select
