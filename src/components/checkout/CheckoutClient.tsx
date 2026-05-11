@@ -530,7 +530,9 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
                 <input type="checkbox" checked={agreedTerms} onChange={(e) => { setAgreedTerms(e.target.checked); setTermsError(false); }} className={`w-4 h-4 mt-0.5 accent-copper cursor-pointer shrink-0 ${termsError ? "outline outline-2 outline-red-400" : ""}`} />
                 <span className={`text-[13px] leading-[1.5] ${termsError ? "text-red-600" : "text-ink/60 group-hover:text-ink"} transition-colors`}>
                   {i18n.agreeTerms}{" "}
-                  <a href="/algemene-voorwaarden" target="_blank" className="text-copper underline hover:text-copper-light">{i18n.termsLink}</a>.
+                  <a href="/algemene-voorwaarden" target="_blank" className="text-copper underline hover:text-copper-light">{i18n.termsLink}</a>{" "}
+                  {{ nl: "en het", en: "and our", de: "und die" }[lang]}{" "}
+                  <a href="/privacy" target="_blank" className="text-copper underline hover:text-copper-light">{{ nl: "privacybeleid", en: "privacy policy", de: "Datenschutzerklärung" }[lang]}</a>.
                 </span>
               </label>
               {termsError && <p className="text-[12px] text-red-500 pl-7">{i18n.agreeTermsRequired}</p>}

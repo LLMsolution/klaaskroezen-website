@@ -78,8 +78,10 @@ export const sendEmail = internalAction({
     template: v.string(),
     replyTo: v.optional(v.string()),
     variant: v.optional(v.string()),
+    pdfStorageId: v.optional(v.id("_storage")),
+    pdfFileName: v.optional(v.string()),
   },
-  handler: async (ctx, { to, subject, html, template, replyTo, variant }) => {
+  handler: async (ctx, { to, subject, html, template, replyTo, variant, pdfStorageId, pdfFileName }) => {
     const trackingId = generateTrackingId();
 
     // Inject tracking pixel before </body>
@@ -98,6 +100,20 @@ export const sendEmail = internalAction({
       },
     );
 
+    // Build PDF attachment if storageId provided
+    let attachments: Array<{ filename: string; content: string }> | undefined;
+    if (pdfStorageId) {
+      const url = await ctx.storage.getUrl(pdfStorageId);
+      if (url) {
+        const response = await fetch(url);
+        const buffer = await response.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        let binary = "";
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        attachments = [{ filename: pdfFileName ?? "factuur.pdf", content: btoa(binary) }];
+      }
+    }
+
     try {
       const resend = getResend();
       const { data, error } = await resend.emails.send({
@@ -105,7 +121,8 @@ export const sendEmail = internalAction({
         to,
         subject,
         html: trackedHtml,
-        replyTo: replyTo ?? "info@klaaskroezen.com",
+        replyTo: replyTo ?? "klaas@klaaskroezen.nl",
+        attachments,
       });
 
       if (error) {
@@ -149,17 +166,23 @@ export const sendPurchaseConfirmation = internalAction({
         ? `Bestätigung & Rechnung ${invoice.invoiceNumber}`
         : `Confirmation & Invoice ${invoice.invoiceNumber}`;
 
-    const purchase = await ctx.runQuery(internal.emails.getPurchaseById, { purchaseId: invoice.purchaseId });
+    const [purchase, pdfResult] = await Promise.all([
+      ctx.runQuery(internal.emails.getPurchaseById, { purchaseId: invoice.purchaseId }),
+      ctx.runAction(internal.invoicePdf.generateAndAttachInvoicePdf, { invoiceId }).catch(() => null),
+    ]);
     const productVariant = purchase?.product
       ? await ctx.runQuery(internal.emails.getProductVariantBySlug, { slug: purchase.product })
       : undefined;
     const html = buildPurchaseConfirmationHtml(invoice, lang, purchase?.product, productVariant ?? undefined);
 
+    const fileName = `factuur-${invoice.invoiceNumber}.pdf`;
     await ctx.runAction(internal.emails.sendEmail, {
       to: invoice.buyerEmail,
       subject,
       html,
       template: "purchase-confirmation",
+      pdfStorageId: pdfResult?.storageId as any ?? undefined,
+      pdfFileName: fileName,
     });
 
     await ctx.runMutation(internal.invoices.markEmailSent, { invoiceId });
@@ -563,9 +586,9 @@ ${bookSection}
 </table>
 ${sharedCtaButton(primaryCta.label, primaryCta.href)}
 ${paragraph(t({
-  nl: "Vragen? Mail naar info@klaaskroezen.com — we helpen je graag.",
-  en: "Questions? Email info@klaaskroezen.com — we're happy to help.",
-  de: "Fragen? Schreiben Sie an info@klaaskroezen.com — wir helfen Ihnen gerne.",
+  nl: "Vragen? Mail naar klaas@klaaskroezen.nl — we helpen je graag.",
+  en: "Questions? Email klaas@klaaskroezen.nl — we're happy to help.",
+  de: "Fragen? Schreiben Sie an klaas@klaaskroezen.nl — wir helfen Ihnen gerne.",
 }))}
 `, { crossSell: "general", lang: layoutLang });
 }

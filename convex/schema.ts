@@ -403,6 +403,14 @@ export default defineSchema({
     popupCta: v.optional(v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) })),
     popupPrice: v.optional(v.string()),
     popupPages: v.optional(v.array(v.string())), // pages where popup can show, empty = all except excluded
+    // Seller / company info (used on PDF invoices)
+    sellerName: v.optional(v.string()),
+    sellerAddress: v.optional(v.string()), // street + house number
+    sellerPostalCity: v.optional(v.string()), // "1234 AB Amsterdam"
+    sellerKvk: v.optional(v.string()),
+    sellerBtw: v.optional(v.string()), // "NL123456789B01"
+    sellerIban: v.optional(v.string()),
+    sellerEmail: v.optional(v.string()),
   }).index("by_key", ["key"]),
 
   // ── CRM: Contacts ──

@@ -18,12 +18,14 @@
 | Boek Checkout Go-Live | done | 2026-04-29 |
 | Dynamic Admin + AI Translations | in-review (#33) | 2026-05-02 |
 | Admin vertaal-bugfixes + emailadres .nl | done | 2026-05-11 |
+| PDF factuur bijlage + auth + privacy | in-review | 2026-05-11 |
 | Legal Completeness | done | 2026-05-01 |
 
 ## Current Focus
 No features in progress
 
 ## Recent Activity
+- 2026-05-11: PDF factuur bijlage — invoice PDF via @react-pdf/renderer, bijlage in bevestigingsmail, bedrijfsgegevens in admin, auth guard listInvoices, privacy link checkout, multi-download fix dashboard
 - 2026-05-11: Admin vertaal-bugfixes — silent catch-blocks, ContentTab stale state, luisterboek werkboek, email klaas@klaaskroezen.nl
 - 2026-05-02: Vercel build fix — vercel-build conditional zodat preview builds geen Convex deploy doen (PR #33 unblocked)
 - 2026-05-01: Legal Completeness merged (#34) — herroepingsformulier, datalek-clausule, account self-service (export + delete), KvK in footer, cookie reset
