@@ -41,6 +41,8 @@ export const getCurrentUser = query({
 
 /**
  * Get purchases for the currently logged-in user.
+ * Falls back to email lookup for first-time buyers whose purchase.userId wasn't
+ * set yet (set asynchronously by the grantPendingAccessByEmail job after ~10 min).
  */
 export const getMyPurchases = query({
   args: {},
@@ -48,11 +50,29 @@ export const getMyPurchases = query({
     const userId = await auth.getUserId(ctx);
     if (!userId) return [];
 
-    return await ctx.db
+    const byUserId = await ctx.db
       .query("purchases")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .order("desc")
       .collect();
+
+    // Also check by email to catch purchases made before the account existed
+    const accounts = await ctx.db
+      .query("authAccounts")
+      .filter((q: any) => q.eq(q.field("userId"), userId))
+      .collect();
+    const email = accounts.find((a: any) => a.providerAccountId?.includes("@"))?.providerAccountId;
+
+    if (!email) return byUserId;
+
+    const byEmail = await ctx.db.query("purchases").collect();
+    const unlinked = byEmail.filter(
+      (p) => !p.userId && p.buyerEmail.toLowerCase() === email.toLowerCase(),
+    );
+
+    const seen = new Set(byUserId.map((p) => p._id));
+    const merged = [...byUserId, ...unlinked.filter((p) => !seen.has(p._id))];
+    return merged.sort((a, b) => b.createdAt - a.createdAt);
   },
 });
 
@@ -79,6 +99,7 @@ export const getMyAccessRights = query({
 
 /**
  * Get invoices for the currently logged-in user.
+ * Falls back to email lookup for first-time buyers whose purchase.userId wasn't set yet.
  */
 export const getMyInvoices = query({
   args: {},
@@ -86,11 +107,27 @@ export const getMyInvoices = query({
     const userId = await auth.getUserId(ctx);
     if (!userId) return [];
 
-    // Get purchases first to find invoices
-    const purchases = await ctx.db
+    const byUserId = await ctx.db
       .query("purchases")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
+
+    // Also check by email to catch purchases made before the account existed
+    const accounts = await ctx.db
+      .query("authAccounts")
+      .filter((q: any) => q.eq(q.field("userId"), userId))
+      .collect();
+    const email = accounts.find((a: any) => a.providerAccountId?.includes("@"))?.providerAccountId;
+
+    let purchases = byUserId;
+    if (email) {
+      const byEmail = await ctx.db.query("purchases").collect();
+      const unlinked = byEmail.filter(
+        (p) => !p.userId && p.buyerEmail.toLowerCase() === email.toLowerCase(),
+      );
+      const seen = new Set(byUserId.map((p) => p._id));
+      purchases = [...byUserId, ...unlinked.filter((p) => !seen.has(p._id))];
+    }
 
     const invoices = [];
     for (const purchase of purchases) {

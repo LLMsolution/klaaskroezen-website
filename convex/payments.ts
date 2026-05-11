@@ -145,8 +145,8 @@ export const processSuccessfulPayment = internalMutation({
         });
       }
     } else {
-      // No account yet — schedule a retry in 10 minutes (after magic-link login).
-      await ctx.scheduler.runAfter(10 * 60 * 1000, internal.payments.grantPendingAccessByEmail, {
+      // No account yet — schedule a retry in 2 minutes (after magic-link login).
+      await ctx.scheduler.runAfter(2 * 60 * 1000, internal.payments.grantPendingAccessByEmail, {
         email: order.email,
         purchaseId,
         product: order.product,
@@ -413,8 +413,9 @@ export const grantPendingAccessByEmail = internalAction({
     const userId = await ctx.runQuery(internal.payments.findUserByEmail, { email });
     if (!userId) {
       if (retryCount < 2) {
-        // Retry after 60 minutes (two more chances: 70 min and 130 min after purchase)
-        await ctx.scheduler.runAfter(60 * 60 * 1000, internal.payments.grantPendingAccessByEmail, {
+        // Retry: 20 min (attempt 2), then 80 min (attempt 3) after purchase
+        const delayMs = retryCount === 0 ? 20 * 60 * 1000 : 60 * 60 * 1000;
+        await ctx.scheduler.runAfter(delayMs, internal.payments.grantPendingAccessByEmail, {
           ...args,
           retryCount: retryCount + 1,
         });
@@ -466,6 +467,12 @@ export const insertAccessRights = internalMutation({
       .filter((q) => q.eq(q.field("purchaseId"), purchaseId))
       .first();
     if (existing) return;
+
+    // Link purchase to user so it shows in dashboard (first-time buyers have userId=undefined)
+    const purchase = await ctx.db.get(purchaseId);
+    if (purchase && !purchase.userId) {
+      await ctx.db.patch(purchaseId, { userId });
+    }
 
     await ctx.db.insert("accessRights", {
       userId,
