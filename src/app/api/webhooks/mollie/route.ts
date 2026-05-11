@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("Mollie webhook error:", error);
-    // Still return 200 to prevent Mollie from retrying
-    return NextResponse.json({ received: true });
+    // Return 500 so Mollie retries (it retries on non-2xx responses)
+    return NextResponse.json({ error: "Processing failed" }, { status: 500 });
   }
 }

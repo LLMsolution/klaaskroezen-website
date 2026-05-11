@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import {
   internalMutation,
   internalQuery,
+  internalAction,
 } from "./_generated/server";
 import { internal } from "./_generated/api";
 
@@ -117,13 +118,11 @@ export const processSuccessfulPayment = internalMutation({
       lang: order.lang,
     });
 
-    // 6. Grant access rights for digital products
+    // 6. Grant access rights for digital products.
+    // When the buyer has no account yet (first-time purchase), we store
+    // a pending grant keyed on email. A separate scheduled job retries
+    // once the magic-link login creates the user record.
     if (userId) {
-      // Look up product for access duration
-      const productData = await ctx.db
-        .query("checkoutProducts")
-        .withIndex("by_slug", (q) => q.eq("slug", order.product))
-        .first();
       const expiresAt = productData?.accessDurationDays
         ? now + productData.accessDurationDays * 24 * 60 * 60 * 1000
         : undefined;
@@ -136,7 +135,6 @@ export const processSuccessfulPayment = internalMutation({
         expiresAt,
       });
 
-      // Also grant access for bumps (inherit main product duration)
       for (const bump of order.bumps) {
         await ctx.db.insert("accessRights", {
           userId,
@@ -146,6 +144,16 @@ export const processSuccessfulPayment = internalMutation({
           expiresAt,
         });
       }
+    } else {
+      // No account yet — schedule a retry in 10 minutes (after magic-link login).
+      await ctx.scheduler.runAfter(10 * 60 * 1000, internal.payments.grantPendingAccessByEmail, {
+        email: order.email,
+        purchaseId,
+        product: order.product,
+        bumps: order.bumps,
+        accessDurationDays: productData?.accessDurationDays,
+        grantedAt: now,
+      });
     }
 
     // 7. Start automated email sequence (always — uses email, not userId)
@@ -382,3 +390,99 @@ function calcBtw(
   return { net: priceCents, btw, gross: priceCents + btw };
 }
 
+/**
+ * Scheduled job: grant access rights for a purchase where no user existed yet
+ * at payment time. Runs 10 minutes after purchase to give the magic-link login
+ * time to create the account. Retries itself once more after 60 minutes if the
+ * account still doesn't exist.
+ */
+export const grantPendingAccessByEmail = internalAction({
+  args: {
+    email: v.string(),
+    purchaseId: v.id("purchases"),
+    product: v.string(),
+    bumps: v.array(v.string()),
+    accessDurationDays: v.optional(v.number()),
+    grantedAt: v.number(),
+    retryCount: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const { email, purchaseId, product, bumps, accessDurationDays, grantedAt } = args;
+    const retryCount = args.retryCount ?? 0;
+
+    const userId = await ctx.runQuery(internal.payments.findUserByEmail, { email });
+    if (!userId) {
+      if (retryCount < 2) {
+        // Retry after 60 minutes (two more chances: 70 min and 130 min after purchase)
+        await ctx.scheduler.runAfter(60 * 60 * 1000, internal.payments.grantPendingAccessByEmail, {
+          ...args,
+          retryCount: retryCount + 1,
+        });
+      } else {
+        console.error(`[grantPendingAccessByEmail] No account found for ${email} after 3 attempts. Purchase: ${purchaseId}`);
+      }
+      return;
+    }
+
+    await ctx.runMutation(internal.payments.insertAccessRights, {
+      userId,
+      purchaseId,
+      product,
+      bumps,
+      accessDurationDays,
+      grantedAt,
+    });
+  },
+});
+
+export const findUserByEmail = internalQuery({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const accounts = await ctx.db.query("authAccounts").collect();
+    const match = accounts.find(
+      (a: any) => a.providerAccountId?.toLowerCase() === email.toLowerCase(),
+    );
+    return match?.userId ?? null;
+  },
+});
+
+export const insertAccessRights = internalMutation({
+  args: {
+    userId: v.id("users"),
+    purchaseId: v.id("purchases"),
+    product: v.string(),
+    bumps: v.array(v.string()),
+    accessDurationDays: v.optional(v.number()),
+    grantedAt: v.number(),
+  },
+  handler: async (ctx, { userId, purchaseId, product, bumps, accessDurationDays, grantedAt }) => {
+    const expiresAt = accessDurationDays
+      ? grantedAt + accessDurationDays * 24 * 60 * 60 * 1000
+      : undefined;
+
+    // Check if already granted (idempotent)
+    const existing = await ctx.db.query("accessRights")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("purchaseId"), purchaseId))
+      .first();
+    if (existing) return;
+
+    await ctx.db.insert("accessRights", {
+      userId,
+      purchaseId,
+      resource: product,
+      grantedAt,
+      expiresAt,
+    });
+
+    for (const bump of bumps) {
+      await ctx.db.insert("accessRights", {
+        userId,
+        purchaseId,
+        resource: bump,
+        grantedAt,
+        expiresAt,
+      });
+    }
+  },
+});

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Lang } from "@/lib/i18n";
@@ -12,50 +12,53 @@ interface Props {
   onConfirmed?: () => void;
 }
 
+const TIMEOUT_MS = 30_000;
+
 /**
- * Verifies payment succeeded by polling the pending order status.
- * Waits up to 30 seconds for the Mollie webhook to process before redirecting.
+ * Verifies payment succeeded by watching the pending order status.
+ * Shows a spinner while checking, then calls onConfirmed when the order
+ * converts (order === null). Redirects to checkout on timeout (30 s).
  */
 export function PaymentVerifier({ orderId, productSlug, lang, onConfirmed }: Props) {
-  const [checking, setChecking] = useState(!!orderId);
-  const retryCount = useRef(0);
-  const maxRetries = 6; // 6 × 5s = 30s max wait
+  const startedAt = useRef(Date.now());
+  const confirmed = useRef(false);
+  const timedOut = useRef(false);
 
   const order = useQuery(
     api.checkout.getPendingOrderForRecovery,
     orderId ? { orderId } : "skip",
   );
 
+  // Time-based timeout — independent of how many reactive updates Convex sends.
   useEffect(() => {
-    if (!orderId || order === undefined) return;
+    if (!orderId) return;
+    const timer = setTimeout(() => {
+      if (confirmed.current) return;
+      timedOut.current = true;
+      window.location.href = `/checkout/${productSlug}?failed=1&recover=${orderId}`;
+    }, TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, [orderId, productSlug]);
 
+  useEffect(() => {
+    if (!orderId || order === undefined || confirmed.current || timedOut.current) return;
     if (order === null) {
       // Order converted = payment succeeded
-      setChecking(false);
+      confirmed.current = true;
       onConfirmed?.();
-      return;
     }
+    // order still exists → webhook not yet arrived; Convex will push when it changes
+  }, [order, orderId, onConfirmed]);
 
-    // Order still exists — webhook might not have arrived yet
-    retryCount.current += 1;
+  if (!orderId || order === null) return null;
 
-    if (retryCount.current >= maxRetries) {
-      // After 30s, assume payment failed
-      window.location.href = `/checkout/${productSlug}?failed=1&recover=${orderId}`;
-    }
-    // Otherwise, Convex reactive query will auto-retry when data changes
-  }, [order, orderId, productSlug]);
-
-  if (checking) {
-    return (
-      <div className="text-center py-20">
-        <div className="w-10 h-10 border-2 border-copper/30 border-t-copper rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-[14px] text-ink/50">
-          {{ nl: "Betaling verwerken...", en: "Processing payment...", de: "Zahlung wird verarbeitet..." }[lang]}
-        </p>
-      </div>
-    );
-  }
-
-  return null;
+  // orderId present and order still exists → show spinner
+  return (
+    <div className="text-center py-20">
+      <div className="w-10 h-10 border-2 border-copper/30 border-t-copper rounded-full animate-spin mx-auto mb-4" />
+      <p className="text-[14px] text-ink/50">
+        {{ nl: "Betaling verwerken...", en: "Processing payment...", de: "Zahlung wird verarbeitet..." }[lang]}
+      </p>
+    </div>
+  );
 }
