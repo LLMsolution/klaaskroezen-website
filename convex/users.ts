@@ -117,13 +117,34 @@ export const getMyDownloads = query({
     if (!userId) return [];
 
     const preferredLang = lang ?? "nl";
-    const now = Date.now();
-    const allRights = await ctx.db
-      .query("accessRights")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .filter((q) => q.eq(q.field("revokedAt"), undefined))
+
+    // Admins get all digital files directly (they have no accessRights rows)
+    const accounts = await ctx.db
+      .query("authAccounts")
+      .filter((q: any) => q.eq(q.field("userId"), userId))
       .collect();
-    const accessRights = allRights.filter((r) => !r.expiresAt || r.expiresAt > now);
+    const emailAccount = accounts.find((a: any) => a.providerAccountId?.includes("@"));
+    const email = emailAccount?.providerAccountId ?? "";
+    const isAdmin = email ? await isAdminEmail(ctx, email) : false;
+
+    const now = Date.now();
+    let accessRights: Array<{ resource: string }>;
+
+    if (isAdmin) {
+      const allFiles = await ctx.db.query("digitalFiles").collect();
+      const seenProducts = new Set<string>();
+      const products = allFiles
+        .map((f) => f.product)
+        .filter((p) => { if (seenProducts.has(p)) return false; seenProducts.add(p); return true; });
+      accessRights = products.map((p) => ({ resource: p }));
+    } else {
+      const allRights = await ctx.db
+        .query("accessRights")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .filter((q) => q.eq(q.field("revokedAt"), undefined))
+        .collect();
+      accessRights = allRights.filter((r) => !r.expiresAt || r.expiresAt > now);
+    }
 
     const downloads = [];
     for (const right of accessRights) {
