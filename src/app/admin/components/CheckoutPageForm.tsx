@@ -208,7 +208,7 @@ export function CheckoutPageForm({ product, onBack }: Props) {
           <div className="grid grid-cols-[1fr_80px] gap-3">
             <div>
               <label className={L}>Slug</label>
-              <input value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))} placeholder="set-online" className={I} disabled={isEdit} />
+              <input value={slug} onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))} placeholder="set-online" className={I} />
             </div>
             <div>
               <label className={L}>Volgorde</label>

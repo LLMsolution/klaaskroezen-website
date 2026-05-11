@@ -234,14 +234,39 @@ export const updateProduct = mutation({
     await requireAdmin(ctx);
     const product = await ctx.db.get(id);
     if (!product) throw new Error("Product niet gevonden.");
-    if (fields.slug !== product.slug) {
+    const oldSlug = product.slug;
+    const newSlug = fields.slug;
+    if (newSlug !== oldSlug) {
       const conflict = await ctx.db
         .query("checkoutProducts")
-        .withIndex("by_slug", (q) => q.eq("slug", fields.slug))
+        .withIndex("by_slug", (q) => q.eq("slug", newSlug))
         .first();
-      if (conflict) throw new Error(`Slug "${fields.slug}" is al in gebruik.`);
+      if (conflict) throw new Error(`Slug "${newSlug}" is al in gebruik.`);
     }
     await ctx.db.replace(id, fields);
+
+    // Cascade slug change to references in other tables
+    if (newSlug !== oldSlug) {
+      // 1. trainings.linkedProducts
+      const trainings = await ctx.db.query("trainings").collect();
+      for (const t of trainings) {
+        if (t.linkedProducts?.includes(oldSlug)) {
+          await ctx.db.patch(t._id, {
+            linkedProducts: t.linkedProducts.map((s) => (s === oldSlug ? newSlug : s)),
+          });
+        }
+      }
+      // 2. other checkoutProducts bumps
+      const allProducts = await ctx.db.query("checkoutProducts").collect();
+      for (const p of allProducts) {
+        if (p._id === id) continue;
+        if (p.bumps?.includes(oldSlug)) {
+          await ctx.db.patch(p._id, {
+            bumps: p.bumps.map((s) => (s === oldSlug ? newSlug : s)),
+          });
+        }
+      }
+    }
   },
 });
 
