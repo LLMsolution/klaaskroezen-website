@@ -312,7 +312,7 @@ const T = {
   },
 } as const;
 
-function buildInvoiceDoc(invoice: Invoice, seller: Seller): React.ReactElement {
+function buildInvoiceDoc(invoice: Invoice, seller: Seller) {
   const lang = invoice.lang ?? "nl";
   const t = T[lang];
 
@@ -425,7 +425,8 @@ export const generateAndAttachInvoicePdf = internalAction({
       invoice.lang === "nl" || invoice.lang === "de" ? invoice.lang : "en";
 
     const doc = buildInvoiceDoc({ ...invoice, lang }, seller);
-    const buffer = await renderToBuffer(doc);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const buffer = await renderToBuffer(doc as any);
     const blob = new Blob([new Uint8Array(buffer)], { type: "application/pdf" });
     const storageId = await ctx.storage.store(blob);
 

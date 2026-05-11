@@ -13,6 +13,13 @@ const isProtectedRoute = createRouteMatcher([
   "/training(.*)",
 ]);
 
+// Training sub-routes that are publicly accessible despite matching /training/(.*)
+const isPublicTrainingRoute = createRouteMatcher([
+  "/training/:slug",           // overview page (shows NoAccessState to non-buyers)
+  "/training/:slug/marketing", // marketing landing page
+  "/training/:slug/marketing/(.*)",
+]);
+
 // Routes that authenticated users should be redirected away from
 const isAuthRoute = createRouteMatcher(["/login", "/registreren"]);
 
@@ -60,7 +67,7 @@ export default convexAuthNextjsMiddleware(
     }
 
     // Redirect unauthenticated users to login
-    if (isProtectedRoute(request) && !(await convexAuth.isAuthenticated())) {
+    if (isProtectedRoute(request) && !isPublicTrainingRoute(request) && !(await convexAuth.isAuthenticated())) {
       return nextjsMiddlewareRedirect(request, "/login");
     }
   },
