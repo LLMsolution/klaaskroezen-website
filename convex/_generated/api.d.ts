@@ -58,6 +58,7 @@ import type * as emails from "../emails.js";
 import type * as http from "../http.js";
 import type * as imageSpecs from "../imageSpecs.js";
 import type * as imageSpecsSeed from "../imageSpecsSeed.js";
+import type * as invoicePdf from "../invoicePdf.js";
 import type * as invoices from "../invoices.js";
 import type * as layoutEditor from "../layoutEditor.js";
 import type * as layoutEditorActions from "../layoutEditorActions.js";
@@ -160,6 +161,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   imageSpecs: typeof imageSpecs;
   imageSpecsSeed: typeof imageSpecsSeed;
+  invoicePdf: typeof invoicePdf;
   invoices: typeof invoices;
   layoutEditor: typeof layoutEditor;
   layoutEditorActions: typeof layoutEditorActions;
