@@ -69,7 +69,7 @@ const translations = {
     // Payment
     paymentMethod: "Betaalmethode",
     ideal: "iDEAL",
-    creditCard: "Creditcard",
+    creditCard: "Creditcard / Apple Pay",
     applePay: "Apple Pay",
     moreOptions: "Meer betaalopties",
 
@@ -219,7 +219,7 @@ const translations = {
 
     paymentMethod: "Payment method",
     ideal: "iDEAL",
-    creditCard: "Credit card",
+    creditCard: "Credit card / Apple Pay",
     applePay: "Apple Pay",
     moreOptions: "More payment options",
 
@@ -359,7 +359,7 @@ const translations = {
 
     paymentMethod: "Zahlungsmethode",
     ideal: "iDEAL",
-    creditCard: "Kreditkarte",
+    creditCard: "Kreditkarte / Apple Pay",
     applePay: "Apple Pay",
     moreOptions: "Weitere Zahlungsoptionen",
 

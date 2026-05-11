@@ -807,6 +807,16 @@ export default defineSchema({
         v.literal("event"),
       ),
     ),
+    // Per-product thank-you page config. Overrides the hardcoded variant defaults.
+    thankYouPage: v.optional(v.object({
+      steps: v.array(v.object({
+        nl: v.string(),
+        en: v.string(),
+        de: v.optional(v.string()),
+      })),
+      ctaLabel: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
+      ctaHref: v.string(),
+    })),
   })
     .index("by_slug", ["slug"])
     .index("by_active", ["active", "sortOrder"])

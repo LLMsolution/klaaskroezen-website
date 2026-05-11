@@ -213,6 +213,15 @@ const productFields = {
       v.literal("event"),
     ),
   ),
+  thankYouPage: v.optional(v.object({
+    steps: v.array(v.object({
+      nl: v.string(),
+      en: v.string(),
+      de: v.optional(v.string()),
+    })),
+    ctaLabel: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
+    ctaHref: v.string(),
+  })),
 };
 
 export const createProduct = mutation({

@@ -8,7 +8,7 @@ import createMollieClient, { Locale, PaymentMethod, type Payment } from "@mollie
 export const createMolliePayment = action({
   args: {
     pendingOrderId: v.id("pendingOrders"),
-    method: v.string(),
+    method: v.optional(v.string()),
   },
   handler: async (ctx, { pendingOrderId, method }) => {
     const order = await ctx.runQuery(internal.payments.getPendingOrder, {
@@ -82,7 +82,7 @@ export const createMolliePayment = action({
       description: `Klaas Kroezen — ${order.product}`,
       redirectUrl: `${siteUrl}/checkout/bedankt?email=${encodeURIComponent(order.email)}&product=${order.product}&lang=${order.lang}&orderId=${pendingOrderId}`,
       webhookUrl: `${webhookBaseUrl}/api/webhooks/mollie`,
-      method: method as PaymentMethod,
+      ...(method ? { method: method as PaymentMethod } : {}),
       metadata: { pendingOrderId, product: order.product },
       locale: order.lang === "nl" ? Locale.nl_NL : order.lang === "de" ? Locale.de_DE : Locale.en_US,
     }) as Promise<Payment>);
