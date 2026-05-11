@@ -39,7 +39,7 @@ export function useProductNames(
   lang: "nl" | "en" | "de" = "nl",
   variant: "name" | "shortName" = "shortName",
 ): Record<string, string> {
-  const products = useQuery(api.checkoutProducts.listAll);
+  const products = useQuery(api.checkoutProducts.listActive);
   const fallback = variant === "name" ? PRODUCT_NAMES_FULL : PRODUCT_NAMES;
   if (!products) return fallback;
   const map: Record<string, string> = { ...fallback };

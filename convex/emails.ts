@@ -497,6 +497,7 @@ type ProductVariant = "ebook" | "audiobook" | "hardcopy" | "online-course" | "co
 function buildPurchaseConfirmationHtml(
   invoice: {
     buyerName: string;
+    buyerEmail: string;
     invoiceNumber: string;
     lineItems: Array<{ description: string; totalCents: number }>;
     subtotalCents: number;
@@ -530,8 +531,10 @@ function buildPurchaseConfirmationHtml(
 
   const firstName = invoice.buyerName.split(" ")[0];
 
-  const dashboardUrl = `${SITE_URL}/dashboard`;
-  const downloadsUrl = `${SITE_URL}/dashboard#downloads`;
+  const emailParam = encodeURIComponent(invoice.buyerEmail);
+  const loginBase = `${SITE_URL}/login/kopen?email=${emailParam}&next=`;
+  const dashboardUrl = `${loginBase}${encodeURIComponent("/dashboard")}`;
+  const downloadsUrl = `${loginBase}${encodeURIComponent("/dashboard#downloads")}`;
   let bookSection = "";
   let primaryCta: { label: string; href: string } = {
     label: t({ nl: "Ga naar mijn dashboard", en: "Go to my dashboard", de: "Zu meinem Dashboard" }),

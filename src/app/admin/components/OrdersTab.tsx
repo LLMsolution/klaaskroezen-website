@@ -206,7 +206,14 @@ function OrdersList() {
                   </td>
                   <td className="px-4 py-3 text-[13px] text-ink tabular-nums">{order.quantity}</td>
                   <td className="px-4 py-3 text-[13px] text-ink tabular-nums">{formatPrice(order.amount)}</td>
-                  <td className="px-4 py-3 text-[13px] text-ink">{PRODUCT_NAMES[order.product] || order.product}</td>
+                  <td className="px-4 py-3">
+                    <p className="text-[13px] text-ink">{PRODUCT_NAMES[order.product] || order.product}</p>
+                    {order.bumps && order.bumps.length > 0 && (
+                      <p className="text-[11px] text-ink/40 mt-0.5">
+                        + {order.bumps.map((b: string) => PRODUCT_NAMES[b] || b).join(", ")}
+                      </p>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-[13px] text-ink/70">{order.company || "—"}</td>
                   <td className="px-4 py-3 text-[12px] text-ink/40 font-mono">/{order.product}</td>
                   <td className="px-4 py-3 text-[13px] text-ink">{`${order.firstName || ""} ${order.lastName || ""}`.trim() || order.userName || "—"}</td>
