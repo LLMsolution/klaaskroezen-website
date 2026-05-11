@@ -298,7 +298,7 @@ async function executeAction(
 
   switch (rule.action) {
     case "notify_team": {
-      const recipientEmail = actionConfig.notifyEmail ?? "info@llmsolution.nl";
+      const recipientEmail = actionConfig.notifyEmail ?? "klaas@klaaskroezen.nl";
 
       // Log activity on the contact (with lead if available)
       await ctx.db.insert("leadActivities", {

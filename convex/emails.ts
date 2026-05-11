@@ -54,7 +54,7 @@ export {
    PRIVATE HELPERS
    ═══════════════════════════════════════════ */
 
-const FROM = "Klaas Kroezen <info@llmsolution.nl>";
+const FROM = "Klaas Kroezen <klaas@klaaskroezen.nl>";
 
 function generateTrackingId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;

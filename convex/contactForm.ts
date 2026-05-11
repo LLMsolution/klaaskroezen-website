@@ -5,7 +5,7 @@ import { rateLimiter } from "./rateLimits";
 import { contactNotification, contactConfirmationNl, TEMPLATE_OPTIONS } from "./emailTemplates";
 import { layout } from "./emailHelpers";
 
-const FROM = "Klaas Kroezen <info@llmsolution.nl>";
+const FROM = "Klaas Kroezen <klaas@klaaskroezen.nl>";
 
 const submitArgs = {
   name: v.string(),
@@ -86,7 +86,7 @@ export const sendNotification = internalAction({
     try {
       // 1. Send admin notification (logged under customer email for tracking)
       await ctx.runAction(internal.emails.sendEmail, {
-        to: "info@llmsolution.nl",
+        to: "klaas@klaaskroezen.nl",
         subject: `Contactformulier: ${submission.subject}`,
         html: layout(contactNotification(submission.name, submission.email, submission.phone, submission.company, submission.subject, submission.message), TEMPLATE_OPTIONS["contact-notification"]),
         template: "contact-notification",

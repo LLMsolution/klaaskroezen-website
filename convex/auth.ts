@@ -3,7 +3,7 @@ import Resend from "@auth/core/providers/resend";
 import { convexAuth } from "@convex-dev/auth/server";
 import { layout } from "./emailHelpers";
 
-const FROM = "Klaas Kroezen <info@llmsolution.nl>";
+const FROM = "Klaas Kroezen <klaas@klaaskroezen.nl>";
 
 const magicLinkContent = {
   nl: {
