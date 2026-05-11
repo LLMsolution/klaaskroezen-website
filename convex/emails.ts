@@ -168,7 +168,10 @@ export const sendPurchaseConfirmation = internalAction({
 
     const [purchase, pdfResult, bumpSlugs] = await Promise.all([
       ctx.runQuery(internal.emails.getPurchaseById, { purchaseId: invoice.purchaseId }),
-      ctx.runAction(internal.invoicePdf.generateAndAttachInvoicePdf, { invoiceId }).catch(() => null),
+      ctx.runAction(internal.invoicePdf.generateAndAttachInvoicePdf, { invoiceId }).catch((err) => {
+        console.error("[sendPurchaseConfirmation] PDF generation failed for invoice", invoiceId, err);
+        return null;
+      }),
       ctx.runQuery(internal.emails.getBumpsByMolliePaymentId, { molliePaymentId: invoice.molliePaymentId }),
     ]);
     const productVariant = purchase?.product
