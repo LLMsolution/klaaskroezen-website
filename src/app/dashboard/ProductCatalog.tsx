@@ -54,9 +54,10 @@ export function ProductCatalog({ lang }: { lang: Lang }) {
   const trainingBySlug = new Map(
     (myTrainings ?? []).map((t) => [t.slug, t]),
   );
-  const downloadsByProduct = new Map<string, { url: string; fileName: string }>();
+  const downloadsByProduct = new Map<string, Array<{ url: string; fileName: string; format?: string; fileType?: string }>>();
   for (const d of myDownloads ?? []) {
-    downloadsByProduct.set(d.product, { url: d.url, fileName: d.fileName });
+    const existing = downloadsByProduct.get(d.product) ?? [];
+    downloadsByProduct.set(d.product, [...existing, { url: d.url, fileName: d.fileName, format: d.format, fileType: d.fileType }]);
   }
 
   const trainings = catalog.filter((i) => i.category === "training");
@@ -102,9 +103,11 @@ type TrainingInfo = {
   lastModuleSlug?: string;
 };
 
+type DownloadFile = { url: string; fileName: string; format?: string; fileType?: string };
+
 function CatalogCard({ item, lang, copy, training, download }: {
   item: CatalogItem; lang: Lang; copy: CopyKeys;
-  training?: TrainingInfo; download?: { url: string; fileName: string };
+  training?: TrainingInfo; download?: DownloadFile[];
 }) {
   const name = loc(item.name, lang);
 
@@ -131,7 +134,7 @@ function CatalogCard({ item, lang, copy, training, download }: {
 
 function OwnedCard({ item, name, lang, copy, training, download }: {
   item: CatalogItem; name: string; lang: Lang; copy: CopyKeys;
-  training?: TrainingInfo; download?: { url: string; fileName: string };
+  training?: TrainingInfo; download?: DownloadFile[];
 }) {
   const action = item.dashboardAction;
 
@@ -174,14 +177,29 @@ function OwnedCard({ item, name, lang, copy, training, download }: {
     }
   }
 
-  // Download → download link
-  if (action === "download" && download) {
+  // Download → one link per file (PDF, EPUB, etc.)
+  if (action === "download" && download && download.length > 0) {
+    if (download.length === 1) {
+      const f = download[0];
+      return (
+        <a href={f.url} download={f.fileName} className="flex items-center gap-4 p-4 border border-copper/30 bg-copper/[0.03] rounded-[2px] hover:border-copper/50 transition-colors group">
+          <ProductImage image={item.image} name={name} />
+          <div className="flex-1 min-w-0"><p className="text-[14px] font-medium text-ink group-hover:text-copper transition-colors truncate">{name}</p></div>
+          <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-copper shrink-0">{copy.download}</span>
+        </a>
+      );
+    }
     return (
-      <a href={download.url} download={download.fileName} className="flex items-center gap-4 p-4 border border-copper/30 bg-copper/[0.03] rounded-[2px] hover:border-copper/50 transition-colors group">
-        <ProductImage image={item.image} name={name} />
-        <div className="flex-1 min-w-0"><p className="text-[14px] font-medium text-ink group-hover:text-copper transition-colors truncate">{name}</p></div>
-        <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-copper shrink-0">{copy.download}</span>
-      </a>
+      <div className="border border-copper/30 bg-copper/[0.03] rounded-[2px] divide-y divide-copper/10">
+        {download.map((f, i) => (
+          <a key={i} href={f.url} download={f.fileName} className="flex items-center gap-4 p-4 hover:border-copper/50 transition-colors group">
+            {i === 0 && <ProductImage image={item.image} name={name} />}
+            {i > 0 && <div className="w-14 shrink-0" />}
+            <div className="flex-1 min-w-0"><p className="text-[14px] font-medium text-ink group-hover:text-copper transition-colors truncate">{name}{f.format ? ` — ${f.format.toUpperCase()}` : ""}</p></div>
+            <span className="text-[11px] font-medium tracking-[0.1em] uppercase text-copper shrink-0">{copy.download}</span>
+          </a>
+        ))}
+      </div>
     );
   }
 

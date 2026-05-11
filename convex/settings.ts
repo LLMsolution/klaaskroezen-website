@@ -82,6 +82,71 @@ export const updateSettings = mutation({
   },
 });
 
+// ── Seller / company info ──
+
+export const getSellerInfo = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const settings = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+    return {
+      sellerName: settings?.sellerName ?? "",
+      sellerAddress: settings?.sellerAddress ?? "",
+      sellerPostalCity: settings?.sellerPostalCity ?? "",
+      sellerKvk: settings?.sellerKvk ?? "",
+      sellerBtw: settings?.sellerBtw ?? "",
+      sellerIban: settings?.sellerIban ?? "",
+      sellerEmail: settings?.sellerEmail ?? "",
+    };
+  },
+});
+
+export const getSellerSettings = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    const settings = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+    return {
+      sellerName: settings?.sellerName ?? "",
+      sellerAddress: settings?.sellerAddress ?? "",
+      sellerPostalCity: settings?.sellerPostalCity ?? "",
+      sellerKvk: settings?.sellerKvk ?? "",
+      sellerBtw: settings?.sellerBtw ?? "",
+      sellerIban: settings?.sellerIban ?? "",
+      sellerEmail: settings?.sellerEmail ?? "",
+    };
+  },
+});
+
+export const updateSellerSettings = mutation({
+  args: {
+    sellerName: v.string(),
+    sellerAddress: v.string(),
+    sellerPostalCity: v.string(),
+    sellerKvk: v.string(),
+    sellerBtw: v.string(),
+    sellerIban: v.string(),
+    sellerEmail: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const existing = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+    if (existing) {
+      await ctx.db.patch(existing._id, args);
+    } else {
+      await ctx.db.insert("siteSettings", { key: "global", ...args });
+    }
+  },
+});
+
 // ── Popup config ──
 
 export const getPopupConfig = query({

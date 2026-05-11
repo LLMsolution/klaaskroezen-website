@@ -74,6 +74,9 @@ export function SettingsTab() {
 
   return (
     <div className="space-y-8">
+      {/* Company / seller info for invoices */}
+      <SellerSettings />
+
       {/* Abandoned cart timing */}
       <AbandonedCartSettings />
 
@@ -216,6 +219,115 @@ export function SettingsTab() {
           </button>
         </form>
       </div>
+    </div>
+  );
+}
+
+/* ─── Seller / Company Settings ─── */
+
+function SellerSettings() {
+  const data = useQuery(api.settings.getSellerSettings);
+  const update = useMutation(api.settings.updateSellerSettings);
+
+  const [form, setForm] = useState({
+    sellerName: "",
+    sellerAddress: "",
+    sellerPostalCity: "",
+    sellerKvk: "",
+    sellerBtw: "",
+    sellerIban: "",
+    sellerEmail: "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+
+  if (data && !initialized) {
+    setForm({
+      sellerName: data.sellerName,
+      sellerAddress: data.sellerAddress,
+      sellerPostalCity: data.sellerPostalCity,
+      sellerKvk: data.sellerKvk,
+      sellerBtw: data.sellerBtw,
+      sellerIban: data.sellerIban,
+      sellerEmail: data.sellerEmail,
+    });
+    setInitialized(true);
+  }
+
+  if (!data) return <Loading />;
+
+  function set(field: keyof typeof form) {
+    return (e: React.ChangeEvent<HTMLInputElement>) =>
+      setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  }
+
+  async function handleSave() {
+    setSaving(true);
+    setSaved(false);
+    try {
+      await update(form);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const labelClass = "text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2";
+  const inputClass = "w-full bg-transparent border border-rule px-3 py-2.5 text-[14px] text-ink focus:border-copper focus:outline-none rounded-[2px]";
+
+  return (
+    <div>
+      <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-1">
+        Bedrijfsgegevens factuur
+      </p>
+      <p className="text-[13px] text-ink/50 mb-5">
+        Deze gegevens verschijnen op de PDF-factuur die met elke bestelling meegestuurd wordt.
+      </p>
+
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label className={labelClass}>Bedrijfsnaam</label>
+          <input value={form.sellerName} onChange={set("sellerName")} placeholder="Klaas Kroezen" className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>E-mailadres (factuur)</label>
+          <input value={form.sellerEmail} onChange={set("sellerEmail")} placeholder="klaas@klaaskroezen.nl" className={inputClass} />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <label className={labelClass}>Straat + huisnummer</label>
+          <input value={form.sellerAddress} onChange={set("sellerAddress")} placeholder="Voorbeeldstraat 1" className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>Postcode + stad</label>
+          <input value={form.sellerPostalCity} onChange={set("sellerPostalCity")} placeholder="1234 AB Amsterdam" className={inputClass} />
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-4 mb-5">
+        <div>
+          <label className={labelClass}>KVK-nummer</label>
+          <input value={form.sellerKvk} onChange={set("sellerKvk")} placeholder="12345678" className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>BTW-nummer</label>
+          <input value={form.sellerBtw} onChange={set("sellerBtw")} placeholder="NL123456789B01" className={inputClass} />
+        </div>
+        <div>
+          <label className={labelClass}>IBAN</label>
+          <input value={form.sellerIban} onChange={set("sellerIban")} placeholder="NL00 BANK 0000 0000 00" className={inputClass} />
+        </div>
+      </div>
+
+      <button
+        onClick={handleSave}
+        disabled={saving}
+        className="bg-copper text-paper px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer disabled:opacity-40"
+      >
+        {saving ? "Opslaan..." : saved ? "Opgeslagen!" : "Bedrijfsgegevens opslaan"}
+      </button>
     </div>
   );
 }

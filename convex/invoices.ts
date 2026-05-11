@@ -6,6 +6,7 @@ import {
 } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { langValidator } from "./schema";
+import { requireAdmin } from "./adminAuth";
 
 /**
  * Create an invoice after successful payment.
@@ -157,6 +158,7 @@ export const listInvoices = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, { limit }) => {
+    await requireAdmin(ctx);
     const invoices = await ctx.db
       .query("invoices")
       .order("desc")
