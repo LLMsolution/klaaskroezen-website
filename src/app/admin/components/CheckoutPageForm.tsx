@@ -6,6 +6,7 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { ImageUpload } from "./ImageUpload";
 import { TranslateFromButton } from "./TranslateFromButton";
+import { ThankYouPageSection, type ThankYouConfig } from "./ThankYouPageSection";
 
 type ProductType = "training" | "book";
 type ProductSubType = "training" | "book" | "event";
@@ -49,6 +50,7 @@ interface ProductData {
   mockupType?: MockupType;
   availableBookLanguages?: ("nl" | "en" | "de")[];
   productVariant?: ProductVariant;
+  thankYouPage?: ThankYouConfig;
 }
 
 interface Props {
@@ -116,10 +118,19 @@ export function CheckoutPageForm({ product, onBack }: Props) {
   const [tiers, setTiers] = useState<QtyTier[]>(product?.quantityTiers ?? [{ quantity: 1, unitPriceCents: 0, savingsPercent: 0 }]);
   const [bookLanguages, setBookLanguages] = useState<("nl" | "en" | "de")[]>(product?.availableBookLanguages ?? ["nl"]);
   const [productVariant, setProductVariant] = useState<ProductVariant | "">(product?.productVariant ?? "");
+  const [thankYouConfig, setThankYouConfig] = useState<ThankYouConfig>(
+    product?.thankYouPage
+      ? {
+          steps: product.thankYouPage.steps.map((s) => ({ nl: s.nl, en: s.en, de: s.de ?? "" })),
+          ctaLabel: { nl: product.thankYouPage.ctaLabel.nl, en: product.thankYouPage.ctaLabel.en, de: product.thankYouPage.ctaLabel.de ?? "" },
+          ctaHref: product.thankYouPage.ctaHref,
+        }
+      : { steps: [], ctaLabel: { nl: "", en: "", de: "" }, ctaHref: "" },
+  );
 
   // Section visibility
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    basis: true, prijs: true, content: false, bumps: false, tiers: false, boektalen: false, overig: false,
+    basis: true, prijs: true, content: false, bumps: false, tiers: false, boektalen: false, overig: false, bedankt: false,
   });
   const toggle = (key: string) => setOpenSections((s) => ({ ...s, [key]: !s[key] }));
 
@@ -148,6 +159,21 @@ export function CheckoutPageForm({ product, onBack }: Props) {
       mockupType: mockupType || undefined,
       availableBookLanguages: type === "book" ? bookLanguages : undefined,
       productVariant: productVariant || undefined,
+      thankYouPage: thankYouConfig.steps.length > 0 || thankYouConfig.ctaHref
+        ? {
+            steps: thankYouConfig.steps.filter((s) => s.nl.trim()).map((s) => ({
+              nl: s.nl,
+              en: s.en || s.nl,
+              de: s.de || undefined,
+            })),
+            ctaLabel: {
+              nl: thankYouConfig.ctaLabel.nl,
+              en: thankYouConfig.ctaLabel.en || thankYouConfig.ctaLabel.nl,
+              de: thankYouConfig.ctaLabel.de || undefined,
+            },
+            ctaHref: thankYouConfig.ctaHref,
+          }
+        : undefined,
     };
     try {
       if (isEdit) {
@@ -577,6 +603,11 @@ export function CheckoutPageForm({ product, onBack }: Props) {
           })}
         </Section>
       )}
+
+      {/* Bedankt-pagina */}
+      <Section title="Bedankt-pagina" open={openSections.bedankt} onToggle={() => toggle("bedankt")}>
+        <ThankYouPageSection config={thankYouConfig} onChange={setThankYouConfig} />
+      </Section>
 
       {/* Bottom save */}
       <div className="flex items-center justify-end pt-2">

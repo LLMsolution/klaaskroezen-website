@@ -9,13 +9,14 @@ interface Props {
   orderId?: string;
   productSlug: string;
   lang: Lang;
+  onConfirmed?: () => void;
 }
 
 /**
  * Verifies payment succeeded by polling the pending order status.
  * Waits up to 30 seconds for the Mollie webhook to process before redirecting.
  */
-export function PaymentVerifier({ orderId, productSlug, lang }: Props) {
+export function PaymentVerifier({ orderId, productSlug, lang, onConfirmed }: Props) {
   const [checking, setChecking] = useState(!!orderId);
   const retryCount = useRef(0);
   const maxRetries = 6; // 6 × 5s = 30s max wait
@@ -31,6 +32,7 @@ export function PaymentVerifier({ orderId, productSlug, lang }: Props) {
     if (order === null) {
       // Order converted = payment succeeded
       setChecking(false);
+      onConfirmed?.();
       return;
     }
 

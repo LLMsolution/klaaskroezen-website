@@ -166,14 +166,23 @@ export const sendPurchaseConfirmation = internalAction({
         ? `Bestätigung & Rechnung ${invoice.invoiceNumber}`
         : `Confirmation & Invoice ${invoice.invoiceNumber}`;
 
-    const [purchase, pdfResult] = await Promise.all([
+    const [purchase, pdfResult, bumpSlugs] = await Promise.all([
       ctx.runQuery(internal.emails.getPurchaseById, { purchaseId: invoice.purchaseId }),
       ctx.runAction(internal.invoicePdf.generateAndAttachInvoicePdf, { invoiceId }).catch(() => null),
+      ctx.runQuery(internal.emails.getBumpsByMolliePaymentId, { molliePaymentId: invoice.molliePaymentId }),
     ]);
     const productVariant = purchase?.product
       ? await ctx.runQuery(internal.emails.getProductVariantBySlug, { slug: purchase.product })
       : undefined;
-    const html = buildPurchaseConfirmationHtml(invoice, lang, purchase?.product, productVariant ?? undefined);
+    const bumpVariants = bumpSlugs.length
+      ? await Promise.all(bumpSlugs.map((slug) =>
+          ctx.runQuery(internal.emails.getProductVariantBySlug, { slug })
+        ))
+      : [];
+    const html = buildPurchaseConfirmationHtml(
+      invoice, lang, purchase?.product, productVariant ?? undefined,
+      bumpVariants.filter((v): v is ProductVariant => !!v),
+    );
 
     const fileName = `factuur-${invoice.invoiceNumber}.pdf`;
     await ctx.runAction(internal.emails.sendEmail, {
@@ -314,6 +323,18 @@ export const getProductVariantBySlug = internalQuery({
       .withIndex("by_slug", (q) => q.eq("slug", slug))
       .first();
     return product?.productVariant;
+  },
+});
+
+/** Get bump slugs from a pending order by Mollie payment ID. */
+export const getBumpsByMolliePaymentId = internalQuery({
+  args: { molliePaymentId: v.string() },
+  handler: async (ctx, { molliePaymentId }) => {
+    const order = await ctx.db
+      .query("pendingOrders")
+      .withIndex("by_mollie", (q) => q.eq("molliePaymentId", molliePaymentId))
+      .first();
+    return order?.bumps ?? [];
   },
 });
 
@@ -488,6 +509,7 @@ function buildPurchaseConfirmationHtml(
   lang: "nl" | "en" | "de",
   productSlug?: string,
   productVariant?: ProductVariant,
+  bumpVariants?: ProductVariant[],
 ): string {
   const t = (s: { nl: string; en: string; de: string }) => s[lang];
   const layoutLang: "nl" | "en" = lang === "nl" ? "nl" : "en";
@@ -553,6 +575,32 @@ function buildPurchaseConfirmationHtml(
       en: "Your <strong>physical book</strong> ships within 2 business days to the address you provided. You'll receive a separate email once it's on its way.",
       de: "Ihr <strong>physisches Buch</strong> wird innerhalb von 2 Werktagen an die angegebene Adresse versandt. Sie erhalten eine separate E-Mail, sobald das Paket unterwegs ist.",
     }));
+  }
+
+  // Add bump-specific sections for variants not already covered by the main product.
+  const coveredVariants = new Set<ProductVariant>(effectiveVariant ? [effectiveVariant] : []);
+  for (const bumpVariant of bumpVariants ?? []) {
+    if (coveredVariants.has(bumpVariant)) continue;
+    coveredVariants.add(bumpVariant);
+    if (bumpVariant === "ebook") {
+      bookSection += paragraph(t({
+        nl: "Je <strong>e-book</strong> staat klaar in je dashboard onder Downloads — direct te lezen op computer, tablet of telefoon.",
+        en: "Your <strong>e-book</strong> is ready in your dashboard under Downloads — read it right away on your computer, tablet, or phone.",
+        de: "Ihr <strong>E-Book</strong> steht in Ihrem Dashboard unter Downloads bereit — sofort lesbar auf Computer, Tablet oder Smartphone.",
+      }));
+    } else if (bumpVariant === "audiobook") {
+      bookSection += paragraph(t({
+        nl: "Je <strong>luisterboek</strong> vind je in je dashboard onder Trainingen — luister onderweg, tijdens het sporten of thuis op de bank.",
+        en: "Your <strong>audiobook</strong> is in your dashboard under Trainings — listen on the go, while exercising, or at home.",
+        de: "Ihr <strong>Hörbuch</strong> finden Sie in Ihrem Dashboard unter Trainings — hören Sie unterwegs, beim Sport oder zu Hause.",
+      }));
+    } else if (bumpVariant === "hardcopy") {
+      bookSection += paragraph(t({
+        nl: "Je <strong>fysieke boek</strong> wordt binnen 2 werkdagen verzonden naar het adres dat je hebt opgegeven. Je ontvangt een aparte mail zodra het pakket onderweg is.",
+        en: "Your <strong>physical book</strong> ships within 2 business days to the address you provided. You'll receive a separate email once it's on its way.",
+        de: "Ihr <strong>physisches Buch</strong> wird innerhalb von 2 Werktagen an die angegebene Adresse versandt. Sie erhalten eine separate E-Mail, sobald das Paket unterwegs ist.",
+      }));
+    }
   }
 
   return layout(`

@@ -114,14 +114,22 @@ export default function AlgemeneVoorwaardenPage() {
               vanaf het moment van betaling 12 maanden toegankelijk, tenzij anders
               vermeld op de productpagina.
             </p>
-            <h3 className={H3}>5.2 Fysieke producten</h3>
+            <h3 className={H3}>5.2 Persoonlijk account</h3>
+            <p className={P}>
+              Bij het plaatsen van een bestelling wordt automatisch een persoonlijk
+              account aangemaakt op basis van het opgegeven e-mailadres. Na
+              afronding van de betaling ontvangt de klant een e-mail waarmee hij of
+              zij direct kan inloggen en aankopen kan inzien via het persoonlijke
+              dashboard op klaaskroezen.nl.
+            </p>
+            <h3 className={H3}>5.3 Fysieke producten</h3>
             <p className={P}>
               Het hardcopy-boek wordt uitsluitend verzonden binnen Nederland. De
               levertijd bedraagt doorgaans 1&ndash;2 werkdagen na ontvangst van de
               betaling. Voor zendingen naar andere landen kan de klant contact met
               ons opnemen voor een offerte op maat.
             </p>
-            <h3 className={H3}>5.3 Risico-overgang</h3>
+            <h3 className={H3}>5.4 Risico-overgang</h3>
             <p className={P}>
               Het risico van verlies, beschadiging of vermissing van fysieke
               producten gaat over op de klant op het moment van bezorging.

@@ -39,7 +39,7 @@ export function UpsellClient({ email, purchasedSlug, lang }: Props) {
     setLoadingSlug(slug);
     try {
       const orderId = await createUpsellOrder({ email, product: slug, lang });
-      const result = await createMolliePayment({ pendingOrderId: orderId, method: "creditcard" });
+      const result = await createMolliePayment({ pendingOrderId: orderId });
       if (result.checkoutUrl) {
         window.location.href = result.checkoutUrl;
       }

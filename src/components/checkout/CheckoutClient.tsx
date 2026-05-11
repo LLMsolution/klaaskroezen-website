@@ -16,7 +16,7 @@ import { CheckoutTotals } from "./CheckoutTotals";
 import { TrustBadges } from "./TrustBadges";
 import { ExitIntent } from "./ExitIntent";
 import { SocialProof } from "./SocialProof";
-import { IdealIcon, CreditCardIcon, ApplePayIcon } from "./PaymentIcons";
+import { IdealIcon, CreditCardIcon } from "./PaymentIcons";
 
 interface Props {
   productSlug: string;
@@ -367,7 +367,6 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
   const paymentMethods = [
     ...(country === "NL" || country === "BE" ? [{ id: "ideal", label: i18n.ideal, icon: <IdealIcon />, recommended: true }] : []),
     { id: "creditcard", label: i18n.creditCard, icon: <CreditCardIcon /> },
-    { id: "applepay", label: i18n.applePay, icon: <ApplePayIcon /> },
   ];
 
   return (

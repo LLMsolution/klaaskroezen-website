@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { fetchQuery } from "convex/nextjs";
 import { UpsellClient } from "@/components/checkout/UpsellClient";
-import { PaymentVerifier } from "@/components/checkout/PaymentVerifier";
+import { PostPurchaseFlow } from "@/components/checkout/PostPurchaseFlow";
 import type { Lang } from "@/lib/i18n";
 import { api } from "../../../../convex/_generated/api";
 
@@ -13,113 +13,66 @@ export const metadata: Metadata = {
 
 type StepVariant = "training" | "ebook" | "audiobook" | "hardcopy";
 
-const NEXT_STEPS: Record<StepVariant, Record<Lang, { icon: string; text: string }[]>> = {
+const DEFAULT_STEPS: Record<StepVariant, Record<Lang, string[]>> = {
   training: {
-    nl: [
-      { icon: "📧", text: "Check je inbox voor de bevestigingsmail met toegangsgegevens" },
-      { icon: "📖", text: "Open je digitale werkboek en maak kennis met de eerste module" },
-      { icon: "🎯", text: "Plan je eerste sessie in — het beste moment is nu" },
-    ],
-    en: [
-      { icon: "📧", text: "Check your inbox for the confirmation email with access details" },
-      { icon: "📖", text: "Open your digital workbook and explore the first module" },
-      { icon: "🎯", text: "Schedule your first session — the best time is now" },
-    ],
-    de: [
-      { icon: "📧", text: "Prüfen Sie Ihren Posteingang für die Bestätigungs-E-Mail mit Zugangsdaten" },
-      { icon: "📖", text: "Öffnen Sie Ihr digitales Arbeitsbuch und entdecken Sie das erste Modul" },
-      { icon: "🎯", text: "Planen Sie Ihre erste Sitzung — der beste Zeitpunkt ist jetzt" },
-    ],
+    nl: ["Check je inbox voor de bevestigingsmail met toegangsgegevens", "Open je digitale werkboek en maak kennis met de eerste module", "Plan je eerste sessie in — het beste moment is nu"],
+    en: ["Check your inbox for the confirmation email with access details", "Open your digital workbook and explore the first module", "Schedule your first session — the best time is now"],
+    de: ["Prüfen Sie Ihren Posteingang für die Bestätigungs-E-Mail mit Zugangsdaten", "Öffnen Sie Ihr digitales Arbeitsbuch und entdecken Sie das erste Modul", "Planen Sie Ihre erste Sitzung — der beste Zeitpunkt ist jetzt"],
   },
   ebook: {
-    nl: [
-      { icon: "📧", text: "Check je inbox voor de bevestigingsmail met je downloadlink" },
-      { icon: "📥", text: "Je e-book staat klaar in je dashboard onder Downloads" },
-      { icon: "💡", text: "Begin bij hoofdstuk 1 — daar zit de basis" },
-    ],
-    en: [
-      { icon: "📧", text: "Check your inbox for the confirmation email with your download link" },
-      { icon: "📥", text: "Your e-book is ready in your dashboard under Downloads" },
-      { icon: "💡", text: "Start with chapter 1 — that's where the foundation is" },
-    ],
-    de: [
-      { icon: "📧", text: "Prüfen Sie Ihren Posteingang für die Bestätigungs-E-Mail mit Ihrem Download-Link" },
-      { icon: "📥", text: "Ihr E-Book steht in Ihrem Dashboard unter Downloads bereit" },
-      { icon: "💡", text: "Beginnen Sie mit Kapitel 1 — dort liegt das Fundament" },
-    ],
+    nl: ["Check je inbox voor de bevestigingsmail met je downloadlink", "Je e-book staat klaar in je dashboard onder Downloads", "Begin bij hoofdstuk 1 — daar zit de basis"],
+    en: ["Check your inbox for the confirmation email with your download link", "Your e-book is ready in your dashboard under Downloads", "Start with chapter 1 — that's where the foundation is"],
+    de: ["Prüfen Sie Ihren Posteingang für die Bestätigungs-E-Mail mit Ihrem Download-Link", "Ihr E-Book steht in Ihrem Dashboard unter Downloads bereit", "Beginnen Sie mit Kapitel 1 — dort liegt das Fundament"],
   },
   audiobook: {
-    nl: [
-      { icon: "📧", text: "Check je inbox voor de bevestigingsmail" },
-      { icon: "🎧", text: "Je luisterboek staat klaar in je dashboard onder Trainingen" },
-      { icon: "💡", text: "Luister onderweg, tijdens het sporten of thuis op de bank" },
-    ],
-    en: [
-      { icon: "📧", text: "Check your inbox for the confirmation email" },
-      { icon: "🎧", text: "Your audiobook is ready in your dashboard under Trainings" },
-      { icon: "💡", text: "Listen on the go, while exercising, or relaxing at home" },
-    ],
-    de: [
-      { icon: "📧", text: "Prüfen Sie Ihren Posteingang für die Bestätigungs-E-Mail" },
-      { icon: "🎧", text: "Ihr Hörbuch steht in Ihrem Dashboard unter Trainings bereit" },
-      { icon: "💡", text: "Hören Sie unterwegs, beim Sport oder zu Hause auf dem Sofa" },
-    ],
+    nl: ["Check je inbox voor de bevestigingsmail", "Je luisterboek staat klaar in je dashboard onder Trainingen", "Luister onderweg, tijdens het sporten of thuis op de bank"],
+    en: ["Check your inbox for the confirmation email", "Your audiobook is ready in your dashboard under Trainings", "Listen on the go, while exercising, or relaxing at home"],
+    de: ["Prüfen Sie Ihren Posteingang für die Bestätigungs-E-Mail", "Ihr Hörbuch steht in Ihrem Dashboard unter Trainings bereit", "Hören Sie unterwegs, beim Sport oder zu Hause auf dem Sofa"],
   },
   hardcopy: {
-    nl: [
-      { icon: "📧", text: "Check je inbox voor de bevestigingsmail met je orderdetails" },
-      { icon: "📦", text: "Je boek wordt binnen 2 werkdagen verzonden naar je adres" },
-      { icon: "💡", text: "Zodra je hem hebt: begin bij hoofdstuk 1 — daar zit de basis" },
-    ],
-    en: [
-      { icon: "📧", text: "Check your inbox for the confirmation email with your order details" },
-      { icon: "📦", text: "Your book ships within 2 business days to your address" },
-      { icon: "💡", text: "Once you have it: start with chapter 1 — that's where the foundation is" },
-    ],
-    de: [
-      { icon: "📧", text: "Prüfen Sie Ihren Posteingang für die Bestätigungs-E-Mail mit Ihren Bestelldetails" },
-      { icon: "📦", text: "Ihr Buch wird innerhalb von 2 Werktagen an Ihre Adresse versandt" },
-      { icon: "💡", text: "Wenn Sie es haben: beginnen Sie mit Kapitel 1 — dort liegt das Fundament" },
-    ],
+    nl: ["Check je inbox voor de bevestigingsmail met je orderdetails", "Je boek wordt binnen 2 werkdagen verzonden naar je adres", "Zodra je hem hebt: begin bij hoofdstuk 1 — daar zit de basis"],
+    en: ["Check your inbox for the confirmation email with your order details", "Your book ships within 2 business days to your address", "Once you have it: start with chapter 1 — that's where the foundation is"],
+    de: ["Prüfen Sie Ihren Posteingang für die Bestätigungs-E-Mail mit Ihren Bestelldetails", "Ihr Buch wird innerhalb von 2 Werktagen an Ihre Adresse versandt", "Wenn Sie es haben: beginnen Sie mit Kapitel 1 — dort liegt das Fundament"],
   },
 };
 
-async function resolveVariant(productSlug: string): Promise<StepVariant> {
-  if (!productSlug) return "training";
+type ProductConfig = {
+  variant: StepVariant;
+  thankYouPage?: {
+    steps: { nl: string; en: string; de?: string }[];
+    ctaLabel: { nl: string; en: string; de?: string };
+    ctaHref: string;
+  };
+};
+
+async function resolveProduct(productSlug: string): Promise<ProductConfig> {
+  if (!productSlug) return { variant: "training" };
   try {
     const product = await fetchQuery(api.checkoutProducts.getBySlug, { slug: productSlug });
     const v = product?.productVariant;
-    if (v === "ebook") return "ebook";
-    if (v === "audiobook") return "audiobook";
-    if (v === "hardcopy") return "hardcopy";
-    if (v === "online-course" || v === "coaching" || v === "event") return "training";
+    const variant: StepVariant =
+      v === "ebook" ? "ebook" :
+      v === "audiobook" ? "audiobook" :
+      v === "hardcopy" ? "hardcopy" :
+      "training";
+    return { variant, thankYouPage: product?.thankYouPage ?? undefined };
   } catch {
     // fall through to slug-based fallback
   }
   // Fallback for products without productVariant set yet.
-  if (productSlug === "boek-ebook") return "ebook";
-  if (productSlug === "boek-luisterboek") return "audiobook";
-  if (productSlug.startsWith("boek")) return "hardcopy";
-  return "training";
+  const variant: StepVariant =
+    productSlug === "boek-ebook" ? "ebook" :
+    productSlug === "boek-luisterboek" ? "audiobook" :
+    productSlug.startsWith("boek") ? "hardcopy" :
+    "training";
+  return { variant };
 }
 
-const PRIMARY_CTA: Record<StepVariant, { href: string; label: Record<Lang, string> }> = {
-  training: {
-    href: "/dashboard",
-    label: { nl: "Ga naar mijn dashboard", en: "Go to my dashboard", de: "Zu meinem Dashboard" },
-  },
-  ebook: {
-    href: "/dashboard#downloads",
-    label: { nl: "Download je e-book", en: "Download your e-book", de: "E-Book herunterladen" },
-  },
-  audiobook: {
-    href: "/dashboard",
-    label: { nl: "Naar je luisterboek", en: "Go to your audiobook", de: "Zu Ihrem Hörbuch" },
-  },
-  hardcopy: {
-    href: "/dashboard",
-    label: { nl: "Ga naar mijn dashboard", en: "Go to my dashboard", de: "Zu meinem Dashboard" },
-  },
+const DEFAULT_CTA: Record<StepVariant, { href: string; label: Record<Lang, string> }> = {
+  training: { href: "/dashboard", label: { nl: "Ga naar mijn dashboard", en: "Go to my dashboard", de: "Zu meinem Dashboard" } },
+  ebook: { href: "/dashboard#downloads", label: { nl: "Download je e-book", en: "Download your e-book", de: "E-Book herunterladen" } },
+  audiobook: { href: "/dashboard", label: { nl: "Naar je luisterboek", en: "Go to your audiobook", de: "Zu Ihrem Hörbuch" } },
+  hardcopy: { href: "/dashboard", label: { nl: "Ga naar mijn dashboard", en: "Go to my dashboard", de: "Zu meinem Dashboard" } },
 };
 
 export default async function ThankYouPage({
@@ -132,14 +85,21 @@ export default async function ThankYouPage({
   const productSlug = sp.product || "";
   const orderId = sp.orderId;
   const lang: Lang = sp.lang === "en" ? "en" : sp.lang === "de" ? "de" : "nl";
-  const variant = await resolveVariant(productSlug);
-  const steps = NEXT_STEPS[variant][lang];
-  const primaryCta = PRIMARY_CTA[variant];
+  const { variant, thankYouPage } = await resolveProduct(productSlug);
+
+  const steps: string[] = thankYouPage?.steps.length
+    ? thankYouPage.steps.map((s) => s[lang] ?? s.nl)
+    : DEFAULT_STEPS[variant][lang];
+
+  const ctaHref = thankYouPage?.ctaHref || DEFAULT_CTA[variant].href;
+  const ctaLabel = thankYouPage
+    ? (thankYouPage.ctaLabel[lang] ?? thankYouPage.ctaLabel.nl)
+    : DEFAULT_CTA[variant].label[lang];
 
   return (
     <main className="mx-auto max-w-[520px] px-7 py-16 lg:py-24">
-      {/* Feature 7: Verify payment succeeded, redirect if failed */}
-      <PaymentVerifier orderId={orderId} productSlug={productSlug} lang={lang} />
+      {/* Verify payment + auto-send magic link for account access */}
+      <PostPurchaseFlow orderId={orderId} productSlug={productSlug} lang={lang} email={email} />
 
       {/* Success */}
       <div className="text-center">
@@ -167,10 +127,10 @@ export default async function ThankYouPage({
         <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper">
           {{ nl: "Volgende stappen", en: "Next steps", de: "Nächste Schritte" }[lang]}
         </p>
-        {steps.map((step, i) => (
+        {steps.map((text, i) => (
           <div key={i} className="flex items-start gap-3 p-4 border border-rule rounded-[2px]">
-            <span className="text-[18px] shrink-0 mt-0.5">{step.icon}</span>
-            <p className="text-[14px] text-ink/70 leading-[1.6]">{step.text}</p>
+            <span className="text-[12px] font-medium text-copper shrink-0 mt-0.5 w-5 text-center">{i + 1}</span>
+            <p className="text-[14px] text-ink/70 leading-[1.6]">{text}</p>
           </div>
         ))}
       </div>
@@ -178,10 +138,10 @@ export default async function ThankYouPage({
       {/* Actions */}
       <div className="space-y-3 mb-12">
         <Link
-          href={primaryCta.href}
+          href={ctaHref}
           className="block w-full bg-copper text-paper py-3.5 text-[13px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] text-center"
         >
-          {primaryCta.label[lang]}
+          {ctaLabel}
         </Link>
         <Link
           href="/"
