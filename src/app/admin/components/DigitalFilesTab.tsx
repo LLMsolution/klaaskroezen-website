@@ -32,6 +32,7 @@ type DigitalFileRow = {
   lang: Lang;
   format?: Format;
   fileName: string;
+  downloadFileName?: string;
   fileType: string;
   url: string | null;
 };
@@ -42,6 +43,7 @@ export function DigitalFilesTab() {
   const generateUploadUrl = useMutation(api.digitalFiles.generateUploadUrl);
   const saveFile = useMutation(api.digitalFiles.saveFile);
   const deleteFile = useMutation(api.digitalFiles.deleteFile);
+  const updateDownloadFileName = useMutation(api.digitalFiles.updateDownloadFileName);
 
   const fileMap = useMemo(() => {
     const map = new Map<string, DigitalFileRow>();
@@ -145,6 +147,9 @@ export function DigitalFilesTab() {
                       onDelete={async (id) => {
                         await deleteFile({ id });
                       }}
+                      onRename={async (id, name) => {
+                        await updateDownloadFileName({ id, downloadFileName: name });
+                      }}
                     />
                   ))}
                 </div>
@@ -163,6 +168,7 @@ function FileSlot({
   file,
   onUpload,
   onDelete,
+  onRename,
 }: {
   product: string;
   lang: Lang;
@@ -172,10 +178,14 @@ function FileSlot({
   file: DigitalFileRow | undefined;
   onUpload: (file: File) => Promise<void>;
   onDelete: (id: Id<"digitalFiles">) => Promise<void>;
+  onRename: (id: Id<"digitalFiles">, name: string) => Promise<void>;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState("");
+  const [savingName, setSavingName] = useState(false);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
@@ -192,6 +202,19 @@ function FileSlot({
     }
   }
 
+  async function handleSaveName() {
+    if (!file) return;
+    setSavingName(true);
+    try {
+      await onRename(file._id, nameValue);
+      setEditingName(false);
+    } finally {
+      setSavingName(false);
+    }
+  }
+
+  const displayName = file?.downloadFileName ?? file?.fileName ?? "";
+
   return (
     <div className="border border-rule rounded-[2px] p-4 bg-warm/20">
       <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-ink/40 mb-3">
@@ -200,7 +223,40 @@ function FileSlot({
 
       {file ? (
         <div className="space-y-2">
-          <p className="text-[13px] text-ink truncate" title={file.fileName}>{file.fileName}</p>
+          <p className="text-[11px] text-ink/30 truncate" title={file.fileName}>{file.fileName}</p>
+
+          {/* Download filename (editable) */}
+          {editingName ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={nameValue}
+                onChange={(e) => setNameValue(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleSaveName(); if (e.key === "Escape") setEditingName(false); }}
+                className="flex-1 text-[12px] border border-copper/40 rounded-[2px] px-2 py-1 bg-paper focus:outline-none"
+                autoFocus
+                disabled={savingName}
+              />
+              <button type="button" onClick={handleSaveName} disabled={savingName} className="text-[11px] text-copper hover:text-copper-light cursor-pointer">
+                {savingName ? "..." : "Opslaan"}
+              </button>
+              <button type="button" onClick={() => setEditingName(false)} className="text-[11px] text-ink/40 hover:text-ink cursor-pointer">
+                Annuleren
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <p className="text-[13px] text-ink font-medium truncate flex-1" title={displayName}>{displayName}</p>
+              <button
+                type="button"
+                onClick={() => { setNameValue(displayName); setEditingName(true); }}
+                className="text-[11px] text-ink/40 hover:text-copper cursor-pointer shrink-0"
+              >
+                Naam wijzigen
+              </button>
+            </div>
+          )}
+
           <p className="text-[11px] text-ink/40">{file.fileType}</p>
           <div className="flex flex-wrap gap-3 pt-2 text-[12px]">
             {file.url && (

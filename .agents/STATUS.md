@@ -20,12 +20,14 @@
 | Admin vertaal-bugfixes + emailadres .nl | done | 2026-05-11 |
 | PDF factuur bijlage + auth + privacy | in-review (#48) | 2026-05-11 |
 | Legal Completeness | done | 2026-05-01 |
-| Audioboek MP3 duur + E-book downloads | in-review | 2026-05-11 |
+| Audioboek MP3 duur + E-book downloads | done | 2026-05-11 |
+| E-book downloadnaam instelbaar in admin | in-review (#53) | 2026-05-11 |
 
 ## Current Focus
 No features in progress
 
 ## Recent Activity
+- 2026-05-11: E-book downloadnaam instelbaar in admin — per EPUB/PDF eigen naam instellen, ZIP-naam afgeleid van bestandsnaam (#53)
 - 2026-05-11: Audioboek MP3 duur auto-detectie — duur uit bestandsmetadata bij upload (admin), backfill via AudioPlayer bij eerste afspeel, duur tonen in admin en luisterboek-pagina
 - 2026-05-11: PDF factuur bijlage — invoice PDF via @react-pdf/renderer, bijlage in bevestigingsmail, bedrijfsgegevens in admin, auth guard listInvoices, privacy link checkout, multi-download fix dashboard
 - 2026-05-11: Admin vertaal-bugfixes — silent catch-blocks, ContentTab stale state, luisterboek werkboek, email klaas@klaaskroezen.nl

@@ -139,6 +139,9 @@ export default defineSchema({
     // Distribution format. e-book gets epub + pdf, audiobook is a separate
     // training (not stored here). Optional for backwards compatibility.
     format: v.optional(v.union(v.literal("epub"), v.literal("pdf"))),
+    // Custom filename shown to the buyer on download (e.g. "mijn-ebook.pdf").
+    // Falls back to fileName (the original upload name) when not set.
+    downloadFileName: v.optional(v.string()),
   })
     .index("by_product", ["product"])
     .index("by_product_lang", ["product", "lang"])

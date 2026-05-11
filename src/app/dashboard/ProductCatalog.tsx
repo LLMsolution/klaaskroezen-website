@@ -190,7 +190,8 @@ function OwnedCard({ item, name, lang, copy, training, download }: {
         </a>
       );
     }
-    const zipName = item.slug.replace(/-ebook$/, "").replace(/-/g, "-") + ".zip";
+    const baseName = download[0].fileName.replace(/\.[^.]+$/, "");
+    const zipName = baseName + ".zip";
     return (
       <DownloadZipCard image={item.image} name={name} files={download} zipName={zipName} downloadLabel={copy.download} />
     );
