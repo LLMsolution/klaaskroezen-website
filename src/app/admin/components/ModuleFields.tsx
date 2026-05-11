@@ -141,18 +141,43 @@ export function ModuleWorkbookField({
   );
 }
 
+function detectAudioDuration(file: File): Promise<number> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const audio = new Audio(url);
+    audio.addEventListener("loadedmetadata", () => {
+      URL.revokeObjectURL(url);
+      resolve(Math.round(audio.duration));
+    });
+    audio.addEventListener("error", () => {
+      URL.revokeObjectURL(url);
+      resolve(0);
+    });
+  });
+}
+
+function formatDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
 export function ModuleAudioField({
+  moduleId,
   hasAudio,
   fileName,
+  durationSeconds,
   onUpload,
   onRemove,
 }: {
   moduleId: Id<"trainingModules">;
   hasAudio: boolean;
   fileName?: string;
+  durationSeconds?: number;
   onUpload: (file: File) => Promise<void>;
   onRemove: () => void;
 }) {
+  const saveAudioDuration = useMutation(api.trainingModules.saveAudioDuration);
   const [uploading, setUploading] = useState(false);
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -160,7 +185,13 @@ export function ModuleAudioField({
     if (!file) return;
     setUploading(true);
     try {
-      await onUpload(file);
+      const [, detectedSeconds] = await Promise.all([
+        onUpload(file),
+        detectAudioDuration(file),
+      ]);
+      if (detectedSeconds > 0) {
+        await saveAudioDuration({ moduleId, durationSeconds: detectedSeconds });
+      }
     } finally {
       setUploading(false);
     }
@@ -178,6 +209,9 @@ export function ModuleAudioField({
               <circle cx="18" cy="16" r="3" />
             </svg>
             <span className="text-[13px] text-ink">{fileName || "audio.mp3"}</span>
+            {durationSeconds ? (
+              <span className="text-[11px] text-ink/40 tabular-nums">{formatDuration(durationSeconds)}</span>
+            ) : null}
           </div>
           <label className="text-[12px] text-copper hover:text-copper-light cursor-pointer">
             Vervangen
