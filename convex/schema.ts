@@ -222,7 +222,7 @@ export default defineSchema({
   // Automated follow-up email flows triggered after purchase
   emailSequences: defineTable({
     purchaseId: v.id("purchases"),
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
     email: v.string(),
     product: v.string(),
     productType: v.string(),

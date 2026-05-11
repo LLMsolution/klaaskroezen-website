@@ -159,7 +159,7 @@ export const processSuccessfulPayment = internalMutation({
     // 7. Start automated email sequence (always — uses email, not userId)
     await ctx.scheduler.runAfter(0, internal.emails.startSequence, {
       purchaseId,
-      userId: userId as any,
+      userId: userId ?? undefined,
       email: order.email,
       product: order.product,
       productType,
