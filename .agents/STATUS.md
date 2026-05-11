@@ -22,11 +22,14 @@
 | Legal Completeness | done | 2026-05-01 |
 | Audioboek MP3 duur + E-book downloads | done | 2026-05-11 |
 | E-book downloadnaam instelbaar in admin | in-review (#53) | 2026-05-11 |
+| Checkout flow: auto-login + bumps + aankoop-faillures | in-review | 2026-05-11 |
 
 ## Current Focus
 No features in progress
 
 ## Recent Activity
+- 2026-05-11: Checkout flow aankoop-faillures — access rights voor nieuwe klanten (retry job), webhook 500, PaymentVerifier timeout, magic link error-state, upsell adresvelden
+- 2026-05-11: Checkout flow verbeteringen — auto-login na aankoop, bumps in mail + admin, Mollie betaalmethode vrij, /login/kopen pagina, Creditcard/Apple Pay label (#54)
 - 2026-05-11: E-book downloadnaam instelbaar in admin — per EPUB/PDF eigen naam instellen, ZIP-naam afgeleid van bestandsnaam (#53)
 - 2026-05-11: Audioboek MP3 duur auto-detectie — duur uit bestandsmetadata bij upload (admin), backfill via AudioPlayer bij eerste afspeel, duur tonen in admin en luisterboek-pagina
 - 2026-05-11: PDF factuur bijlage — invoice PDF via @react-pdf/renderer, bijlage in bevestigingsmail, bedrijfsgegevens in admin, auth guard listInvoices, privacy link checkout, multi-download fix dashboard
