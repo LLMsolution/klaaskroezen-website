@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { fetchQuery } from "convex/nextjs";
 import { UpsellClient } from "@/components/checkout/UpsellClient";
 import { PostPurchaseFlow } from "@/components/checkout/PostPurchaseFlow";
@@ -75,19 +74,6 @@ const DEFAULT_CTA: Record<StepVariant, { href: string; label: Record<Lang, strin
   hardcopy: { href: "/dashboard", label: { nl: "Ga naar mijn dashboard", en: "Go to my dashboard", de: "Zu meinem Dashboard" } },
 };
 
-/**
- * Wrap the CTA href so unauthenticated buyers are routed through /login/kopen,
- * which auto-sends a magic link. The mail itself carries the one-click token
- * (?t=…) for the same flow without the inbox round-trip.
- */
-function withLoginRedirect(href: string, email: string): string {
-  if (!email) return href;
-  if (href.startsWith("http")) return href;
-  const next = encodeURIComponent(href);
-  const emailParam = encodeURIComponent(email);
-  return `/login/kopen?email=${emailParam}&next=${next}`;
-}
-
 export default async function ThankYouPage({
   searchParams,
 }: {
@@ -104,17 +90,13 @@ export default async function ThankYouPage({
     ? thankYouPage.steps.map((s) => s[lang] ?? s.nl)
     : DEFAULT_STEPS[variant][lang];
 
-  const rawCtaHref = thankYouPage?.ctaHref || DEFAULT_CTA[variant].href;
-  const ctaHref = withLoginRedirect(rawCtaHref, email);
+  const ctaNext = thankYouPage?.ctaHref || DEFAULT_CTA[variant].href;
   const ctaLabel = thankYouPage
     ? (thankYouPage.ctaLabel[lang] ?? thankYouPage.ctaLabel.nl)
     : DEFAULT_CTA[variant].label[lang];
 
   return (
     <main className="mx-auto max-w-[520px] px-7 py-16 lg:py-24">
-      {/* Verify payment + auto-send magic link for account access */}
-      <PostPurchaseFlow orderId={orderId} productSlug={productSlug} lang={lang} email={email} />
-
       {/* Success */}
       <div className="text-center">
         <div className="w-16 h-16 rounded-full bg-copper/10 flex items-center justify-center mx-auto mb-6">
@@ -149,21 +131,15 @@ export default async function ThankYouPage({
         ))}
       </div>
 
-      {/* Actions */}
-      <div className="space-y-3 mb-12">
-        <Link
-          href={ctaHref}
-          className="block w-full bg-copper text-paper py-3.5 text-[13px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] text-center"
-        >
-          {ctaLabel}
-        </Link>
-        <Link
-          href="/"
-          className="block w-full text-[13px] text-ink/50 hover:text-ink transition-colors py-2 text-center"
-        >
-          {{ nl: "Terug naar de website", en: "Back to the website", de: "Zurück zur Website" }[lang]}
-        </Link>
-      </div>
+      {/* Verify payment + render direct-login CTA once paid */}
+      <PostPurchaseFlow
+        orderId={orderId}
+        productSlug={productSlug}
+        lang={lang}
+        email={email}
+        ctaNext={ctaNext}
+        ctaLabel={ctaLabel}
+      />
 
       {/* One-click upsell */}
       {email && productSlug && (

@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { internalMutation, internalQuery } from "./_generated/server";
+import { internalMutation, internalQuery, mutation } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 
 const TOKEN_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
 
@@ -53,5 +54,33 @@ export const markUsed = internalMutation({
     const row = await ctx.db.get(tokenId);
     if (!row || row.usedAt) return;
     await ctx.db.patch(tokenId, { usedAt: Date.now() });
+  },
+});
+
+/**
+ * Public mutation used by the bedankt-pagina once Mollie payment is confirmed.
+ * Gated by orderId — only a converted (paid) pendingOrder yields a token,
+ * which prevents someone from harvesting tokens for arbitrary emails.
+ */
+export const issueTokenForPaidOrder = mutation({
+  args: { orderId: v.string() },
+  handler: async (ctx, { orderId }) => {
+    let order;
+    try {
+      order = await ctx.db.get(orderId as Id<"pendingOrders">);
+    } catch {
+      return null;
+    }
+    if (!order || !order.convertedAt) return null;
+
+    const token = randomToken();
+    const now = Date.now();
+    await ctx.db.insert("purchaseLoginTokens", {
+      token,
+      email: order.email.toLowerCase(),
+      expiresAt: now + 14 * 24 * 60 * 60 * 1000,
+      createdAt: now,
+    });
+    return token;
   },
 });
