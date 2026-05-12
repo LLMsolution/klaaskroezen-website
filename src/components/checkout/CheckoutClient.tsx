@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useMutation, useAction, useQuery } from "convex/react";
-import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "../../../convex/_generated/api";
 import {
   calculateBtw,
@@ -37,7 +36,6 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
   const bumps: BumpConfig[] = useMemo(() => dbBumps ?? [], [dbBumps]);
   const i18n = t(lang);
   const formRef = useRef<HTMLFormElement>(null);
-  const { signIn } = useAuthActions();
   const currentUser = useQuery(api.users.getCurrentUser);
   const createPendingOrder = useMutation(api.checkout.createPendingOrder);
   const processFreeOrder = useMutation(api.checkout.processFreeOrder);
@@ -331,27 +329,7 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
     }
   }
 
-  async function handleOAuth() {
-    setError("");
-    // If already logged in, autofill from account
-    if (currentUser) {
-      if (currentUser.name && !firstName) {
-        const parts = currentUser.name.split(" ");
-        setFirstName(parts[0] ?? "");
-        setLastName(parts.slice(1).join(" ") ?? "");
-      }
-      if (currentUser.email && !email) {
-        setEmail(currentUser.email);
-      }
-      return;
-    }
-    // Not logged in: start Google OAuth, will redirect back to this page after login
-    try {
-      await signIn("google", { redirectTo: window.location.href });
-    } catch {
-      setError(i18n.genericError);
-    }
-  }
+  // Google autofill flow tijdelijk uitgeschakeld — UI verborgen in CheckoutForm.
 
   const toggleBump = (slug: string) => {
     setSelectedBumps((prev) => prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]);
@@ -486,7 +464,6 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
               setDiscountStatus={setDiscountStatus} setDiscountValue={setDiscountValue}
               quantity={quantity} setQuantity={setQuantity}
               quantityTiers={product.quantityTiers}
-              onOAuth={handleOAuth}
             />
 
             {/* Payment method selection — hidden for free orders */}
