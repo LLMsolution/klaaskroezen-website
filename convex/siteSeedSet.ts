@@ -10,6 +10,7 @@ export function seedSetContent(): PageSeed {
     { id: "transformation", type: "transformation", active: true, sortOrder: 2 },
     { id: "audiences", type: "audiences", active: true, sortOrder: 3 },
     { id: "program", type: "program", active: true, sortOrder: 4 },
+    { id: "program-video", type: "program-video", active: true, sortOrder: 4.2 },
     { id: "training-method", type: "training-method", active: true, sortOrder: 4.5 },
     { id: "reviews", type: "reviews", active: true, sortOrder: 5 },
     { id: "pricing", type: "pricing", active: true, sortOrder: 6 },
@@ -138,6 +139,19 @@ export function seedSetContent(): PageSeed {
         { number: "05", title: "Objections & Negotiation", description: "Objections are not rejection — they are an invitation. Learn how to handle them with ease and close better deals without discounting." },
         { number: "06", title: "Customers Who Become Fans", description: "Closing a deal is the beginning, not the end. Build relationships that lead to repeat purchases, referrals and brand ambassadors." },
       ],
+    }),
+    // ── Programma video (Vimeo) ──
+    makeContent(SLUG, "program-video", "program-video", "nl", {
+      eyebrow: "Bekijk een voorproefje",
+      vimeoUrl: "",
+    }),
+    makeContent(SLUG, "program-video", "program-video", "en", {
+      eyebrow: "Watch a preview",
+      vimeoUrl: "",
+    }),
+    makeContent(SLUG, "program-video", "program-video", "de", {
+      eyebrow: "Sehen Sie eine Vorschau",
+      vimeoUrl: "",
     }),
     // ── Training Method (Zo werkt het) ──
     makeContent(SLUG, "training-method", "training-method", "nl", {

@@ -10,6 +10,7 @@ export function seedCstContent(): PageSeed {
     { id: "transformation", type: "transformation", active: true, sortOrder: 2 },
     { id: "audiences", type: "audiences", active: true, sortOrder: 3 },
     { id: "program", type: "program", active: true, sortOrder: 4 },
+    { id: "program-video", type: "program-video", active: true, sortOrder: 4.2 },
     { id: "training-method", type: "training-method", active: true, sortOrder: 4.5 },
     { id: "reviews", type: "reviews", active: true, sortOrder: 5 },
     { id: "pricing", type: "pricing", active: true, sortOrder: 6 },
@@ -125,6 +126,19 @@ export function seedCstContent(): PageSeed {
         { number: "05", title: "Spotting Opportunities Without 'Selling'", description: "Recognise natural moments to offer added value. No upsell tricks, but genuine suggestions that help your customer move forward." },
         { number: "06", title: "From Customer to Ambassador", description: "Satisfied customers are good. Ambassadors are better. Learn how to turn customer contact into a growth engine for your organisation." },
       ],
+    }),
+    // ── Programma video (Vimeo) ──
+    makeContent(SLUG, "program-video", "program-video", "nl", {
+      eyebrow: "Bekijk een voorproefje",
+      vimeoUrl: "",
+    }),
+    makeContent(SLUG, "program-video", "program-video", "en", {
+      eyebrow: "Watch a preview",
+      vimeoUrl: "",
+    }),
+    makeContent(SLUG, "program-video", "program-video", "de", {
+      eyebrow: "Sehen Sie eine Vorschau",
+      vimeoUrl: "",
     }),
     // ── Training Method (Zo werkt het) ──
     makeContent(SLUG, "training-method", "training-method", "nl", {

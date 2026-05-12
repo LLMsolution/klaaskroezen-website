@@ -4,6 +4,7 @@ import { PainPoints } from "@/components/sections/training/PainPoints";
 import { ForWhom } from "@/components/sections/training/ForWhom";
 import { LogoBar } from "@/components/sections/LogoBar";
 import { ProgramSection } from "@/components/sections/training/ProgramSection";
+import { ProgramVideo } from "@/components/sections/training/ProgramVideo";
 import { TrainingReviews } from "@/components/sections/training/TrainingReviews";
 import { PricingSection } from "@/components/sections/training/PricingSection";
 import { CrossLink } from "@/components/sections/training/CrossLink";
@@ -47,6 +48,7 @@ export default async function CustomerSuccessTrainingPage() {
   const transformation = sectionOr(db, "transformation", { items: fallback.transformation });
   const audiences = sectionOr(db, "audiences", { items: fallback.audiences });
   const program = sectionOr(db, "program", fallback.program);
+  const programVideo = sectionOr<{ eyebrow?: string; vimeoUrl?: string }>(db, "program-video", {});
   const trainingMethod = sectionOr<{
     eyebrow?: string;
     title?: string;
@@ -97,6 +99,8 @@ export default async function CustomerSuccessTrainingPage() {
         ctaLabel={program.ctaLabel}
         pricingAnchor={program.pricingAnchor}
       />
+
+      <ProgramVideo eyebrow={programVideo.eyebrow} vimeoUrl={programVideo.vimeoUrl} />
 
       <TrainingMethod
         lang={lang}

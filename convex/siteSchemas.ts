@@ -166,6 +166,15 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
     ],
   },
 
+  "program-video": {
+    type: "program-video",
+    label: "Programma video",
+    fields: [
+      { key: "eyebrow", type: "text", label: "Kopje boven video" },
+      { key: "vimeoUrl", type: "text", label: "Vimeo URL of ID" },
+    ],
+  },
+
   reviews: {
     type: "reviews",
     label: "Reviews",
