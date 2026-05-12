@@ -24,13 +24,13 @@
 | E-book downloadnaam instelbaar in admin | in-review (#53) | 2026-05-11 |
 | Checkout flow: auto-login + bumps + aankoop-faillures | in-review | 2026-05-11 |
 | Magic link dubbele signIn fix | in-review (#56) | 2026-05-11 |
-| Post-checkout login + bumps + upsell-factuur fixes | in-review | 2026-05-12 |
+| Post-checkout login + bumps + upsell-factuur fixes | in-review (#57) | 2026-05-12 |
 
 ## Current Focus
 No features in progress
 
 ## Recent Activity
-- 2026-05-12: Post-checkout login + bumps + upsell-factuur fixes — one-click login token in bevestigingsmail (purchase-token ConvexCredentials), afterUserCreatedOrUpdated auth callback verwijdert 2-min delay, createUpsellOrder zet userId, invoices.userId + by_user index + multi-source getMyInvoices, backfill migratie voor bestaande klanten
+- 2026-05-12: Post-checkout login + bumps + upsell-factuur fixes PR created (#57) — one-click login token in bevestigingsmail (purchase-token ConvexCredentials), afterUserCreatedOrUpdated auth callback verwijdert 2-min delay, createUpsellOrder zet userId, invoices.userId + by_user index + multi-source getMyInvoices, backfill migratie voor bestaande klanten
 - 2026-05-11: Magic link dubbele signIn fix — AutoLoginClient stuurde automatisch een nieuwe link die de eerste invalideerde; nu alleen knop (#56)
 - 2026-05-11: Checkout flow aankoop-faillures — access rights voor nieuwe klanten (retry job), webhook 500, PaymentVerifier timeout, magic link error-state, upsell adresvelden
 - 2026-05-11: Checkout flow verbeteringen — auto-login na aankoop, bumps in mail + admin, Mollie betaalmethode vrij, /login/kopen pagina, Creditcard/Apple Pay label (#54)
