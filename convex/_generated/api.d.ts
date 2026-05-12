@@ -19,6 +19,8 @@ import type * as adminEmails from "../adminEmails.js";
 import type * as adminOrders from "../adminOrders.js";
 import type * as aiTranslate from "../aiTranslate.js";
 import type * as aiTranslateAuth from "../aiTranslateAuth.js";
+import type * as audioBackfill from "../audioBackfill.js";
+import type * as audioBackfillHelpers from "../audioBackfillHelpers.js";
 import type * as auth from "../auth.js";
 import type * as automationSeed from "../automationSeed.js";
 import type * as blog from "../blog.js";
@@ -124,6 +126,8 @@ declare const fullApi: ApiFromModules<{
   adminOrders: typeof adminOrders;
   aiTranslate: typeof aiTranslate;
   aiTranslateAuth: typeof aiTranslateAuth;
+  audioBackfill: typeof audioBackfill;
+  audioBackfillHelpers: typeof audioBackfillHelpers;
   auth: typeof auth;
   automationSeed: typeof automationSeed;
   blog: typeof blog;
