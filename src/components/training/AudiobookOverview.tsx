@@ -172,7 +172,32 @@ export function AudiobookOverview({
           );
         })}
       </div>
+
+      <BackfillDurations chapters={allActive} />
     </div>
+  );
+}
+
+/** Hidden audio elements that backfill duration for any chapter still missing
+ *  it, so subsequent visitors immediately see the right time. */
+function BackfillDurations({ chapters }: { chapters: ChapterModule[] }) {
+  const saveAudioDuration = useMutation(api.trainingModules.saveAudioDuration);
+  const targets = chapters.filter(
+    (c) => c.audioUrl && !c.audioDurationSeconds,
+  );
+  if (targets.length === 0) return null;
+  return (
+    <>
+      {targets.map((c) => (
+        <DurationProbe
+          key={c._id}
+          src={c.audioUrl!}
+          onLoaded={(seconds) => {
+            saveAudioDuration({ moduleId: c._id, durationSeconds: seconds }).catch(() => {});
+          }}
+        />
+      ))}
+    </>
   );
 }
 
@@ -186,7 +211,31 @@ type ChapterModule = {
   audioStorageId?: Id<"_storage">;
   audioDurationSeconds?: number;
   audioFileName?: string;
+  audioUrl?: string;
 };
+
+/** Probes the MP3 metadata in the background to backfill chapter duration
+ *  the first time anyone opens the audiobook overview. Browser only fetches
+ *  the first ~kilobytes, so the bandwidth cost is small and one-off. */
+function DurationProbe({
+  src,
+  onLoaded,
+}: {
+  src: string;
+  onLoaded: (seconds: number) => void;
+}) {
+  return (
+    <audio
+      src={src}
+      preload="metadata"
+      style={{ display: "none" }}
+      onLoadedMetadata={(e) => {
+        const d = e.currentTarget.duration;
+        if (Number.isFinite(d) && d > 0) onLoaded(Math.round(d));
+      }}
+    />
+  );
+}
 
 function ChapterRow({
   chapter,

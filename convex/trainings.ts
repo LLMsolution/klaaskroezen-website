@@ -55,10 +55,21 @@ export const getModulesForTraining = query({
   args: { trainingId: v.id("trainings") },
   handler: async (ctx, { trainingId }) => {
     await requireTrainingAccess(ctx, trainingId);
-    return await ctx.db
+    const modules = await ctx.db
       .query("trainingModules")
       .withIndex("by_training", (q) => q.eq("trainingId", trainingId))
       .collect();
+    // Resolve audioUrl so the audiobook overview can probe metadata for any
+    // chapter that hasn't had its duration backfilled yet.
+    return await Promise.all(
+      modules.map(async (m) => {
+        let audioUrl: string | undefined;
+        if (m.audioStorageId) {
+          audioUrl = (await ctx.storage.getUrl(m.audioStorageId)) ?? undefined;
+        }
+        return { ...m, audioUrl };
+      }),
+    );
   },
 });
 
