@@ -1,16 +1,17 @@
-import { mutation, action, internalMutation, internalQuery } from "./_generated/server";
+import { internalAction, internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { requireAdmin } from "./adminAuth";
 
 /**
  * Backfill `invoices.userId` for historic rows by inheriting from the linked
  * purchase. Purchases that themselves are still unlinked are reconciled by
  * `reconcileUnlinkedPurchases` below.
+ *
+ * Internal so only project owners can invoke it (via `npx convex run` or the
+ * Convex dashboard). No public client access.
  */
-export const backfillInvoiceUserIds = mutation({
+export const backfillInvoiceUserIds = internalMutation({
   args: {},
   handler: async (ctx) => {
-    await requireAdmin(ctx);
     const invoices = await ctx.db.query("invoices").collect();
     let patched = 0;
     for (const inv of invoices) {
@@ -32,11 +33,9 @@ export const backfillInvoiceUserIds = mutation({
  */
 type UnlinkedCandidate = { email: string; userId: import("./_generated/dataModel").Id<"users"> };
 
-export const reconcileUnlinkedPurchases = action({
+export const reconcileUnlinkedPurchases = internalAction({
   args: {},
   handler: async (ctx): Promise<{ processed: number }> => {
-    await ctx.runMutation(internal.invoicesMigration.assertAdminFromAction, {});
-
     const candidates: UnlinkedCandidate[] = await ctx.runQuery(
       internal.invoicesMigration.collectUnlinkedEmails,
       {},
@@ -45,13 +44,6 @@ export const reconcileUnlinkedPurchases = action({
       await ctx.runAction(internal.payments.grantAllPendingForEmail, { email, userId });
     }
     return { processed: candidates.length };
-  },
-});
-
-export const assertAdminFromAction = internalMutation({
-  args: {},
-  handler: async (ctx) => {
-    await requireAdmin(ctx);
   },
 });
 
