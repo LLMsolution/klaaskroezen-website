@@ -425,8 +425,10 @@ export const initializeTemplates = internalMutation({
       { key: "training-completion", type: "training", step: 3, delay: 30, subNl: "Gefeliciteerd — je hebt het gedaan!", subEn: "Congratulations — you did it!", nl: tpl.trainingCompletionNl("{{name}}", "{{training}}"), en: tpl.trainingCompletionNl("{{name}}", "{{training}}") },
 
       // -- Book sequence --
-      { key: "book-welcome", type: "book", step: 0, delay: 0, subNl: "Bedankt voor je bestelling!", subEn: "Thank you for your order!", subDe: "Vielen Dank für Ihre Bestellung!", nl: tpl.bookWelcomeNl("{{name}}", "{{format}}"), en: tpl.bookWelcomeEn("{{name}}", "{{format}}"), de: tpl.bookWelcomeDe("{{name}}", "{{format}}") },
-      { key: "book-followup", type: "book", step: 1, delay: 5, subNl: "Hoe bevalt het boek?", subEn: "How are you enjoying the book?", subDe: "Wie gefällt Ihnen das Buch?", nl: tpl.bookFollowUpNl("{{name}}"), en: tpl.bookFollowUpEn("{{name}}"), de: tpl.bookFollowUpDe("{{name}}") },
+      // book-welcome is intentionally omitted — the order confirmation mail
+      // (with invoice + one-click login token) is the single post-purchase
+      // touchpoint. Future steps numbered from 0 onward.
+      { key: "book-followup", type: "book", step: 0, delay: 5, subNl: "Hoe bevalt het boek?", subEn: "How are you enjoying the book?", subDe: "Wie gefällt Ihnen das Buch?", nl: tpl.bookFollowUpNl("{{name}}"), en: tpl.bookFollowUpEn("{{name}}"), de: tpl.bookFollowUpDe("{{name}}") },
 
       // -- Marketing --
       { key: "marketing-bestseller", type: "marketing", step: 0, delay: 0, subNl: "#1 Bestseller — Sales, Oprecht en Ontspannen", subEn: "#1 Bestseller — Sales, Honest & Relaxed", nl: tpl.marketingBestsellerNl(), en: tpl.marketingBestsellerNl() },
@@ -453,6 +455,37 @@ export const initializeTemplates = internalMutation({
         updatedAt: now,
       });
     }
+  },
+});
+
+/**
+ * One-shot cleanup: removes the legacy `book-welcome` step from the sequence
+ * and renumbers the remaining book steps so step 0 is the new first mail.
+ * Safe to re-run. Run via:
+ *   npx convex run --prod emails:removeBookWelcomeStep
+ */
+export const removeBookWelcomeStep = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const welcome = await ctx.db
+      .query("emailTemplates")
+      .withIndex("by_key", (q) => q.eq("templateKey", "book-welcome"))
+      .first();
+    if (welcome) await ctx.db.delete(welcome._id);
+
+    // Renumber remaining book steps so the sequence engine reads them from 0
+    const remaining = await ctx.db
+      .query("emailTemplates")
+      .withIndex("by_sequence", (q) => q.eq("sequenceType", "book"))
+      .collect();
+    remaining.sort((a, b) => a.stepIndex - b.stepIndex);
+    for (let i = 0; i < remaining.length; i++) {
+      if (remaining[i].stepIndex !== i) {
+        await ctx.db.patch(remaining[i]._id, { stepIndex: i });
+      }
+    }
+
+    return { deleted: welcome ? 1 : 0, renumbered: remaining.length };
   },
 });
 
