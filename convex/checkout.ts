@@ -482,6 +482,29 @@ export const getRecentPurchases = query({
   },
 });
 
+/**
+ * Return every product slug (main product + bumps) the email already paid for.
+ * Used by the bedankt-page upsell so we never re-offer something the buyer
+ * already owns.
+ */
+export const getPurchasedSlugsByEmail = query({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const orders = await ctx.db
+      .query("pendingOrders")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .collect();
+
+    const slugs = new Set<string>();
+    for (const order of orders) {
+      if (!order.convertedAt) continue;
+      slugs.add(order.product);
+      for (const bump of order.bumps) slugs.add(bump);
+    }
+    return Array.from(slugs);
+  },
+});
+
 /** Get total count of purchases for social proof */
 export const getPurchaseCount = query({
   args: { productType: v.optional(v.string()) },

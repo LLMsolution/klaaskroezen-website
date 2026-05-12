@@ -15,20 +15,23 @@ interface Props {
 
 export function UpsellClient({ email, purchasedSlug, lang }: Props) {
   const allProducts = useQuery(api.checkoutProducts.listActive);
+  const ownedSlugs = useQuery(api.checkout.getPurchasedSlugsByEmail, { email });
   const createUpsellOrder = useMutation(api.checkout.createUpsellOrder);
   const createMolliePayment = useAction(api.mollie.createMolliePayment);
   const [loadingSlug, setLoadingSlug] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  if (!allProducts) return null;
+  if (!allProducts || !ownedSlugs) return null;
 
-  // Build upsell suggestions from DB
+  // Build upsell suggestions from DB, then strip out anything the buyer
+  // already owns (main product + every bump from previous orders).
   const candidateSlugs = purchasedSlug.startsWith("boek")
     ? ["boek-ebook", "boek-hardcopy", "boek-luisterboek"]
     : ["boek-ebook", "boek-luisterboek"];
 
+  const owned = new Set([...ownedSlugs, purchasedSlug]);
   const upsells = candidateSlugs
-    .filter((slug) => slug !== purchasedSlug)
+    .filter((slug) => !owned.has(slug))
     .map((slug) => allProducts.find((p) => p.slug === slug))
     .filter((p): p is NonNullable<typeof p> => !!p);
 
