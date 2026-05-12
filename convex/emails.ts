@@ -84,9 +84,16 @@ export const sendEmail = internalAction({
   handler: async (ctx, { to, subject, html, template, replyTo, variant, pdfStorageId, pdfFileName }) => {
     const trackingId = generateTrackingId();
 
+    // Replace signature tokens with admin-configured signatures (or fallback defaults)
+    const sigs = await ctx.runQuery(internal.settings.getEmailSignatures, {});
+    let resolvedHtml = html
+      .replaceAll("__KK_SIG_NL__", sigs.nl)
+      .replaceAll("__KK_SIG_EN__", sigs.en)
+      .replaceAll("__KK_SIG_DE__", sigs.de);
+
     // Inject tracking pixel before </body>
     const trackingPixel = `<img src="${SITE_URL}/api/track/open/${trackingId}" width="1" height="1" style="display:none;" alt="" />`;
-    let trackedHtml = html.replace("</body>", `${trackingPixel}</body>`);
+    let trackedHtml = resolvedHtml.replace("</body>", `${trackingPixel}</body>`);
 
     // Wrap links for click tracking (skip mailto: and unsubscribe links)
     trackedHtml = trackedHtml.replace(

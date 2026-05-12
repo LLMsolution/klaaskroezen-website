@@ -6,6 +6,7 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import type { FieldSchema } from "../../../../convex/siteSchemas";
 import { AdminImageUpload } from "./AdminImageUpload";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
 
 type Props = {
   fields: FieldSchema[];
@@ -62,6 +63,19 @@ export function ContentFieldRenderer({ fields, data, displayData, onChange, pref
               pageSlug={pageSlug}
               sectionId={sectionId}
             />
+          );
+        }
+
+        // ── Rich HTML (Tiptap editor) ──
+        if (field.type === "rich-html") {
+          return (
+            <div key={fieldKey}>
+              <label className={labelClass}>{field.label}</label>
+              <RichTextEditor
+                value={(value as string) ?? ""}
+                onChange={(html) => updateField(field.key, html)}
+              />
+            </div>
           );
         }
 

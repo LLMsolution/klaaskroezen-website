@@ -120,25 +120,21 @@ export function divider(): string {
   return `<hr style="border: none; border-top: 1px solid ${WARM}; margin: 24px 0;" />`;
 }
 
+// Tokens — vervangen door admin-content (of fallback) in sendEmail. Zie convex/emails.ts.
+export const SIG_TOKEN_NL = "__KK_SIG_NL__";
+export const SIG_TOKEN_EN = "__KK_SIG_EN__";
+export const SIG_TOKEN_DE = "__KK_SIG_DE__";
+
 export function signature(): string {
-  return `<p style="margin: 24px 0 0; font-size: 15px; line-height: 1.75; color: #444;">
-Met vriendelijke groet,<br />
-<strong style="color: ${INK};">Klaas Kroezen</strong>
-</p>`;
+  return SIG_TOKEN_NL;
 }
 
 export function signatureEn(): string {
-  return `<p style="margin: 24px 0 0; font-size: 15px; line-height: 1.75; color: #444;">
-Best regards,<br />
-<strong style="color: ${INK};">Klaas Kroezen</strong>
-</p>`;
+  return SIG_TOKEN_EN;
 }
 
 export function signatureDe(): string {
-  return `<p style="margin: 24px 0 0; font-size: 15px; line-height: 1.75; color: #444;">
-Mit freundlichen Grüßen,<br />
-<strong style="color: ${INK};">Klaas Kroezen</strong>
-</p>`;
+  return SIG_TOKEN_DE;
 }
 
 export function quote(text: string): string {

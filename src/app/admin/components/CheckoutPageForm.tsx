@@ -13,7 +13,7 @@ type ProductSubType = "training" | "book" | "event";
 type ProductVariant = "ebook" | "audiobook" | "hardcopy" | "online-course" | "coaching" | "event";
 type MockupType = "tablet" | "phone" | "audio";
 type BumpOverride = { bumpSlug: string; priceCents: number };
-type QtyTier = { quantity: number; unitPriceCents: number; savingsPercent: number };
+type QtyTier = { quantity: number; unitPriceCents: number; savingsPercent: number; isMinimum?: boolean };
 
 const VARIANT_LABELS: Record<ProductVariant, string> = {
   ebook: "E-book",
@@ -44,6 +44,7 @@ interface ProductData {
   bumpPriceOverrides?: BumpOverride[];
   installments?: { count: number; amountPerTermCents: number };
   quantityTiers?: QtyTier[];
+  allowFreeQuantity?: boolean;
   requiresShipping: boolean;
   purchaseTag?: string;
   accessDurationDays?: number;
@@ -116,6 +117,7 @@ export function CheckoutPageForm({ product, onBack }: Props) {
   const [instAmount, setInstAmount] = useState(product?.installments?.amountPerTermCents ?? 0);
   const [hasTiers, setHasTiers] = useState(!!product?.quantityTiers?.length);
   const [tiers, setTiers] = useState<QtyTier[]>(product?.quantityTiers ?? [{ quantity: 1, unitPriceCents: 0, savingsPercent: 0 }]);
+  const [allowFreeQuantity, setAllowFreeQuantity] = useState(product?.allowFreeQuantity ?? false);
   const [bookLanguages, setBookLanguages] = useState<("nl" | "en" | "de")[]>(product?.availableBookLanguages ?? ["nl"]);
   const [productVariant, setProductVariant] = useState<ProductVariant | "">(product?.productVariant ?? "");
   const [thankYouConfig, setThankYouConfig] = useState<ThankYouConfig>(
@@ -153,6 +155,7 @@ export function CheckoutPageForm({ product, onBack }: Props) {
       bumpPriceOverrides: bumpOverrides.length > 0 ? bumpOverrides : undefined,
       installments: hasInstallments ? { count: instCount, amountPerTermCents: instAmount } : undefined,
       quantityTiers: hasTiers ? tiers.filter((t) => t.quantity > 0) : undefined,
+      allowFreeQuantity: hasTiers && allowFreeQuantity ? true : undefined,
       requiresShipping,
       purchaseTag: purchaseTag || undefined,
       accessDurationDays: accessDurationDays ? Number(accessDurationDays) : undefined,
@@ -557,19 +560,32 @@ export function CheckoutPageForm({ product, onBack }: Props) {
           Staffelprijzen inschakelen
         </label>
         {hasTiers && (
-          <div>
-            <div className="grid grid-cols-[60px_1fr_60px_24px] gap-2 mb-1">
-              <span className={L}>Aantal</span><span className={L}>Stuksprijs (ct)</span><span className={L}>Besp%</span><span />
-            </div>
-            {tiers.map((tier, i) => (
-              <div key={i} className="grid grid-cols-[60px_1fr_60px_24px] gap-2 mb-1.5">
-                <input type="number" value={tier.quantity} onChange={(e) => { const n = [...tiers]; n[i] = { ...tier, quantity: Number(e.target.value) }; setTiers(n); }} className={I} />
-                <input type="number" value={tier.unitPriceCents} onChange={(e) => { const n = [...tiers]; n[i] = { ...tier, unitPriceCents: Number(e.target.value) }; setTiers(n); }} className={I} />
-                <input type="number" value={tier.savingsPercent} onChange={(e) => { const n = [...tiers]; n[i] = { ...tier, savingsPercent: Number(e.target.value) }; setTiers(n); }} className={I} />
-                <button type="button" onClick={() => setTiers(tiers.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600 cursor-pointer text-[14px]">&#215;</button>
+          <div className="space-y-3">
+            <label className="flex items-center gap-2 cursor-pointer text-[12px] text-ink/60">
+              <input type="checkbox" checked={allowFreeQuantity} onChange={(e) => setAllowFreeQuantity(e.target.checked)} className="w-3.5 h-3.5 accent-copper" />
+              Klant mag zelf een aantal invullen (bv. voor bulk-bestellingen)
+            </label>
+            <div>
+              <div className="grid grid-cols-[60px_90px_1fr_60px_24px] gap-2 mb-1">
+                <span className={L}>Aantal</span><span className={L}>Vanaf-aantal</span><span className={L}>Stuksprijs (ct)</span><span className={L}>Besp%</span><span />
               </div>
-            ))}
-            <button type="button" onClick={() => setTiers([...tiers, { quantity: 0, unitPriceCents: 0, savingsPercent: 0 }])} className="text-[11px] text-copper cursor-pointer">+ Staffel</button>
+              {tiers.map((tier, i) => (
+                <div key={i} className="grid grid-cols-[60px_90px_1fr_60px_24px] gap-2 mb-1.5 items-center">
+                  <input type="number" value={tier.quantity} onChange={(e) => { const n = [...tiers]; n[i] = { ...tier, quantity: Number(e.target.value) }; setTiers(n); }} className={I} />
+                  <label className="flex items-center gap-1.5 text-[11px] text-ink/60 cursor-pointer">
+                    <input type="checkbox" checked={tier.isMinimum ?? false} onChange={(e) => { const n = [...tiers]; n[i] = { ...tier, isMinimum: e.target.checked }; setTiers(n); }} className="w-3.5 h-3.5 accent-copper" />
+                    Vanaf
+                  </label>
+                  <input type="number" value={tier.unitPriceCents} onChange={(e) => { const n = [...tiers]; n[i] = { ...tier, unitPriceCents: Number(e.target.value) }; setTiers(n); }} className={I} />
+                  <input type="number" value={tier.savingsPercent} onChange={(e) => { const n = [...tiers]; n[i] = { ...tier, savingsPercent: Number(e.target.value) }; setTiers(n); }} className={I} />
+                  <button type="button" onClick={() => setTiers(tiers.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600 cursor-pointer text-[14px]">&#215;</button>
+                </div>
+              ))}
+              <button type="button" onClick={() => setTiers([...tiers, { quantity: 0, unitPriceCents: 0, savingsPercent: 0 }])} className="text-[11px] text-copper cursor-pointer">+ Staffel</button>
+              <p className="text-[11px] text-ink/40 mt-2 leading-[1.5]">
+                <strong className="text-ink/60">Vanaf-aantal</strong>: aanvinken om deze prijs te laten gelden voor élk aantal vanaf dit getal (in combinatie met "vrij aantal invullen"). Anders is het een exact aantal als preset-knop.
+              </p>
+            </div>
           </div>
         )}
       </Section>

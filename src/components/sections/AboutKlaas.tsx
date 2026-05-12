@@ -19,6 +19,7 @@ type AboutKlaasProps = {
     bio2?: string;
     ctaPrimary?: string;
     ctaSecondary?: string;
+    stats?: Array<{ value?: string; label?: string }>;
   };
 };
 
@@ -38,12 +39,16 @@ export async function AboutKlaas({ lang, content }: AboutKlaasProps) {
   const ctaPrimary = content?.ctaPrimary || s.ctaPrimary;
   const ctaSecondary = content?.ctaSecondary || s.ctaSecondary;
 
-  const stats = [
-    { number: "25+", label: s.statExp },
-    { number: "21", label: s.statCountries },
-    { number: "9,1", label: s.statRating },
-    { number: "#1", label: s.statBook },
-  ] as const;
+  const stats = content?.stats && content.stats.length > 0
+    ? content.stats
+        .filter((it) => (it.value || "").trim() || (it.label || "").trim())
+        .map((it) => ({ number: it.value || "", label: it.label || "" }))
+    : [
+        { number: "25+", label: s.statExp },
+        { number: "21", label: s.statCountries },
+        { number: "9,1", label: s.statRating },
+        { number: "#1", label: s.statBook },
+      ];
 
   return (
     <section

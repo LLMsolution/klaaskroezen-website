@@ -10,6 +10,7 @@ import { seedContactContent } from "./siteSeedContact";
 import { seedHomeContent } from "./siteSeedHome";
 import { seedCheckoutSharedContent } from "./siteSeedCheckout";
 import { seedSiteSharedContent } from "./siteSeedSiteShared";
+import { seedLegalPages } from "./siteSeedLegal";
 
 type SectionDef = {
   id: string;
@@ -59,6 +60,7 @@ function getAllSeeds(): PageSeed[] {
     seedHomeContent(), seedSetContent(), seedCstContent(), seedBoekContent(),
     seedSprekerContent(), seedOverOnsContent(), seedContactContent(),
     seedCheckoutSharedContent(), seedSiteSharedContent(),
+    ...seedLegalPages(),
   ];
 }
 

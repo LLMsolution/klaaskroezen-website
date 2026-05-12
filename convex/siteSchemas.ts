@@ -7,6 +7,7 @@ export type FieldType =
   | "text"
   | "textarea"
   | "richtext"
+  | "rich-html"
   | "number"
   | "image-path"
   | "object"
@@ -537,6 +538,9 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
         { key: "href", type: "text", label: "Link" },
         { key: "ctaLabel", type: "text", label: "CTA tekst" },
       ]},
+      { key: "trustItems", type: "array", label: "Trust badges (onder de cards)", itemFields: [
+        { key: "value", type: "text", label: "Tekst" },
+      ]},
     ],
   },
 
@@ -598,6 +602,10 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
       { key: "bio2", type: "textarea", label: "Bio deel 2" },
       { key: "ctaPrimary", type: "text", label: "Primary CTA tekst" },
       { key: "ctaSecondary", type: "text", label: "Secondary CTA tekst" },
+      { key: "stats", type: "array", label: "Stats (bv. 25+ jaar ervaring)", itemFields: [
+        { key: "value", type: "text", label: "Waarde (bv. 25+, 9,1, #1)" },
+        { key: "label", type: "text", label: "Label (bv. Jaar ervaring)" },
+      ]},
     ],
   },
 
@@ -694,6 +702,29 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
     ],
   },
 
+  "site-navigation": {
+    type: "site-navigation",
+    label: "Navigatie (Navbar)",
+    fields: [
+      { key: "trainingen", type: "text", label: "Label 'Trainingen' menu" },
+      { key: "spreker", type: "text", label: "Label 'Spreker'" },
+      { key: "boek", type: "text", label: "Label 'Boek'" },
+      { key: "overOns", type: "text", label: "Label 'Over ons'" },
+      { key: "contact", type: "text", label: "Label 'Contact'" },
+      { key: "inloggen", type: "text", label: "Label 'Inloggen'" },
+      { key: "mijnAccount", type: "text", label: "Label 'Mijn account'" },
+      { key: "trainingKopen", type: "text", label: "CTA-knop in header (bv. 'Training kopen')" },
+      { key: "setLabel", type: "text", label: "Dropdown SET - eyebrow" },
+      { key: "setTitle", type: "text", label: "Dropdown SET - titel" },
+      { key: "setDesc", type: "textarea", label: "Dropdown SET - beschrijving" },
+      { key: "setCta", type: "text", label: "Dropdown SET - CTA tekst" },
+      { key: "cstLabel", type: "text", label: "Dropdown CST - eyebrow" },
+      { key: "cstTitle", type: "text", label: "Dropdown CST - titel" },
+      { key: "cstDesc", type: "textarea", label: "Dropdown CST - beschrijving" },
+      { key: "cstCta", type: "text", label: "Dropdown CST - CTA tekst" },
+    ],
+  },
+
   "site-footer": {
     type: "site-footer",
     label: "Footer",
@@ -726,6 +757,18 @@ export const SECTION_SCHEMAS: Record<string, SectionSchema> = {
       { key: "privacyLink", type: "text", label: "Label privacy-link" },
       { key: "accept", type: "text", label: "Accepteer-knop" },
       { key: "deny", type: "text", label: "Weiger-knop" },
+    ],
+  },
+
+  "legal-page": {
+    type: "legal-page",
+    label: "Juridische pagina (rich-text)",
+    fields: [
+      { key: "label", type: "text", label: "Label boven titel (bv. 'Juridisch')" },
+      { key: "title", type: "text", label: "Titel" },
+      { key: "version", type: "text", label: "Versie / datum (bv. 'April 2026')" },
+      { key: "noticeBadge", type: "text", label: "Optionele badge (bv. 'Concept — in afwachting van juridische review')" },
+      { key: "body", type: "rich-html", label: "Inhoud" },
     ],
   },
 

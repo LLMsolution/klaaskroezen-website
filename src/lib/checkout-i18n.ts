@@ -62,7 +62,7 @@ const translations = {
 
     // Bumps
     addToOrder: "Voeg toe aan je bestelling",
-    bumpCta: "JA! Voeg toe voor slechts",
+    bumpCta: "Voeg toe voor slechts",
     normalPrice: "Normaal",
     onlyHere: "Alleen beschikbaar op deze pagina",
 
@@ -213,7 +213,7 @@ const translations = {
     inclBtw: "Incl. VAT",
 
     addToOrder: "Add to your order",
-    bumpCta: "YES! Add for just",
+    bumpCta: "Add for just",
     normalPrice: "Normally",
     onlyHere: "Only available on this page",
 
@@ -353,7 +353,7 @@ const translations = {
     inclBtw: "Inkl. MwSt.",
 
     addToOrder: "Zu Ihrer Bestellung hinzuf\u00fcgen",
-    bumpCta: "JA! Hinzuf\u00fcgen f\u00fcr nur",
+    bumpCta: "Hinzuf\u00fcgen f\u00fcr nur",
     normalPrice: "Normalerweise",
     onlyHere: "Nur auf dieser Seite verf\u00fcgbar",
 

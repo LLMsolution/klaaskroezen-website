@@ -432,6 +432,12 @@ export default defineSchema({
     sellerBtw: v.optional(v.string()), // "NL123456789B01"
     sellerIban: v.optional(v.string()),
     sellerEmail: v.optional(v.string()),
+    // E-mailadres waar contactformulier-notificaties heen gaan
+    contactNotificationEmail: v.optional(v.string()),
+    // Email signatures (HTML) per taal — gebruikt in alle outbound emails
+    emailSignatureNl: v.optional(v.string()),
+    emailSignatureEn: v.optional(v.string()),
+    emailSignatureDe: v.optional(v.string()),
   }).index("by_key", ["key"]),
 
   // ── CRM: Contacts ──
@@ -800,9 +806,12 @@ export default defineSchema({
           quantity: v.number(),
           unitPriceCents: v.number(),
           savingsPercent: v.number(),
+          isMinimum: v.optional(v.boolean()), // true = "vanaf X stuks", false/undefined = exact aantal
         }),
       ),
     ),
+    allowFreeQuantity: v.optional(v.boolean()), // klant mag zelf een aantal invullen
+
     requiresShipping: v.boolean(),
     purchaseTag: v.optional(v.string()), // Tag for CRM contact + pipeline lead on purchase (empty = no pipeline)
     accessDurationDays: v.optional(v.number()), // Days of access after purchase (empty = forever)

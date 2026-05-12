@@ -77,6 +77,9 @@ export function SettingsTab() {
       {/* Company / seller info for invoices */}
       <SellerSettings />
 
+      {/* Email signatures (NL/EN/DE) */}
+      <EmailSignatureSettings />
+
       {/* Abandoned cart timing */}
       <AbandonedCartSettings />
 
@@ -237,6 +240,7 @@ function SellerSettings() {
     sellerBtw: "",
     sellerIban: "",
     sellerEmail: "",
+    contactNotificationEmail: "",
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -251,6 +255,7 @@ function SellerSettings() {
       sellerBtw: data.sellerBtw,
       sellerIban: data.sellerIban,
       sellerEmail: data.sellerEmail,
+      contactNotificationEmail: data.contactNotificationEmail,
     });
     setInitialized(true);
   }
@@ -318,6 +323,25 @@ function SellerSettings() {
         <div>
           <label className={labelClass}>IBAN</label>
           <input value={form.sellerIban} onChange={set("sellerIban")} placeholder="NL00 BANK 0000 0000 00" className={inputClass} />
+        </div>
+      </div>
+
+      <div className="border-t border-rule pt-5 mb-5">
+        <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-1">
+          Contactformulier
+        </p>
+        <p className="text-[13px] text-ink/50 mb-4">
+          E-mailadres waar berichten van het contactformulier naartoe gaan. Leeg = standaard klaas@klaaskroezen.nl.
+        </p>
+        <div className="max-w-md">
+          <label className={labelClass}>Ontvanger contactformulier</label>
+          <input
+            type="email"
+            value={form.contactNotificationEmail}
+            onChange={set("contactNotificationEmail")}
+            placeholder="klaas@klaaskroezen.nl"
+            className={inputClass}
+          />
         </div>
       </div>
 
@@ -554,6 +578,93 @@ function LayoutEditorSettings() {
         className="bg-copper text-paper px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer disabled:opacity-40"
       >
         {saving ? "Opslaan..." : saved ? "Opgeslagen!" : "Layout Editor opslaan"}
+      </button>
+    </div>
+  );
+}
+
+/* ─── Email Signatures (NL/EN/DE) ─── */
+
+function EmailSignatureSettings() {
+  const data = useQuery(api.settings.getEmailSignaturesSettings);
+  const update = useMutation(api.settings.updateEmailSignatures);
+
+  const [form, setForm] = useState({ emailSignatureNl: "", emailSignatureEn: "", emailSignatureDe: "" });
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+
+  if (data && !initialized) {
+    setForm({
+      emailSignatureNl: data.emailSignatureNl,
+      emailSignatureEn: data.emailSignatureEn,
+      emailSignatureDe: data.emailSignatureDe,
+    });
+    setInitialized(true);
+  }
+  if (!data) return <Loading />;
+
+  async function handleSave() {
+    setSaving(true);
+    setSaved(false);
+    try {
+      await update(form);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const labelClass = "text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2";
+  const ta = "w-full bg-transparent border border-rule px-3 py-2.5 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px] font-mono leading-[1.6]";
+
+  return (
+    <div>
+      <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-1">Email signatures</p>
+      <p className="text-[13px] text-ink/50 mb-5">
+        HTML-blok dat onderaan elke uitgaande email verschijnt (vervangt automatisch in alle templates). Per taal apart. Leeg = standaard "Met vriendelijke groet, Klaas Kroezen".
+      </p>
+
+      <div className="space-y-4">
+        <div>
+          <label className={labelClass}>Signature NL</label>
+          <textarea
+            value={form.emailSignatureNl}
+            onChange={(e) => setForm((p) => ({ ...p, emailSignatureNl: e.target.value }))}
+            rows={4}
+            className={ta}
+            placeholder='<p>Met vriendelijke groet,<br/><strong>Klaas Kroezen</strong></p>'
+          />
+        </div>
+        <div>
+          <label className={labelClass}>Signature EN</label>
+          <textarea
+            value={form.emailSignatureEn}
+            onChange={(e) => setForm((p) => ({ ...p, emailSignatureEn: e.target.value }))}
+            rows={4}
+            className={ta}
+            placeholder='<p>Best regards,<br/><strong>Klaas Kroezen</strong></p>'
+          />
+        </div>
+        <div>
+          <label className={labelClass}>Signature DE</label>
+          <textarea
+            value={form.emailSignatureDe}
+            onChange={(e) => setForm((p) => ({ ...p, emailSignatureDe: e.target.value }))}
+            rows={4}
+            className={ta}
+            placeholder='<p>Mit freundlichen Grüßen,<br/><strong>Klaas Kroezen</strong></p>'
+          />
+        </div>
+      </div>
+
+      <button
+        onClick={handleSave}
+        disabled={saving}
+        className="bg-copper text-paper px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer disabled:opacity-40 mt-5"
+      >
+        {saving ? "Opslaan..." : saved ? "Opgeslagen!" : "Signatures opslaan"}
       </button>
     </div>
   );

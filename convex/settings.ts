@@ -99,6 +99,7 @@ export const getSellerInfo = internalQuery({
       sellerBtw: settings?.sellerBtw ?? "",
       sellerIban: settings?.sellerIban ?? "",
       sellerEmail: settings?.sellerEmail ?? "",
+      contactNotificationEmail: settings?.contactNotificationEmail ?? "",
     };
   },
 });
@@ -119,6 +120,7 @@ export const getSellerSettings = query({
       sellerBtw: settings?.sellerBtw ?? "",
       sellerIban: settings?.sellerIban ?? "",
       sellerEmail: settings?.sellerEmail ?? "",
+      contactNotificationEmail: settings?.contactNotificationEmail ?? "",
     };
   },
 });
@@ -132,6 +134,7 @@ export const updateSellerSettings = mutation({
     sellerBtw: v.string(),
     sellerIban: v.string(),
     sellerEmail: v.string(),
+    contactNotificationEmail: v.string(),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
@@ -144,6 +147,79 @@ export const updateSellerSettings = mutation({
     } else {
       await ctx.db.insert("siteSettings", { key: "global", ...args });
     }
+  },
+});
+
+// ── Email signatures ──
+
+const DEFAULT_SIG = {
+  nl: `<p style="margin: 24px 0 0; font-size: 15px; line-height: 1.75; color: #444;">Met vriendelijke groet,<br /><strong style="color: #0E0C0A;">Klaas Kroezen</strong></p>`,
+  en: `<p style="margin: 24px 0 0; font-size: 15px; line-height: 1.75; color: #444;">Best regards,<br /><strong style="color: #0E0C0A;">Klaas Kroezen</strong></p>`,
+  de: `<p style="margin: 24px 0 0; font-size: 15px; line-height: 1.75; color: #444;">Mit freundlichen Grüßen,<br /><strong style="color: #0E0C0A;">Klaas Kroezen</strong></p>`,
+};
+
+export const getEmailSignatures = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const settings = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+    return {
+      nl: (settings?.emailSignatureNl?.trim() || DEFAULT_SIG.nl),
+      en: (settings?.emailSignatureEn?.trim() || DEFAULT_SIG.en),
+      de: (settings?.emailSignatureDe?.trim() || DEFAULT_SIG.de),
+    };
+  },
+});
+
+export const getEmailSignaturesSettings = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    const settings = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+    return {
+      emailSignatureNl: settings?.emailSignatureNl ?? "",
+      emailSignatureEn: settings?.emailSignatureEn ?? "",
+      emailSignatureDe: settings?.emailSignatureDe ?? "",
+    };
+  },
+});
+
+export const updateEmailSignatures = mutation({
+  args: {
+    emailSignatureNl: v.string(),
+    emailSignatureEn: v.string(),
+    emailSignatureDe: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const existing = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+    if (existing) {
+      await ctx.db.patch(existing._id, args);
+    } else {
+      await ctx.db.insert("siteSettings", { key: "global", ...args });
+    }
+  },
+});
+
+// ── Contact form recipient ──
+
+export const getContactNotificationEmail = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const settings = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+    const configured = settings?.contactNotificationEmail?.trim();
+    return configured || "klaas@klaaskroezen.nl";
   },
 });
 

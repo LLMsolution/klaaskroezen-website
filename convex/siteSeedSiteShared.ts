@@ -12,7 +12,39 @@ export function seedSiteSharedContent(): PageSeed {
   const sections = [
     { id: "footer", type: "site-footer", active: true, sortOrder: 0 },
     { id: "cookie-banner", type: "cookie-banner", active: true, sortOrder: 1 },
+    { id: "navigation", type: "site-navigation", active: true, sortOrder: 2 },
   ];
+
+  const NAV_NL = {
+    trainingen: "Trainingen", spreker: "Spreker", boek: "Boek", overOns: "Over ons", contact: "Contact",
+    inloggen: "Inloggen", mijnAccount: "Mijn account", trainingKopen: "Training kopen",
+    setLabel: "Voor verkopers", setTitle: "Sales Excellence Training",
+    setDesc: "Meer omzet, minder druk. Voor wie actief verkoopt — van acquisitie tot deal sluiten.",
+    setCta: "Bekijk training →",
+    cstLabel: "Voor klantcontact", cstTitle: "Customer Success Training",
+    cstDesc: "Maak van klanten fans. Voor iedereen met klantcontact die de organisatie commercieel sterker maakt.",
+    cstCta: "Bekijk training →",
+  };
+  const NAV_EN = {
+    trainingen: "Trainings", spreker: "Speaker", boek: "Book", overOns: "About", contact: "Contact",
+    inloggen: "Log in", mijnAccount: "My account", trainingKopen: "Buy training",
+    setLabel: "For sellers", setTitle: "Sales Excellence Training",
+    setDesc: "More revenue, less pressure. For everyone who sells — from acquisition to closing.",
+    setCta: "View training →",
+    cstLabel: "For customer contact", cstTitle: "Customer Success Training",
+    cstDesc: "Turn customers into fans. For everyone who connects with customers and drives commercial impact.",
+    cstCta: "View training →",
+  };
+  const NAV_DE = {
+    trainingen: "Trainings", spreker: "Speaker", boek: "Buch", overOns: "Über uns", contact: "Kontakt",
+    inloggen: "Anmelden", mijnAccount: "Mein Konto", trainingKopen: "Training kaufen",
+    setLabel: "Für Verkäufer", setTitle: "Sales Excellence Training",
+    setDesc: "Mehr Umsatz, weniger Druck. Für alle, die verkaufen — von der Akquise bis zum Abschluss.",
+    setCta: "Training ansehen →",
+    cstLabel: "Für Kundenkontakt", cstTitle: "Customer Success Training",
+    cstDesc: "Aus Kunden Fans machen. Für alle, die Kundenkontakt haben und kommerziellen Erfolg fördern.",
+    cstCta: "Training ansehen →",
+  };
 
   const FOOTER_SHARED = {
     email: "klaas@klaaskroezen.nl",
@@ -81,6 +113,11 @@ export function seedSiteSharedContent(): PageSeed {
       accept: "Akzeptieren",
       deny: "Ablehnen",
     }),
+
+    // ── Navigation (NL/EN/DE) ──
+    makeContent(SLUG, "navigation", "site-navigation", "nl", NAV_NL),
+    makeContent(SLUG, "navigation", "site-navigation", "en", NAV_EN),
+    makeContent(SLUG, "navigation", "site-navigation", "de", NAV_DE),
   ];
 
   return {

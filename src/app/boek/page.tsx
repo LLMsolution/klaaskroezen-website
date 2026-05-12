@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/Button";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { Testimonials3D } from "@/components/sections/Testimonials3D";
-import { ProgramSection } from "@/components/sections/training/ProgramSection";
 import { VideoGrid } from "@/components/sections/VideoGrid";
 import { CrossLink } from "@/components/sections/training/CrossLink";
 import { TrainingCta } from "@/components/sections/training/TrainingCta";
@@ -36,7 +35,6 @@ export default async function BoekPage() {
   const db = await loadPageContent("boek", lang);
 
   const hero = sectionOr(db, "hero", fallback.hero);
-  const program = sectionOr(db, "program", fallback.program);
   const dbReviews = db["reviews"] as Record<string, unknown> | undefined;
   const reviews = {
     eyebrow: (dbReviews?.eyebrow as string) ?? fallback.testimonials.eyebrow,
@@ -153,15 +151,6 @@ export default async function BoekPage() {
           </div>
         </Container>
       </section>
-
-      {/* What's inside */}
-      <ProgramSection
-        lang={lang}
-        price={program.price}
-        pricingAnchor={program.pricingAnchor}
-        ctaLabel={program.ctaLabel}
-        modules={program.modules}
-      />
 
       <BookPreview lang={lang} pages={previewPages} coverImage={coverUrl} />
 
