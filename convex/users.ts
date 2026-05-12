@@ -41,6 +41,8 @@ export const getCurrentUser = query({
 
 /**
  * Get purchases for the currently logged-in user.
+ * Falls back to email lookup for first-time buyers whose purchase.userId wasn't
+ * set yet (set asynchronously by the grantPendingAccessByEmail job after ~10 min).
  */
 export const getMyPurchases = query({
   args: {},
@@ -48,11 +50,29 @@ export const getMyPurchases = query({
     const userId = await auth.getUserId(ctx);
     if (!userId) return [];
 
-    return await ctx.db
+    const byUserId = await ctx.db
       .query("purchases")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .order("desc")
       .collect();
+
+    // Also check by email to catch purchases made before the account existed
+    const accounts = await ctx.db
+      .query("authAccounts")
+      .filter((q: any) => q.eq(q.field("userId"), userId))
+      .collect();
+    const email = accounts.find((a: any) => a.providerAccountId?.includes("@"))?.providerAccountId;
+
+    if (!email) return byUserId;
+
+    const byEmail = await ctx.db.query("purchases").collect();
+    const unlinked = byEmail.filter(
+      (p) => !p.userId && p.buyerEmail.toLowerCase() === email.toLowerCase(),
+    );
+
+    const seen = new Set(byUserId.map((p) => p._id));
+    const merged = [...byUserId, ...unlinked.filter((p) => !seen.has(p._id))];
+    return merged.sort((a, b) => b.createdAt - a.createdAt);
   },
 });
 
@@ -79,6 +99,7 @@ export const getMyAccessRights = query({
 
 /**
  * Get invoices for the currently logged-in user.
+ * Falls back to email lookup for first-time buyers whose purchase.userId wasn't set yet.
  */
 export const getMyInvoices = query({
   args: {},
@@ -86,22 +107,58 @@ export const getMyInvoices = query({
     const userId = await auth.getUserId(ctx);
     if (!userId) return [];
 
-    // Get purchases first to find invoices
-    const purchases = await ctx.db
+    // Source 1: invoices directly linked to this user via invoices.by_user
+    const directInvoices = await ctx.db
+      .query("invoices")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    // Source 2: purchases linked to this user → look up invoice via by_purchase
+    const userPurchases = await ctx.db
       .query("purchases")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
 
-    const invoices = [];
-    for (const purchase of purchases) {
+    // Source 3: invoices for the user's email where userId isn't yet patched
+    // (covers race window before the auth callback / backfill completes).
+    const accounts = await ctx.db
+      .query("authAccounts")
+      .filter((q: any) => q.eq(q.field("userId"), userId))
+      .collect();
+    const email = accounts.find((a: any) => a.providerAccountId?.includes("@"))?.providerAccountId;
+
+    const collected = new Map<string, typeof directInvoices[number]>();
+    for (const inv of directInvoices) collected.set(inv._id, inv);
+
+    for (const purchase of userPurchases) {
       const invoice = await ctx.db
         .query("invoices")
         .withIndex("by_purchase", (q) => q.eq("purchaseId", purchase._id))
         .first();
-      if (invoice) invoices.push(invoice);
+      if (invoice && !collected.has(invoice._id)) collected.set(invoice._id, invoice);
     }
 
-    return invoices.sort((a, b) => b.createdAt - a.createdAt);
+    if (email) {
+      const emailInvoices = await ctx.db
+        .query("invoices")
+        .withIndex("by_email", (q) => q.eq("buyerEmail", email))
+        .collect();
+      for (const inv of emailInvoices) {
+        if (!collected.has(inv._id)) collected.set(inv._id, inv);
+      }
+      const emailLower = email.toLowerCase();
+      if (emailLower !== email) {
+        const lowerInvoices = await ctx.db
+          .query("invoices")
+          .withIndex("by_email", (q) => q.eq("buyerEmail", emailLower))
+          .collect();
+        for (const inv of lowerInvoices) {
+          if (!collected.has(inv._id)) collected.set(inv._id, inv);
+        }
+      }
+    }
+
+    return Array.from(collected.values()).sort((a, b) => b.createdAt - a.createdAt);
   },
 });
 

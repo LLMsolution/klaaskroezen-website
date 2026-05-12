@@ -33,7 +33,8 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_mollie", ["molliePaymentId"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_buyerEmail", ["buyerEmail"]),
 
   // ── Access Rights ──
   // Which Circle spaces/courses a user has access to
@@ -153,6 +154,7 @@ export default defineSchema({
     invoiceNumber: v.string(), // e.g. "KK-2026-0001"
     purchaseId: v.id("purchases"),
     pendingOrderId: v.optional(v.id("pendingOrders")),
+    userId: v.optional(v.id("users")), // Set when purchase has linked user; else patched by backfill on user-creation
 
     // Buyer info (snapshot at time of purchase)
     buyerEmail: v.string(),
@@ -196,6 +198,7 @@ export default defineSchema({
   })
     .index("by_purchase", ["purchaseId"])
     .index("by_email", ["buyerEmail"])
+    .index("by_user", ["userId"])
     .index("by_number", ["invoiceNumber"]),
 
   // ── Invoice Counter ──
@@ -204,6 +207,21 @@ export default defineSchema({
     year: v.number(),
     lastNumber: v.number(),
   }).index("by_year", ["year"]),
+
+  // ── Purchase Login Tokens ──
+  // One-time tokens embedded in the order confirmation email's CTA so the
+  // buyer can log into their dashboard with a single click. Consumed by the
+  // `purchase-token` ConvexCredentials provider.
+  purchaseLoginTokens: defineTable({
+    token: v.string(),
+    email: v.string(),
+    purchaseId: v.optional(v.id("purchases")),
+    expiresAt: v.number(),
+    usedAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index("by_token", ["token"])
+    .index("by_email", ["email"]),
 
   // ── Contact Form Submissions ──
   contactSubmissions: defineTable({
@@ -222,7 +240,7 @@ export default defineSchema({
   // Automated follow-up email flows triggered after purchase
   emailSequences: defineTable({
     purchaseId: v.id("purchases"),
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
     email: v.string(),
     product: v.string(),
     productType: v.string(),

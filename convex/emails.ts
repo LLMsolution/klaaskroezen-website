@@ -182,9 +182,18 @@ export const sendPurchaseConfirmation = internalAction({
           ctx.runQuery(internal.emails.getProductVariantBySlug, { slug })
         ))
       : [];
+
+    // One-click login token: clicking the CTA in this email signs the buyer in
+    // (creating the account on first use) and lands them on /dashboard.
+    const loginToken = await ctx.runMutation(internal.purchaseLoginTokens.issueToken, {
+      email: invoice.buyerEmail,
+      purchaseId: invoice.purchaseId,
+    });
+
     const html = buildPurchaseConfirmationHtml(
       invoice, lang, purchase?.product, productVariant ?? undefined,
       bumpVariants.filter((v): v is ProductVariant => !!v),
+      loginToken,
     );
 
     const fileName = `factuur-${invoice.invoiceNumber}.pdf`;
@@ -514,6 +523,7 @@ function buildPurchaseConfirmationHtml(
   productSlug?: string,
   productVariant?: ProductVariant,
   bumpVariants?: ProductVariant[],
+  loginToken?: string,
 ): string {
   const t = (s: { nl: string; en: string; de: string }) => s[lang];
   const layoutLang: "nl" | "en" = lang === "nl" ? "nl" : "en";
@@ -534,8 +544,11 @@ function buildPurchaseConfirmationHtml(
 
   const firstName = invoice.buyerName.split(" ")[0];
 
+  // Primary CTAs go through /login/kopen which consumes the one-click token
+  // when present (?t=…), or auto-sends a magic link as fallback.
   const emailParam = encodeURIComponent(invoice.buyerEmail);
-  const loginBase = `${SITE_URL}/login/kopen?email=${emailParam}&next=`;
+  const tokenParam = loginToken ? `&t=${encodeURIComponent(loginToken)}` : "";
+  const loginBase = `${SITE_URL}/login/kopen?email=${emailParam}${tokenParam}&next=`;
   const dashboardUrl = `${loginBase}${encodeURIComponent("/dashboard")}`;
   const downloadsUrl = `${loginBase}${encodeURIComponent("/dashboard#downloads")}`;
   let bookSection = "";

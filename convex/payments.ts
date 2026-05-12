@@ -145,8 +145,8 @@ export const processSuccessfulPayment = internalMutation({
         });
       }
     } else {
-      // No account yet — schedule a retry in 10 minutes (after magic-link login).
-      await ctx.scheduler.runAfter(10 * 60 * 1000, internal.payments.grantPendingAccessByEmail, {
+      // No account yet — schedule a retry in 2 minutes (after magic-link login).
+      await ctx.scheduler.runAfter(2 * 60 * 1000, internal.payments.grantPendingAccessByEmail, {
         email: order.email,
         purchaseId,
         product: order.product,
@@ -159,7 +159,7 @@ export const processSuccessfulPayment = internalMutation({
     // 7. Start automated email sequence (always — uses email, not userId)
     await ctx.scheduler.runAfter(0, internal.emails.startSequence, {
       purchaseId,
-      userId: userId as any,
+      userId: userId ?? undefined,
       email: order.email,
       product: order.product,
       productType,
@@ -413,8 +413,9 @@ export const grantPendingAccessByEmail = internalAction({
     const userId = await ctx.runQuery(internal.payments.findUserByEmail, { email });
     if (!userId) {
       if (retryCount < 2) {
-        // Retry after 60 minutes (two more chances: 70 min and 130 min after purchase)
-        await ctx.scheduler.runAfter(60 * 60 * 1000, internal.payments.grantPendingAccessByEmail, {
+        // Retry: 20 min (attempt 2), then 80 min (attempt 3) after purchase
+        const delayMs = retryCount === 0 ? 20 * 60 * 1000 : 60 * 60 * 1000;
+        await ctx.scheduler.runAfter(delayMs, internal.payments.grantPendingAccessByEmail, {
           ...args,
           retryCount: retryCount + 1,
         });
@@ -467,6 +468,21 @@ export const insertAccessRights = internalMutation({
       .first();
     if (existing) return;
 
+    // Link purchase to user so it shows in dashboard (first-time buyers have userId=undefined)
+    const purchase = await ctx.db.get(purchaseId);
+    if (purchase && !purchase.userId) {
+      await ctx.db.patch(purchaseId, { userId });
+    }
+
+    // Also link the invoice to the user (for direct lookup via invoices.by_user).
+    const invoice = await ctx.db
+      .query("invoices")
+      .withIndex("by_purchase", (q) => q.eq("purchaseId", purchaseId))
+      .first();
+    if (invoice && !invoice.userId) {
+      await ctx.db.patch(invoice._id, { userId });
+    }
+
     await ctx.db.insert("accessRights", {
       userId,
       purchaseId,
@@ -484,5 +500,102 @@ export const insertAccessRights = internalMutation({
         expiresAt,
       });
     }
+  },
+});
+
+/**
+ * Grant access rights for every paid-but-unlinked purchase for a given email.
+ * Called from the auth callback the moment a user account exists for the email,
+ * which closes the 2-minute "no access right after payment" window.
+ */
+export const grantAllPendingForEmail = internalAction({
+  args: { email: v.string(), userId: v.id("users") },
+  handler: async (ctx, { email, userId }) => {
+    const purchases = await ctx.runQuery(internal.payments.listUnlinkedPurchasesForEmail, { email });
+    for (const p of purchases) {
+      await ctx.runMutation(internal.payments.insertAccessRights, {
+        userId,
+        purchaseId: p.purchaseId,
+        product: p.product,
+        bumps: p.bumps,
+        accessDurationDays: p.accessDurationDays,
+        grantedAt: p.grantedAt,
+      });
+    }
+  },
+});
+
+export const listUnlinkedPurchasesForEmail = internalQuery({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const normalized = email.toLowerCase();
+    const purchases = await ctx.db
+      .query("purchases")
+      .withIndex("by_buyerEmail", (q) => q.eq("buyerEmail", email))
+      .collect();
+    // Also collect any case-mismatched rows where the column casing differs.
+    const fallback = email !== normalized
+      ? await ctx.db
+          .query("purchases")
+          .withIndex("by_buyerEmail", (q) => q.eq("buyerEmail", normalized))
+          .collect()
+      : [];
+
+    const all = [...purchases, ...fallback];
+    const seen = new Set<string>();
+    const results: Array<{
+      purchaseId: typeof all[number]["_id"];
+      product: string;
+      bumps: string[];
+      accessDurationDays?: number;
+      grantedAt: number;
+    }> = [];
+
+    for (const p of all) {
+      if (p.userId) continue;
+      if (p.status !== "paid") continue;
+      if (seen.has(p._id)) continue;
+      seen.add(p._id);
+
+      // Look up bumps + access duration via the originating pending order.
+      const pending = await ctx.db
+        .query("pendingOrders")
+        .withIndex("by_mollie", (q) => q.eq("molliePaymentId", p.molliePaymentId))
+        .first();
+      const productData = await ctx.db
+        .query("checkoutProducts")
+        .withIndex("by_slug", (q) => q.eq("slug", p.product))
+        .first();
+
+      results.push({
+        purchaseId: p._id,
+        product: p.product,
+        bumps: pending?.bumps ?? [],
+        accessDurationDays: productData?.accessDurationDays,
+        grantedAt: p.paidAt ?? p.createdAt,
+      });
+    }
+    return results;
+  },
+});
+
+/**
+ * Backfill invoice.userId for historic invoices whose purchase is now linked to a user.
+ * Idempotent admin-only helper.
+ */
+export const backfillInvoiceUserIds = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const invoices = await ctx.db.query("invoices").collect();
+    let patched = 0;
+    for (const inv of invoices) {
+      if (inv.userId) continue;
+      const purchase = await ctx.db.get(inv.purchaseId);
+      if (purchase?.userId) {
+        await ctx.db.patch(inv._id, { userId: purchase.userId });
+        patched++;
+      }
+    }
+    return { patched, total: invoices.length };
   },
 });

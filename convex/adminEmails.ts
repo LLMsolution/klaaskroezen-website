@@ -15,10 +15,10 @@ export const getSequences = query({
 
     const enriched = [];
     for (const seq of sequences) {
-      const user = await ctx.db.get(seq.userId);
+      const user = seq.userId ? await ctx.db.get(seq.userId) : null;
       enriched.push({
         ...seq,
-        userName: user?.name ?? "\u2014",
+        userName: (user as any)?.name ?? "\u2014",
       });
     }
     return enriched;

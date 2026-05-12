@@ -516,6 +516,15 @@ export const createUpsellOrder = mutation({
 
     if (!lastOrder) throw new Error("Geen eerdere bestelling gevonden.");
 
+    // Resolve userId so the upsell's purchase + invoice land in the dashboard
+    // immediately (otherwise processSuccessfulPayment leaves them unlinked
+    // until the post-payment magic-link login fires the auth callback).
+    const accounts = await ctx.db.query("authAccounts").collect();
+    const match = accounts.find(
+      (a) => a.providerAccountId?.toLowerCase() === email.toLowerCase(),
+    );
+    const userId = match?.userId ?? lastOrder.userId;
+
     // Create new pending order with same customer data
     const id = await ctx.db.insert("pendingOrders", {
       email: lastOrder.email,
@@ -536,6 +545,7 @@ export const createUpsellOrder = mutation({
       mailingOptIn: lastOrder.mailingOptIn,
       bumps: [],
       installments: false,
+      userId,
       remindersSent: 0,
       createdAt: Date.now(),
     });

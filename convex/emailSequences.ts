@@ -38,7 +38,7 @@ const BOOK_SEQUENCE = [
 export const startSequence = internalMutation({
   args: {
     purchaseId: v.id("purchases"),
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
     email: v.string(),
     product: v.string(),
     productType: v.string(),

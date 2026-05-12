@@ -3,44 +3,101 @@
 import { useEffect, useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useConvexAuth } from "convex/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface Props {
   email: string;
   next: string;
 }
 
+/**
+ * Two flows:
+ *   1. `?t=…` present → consume the one-click purchase token via the
+ *      `purchase-token` ConvexCredentials provider; on success redirect to
+ *      `next` already authenticated.
+ *   2. No token → auto-send a fresh magic link to the buyer's email (single
+ *      send, no race with PostPurchaseFlow which no longer signs in itself).
+ */
 export function AutoLoginClient({ email, next }: Props) {
   const { signIn } = useAuthActions();
   const { isAuthenticated } = useConvexAuth();
   const router = useRouter();
-  const [sent, setSent] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState(false);
+  const searchParams = useSearchParams();
+  const tokenFromUrl = searchParams.get("t");
 
-  // If already logged in, go directly to the destination
+  const [phase, setPhase] = useState<"idle" | "consuming" | "sending" | "sent" | "tokenFailed" | "error">("idle");
+
+  // Already authenticated → straight to destination.
   useEffect(() => {
-    if (isAuthenticated) {
-      router.replace(next);
-    }
+    if (isAuthenticated) router.replace(next);
   }, [isAuthenticated, next, router]);
+
+  // One-click token flow.
+  useEffect(() => {
+    if (isAuthenticated) return;
+    if (!tokenFromUrl) return;
+    if (phase !== "idle") return;
+    setPhase("consuming");
+    signIn("purchase-token", { token: tokenFromUrl, redirectTo: next })
+      .then((result) => {
+        if (result?.signingIn) {
+          // useConvexAuth effect above will redirect when the session lands.
+          return;
+        }
+        setPhase("tokenFailed");
+      })
+      .catch(() => setPhase("tokenFailed"));
+  }, [tokenFromUrl, isAuthenticated, phase, signIn, next]);
+
+  // No token (e.g. buyer reached this page from the bedankt-page CTA) →
+  // auto-send a magic link.
+  useEffect(() => {
+    if (isAuthenticated) return;
+    if (tokenFromUrl) return;
+    if (phase !== "idle") return;
+    if (!email) return;
+    setPhase("sending");
+    signIn("resend", { email, redirectTo: next })
+      .then(() => setPhase("sent"))
+      .catch(() => setPhase("error"));
+  }, [tokenFromUrl, isAuthenticated, email, phase, signIn, next]);
 
   if (isAuthenticated) return null;
 
-  async function handleSend() {
-    if (sending || sent) return;
-    setSending(true);
-    try {
-      await signIn("resend", { email, redirectTo: next });
-      setSent(true);
-    } catch {
-      setError(true);
-    } finally {
-      setSending(false);
-    }
+  if (phase === "consuming") {
+    return (
+      <div className="text-center space-y-4">
+        <div className="w-14 h-14 rounded-full bg-copper/10 flex items-center justify-center mx-auto">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-copper">
+            <circle cx="12" cy="12" r="10" />
+          </svg>
+        </div>
+        <p className="text-[15px] text-ink/70">Bezig met inloggen…</p>
+      </div>
+    );
   }
 
-  if (error) {
+  if (phase === "tokenFailed") {
+    return (
+      <div className="text-center space-y-4">
+        <h1 className="font-display text-[clamp(22px,2.8vw,30px)] font-black leading-[0.97] tracking-[-0.03em]">
+          Inloglink verlopen
+        </h1>
+        <p className="text-[15px] text-ink/60 leading-[1.7]">
+          Deze link is al gebruikt of verlopen. We sturen je een verse inloglink naar <strong className="text-ink">{email}</strong>.
+        </p>
+        <button
+          type="button"
+          onClick={() => setPhase("idle")}
+          className="w-full bg-copper hover:bg-copper-light text-paper text-[14px] font-medium py-3 px-6 rounded-[2px] transition-colors"
+        >
+          Stuur nieuwe inloglink
+        </button>
+      </div>
+    );
+  }
+
+  if (phase === "error") {
     return (
       <div className="text-center space-y-4">
         <p className="text-[15px] text-ink/70">Er ging iets mis. Ga naar de loginpagina om handmatig in te loggen.</p>
@@ -51,7 +108,7 @@ export function AutoLoginClient({ email, next }: Props) {
     );
   }
 
-  if (sent) {
+  if (phase === "sent") {
     return (
       <div className="text-center space-y-4">
         <div className="w-14 h-14 rounded-full bg-copper/10 flex items-center justify-center mx-auto">
@@ -70,7 +127,7 @@ export function AutoLoginClient({ email, next }: Props) {
           Niets ontvangen?{" "}
           <button
             type="button"
-            onClick={() => { setSent(false); setError(false); }}
+            onClick={() => setPhase("idle")}
             className="text-copper hover:text-copper-light cursor-pointer"
           >
             Stuur opnieuw
@@ -80,8 +137,7 @@ export function AutoLoginClient({ email, next }: Props) {
     );
   }
 
-  // Default: show prompt to send magic link (don't auto-send to avoid invalidating
-  // the link already sent by PostPurchaseFlow on the bedankt page)
+  // phase === "sending" or initial render
   return (
     <div className="text-center space-y-6">
       <div className="w-14 h-14 rounded-full bg-copper/10 flex items-center justify-center mx-auto">
@@ -94,18 +150,8 @@ export function AutoLoginClient({ email, next }: Props) {
         Inloggen bij je dashboard
       </h1>
       <p className="text-[15px] text-ink/60 leading-[1.7]">
-        Heb je al een inloglink ontvangen? Klik dan op die link in je mail.
-        Nog geen link ontvangen? Stuur hem opnieuw naar{" "}
-        <strong className="text-ink">{email}</strong>.
+        We sturen een inloglink naar <strong className="text-ink">{email}</strong>.
       </p>
-      <button
-        type="button"
-        onClick={handleSend}
-        disabled={sending}
-        className="w-full bg-copper hover:bg-copper-light text-paper text-[14px] font-medium py-3 px-6 rounded-[2px] transition-colors disabled:opacity-60"
-      >
-        {sending ? "Versturen..." : "Stuur inloglink"}
-      </button>
       <p className="text-[13px] text-ink/40">
         Of{" "}
         <a href="/login" className="text-copper hover:text-copper-light">
