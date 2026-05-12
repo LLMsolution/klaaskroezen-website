@@ -107,38 +107,58 @@ export const getMyInvoices = query({
     const userId = await auth.getUserId(ctx);
     if (!userId) return [];
 
-    const byUserId = await ctx.db
+    // Source 1: invoices directly linked to this user via invoices.by_user
+    const directInvoices = await ctx.db
+      .query("invoices")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    // Source 2: purchases linked to this user → look up invoice via by_purchase
+    const userPurchases = await ctx.db
       .query("purchases")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
 
-    // Also check by email to catch purchases made before the account existed
+    // Source 3: invoices for the user's email where userId isn't yet patched
+    // (covers race window before the auth callback / backfill completes).
     const accounts = await ctx.db
       .query("authAccounts")
       .filter((q: any) => q.eq(q.field("userId"), userId))
       .collect();
     const email = accounts.find((a: any) => a.providerAccountId?.includes("@"))?.providerAccountId;
 
-    let purchases = byUserId;
-    if (email) {
-      const byEmail = await ctx.db.query("purchases").collect();
-      const unlinked = byEmail.filter(
-        (p) => !p.userId && p.buyerEmail.toLowerCase() === email.toLowerCase(),
-      );
-      const seen = new Set(byUserId.map((p) => p._id));
-      purchases = [...byUserId, ...unlinked.filter((p) => !seen.has(p._id))];
-    }
+    const collected = new Map<string, typeof directInvoices[number]>();
+    for (const inv of directInvoices) collected.set(inv._id, inv);
 
-    const invoices = [];
-    for (const purchase of purchases) {
+    for (const purchase of userPurchases) {
       const invoice = await ctx.db
         .query("invoices")
         .withIndex("by_purchase", (q) => q.eq("purchaseId", purchase._id))
         .first();
-      if (invoice) invoices.push(invoice);
+      if (invoice && !collected.has(invoice._id)) collected.set(invoice._id, invoice);
     }
 
-    return invoices.sort((a, b) => b.createdAt - a.createdAt);
+    if (email) {
+      const emailInvoices = await ctx.db
+        .query("invoices")
+        .withIndex("by_email", (q) => q.eq("buyerEmail", email))
+        .collect();
+      for (const inv of emailInvoices) {
+        if (!collected.has(inv._id)) collected.set(inv._id, inv);
+      }
+      const emailLower = email.toLowerCase();
+      if (emailLower !== email) {
+        const lowerInvoices = await ctx.db
+          .query("invoices")
+          .withIndex("by_email", (q) => q.eq("buyerEmail", emailLower))
+          .collect();
+        for (const inv of lowerInvoices) {
+          if (!collected.has(inv._id)) collected.set(inv._id, inv);
+        }
+      }
+    }
+
+    return Array.from(collected.values()).sort((a, b) => b.createdAt - a.createdAt);
   },
 });
 

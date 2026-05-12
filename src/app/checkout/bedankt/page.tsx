@@ -75,6 +75,19 @@ const DEFAULT_CTA: Record<StepVariant, { href: string; label: Record<Lang, strin
   hardcopy: { href: "/dashboard", label: { nl: "Ga naar mijn dashboard", en: "Go to my dashboard", de: "Zu meinem Dashboard" } },
 };
 
+/**
+ * Wrap the CTA href so unauthenticated buyers are routed through /login/kopen,
+ * which auto-sends a magic link. The mail itself carries the one-click token
+ * (?t=…) for the same flow without the inbox round-trip.
+ */
+function withLoginRedirect(href: string, email: string): string {
+  if (!email) return href;
+  if (href.startsWith("http")) return href;
+  const next = encodeURIComponent(href);
+  const emailParam = encodeURIComponent(email);
+  return `/login/kopen?email=${emailParam}&next=${next}`;
+}
+
 export default async function ThankYouPage({
   searchParams,
 }: {
@@ -91,7 +104,8 @@ export default async function ThankYouPage({
     ? thankYouPage.steps.map((s) => s[lang] ?? s.nl)
     : DEFAULT_STEPS[variant][lang];
 
-  const ctaHref = thankYouPage?.ctaHref || DEFAULT_CTA[variant].href;
+  const rawCtaHref = thankYouPage?.ctaHref || DEFAULT_CTA[variant].href;
+  const ctaHref = withLoginRedirect(rawCtaHref, email);
   const ctaLabel = thankYouPage
     ? (thankYouPage.ctaLabel[lang] ?? thankYouPage.ctaLabel.nl)
     : DEFAULT_CTA[variant].label[lang];

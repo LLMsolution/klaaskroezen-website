@@ -1,7 +1,9 @@
 import Google from "@auth/core/providers/google";
 import Resend from "@auth/core/providers/resend";
-import { convexAuth } from "@convex-dev/auth/server";
+import { convexAuth, createAccount, retrieveAccount } from "@convex-dev/auth/server";
+import { ConvexCredentials } from "@convex-dev/auth/providers/ConvexCredentials";
 import { layout } from "./emailHelpers";
+import { internal } from "./_generated/api";
 
 const FROM = "Klaas Kroezen <klaas@klaaskroezen.nl>";
 
@@ -57,6 +59,41 @@ function magicLinkHtml(url: string, lang: "nl" | "en" | "de" = "nl"): string {
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   providers: [
     Google,
+    // One-click login from the order confirmation email. The token is generated
+    // in `processSuccessfulPayment` and embedded in the mail CTA. Consuming it
+    // creates the account on first use, so the buyer lands authenticated on
+    // /dashboard with a single click.
+    ConvexCredentials({
+      id: "purchase-token",
+      authorize: async (credentials, ctx) => {
+        const token = credentials?.token;
+        if (typeof token !== "string" || token.length < 32) return null;
+
+        const row = await ctx.runQuery(internal.purchaseLoginTokens.lookup, { token });
+        if (!row) return null;
+        if (row.usedAt) return null;
+        if (row.expiresAt < Date.now()) return null;
+
+        const existing = await retrieveAccount(ctx, {
+          provider: "resend",
+          account: { id: row.email },
+        }).catch(() => null);
+
+        let userId = existing?.user._id;
+        if (!userId) {
+          const created = await createAccount(ctx, {
+            provider: "resend",
+            account: { id: row.email },
+            profile: { email: row.email },
+            shouldLinkViaEmail: true,
+          });
+          userId = created.user._id;
+        }
+
+        await ctx.runMutation(internal.purchaseLoginTokens.markUsed, { tokenId: row._id });
+        return { userId };
+      },
+    }),
     Resend({
       id: "resend",
       apiKey: process.env.RESEND_API_KEY,
@@ -87,4 +124,17 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
       },
     }),
   ],
+  callbacks: {
+    // Runs on every sign-in (user create or returning). We immediately grant
+    // access rights for any paid-but-unlinked purchases for this email so the
+    // dashboard reflects them without waiting on the 2-minute scheduled retry.
+    async afterUserCreatedOrUpdated(ctx, { userId, profile }) {
+      const email = typeof profile.email === "string" ? profile.email : undefined;
+      if (!email) return;
+      await ctx.scheduler.runAfter(0, internal.payments.grantAllPendingForEmail, {
+        email,
+        userId,
+      });
+    },
+  },
 });

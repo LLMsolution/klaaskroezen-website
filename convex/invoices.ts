@@ -52,10 +52,16 @@ export const createInvoice = internalMutation({
     // Generate sequential invoice number
     const invoiceNumber = await getNextInvoiceNumberInternal(ctx);
 
+    // Inherit userId from the purchase so the dashboard can find the invoice
+    // directly via the by_user index, even when the buyer just signed in via
+    // magic link after payment.
+    const purchase = await ctx.db.get(args.purchaseId);
+
     const invoiceId = await ctx.db.insert("invoices", {
       invoiceNumber,
       purchaseId: args.purchaseId,
       pendingOrderId: args.pendingOrderId,
+      userId: purchase?.userId,
       buyerEmail: args.buyerEmail,
       buyerName: args.buyerName,
       buyerCountry: args.buyerCountry,
