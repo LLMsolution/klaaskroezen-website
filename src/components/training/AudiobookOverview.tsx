@@ -230,9 +230,16 @@ function ChapterRow({
     [chapter._id, chapter.trainingId, updateProgress],
   );
 
-  const durationStr = chapter.audioDurationSeconds
-    ? formatDuration(chapter.audioDurationSeconds)
-    : "--:--";
+  // Show remaining listen time. For completed chapters the "afgerond" label
+  // below carries the meaning, so we hide the time text there to avoid 0:00.
+  const totalSec = chapter.audioDurationSeconds ?? 0;
+  const playedSec = progress?.videoPosition ?? 0;
+  const remainingSec = Math.max(0, totalSec - playedSec);
+  const durationStr = isDone
+    ? null
+    : totalSec
+      ? formatDuration(remainingSec)
+      : "--:--";
 
   return (
     <div
@@ -262,7 +269,9 @@ function ChapterRow({
         <div className="flex-1 min-w-0">
           <p className="text-[15px] font-medium text-ink">{loc(chapter.title, lang)}</p>
           <div className="flex items-center gap-3 mt-0.5">
-            <span className="text-[12px] text-ink/40 tabular-nums">{durationStr}</span>
+            {durationStr && (
+              <span className="text-[12px] text-ink/40 tabular-nums">{durationStr}</span>
+            )}
             {isActive && (
               <span className="text-[11px] text-copper font-medium">{i18n.nowPlaying}</span>
             )}
