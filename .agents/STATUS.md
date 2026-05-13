@@ -28,7 +28,7 @@
 | Migration functions internal | done (#58) | 2026-05-12 |
 | Upsell skip owned + Google login uit | done (#59) | 2026-05-12 |
 | Luisterboek resterende tijd + ProgramVideo sectie | done (#60) | 2026-05-12 |
-| Admin-aanpasbaar maken (alle pagina's + email signatures + legal) | in-review | 2026-05-12 |
+| Admin-aanpasbaar maken (alle pagina's + email signatures + legal) | in-review (#64) | 2026-05-13 |
 
 ## Current Focus
 No features in progress
