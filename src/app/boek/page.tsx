@@ -43,14 +43,20 @@ export default async function BoekPage() {
     reviews: (dbReviews?.items as typeof fallback.testimonials.reviews) ?? fallback.testimonials.reviews,
   };
   const bestellen = sectionOr(db, "bestellen", {});
+  const bookPreview = sectionOr<{
+    eyebrow?: string;
+    title?: string;
+    pages?: Array<{ image?: string; pageNumber?: string }>;
+  }>(db, "book-preview", {});
   const videos = sectionOr(db, "videos", fallback.videos);
   const interview = sectionOr(db, "interview", fallback.interview);
   const crossLink = sectionOr(db, "cross-link", fallback.crossLink);
   const faq = sectionOr(db, "faq", fallback.faq);
   const cta = sectionOr(db, "cta", fallback.cta);
 
-  // Load only cover + first 2 preview pages server-side (rest lazy-loaded client-side)
-  const previewKeys = [
+  // Preview pages: prefer admin-configured pages from DB (book-preview section),
+  // fall back to hardcoded keys when DB is empty.
+  const DEFAULT_PREVIEW_KEYS = [
     "book/preview/page-5.png",
     "book/preview/page-6.png",
     "book/preview/page-7.png",
@@ -69,14 +75,24 @@ export default async function BoekPage() {
     "book/preview/page-39.png",
     "book/preview/page-132.png",
   ];
+  const dbPages = (bookPreview.pages ?? [])
+    .map((p) => (p?.image || "").trim())
+    .filter(Boolean);
   const coverKey = "book/sales-oprecht-ontspannen-cover.png";
-  // Fetch cover + first 2 pages server-side, rest use static paths (preloaded client-side)
-  const initialKeys = [coverKey, ...previewKeys.slice(0, 2)];
-  const bookImages = await loadSiteImages(initialKeys);
-  const previewPages = previewKeys.map((k, i) =>
-    i < 2 ? imgUrl(bookImages, k) : `/images/${k}`,
-  );
-  const coverUrl = imgUrl(bookImages, coverKey);
+  const coverImages = await loadSiteImages([coverKey]);
+  const coverUrl = imgUrl(coverImages, coverKey);
+  // If admin configured pages, use them directly (paths are already resolved URLs
+  // or static paths). Otherwise resolve the default static keys.
+  let previewPages: string[];
+  if (dbPages.length > 0) {
+    previewPages = dbPages;
+  } else {
+    const initialKeys = DEFAULT_PREVIEW_KEYS.slice(0, 2);
+    const initialImages = await loadSiteImages(initialKeys);
+    previewPages = DEFAULT_PREVIEW_KEYS.map((k, i) =>
+      i < 2 ? imgUrl(initialImages, k) : `/images/${k}`,
+    );
+  }
 
   return (
     <>
