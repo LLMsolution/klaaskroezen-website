@@ -16,7 +16,7 @@ import {
 export type TemplateOptions = {
   preheader?: string;
   crossSell: CrossSellContext;
-  lang: "nl" | "en";
+  lang: "nl" | "en" | "de";
 };
 
 /** Default layout options per template key. Used by initializeTemplates and send-time wrapping. */
@@ -25,6 +25,7 @@ export const TEMPLATE_OPTIONS: Record<string, TemplateOptions> = {
   "password-reset-en": { preheader: "Your reset code for Klaas Kroezen", crossSell: "none", lang: "en" },
   "contact-confirmation-nl": { preheader: "Bedankt — we nemen snel contact op.", crossSell: "general", lang: "nl" },
   "contact-confirmation-en": { preheader: "Thank you — we'll get back to you soon.", crossSell: "general", lang: "en" },
+  "contact-confirmation-de": { preheader: "Vielen Dank — wir melden uns bald.", crossSell: "general", lang: "de" },
   "contact-notification": { crossSell: "none", lang: "nl" },
   "purchase-confirmation-nl": { crossSell: "general", lang: "nl" },
   "purchase-confirmation-en": { crossSell: "general", lang: "en" },
@@ -68,6 +69,19 @@ ${paragraph(`<strong>Subject:</strong> ${subject}`)}
 ${quote(message.replace(/\n/g, "<br />"))}
 ${paragraph("In the meantime, feel free to call <a href='tel:+31618098906' style='color: " + COPPER + ";'>+31 6 1809 8906</a> or reply to this email.")}
 ${signatureEn()}
+`;
+}
+
+export function contactConfirmationDe(name: string, subject: string, message: string): string {
+  return `
+${heading("Vielen Dank für Ihre Nachricht.")}
+${paragraph(`Hallo ${name},`)}
+${paragraph("Wir haben Ihre Nachricht erhalten und melden uns so schnell wie möglich bei Ihnen — meist innerhalb von 1 Werktag.")}
+${subheading("Ihre Nachricht")}
+${paragraph(`<strong>Betreff:</strong> ${subject}`)}
+${quote(message.replace(/\n/g, "<br />"))}
+${paragraph("Haben Sie in der Zwischenzeit eine Frage? Rufen Sie uns gerne unter <a href='tel:+31618098906' style='color: " + COPPER + ";'>+31 6 1809 8906</a> an oder antworten Sie auf diese E-Mail.")}
+${signatureDe()}
 `;
 }
 

@@ -110,6 +110,7 @@ function PageSections({ slug }: { slug: string }) {
   const contentEntries = useQuery(api.siteContent.getPageContentAdmin, { slug });
   const updateSection = useMutation(api.siteContent.updateSection);
   const toggleSection = useMutation(api.siteContent.toggleSection);
+  const reorderSections = useMutation(api.siteContent.reorderSections);
   const translateSection = useAction(api.siteContentTranslate.translateSection);
   const translatePage = useAction(api.siteContentTranslate.translatePage);
 
@@ -245,6 +246,21 @@ function PageSections({ slug }: { slug: string }) {
     }
   }
 
+  async function handleMoveSection(sectionId: string, direction: "up" | "down") {
+    if (!page) return;
+    const sorted = [...page.sections].sort((a, b) => a.sortOrder - b.sortOrder);
+    const idx = sorted.findIndex((s) => s.id === sectionId);
+    if (idx < 0) return;
+    const target = direction === "up" ? idx - 1 : idx + 1;
+    if (target < 0 || target >= sorted.length) return;
+    [sorted[idx], sorted[target]] = [sorted[target], sorted[idx]];
+    try {
+      await reorderSections({ pageSlug: slug, sectionIds: sorted.map((s) => s.id) });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Fout bij verplaatsen.");
+    }
+  }
+
   function sectionAvailableSources(sectionId: string): Lang[] {
     return ALL_LANGS.filter((l) => {
       if (l === activeLang) return false;
@@ -317,10 +333,12 @@ function PageSections({ slug }: { slug: string }) {
         />
       </div>
 
-      {sortedSections.map((section) => {
+      {sortedSections.map((section, sectionIdx) => {
         const isExpanded = expandedSection === section.id;
         const entry = getEntry(section.id, activeLang);
         const schema = entry?.parsedSchema as { label?: string; fields?: FieldSchema[] } | undefined;
+        const canMoveUp = sectionIdx > 0;
+        const canMoveDown = sectionIdx < sortedSections.length - 1;
 
         return (
           <div
@@ -348,6 +366,26 @@ function PageSections({ slug }: { slug: string }) {
               </button>
 
               <div className="flex items-center gap-3">
+                <div className="flex flex-col gap-0.5">
+                  <button
+                    type="button"
+                    onClick={() => handleMoveSection(section.id, "up")}
+                    disabled={!canMoveUp}
+                    className="text-[12px] leading-none text-ink/40 hover:text-ink cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed px-1"
+                    title="Sectie omhoog"
+                  >
+                    ▲
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleMoveSection(section.id, "down")}
+                    disabled={!canMoveDown}
+                    className="text-[12px] leading-none text-ink/40 hover:text-ink cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed px-1"
+                    title="Sectie omlaag"
+                  >
+                    ▼
+                  </button>
+                </div>
                 <button
                   onClick={() => handleToggle(section.id)}
                   className={`text-[11px] font-medium px-2.5 py-1 rounded-[2px] cursor-pointer transition-colors ${
@@ -439,6 +477,21 @@ function PageSections({ slug }: { slug: string }) {
                     data={editData as Record<string, unknown>}
                     displayData={(entry as { displayContent?: Record<string, unknown> }).displayContent}
                     onChange={setEditData}
+                    onStructuralChange={async (newData) => {
+                      // Persist immediately so server-resolved displayContent (image URLs)
+                      // stays in sync with the reordered/added/removed items.
+                      setEditData(newData);
+                      try {
+                        await updateSection({
+                          pageSlug: slug,
+                          sectionId: section.id,
+                          lang: activeLang,
+                          content: JSON.stringify(newData),
+                        });
+                      } catch (err) {
+                        setError(err instanceof Error ? err.message : "Fout bij opslaan.");
+                      }
+                    }}
                     pageSlug={slug}
                     sectionId={section.id}
                   />

@@ -13,6 +13,10 @@ type Props = {
   data: Record<string, unknown>;
   displayData?: Record<string, unknown>; // Resolved URLs for image previews
   onChange: (data: Record<string, unknown>) => void;
+  /** Called when the user reorders/adds/removes an item — for immediate persistence
+   *  so displayData (server-resolved URLs) refreshes in sync. Receives the new full
+   *  section data after the structural change. */
+  onStructuralChange?: (data: Record<string, unknown>) => void;
   prefix?: string;
   pageSlug?: string;
   sectionId?: string;
@@ -23,9 +27,12 @@ const labelClass =
 const inputClass =
   "w-full bg-transparent border border-rule px-3 py-2 text-[13px] text-ink focus:border-copper focus:outline-none rounded-[2px]";
 
-export function ContentFieldRenderer({ fields, data, displayData, onChange, prefix = "", pageSlug, sectionId }: Props) {
+export function ContentFieldRenderer({ fields, data, displayData, onChange, onStructuralChange, prefix = "", pageSlug, sectionId }: Props) {
   function updateField(key: string, value: unknown) {
     onChange({ ...data, [key]: value });
+  }
+  function notifyStructural(key: string, value: unknown) {
+    if (onStructuralChange) onStructuralChange({ ...data, [key]: value });
   }
 
   return (
@@ -137,6 +144,7 @@ export function ContentFieldRenderer({ fields, data, displayData, onChange, pref
               items={(value as unknown[]) ?? []}
               displayData={displayData}
               onChange={(newItems) => updateField(field.key, newItems)}
+              onStructural={(newItems) => notifyStructural(field.key, newItems)}
               pageSlug={pageSlug}
               sectionId={sectionId}
             />
@@ -156,6 +164,7 @@ function ArrayField({
   items,
   displayData,
   onChange,
+  onStructural,
   pageSlug,
   sectionId,
 }: {
@@ -164,9 +173,14 @@ function ArrayField({
   items: unknown[];
   displayData?: Record<string, unknown>;
   onChange: (items: unknown[]) => void;
+  onStructural?: (items: unknown[]) => void;
   pageSlug?: string;
   sectionId?: string;
 }) {
+  function commit(updated: unknown[]) {
+    onChange(updated);
+    if (onStructural) onStructural(updated);
+  }
   const listRef = useRef<HTMLDivElement>(null);
   const isSimple =
     field.itemFields!.length === 1 && field.itemFields![0].key === "value";
@@ -182,15 +196,17 @@ function ArrayField({
   }
 
   function addItem() {
+    let updated: unknown[];
     if (isSimple) {
-      onChange([...items, ""]);
+      updated = [...items, ""];
     } else {
       const empty: Record<string, string> = {};
       for (const f of field.itemFields!) {
         empty[f.key] = "";
       }
-      onChange([...items, empty]);
+      updated = [...items, empty];
     }
+    commit(updated);
     // Scroll to new item after React renders
     requestAnimationFrame(() => {
       const container = listRef.current;
@@ -262,7 +278,7 @@ function ArrayField({
                   onClick={() => {
                     const updated = [...items];
                     [updated[idx - 1], updated[idx]] = [updated[idx], updated[idx - 1]];
-                    onChange(updated);
+                    commit(updated);
                   }}
                   className="text-[10px] text-ink/30 hover:text-ink cursor-pointer"
                   title="Omhoog"
@@ -276,7 +292,7 @@ function ArrayField({
                   onClick={() => {
                     const updated = [...items];
                     [updated[idx], updated[idx + 1]] = [updated[idx + 1], updated[idx]];
-                    onChange(updated);
+                    commit(updated);
                   }}
                   className="text-[10px] text-ink/30 hover:text-ink cursor-pointer"
                   title="Omlaag"
@@ -288,7 +304,7 @@ function ArrayField({
                 type="button"
                 onClick={() => {
                   const updated = items.filter((_, i) => i !== idx);
-                  onChange(updated);
+                  commit(updated);
                 }}
                 className="text-[10px] text-ink/30 hover:text-red-500 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
                 title="Verwijderen"
