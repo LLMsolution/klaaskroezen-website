@@ -166,12 +166,6 @@ export function Navbar({ lang }: { lang: Lang }) {
           >
             {user ? s.mijnAccount : s.inloggen}
           </Link>
-          <Link
-            href="/checkout/set-online"
-            className="hidden lg:block bg-copper text-paper px-[18px] py-[9px] text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors duration-200 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-paper focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
-          >
-            {s.trainingKopen}
-          </Link>
 
           {/* Hamburger */}
           <button
@@ -243,13 +237,6 @@ export function Navbar({ lang }: { lang: Lang }) {
               onClick={closeMobile}
             >
               {user ? s.mijnAccount : s.inloggen}
-            </Link>
-            <Link
-              href="/checkout/set-online"
-              className="bg-copper text-paper px-[18px] py-3 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors duration-200 text-center outline-none focus-visible:ring-2 focus-visible:ring-paper"
-              onClick={closeMobile}
-            >
-              {s.trainingKopen}
             </Link>
           </div>
         </nav>
