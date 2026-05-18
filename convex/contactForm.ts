@@ -2,10 +2,14 @@ import { v } from "convex/values";
 import { action, internalMutation, internalQuery, internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { rateLimiter } from "./rateLimits";
-import { contactNotification, contactConfirmationNl, TEMPLATE_OPTIONS } from "./emailTemplates";
+import {
+  contactNotification,
+  contactConfirmationNl,
+  contactConfirmationEn,
+  contactConfirmationDe,
+  TEMPLATE_OPTIONS,
+} from "./emailTemplates";
 import { layout } from "./emailHelpers";
-
-const FROM = "Klaas Kroezen <klaas@klaaskroezen.nl>";
 
 const submitArgs = {
   name: v.string(),
@@ -14,6 +18,7 @@ const submitArgs = {
   company: v.optional(v.string()),
   subject: v.string(),
   message: v.string(),
+  lang: v.optional(v.union(v.literal("nl"), v.literal("en"), v.literal("de"))),
 };
 
 /**
@@ -104,10 +109,30 @@ export const sendNotification = internalAction({
       });
 
       // 2. Send confirmation to customer (tracked + logged under their email)
+      const lang: "nl" | "en" | "de" =
+        submission.lang === "en" || submission.lang === "de" ? submission.lang : "nl";
+      const subject =
+        lang === "en"
+          ? "Thank you for your message — Klaas Kroezen"
+          : lang === "de"
+            ? "Vielen Dank für Ihre Nachricht — Klaas Kroezen"
+            : "Bedankt voor je bericht — Klaas Kroezen";
+      const builder =
+        lang === "en"
+          ? contactConfirmationEn
+          : lang === "de"
+            ? contactConfirmationDe
+            : contactConfirmationNl;
+      const opts =
+        lang === "en"
+          ? TEMPLATE_OPTIONS["contact-confirmation-en"]
+          : lang === "de"
+            ? TEMPLATE_OPTIONS["contact-confirmation-de"]
+            : TEMPLATE_OPTIONS["contact-confirmation-nl"];
       await ctx.runAction(internal.emails.sendEmail, {
         to: submission.email,
-        subject: "Bedankt voor je bericht — Klaas Kroezen",
-        html: layout(contactConfirmationNl(submission.name, submission.subject, submission.message), TEMPLATE_OPTIONS["contact-confirmation-nl"]),
+        subject,
+        html: layout(builder(submission.name, submission.subject, submission.message), opts),
         template: "contact-confirmation",
       });
     } catch (error) {
@@ -181,7 +206,7 @@ export const crmHook = internalMutation({
         sourceDetail: sub.subject,
         tags: [],
         unsubscribed: false,
-        lang: "nl",
+        lang: sub.lang ?? "nl",
         createdAt: now,
       });
       contact = await ctx.db.get(contactId);

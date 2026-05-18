@@ -231,6 +231,7 @@ export default defineSchema({
     company: v.optional(v.string()),
     subject: v.string(),
     message: v.string(),
+    lang: v.optional(langValidator),
     turnstileVerified: v.boolean(),
     emailSent: v.boolean(),
     createdAt: v.number(),

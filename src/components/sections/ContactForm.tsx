@@ -54,6 +54,7 @@ export function ContactForm({ lang }: Props) {
         phone: form.telefoon || undefined,
         subject: form.onderwerp || s.fallbackSubject,
         message: form.bericht,
+        lang,
         turnstileToken,
       });
       setStatus("sent");
