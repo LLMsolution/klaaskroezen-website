@@ -47,16 +47,17 @@ const nextConfig: NextConfig = {
         destination: "/over-ons",
         permanent: true,
       },
-      // Marketing landing pages migrated to /training/[slug]/marketing — keep
-      // SEO equity by 301'ing the old paths.
+      // Canonical marketing URLs are /sales-excellence-training and
+      // /customer-success-training. Redirect the legacy /training/[slug]/marketing
+      // alias paths to the canonical URLs (preserve SEO equity).
       {
-        source: "/sales-excellence-training",
-        destination: "/training/set-online/marketing",
+        source: "/training/set-online/marketing",
+        destination: "/sales-excellence-training",
         permanent: true,
       },
       {
-        source: "/customer-success-training",
-        destination: "/training/cst-online/marketing",
+        source: "/training/cst-online/marketing",
+        destination: "/customer-success-training",
         permanent: true,
       },
     ];
