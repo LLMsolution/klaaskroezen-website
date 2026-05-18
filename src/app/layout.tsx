@@ -10,6 +10,8 @@ import { ConvexProvider } from "@/components/providers/ConvexProvider";
 import { AnalyticsConsent } from "@/components/providers/AnalyticsConsent";
 import { BookPopup } from "@/components/ui/BookPopup";
 import { getLocale } from "@/lib/i18n/server";
+import { fetchQuery } from "convex/nextjs";
+import { api } from "../../convex/_generated/api";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -53,10 +55,16 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const lang = await getLocale();
+  const tracking = await fetchQuery(api.settings.getTrackingScripts, {}).catch(() => ({ trackingScriptsHead: "" }));
 
   return (
     <ConvexAuthNextjsServerProvider>
       <html lang={lang} className={`${playfair.variable} ${dmSans.variable}`}>
+        <head>
+          {tracking.trackingScriptsHead ? (
+            <script dangerouslySetInnerHTML={{ __html: tracking.trackingScriptsHead.replace(/<\/?script[^>]*>/gi, "") }} />
+          ) : null}
+        </head>
         <body className="flex flex-col min-h-screen">
           <ConvexProvider>
             <JsonLd data={organizationJsonLd} />

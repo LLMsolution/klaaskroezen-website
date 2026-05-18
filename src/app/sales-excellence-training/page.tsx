@@ -56,6 +56,7 @@ export default async function SalesExcellenceTrainingPage() {
     description?: string;
     features?: { title: string; text: string }[];
   }>(db, "training-method", {});
+  const logos = sectionOr<{ label?: string; items?: Array<{ image?: string; alt?: string; width?: number; height?: number }> }>(db, "logos", {});
   const reviews = sectionOr(db, "reviews", { items: fallback.reviews });
   const pricing = sectionOr(db, "pricing", fallback.pricing);
   const crossLink = sectionOr(db, "cross-link", fallback.crossLink);
@@ -110,7 +111,7 @@ export default async function SalesExcellenceTrainingPage() {
         features={trainingMethod.features}
       />
 
-      <LogoBar />
+      <LogoBar content={logos} />
 
       <RadarModel lang={lang} />
 

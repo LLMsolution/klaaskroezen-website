@@ -6,6 +6,7 @@ import { api } from "../../../convex/_generated/api";
 import {
   calculateBtw,
   isEuCountry,
+  resolveUnitPrice,
   type BumpConfig,
 } from "@/lib/checkout-config";
 import { t, type Lang } from "@/lib/checkout-i18n";
@@ -216,10 +217,7 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
     if (isBusiness && vatNumber && isEuCountry(country) && country !== "NL") applyBtw = false;
     if (!isEuCountry(country)) applyBtw = false;
 
-    const tiers = product.quantityTiers;
-    const unitPrice = tiers
-      ? (tiers.find((t) => t.quantity === quantity)?.unitPriceCents ?? product.priceCents)
-      : product.priceCents;
+    const unitPrice = resolveUnitPrice(product.quantityTiers, quantity, product.priceCents);
     let productPriceCents = unitPrice * quantity;
 
     if (discountStatus === "valid" && discountValue) {
@@ -280,7 +278,7 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
       // Calculate discount amount in cents for the pending order
       let discountAmountCents: number | undefined;
       if (discountStatus === "valid" && discountValue && product) {
-        const unitPrice = product.quantityTiers?.find((t) => t.quantity === quantity)?.unitPriceCents ?? product.priceCents;
+        const unitPrice = resolveUnitPrice(product.quantityTiers, quantity, product.priceCents);
         const total = unitPrice * quantity;
         discountAmountCents = discountValue.type === "percentage"
           ? Math.round(total * (discountValue.value / 100))
@@ -464,6 +462,8 @@ export function CheckoutClient({ productSlug, lang, recoveryOrderId, paymentFail
               setDiscountStatus={setDiscountStatus} setDiscountValue={setDiscountValue}
               quantity={quantity} setQuantity={setQuantity}
               quantityTiers={product.quantityTiers}
+              allowFreeQuantity={product.allowFreeQuantity}
+              defaultPriceCents={product.priceCents}
             />
 
             {/* Payment method selection — hidden for free orders */}

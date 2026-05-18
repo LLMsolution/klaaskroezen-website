@@ -62,6 +62,8 @@ interface Props {
   quantity: number;
   setQuantity: (v: number) => void;
   quantityTiers?: QuantityTier[];
+  allowFreeQuantity?: boolean;
+  defaultPriceCents: number;
   // OAuth
   /** Tijdelijk uitgeschakeld — Google autofill UI is verborgen. */
   onOAuth?: () => void;
@@ -94,7 +96,7 @@ export function CheckoutForm(props: Props) {
     useInstallments, setUseInstallments,
     discountCode, setDiscountCode, discountOpen, setDiscountOpen,
     discountStatus, discountValue, setDiscountStatus, setDiscountValue,
-    quantity, setQuantity, quantityTiers,
+    quantity, setQuantity, quantityTiers, allowFreeQuantity, defaultPriceCents,
     onOAuth,
   } = props;
   const i18n = t(lang);
@@ -218,7 +220,7 @@ export function CheckoutForm(props: Props) {
 
       {/* Quantity tiers */}
       {quantityTiers && (
-        <QuantitySelector tiers={quantityTiers} selected={quantity} onChange={setQuantity} lang={lang} />
+        <QuantitySelector tiers={quantityTiers} selected={quantity} onChange={setQuantity} lang={lang} allowFreeQuantity={allowFreeQuantity} defaultPriceCents={defaultPriceCents} />
       )}
 
       {/* Order bumps + bundle discount */}

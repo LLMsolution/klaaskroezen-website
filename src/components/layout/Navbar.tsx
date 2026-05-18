@@ -8,8 +8,16 @@ import { api } from "../../../convex/_generated/api";
 import { t, type Lang } from "@/lib/i18n";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
-function MegaDropdown({ lang }: { lang: Lang }) {
-  const s = t(lang).nav;
+type NavOverrides = Partial<{
+  trainingen: string; spreker: string; boek: string; overOns: string; contact: string;
+  inloggen: string; mijnAccount: string; trainingKopen: string;
+  setLabel: string; setTitle: string; setDesc: string; setCta: string;
+  cstLabel: string; cstTitle: string; cstDesc: string; cstCta: string;
+}>;
+
+function MegaDropdown({ lang, n }: { lang: Lang; n: NavOverrides & { setLabel: string; setTitle: string; setDesc: string; setCta: string; cstLabel: string; cstTitle: string; cstDesc: string; cstCta: string } }) {
+  void lang;
+  const s = n;
 
   return (
     <div
@@ -59,7 +67,10 @@ function MegaDropdown({ lang }: { lang: Lang }) {
 }
 
 export function Navbar({ lang }: { lang: Lang }) {
-  const s = t(lang).nav;
+  const base = t(lang).nav;
+  const navDb = useQuery(api.siteContent.getSection, { pageSlug: "site-shared", sectionId: "navigation", lang });
+  const navOverrides = (navDb?.parsedContent as NavOverrides | undefined) ?? {};
+  const s = { ...base, ...navOverrides };
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const user = useQuery(api.users.getCurrentUser);
@@ -128,7 +139,7 @@ export function Navbar({ lang }: { lang: Lang }) {
                 &#9662;
               </span>
             </button>
-            <MegaDropdown lang={lang} />
+            <MegaDropdown lang={lang} n={s} />
           </div>
           <NavLink href="/spreker" active={pathname === "/spreker"}>
             {s.spreker}

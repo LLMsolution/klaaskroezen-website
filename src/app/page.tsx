@@ -53,7 +53,7 @@ export default async function HomePage() {
   };
   const slideshow = sectionOr(db, "slideshow", {} as Section) as { slides?: Array<{ image?: string; alt?: string; objectPosition?: string; quote?: string; author?: string; role?: string; detail?: string }> };
   const logos = sectionOr(db, "logos", {} as Section) as { label?: string; items?: Array<{ image?: string; alt?: string; width?: number; height?: number }> };
-  const trainingCards = sectionOr(db, "training-cards", {} as Section) as { eyebrow?: string; title?: string; titleAccent?: string; introBold?: string; introEnd?: string; items?: Array<{ image?: string; imageAlt?: string; label?: string; title?: string; who?: string; description?: string; descriptionHighlight?: string; descriptionEnd?: string; points?: string[]; href?: string; ctaLabel?: string }> };
+  const trainingCards = sectionOr(db, "training-cards", {} as Section) as { eyebrow?: string; title?: string; titleAccent?: string; introBold?: string; introEnd?: string; items?: Array<{ image?: string; imageAlt?: string; label?: string; title?: string; who?: string; description?: string; descriptionHighlight?: string; descriptionEnd?: string; points?: string[]; href?: string; ctaLabel?: string }>; trustItems?: string[] };
   const finaleCta = sectionOr(db, "finale-cta", {} as Section) as { eyebrow?: string; title?: string; titleAccent?: string; description?: string; ctaPrimary?: string; ctaSecondary?: string; guarantees?: string[] };
   const stats = sectionOr(db, "stats", {} as Section) as { items?: Array<{ value?: string; label?: string }> };
   const teamPhotos = sectionOr(db, "team-photos", {} as Section) as { eyebrow?: string; title?: string; titleAccent?: string; items?: Array<{ image?: string; caption?: string; featured?: string }> };
@@ -70,6 +70,7 @@ export default async function HomePage() {
     bio2?: string;
     ctaPrimary?: string;
     ctaSecondary?: string;
+    stats?: Array<{ value?: string; label?: string }>;
   };
   const bookTeaser = sectionOr(db, "book-teaser", {} as Section) as {
     image?: string;

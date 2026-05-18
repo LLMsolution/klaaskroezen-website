@@ -43,6 +43,7 @@ type TrainingCardsProps = {
     introBold?: string;
     introEnd?: string;
     items?: TrainingCardItem[];
+    trustItems?: string[];
   };
 };
 
@@ -210,7 +211,10 @@ export async function TrainingCards({ lang, content }: TrainingCardsProps) {
         </div>
 
         <div className="flex flex-wrap justify-center gap-x-8 gap-y-3 mt-8 sm:mt-10 text-[13px] sm:text-[14px] text-ink/60">
-          {[s.trust1, s.trust2, s.trust3].map((item) => (
+          {(content?.trustItems && content.trustItems.length > 0
+            ? content.trustItems.filter((v) => v && v.trim())
+            : [s.trust1, s.trust2, s.trust3]
+          ).map((item) => (
             <span key={item} className="flex items-center gap-2">
               <span className="text-copper" aria-hidden="true">&#10003;</span>
               {item}

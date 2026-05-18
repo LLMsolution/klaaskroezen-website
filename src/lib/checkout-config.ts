@@ -42,6 +42,27 @@ export interface QuantityTier {
   quantity: number;
   unitPriceCents: number;
   savingsPercent: number;
+  isMinimum?: boolean;
+}
+
+/**
+ * Resolve unit price for a given quantity:
+ * - Exact tier match wins.
+ * - Otherwise, the largest `isMinimum` tier with `quantity <= requested` wins.
+ * - Fallback: `defaultPriceCents`.
+ */
+export function resolveUnitPrice(
+  tiers: QuantityTier[] | undefined,
+  requested: number,
+  defaultPriceCents: number,
+): number {
+  if (!tiers || tiers.length === 0) return defaultPriceCents;
+  const exact = tiers.find((t) => t.quantity === requested);
+  if (exact) return exact.unitPriceCents;
+  const minimums = tiers
+    .filter((t) => t.isMinimum && t.quantity <= requested)
+    .sort((a, b) => b.quantity - a.quantity);
+  return minimums[0]?.unitPriceCents ?? defaultPriceCents;
 }
 
 /** Format price from cents to display string */

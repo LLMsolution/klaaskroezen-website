@@ -83,10 +83,15 @@ export const sendNotification = internalAction({
     );
     if (!submission) return;
 
+    const notificationTo = await ctx.runQuery(
+      internal.settings.getContactNotificationEmail,
+      {},
+    );
+
     try {
       // 1. Send admin notification (logged under customer email for tracking)
       await ctx.runAction(internal.emails.sendEmail, {
-        to: "klaas@klaaskroezen.nl",
+        to: notificationTo,
         subject: `Contactformulier: ${submission.subject}`,
         html: layout(contactNotification(submission.name, submission.email, submission.phone, submission.company, submission.subject, submission.message), TEMPLATE_OPTIONS["contact-notification"]),
         template: "contact-notification",

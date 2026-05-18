@@ -28,11 +28,14 @@
 | Migration functions internal | done (#58) | 2026-05-12 |
 | Upsell skip owned + Google login uit | done (#59) | 2026-05-12 |
 | Luisterboek resterende tijd + ProgramVideo sectie | done (#60) | 2026-05-12 |
+| Admin-aanpasbaar maken (alle pagina's + email signatures + legal) | done (#64) | 2026-05-13 |
+| Checkout flow simplificatie + Leadinfo tracking + SET/CST logos admin | in-review | 2026-05-18 |
 
 ## Current Focus
 No features in progress
 
 ## Recent Activity
+- 2026-05-12: Alle content admin-aanpasbaar — contactformulier-ontvanger + trust badges + homepage stats (Over Klaas) + staffel-feature (vrij aantal + minimum-tier) + "Ja!" weg uit bump CTA + legal pages rich-text (AV/Privacy/Herroepingsformulier) + email signatures NL/EN/DE in admin Settings + navigation labels admin-aanpasbaar + bedankt-sectie /boek verwijderd
 - 2026-05-12: Trigger Vercel redeploy — vorige build sloeg Convex deploy over, frontend backfill probe werkte daardoor niet
 - 2026-05-12: Luisterboek resterende tijd + ProgramVideo sectie merged (#60) — chapters tonen remaining time via hidden audio metadata probe, ProgramVideo tussen ProgramSection en TrainingMethod (admin-bewerkbaar)
 - 2026-05-12: Upsell skip owned + Google login UI uit merged (#59)

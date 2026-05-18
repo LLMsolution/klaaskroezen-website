@@ -113,6 +113,7 @@ export const getProductPriceData = internalQuery({
       bumpPriceOverrides: product.bumpPriceOverrides ?? [],
       installments: product.installments,
       quantityTiers: product.quantityTiers,
+      allowFreeQuantity: product.allowFreeQuantity ?? false,
     };
   },
 });
@@ -191,9 +192,11 @@ const productFields = {
         quantity: v.number(),
         unitPriceCents: v.number(),
         savingsPercent: v.number(),
+        isMinimum: v.optional(v.boolean()),
       }),
     ),
   ),
+  allowFreeQuantity: v.optional(v.boolean()),
   requiresShipping: v.boolean(),
   purchaseTag: v.optional(v.string()),
   accessDurationDays: v.optional(v.number()),
@@ -213,15 +216,6 @@ const productFields = {
       v.literal("event"),
     ),
   ),
-  thankYouPage: v.optional(v.object({
-    steps: v.array(v.object({
-      nl: v.string(),
-      en: v.string(),
-      de: v.optional(v.string()),
-    })),
-    ctaLabel: v.object({ nl: v.string(), en: v.string(), de: v.optional(v.string()) }),
-    ctaHref: v.string(),
-  })),
 };
 
 export const createProduct = mutation({
