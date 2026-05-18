@@ -626,7 +626,7 @@ function EmailSignatureSettings() {
     <div>
       <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-1">Email signatures</p>
       <p className="text-[13px] text-ink/50 mb-5">
-        HTML-blok dat onderaan elke uitgaande email verschijnt (vervangt automatisch in alle templates). Per taal apart. Leeg = standaard "Met vriendelijke groet, Klaas Kroezen".
+        HTML-blok dat onderaan elke uitgaande email verschijnt (vervangt automatisch in alle templates). Per taal apart. Leeg = standaard &ldquo;Met vriendelijke groet, Klaas Kroezen&rdquo;.
       </p>
 
       <div className="space-y-4">
