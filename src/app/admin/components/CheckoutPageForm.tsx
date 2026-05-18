@@ -556,7 +556,7 @@ export function CheckoutPageForm({ product, onBack }: Props) {
               ))}
               <button type="button" onClick={() => setTiers([...tiers, { quantity: 0, unitPriceCents: 0, savingsPercent: 0 }])} className="text-[11px] text-copper cursor-pointer">+ Staffel</button>
               <p className="text-[11px] text-ink/40 mt-2 leading-[1.5]">
-                <strong className="text-ink/60">Vanaf-aantal</strong>: aanvinken om deze prijs te laten gelden voor élk aantal vanaf dit getal (in combinatie met "vrij aantal invullen"). Anders is het een exact aantal als preset-knop.
+                <strong className="text-ink/60">Vanaf-aantal</strong>: aanvinken om deze prijs te laten gelden voor élk aantal vanaf dit getal (in combinatie met &ldquo;vrij aantal invullen&rdquo;). Anders is het een exact aantal als preset-knop.
               </p>
             </div>
           </div>
