@@ -12,6 +12,7 @@ export function seedSetContent(): PageSeed {
     { id: "program", type: "program", active: true, sortOrder: 4 },
     { id: "program-video", type: "program-video", active: true, sortOrder: 4.2 },
     { id: "training-method", type: "training-method", active: true, sortOrder: 4.5 },
+    { id: "logos", type: "logo-bar", active: true, sortOrder: 4.7 },
     { id: "reviews", type: "reviews", active: true, sortOrder: 5 },
     { id: "pricing", type: "pricing", active: true, sortOrder: 6 },
     { id: "cross-link", type: "cross-link", active: true, sortOrder: 7 },
@@ -33,6 +34,23 @@ export function seedSetContent(): PageSeed {
       title: "Sales Excellence Training",
       description: "Mehr Umsatz mit weniger Druck. Lernen Sie, wie Sie mit Aufrichtigkeit und Gelassenheit strukturell besser verkaufen — für Sales-Profis, Account Manager und Teams.",
     }),
+
+    // ── Logos ──
+    ...(["nl", "en", "de"] as const).map((lang) => makeContent(SLUG, "logos", "logo-bar", lang, {
+      label: lang === "nl" ? "Trainingen verzorgd voor" : lang === "en" ? "Trainings delivered for" : "Trainings durchgeführt für",
+      items: [
+        { image: "/images/logos/visma.png", alt: "Visma", width: 80, height: 26 },
+        { image: "/images/logos/heigo.png", alt: "Heigo", width: 80, height: 26 },
+        { image: "/images/logos/leadinfo.png", alt: "Leadinfo", width: 90, height: 26 },
+        { image: "/images/logos/gp-products.png", alt: "GP Products", width: 90, height: 26 },
+        { image: "/images/logos/gradient.png", alt: "Gradient", width: 80, height: 26 },
+        { image: "/images/logos/vasco.png", alt: "Vasco", width: 80, height: 26 },
+        { image: "/images/logos/edison.png", alt: "Edison", width: 80, height: 26 },
+        { image: "/images/logos/mt-sprout.png", alt: "MT Sprout", width: 100, height: 26 },
+        { image: "/images/logos/mom-in-balance.png", alt: "Mom in Balance", width: 100, height: 26 },
+        { image: "/images/logos/zigt.webp", alt: "Zigt", width: 66, height: 26 },
+      ],
+    })),
 
     // ── Hero NL ──
     makeContent(SLUG, "hero", "hero", "nl", {

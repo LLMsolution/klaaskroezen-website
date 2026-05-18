@@ -438,6 +438,8 @@ export default defineSchema({
     emailSignatureNl: v.optional(v.string()),
     emailSignatureEn: v.optional(v.string()),
     emailSignatureDe: v.optional(v.string()),
+    // Tracking scripts (Leadinfo, GA, etc.) — geinjecteerd in <head> van elke pagina
+    trackingScriptsHead: v.optional(v.string()),
   }).index("by_key", ["key"]),
 
   // ── CRM: Contacts ──

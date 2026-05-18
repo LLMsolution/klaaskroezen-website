@@ -80,6 +80,9 @@ export function SettingsTab() {
       {/* Email signatures (NL/EN/DE) */}
       <EmailSignatureSettings />
 
+      {/* Tracking scripts (Leadinfo, GA, etc.) */}
+      <TrackingScriptsSettings />
+
       {/* Abandoned cart timing */}
       <AbandonedCartSettings />
 
@@ -665,6 +668,68 @@ function EmailSignatureSettings() {
         className="bg-copper text-paper px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer disabled:opacity-40 mt-5"
       >
         {saving ? "Opslaan..." : saved ? "Opgeslagen!" : "Signatures opslaan"}
+      </button>
+    </div>
+  );
+}
+
+/* ─── Tracking scripts (Leadinfo, GA, etc.) ─── */
+
+function TrackingScriptsSettings() {
+  const data = useQuery(api.settings.getTrackingScriptsSettings);
+  const update = useMutation(api.settings.updateTrackingScripts);
+
+  const [value, setValue] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+
+  if (data && !initialized) {
+    setValue(data.trackingScriptsHead);
+    setInitialized(true);
+  }
+  if (!data) return <Loading />;
+
+  async function handleSave() {
+    setSaving(true);
+    setSaved(false);
+    try {
+      await update({ trackingScriptsHead: value });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const labelClass = "text-[10px] font-medium tracking-[0.2em] uppercase text-ink/50 block mb-2";
+  const ta = "w-full bg-transparent border border-rule px-3 py-2.5 text-[12px] text-ink focus:border-copper focus:outline-none rounded-[2px] font-mono leading-[1.5]";
+
+  return (
+    <div>
+      <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-1">Tracking scripts</p>
+      <p className="text-[13px] text-ink/50 mb-4">
+        Plak hier de JavaScript-code (zonder &lt;script&gt; tags) die je in de &lt;head&gt; van elke pagina wil. Bijvoorbeeld Leadinfo, Google Analytics of Hotjar.
+      </p>
+      <div>
+        <label className={labelClass}>Inline JS (gaat in &lt;head&gt;)</label>
+        <textarea
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          rows={10}
+          className={ta}
+          placeholder={`(function(l,e,a,d,i,n,f,o){...}(window,document,'script','https://cdn.leadinfo.net/ping.js','leadinfo','LI-XXXXXXXX'));`}
+        />
+        <p className="text-[11px] text-ink/40 mt-2">
+          Tip: als je een snippet plakt met &lt;script&gt;...&lt;/script&gt; tags worden die er automatisch uitgehaald.
+        </p>
+      </div>
+      <button
+        onClick={handleSave}
+        disabled={saving}
+        className="bg-copper text-paper px-5 py-2.5 text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-copper-light transition-colors rounded-[2px] cursor-pointer disabled:opacity-40 mt-4"
+      >
+        {saving ? "Opslaan..." : saved ? "Opgeslagen!" : "Tracking scripts opslaan"}
       </button>
     </div>
   );

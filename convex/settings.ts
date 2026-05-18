@@ -150,6 +150,47 @@ export const updateSellerSettings = mutation({
   },
 });
 
+// ── Tracking scripts ──
+
+export const getTrackingScripts = query({
+  args: {},
+  handler: async (ctx) => {
+    const settings = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+    return { trackingScriptsHead: settings?.trackingScriptsHead ?? "" };
+  },
+});
+
+export const getTrackingScriptsSettings = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    const settings = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+    return { trackingScriptsHead: settings?.trackingScriptsHead ?? "" };
+  },
+});
+
+export const updateTrackingScripts = mutation({
+  args: { trackingScriptsHead: v.string() },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const existing = await ctx.db
+      .query("siteSettings")
+      .withIndex("by_key", (q) => q.eq("key", "global"))
+      .first();
+    if (existing) {
+      await ctx.db.patch(existing._id, args);
+    } else {
+      await ctx.db.insert("siteSettings", { key: "global", ...args });
+    }
+  },
+});
+
 // ── Email signatures ──
 
 const DEFAULT_SIG = {

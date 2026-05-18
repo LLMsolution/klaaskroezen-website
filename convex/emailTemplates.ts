@@ -87,7 +87,8 @@ ${ctaButton("Beantwoord via mail", `mailto:${email}?subject=Re: ${encodeURICompo
 `;
 }
 
-export function purchaseConfirmationNl(name: string, product: string, invoiceNumber: string): string {
+export function purchaseConfirmationNl(name: string, product: string, invoiceNumber: string, loginUrl?: string): string {
+  const dashboardUrl = loginUrl || `${SITE_URL}/dashboard`;
   return `
 ${heading("Bedankt voor je bestelling!")}
 ${paragraph(`Hoi ${name},`)}
@@ -96,14 +97,15 @@ ${paragraph(`Je bestelling van <strong>${product}</strong> is succesvol ontvange
   <tr><td style="padding: 6px 0; font-size: 14px; color: #999;">Factuurnummer</td><td style="padding: 6px 0; font-size: 15px; color: #0E0C0A; text-align: right;">${invoiceNumber}</td></tr>
   <tr><td style="padding: 6px 0; font-size: 14px; color: #999;">Product</td><td style="padding: 6px 0; font-size: 15px; color: #0E0C0A; text-align: right;">${product}</td></tr>
 </table>
-${paragraph("Je factuur is als bijlage toegevoegd aan deze e-mail. Bij trainingen ontvang je binnen enkele minuten een aparte e-mail met je toegangsgegevens.")}
-${ctaButton("Ga naar je dashboard", `${SITE_URL}/dashboard`)}
+${paragraph("Je factuur is als bijlage toegevoegd. Log in op je dashboard om al je aankopen te bekijken — boeken, trainingen en downloads vind je terug onder je account.")}
+${ctaButton("Bekijk mijn aankoop", dashboardUrl)}
 ${paragraph("Vragen? Reply gerust op deze mail.")}
 ${signature()}
 `;
 }
 
-export function purchaseConfirmationEn(name: string, product: string, invoiceNumber: string): string {
+export function purchaseConfirmationEn(name: string, product: string, invoiceNumber: string, loginUrl?: string): string {
+  const dashboardUrl = loginUrl || `${SITE_URL}/dashboard`;
   return `
 ${heading("Thank you for your order!")}
 ${paragraph(`Hi ${name},`)}
@@ -112,10 +114,27 @@ ${paragraph(`Your order for <strong>${product}</strong> has been successfully re
   <tr><td style="padding: 6px 0; font-size: 14px; color: #999;">Invoice number</td><td style="padding: 6px 0; font-size: 15px; color: #0E0C0A; text-align: right;">${invoiceNumber}</td></tr>
   <tr><td style="padding: 6px 0; font-size: 14px; color: #999;">Product</td><td style="padding: 6px 0; font-size: 15px; color: #0E0C0A; text-align: right;">${product}</td></tr>
 </table>
-${paragraph("Your invoice is attached to this email. For trainings, you'll receive a separate email with your access details within a few minutes.")}
-${ctaButton("Go to your dashboard", `${SITE_URL}/dashboard`)}
+${paragraph("Your invoice is attached. Log in to your dashboard to view all your purchases — books, trainings and downloads are all in one account.")}
+${ctaButton("View my purchase", dashboardUrl)}
 ${paragraph("Questions? Feel free to reply to this email.")}
 ${signatureEn()}
+`;
+}
+
+export function purchaseConfirmationDe(name: string, product: string, invoiceNumber: string, loginUrl?: string): string {
+  const dashboardUrl = loginUrl || `${SITE_URL}/dashboard`;
+  return `
+${heading("Vielen Dank für Ihre Bestellung!")}
+${paragraph(`Hallo ${name},`)}
+${paragraph(`Ihre Bestellung von <strong>${product}</strong> wurde erfolgreich empfangen. Nachfolgend finden Sie die Details.`)}
+<table role="presentation" cellpadding="0" cellspacing="0" style="margin: 20px 0; padding: 20px; background-color: #faf8f5; border-radius: 2px; width: 100%;">
+  <tr><td style="padding: 6px 0; font-size: 14px; color: #999;">Rechnungsnummer</td><td style="padding: 6px 0; font-size: 15px; color: #0E0C0A; text-align: right;">${invoiceNumber}</td></tr>
+  <tr><td style="padding: 6px 0; font-size: 14px; color: #999;">Produkt</td><td style="padding: 6px 0; font-size: 15px; color: #0E0C0A; text-align: right;">${product}</td></tr>
+</table>
+${paragraph("Ihre Rechnung ist angehängt. Melden Sie sich in Ihrem Dashboard an, um alle Ihre Bestellungen zu sehen — Bücher, Trainings und Downloads finden Sie in einem Konto.")}
+${ctaButton("Meine Bestellung ansehen", dashboardUrl)}
+${paragraph("Fragen? Antworten Sie einfach auf diese E-Mail.")}
+${signatureDe()}
 `;
 }
 

@@ -173,22 +173,10 @@ export const sendPurchaseConfirmation = internalAction({
         ? `Bestätigung & Rechnung ${invoice.invoiceNumber}`
         : `Confirmation & Invoice ${invoice.invoiceNumber}`;
 
-    const [purchase, pdfResult, bumpSlugs] = await Promise.all([
-      ctx.runQuery(internal.emails.getPurchaseById, { purchaseId: invoice.purchaseId }),
-      ctx.runAction(internal.invoicePdf.generateAndAttachInvoicePdf, { invoiceId }).catch((err) => {
-        console.error("[sendPurchaseConfirmation] PDF generation failed for invoice", invoiceId, err);
-        return null;
-      }),
-      ctx.runQuery(internal.emails.getBumpsByMolliePaymentId, { molliePaymentId: invoice.molliePaymentId }),
-    ]);
-    const productVariant = purchase?.product
-      ? await ctx.runQuery(internal.emails.getProductVariantBySlug, { slug: purchase.product })
-      : undefined;
-    const bumpVariants = bumpSlugs.length
-      ? await Promise.all(bumpSlugs.map((slug) =>
-          ctx.runQuery(internal.emails.getProductVariantBySlug, { slug })
-        ))
-      : [];
+    const pdfResult = await ctx.runAction(internal.invoicePdf.generateAndAttachInvoicePdf, { invoiceId }).catch((err) => {
+      console.error("[sendPurchaseConfirmation] PDF generation failed for invoice", invoiceId, err);
+      return null;
+    });
 
     // One-click login token: clicking the CTA in this email signs the buyer in
     // (creating the account on first use) and lands them on /dashboard.
@@ -197,11 +185,7 @@ export const sendPurchaseConfirmation = internalAction({
       purchaseId: invoice.purchaseId,
     });
 
-    const html = buildPurchaseConfirmationHtml(
-      invoice, lang, purchase?.product, productVariant ?? undefined,
-      bumpVariants.filter((v): v is ProductVariant => !!v),
-      loginToken,
-    );
+    const html = buildPurchaseConfirmationHtml(invoice, lang, loginToken);
 
     const fileName = `factuur-${invoice.invoiceNumber}.pdf`;
     await ctx.runAction(internal.emails.sendEmail, {
@@ -560,9 +544,6 @@ function buildPurchaseConfirmationHtml(
     purchaseId: string;
   },
   lang: "nl" | "en" | "de",
-  productSlug?: string,
-  productVariant?: ProductVariant,
-  bumpVariants?: ProductVariant[],
   loginToken?: string,
 ): string {
   const t = (s: { nl: string; en: string; de: string }) => s[lang];
@@ -590,77 +571,11 @@ function buildPurchaseConfirmationHtml(
   const tokenParam = loginToken ? `&t=${encodeURIComponent(loginToken)}` : "";
   const loginBase = `${SITE_URL}/login/kopen?email=${emailParam}${tokenParam}&next=`;
   const dashboardUrl = `${loginBase}${encodeURIComponent("/dashboard")}`;
-  const downloadsUrl = `${loginBase}${encodeURIComponent("/dashboard#downloads")}`;
-  let bookSection = "";
-  let primaryCta: { label: string; href: string } = {
-    label: t({ nl: "Ga naar mijn dashboard", en: "Go to my dashboard", de: "Zu meinem Dashboard" }),
+  const primaryCta = {
+    label: t({ nl: "Bekijk mijn aankoop", en: "View my purchase", de: "Meine Bestellung ansehen" }),
     href: dashboardUrl,
   };
 
-  // Resolve effective variant — prefer DB value, fall back to legacy slug check.
-  const effectiveVariant: ProductVariant | undefined =
-    productVariant ??
-    (productSlug === "boek-ebook"
-      ? "ebook"
-      : productSlug === "boek-luisterboek"
-        ? "audiobook"
-        : productSlug === "boek-hardcopy"
-          ? "hardcopy"
-          : undefined);
-
-  if (effectiveVariant === "ebook") {
-    bookSection = paragraph(t({
-      nl: "Je <strong>e-book</strong> staat klaar in je dashboard onder Downloads — direct te lezen op computer, tablet of telefoon.",
-      en: "Your <strong>e-book</strong> is ready in your dashboard under Downloads — read it right away on your computer, tablet, or phone.",
-      de: "Ihr <strong>E-Book</strong> steht in Ihrem Dashboard unter Downloads bereit — sofort lesbar auf Computer, Tablet oder Smartphone.",
-    }));
-    primaryCta = {
-      label: t({ nl: "Download je e-book", en: "Download your e-book", de: "E-Book herunterladen" }),
-      href: downloadsUrl,
-    };
-  } else if (effectiveVariant === "audiobook") {
-    bookSection = paragraph(t({
-      nl: "Je <strong>luisterboek</strong> vind je in je dashboard onder Trainingen — luister onderweg, tijdens het sporten of thuis op de bank.",
-      en: "Your <strong>audiobook</strong> is in your dashboard under Trainings — listen on the go, while exercising, or at home.",
-      de: "Ihr <strong>Hörbuch</strong> finden Sie in Ihrem Dashboard unter Trainings — hören Sie unterwegs, beim Sport oder zu Hause.",
-    }));
-    primaryCta = {
-      label: t({ nl: "Naar je luisterboek", en: "Go to your audiobook", de: "Zu Ihrem Hörbuch" }),
-      href: dashboardUrl,
-    };
-  } else if (effectiveVariant === "hardcopy") {
-    bookSection = paragraph(t({
-      nl: "Je <strong>fysieke boek</strong> wordt binnen 2 werkdagen verzonden naar het adres dat je hebt opgegeven. Je ontvangt een aparte mail zodra het pakket onderweg is.",
-      en: "Your <strong>physical book</strong> ships within 2 business days to the address you provided. You'll receive a separate email once it's on its way.",
-      de: "Ihr <strong>physisches Buch</strong> wird innerhalb von 2 Werktagen an die angegebene Adresse versandt. Sie erhalten eine separate E-Mail, sobald das Paket unterwegs ist.",
-    }));
-  }
-
-  // Add bump-specific sections for variants not already covered by the main product.
-  const coveredVariants = new Set<ProductVariant>(effectiveVariant ? [effectiveVariant] : []);
-  for (const bumpVariant of bumpVariants ?? []) {
-    if (coveredVariants.has(bumpVariant)) continue;
-    coveredVariants.add(bumpVariant);
-    if (bumpVariant === "ebook") {
-      bookSection += paragraph(t({
-        nl: "Je <strong>e-book</strong> staat klaar in je dashboard onder Downloads — direct te lezen op computer, tablet of telefoon.",
-        en: "Your <strong>e-book</strong> is ready in your dashboard under Downloads — read it right away on your computer, tablet, or phone.",
-        de: "Ihr <strong>E-Book</strong> steht in Ihrem Dashboard unter Downloads bereit — sofort lesbar auf Computer, Tablet oder Smartphone.",
-      }));
-    } else if (bumpVariant === "audiobook") {
-      bookSection += paragraph(t({
-        nl: "Je <strong>luisterboek</strong> vind je in je dashboard onder Trainingen — luister onderweg, tijdens het sporten of thuis op de bank.",
-        en: "Your <strong>audiobook</strong> is in your dashboard under Trainings — listen on the go, while exercising, or at home.",
-        de: "Ihr <strong>Hörbuch</strong> finden Sie in Ihrem Dashboard unter Trainings — hören Sie unterwegs, beim Sport oder zu Hause.",
-      }));
-    } else if (bumpVariant === "hardcopy") {
-      bookSection += paragraph(t({
-        nl: "Je <strong>fysieke boek</strong> wordt binnen 2 werkdagen verzonden naar het adres dat je hebt opgegeven. Je ontvangt een aparte mail zodra het pakket onderweg is.",
-        en: "Your <strong>physical book</strong> ships within 2 business days to the address you provided. You'll receive a separate email once it's on its way.",
-        de: "Ihr <strong>physisches Buch</strong> wird innerhalb von 2 Werktagen an die angegebene Adresse versandt. Sie erhalten eine separate E-Mail, sobald das Paket unterwegs ist.",
-      }));
-    }
-  }
 
   return layout(`
 ${heading(t({ nl: "Bedankt voor je bestelling!", en: "Thank you for your order!", de: "Vielen Dank für Ihre Bestellung!" }))}
@@ -669,7 +584,11 @@ ${paragraph(t({
   en: `Hi ${firstName}, below you'll find your order and invoice details.`,
   de: `Hallo ${firstName}, unten finden Sie Ihre Bestellung und Rechnungsdaten.`,
 }))}
-${bookSection}
+${paragraph(t({
+  nl: "Log in op je dashboard om al je aankopen te bekijken — boeken, trainingen en downloads vind je terug onder je account.",
+  en: "Log in to your dashboard to view all your purchases — books, trainings and downloads are all in one account.",
+  de: "Melden Sie sich in Ihrem Dashboard an, um alle Ihre Bestellungen zu sehen — Bücher, Trainings und Downloads finden Sie in einem Konto.",
+}))}
 
 <p style="font-size:11px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:rgba(14,12,10,0.4);margin:0 0 12px;">
   ${t({ nl: "Factuurnummer", en: "Invoice number", de: "Rechnungsnummer" })}: ${invoice.invoiceNumber}
