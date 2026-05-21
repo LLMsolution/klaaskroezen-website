@@ -439,8 +439,11 @@ export default defineSchema({
     emailSignatureNl: v.optional(v.string()),
     emailSignatureEn: v.optional(v.string()),
     emailSignatureDe: v.optional(v.string()),
-    // Tracking scripts (Leadinfo, GA, etc.) — geinjecteerd in <head> van elke pagina
+    // Tracking scripts (Leadinfo, GA, GTM, Meta Pixel, LinkedIn Insight, etc.)
+    // Parser in src/lib/tracking-scripts-parser.ts splitst <script> + <noscript>
+    // blokken en rendert ze als losse elementen.
     trackingScriptsHead: v.optional(v.string()),
+    trackingScriptsBody: v.optional(v.string()),
   }).index("by_key", ["key"]),
 
   // ── CRM: Contacts ──

@@ -159,7 +159,10 @@ export const getTrackingScripts = query({
       .query("siteSettings")
       .withIndex("by_key", (q) => q.eq("key", "global"))
       .first();
-    return { trackingScriptsHead: settings?.trackingScriptsHead ?? "" };
+    return {
+      trackingScriptsHead: settings?.trackingScriptsHead ?? "",
+      trackingScriptsBody: settings?.trackingScriptsBody ?? "",
+    };
   },
 });
 
@@ -171,22 +174,32 @@ export const getTrackingScriptsSettings = query({
       .query("siteSettings")
       .withIndex("by_key", (q) => q.eq("key", "global"))
       .first();
-    return { trackingScriptsHead: settings?.trackingScriptsHead ?? "" };
+    return {
+      trackingScriptsHead: settings?.trackingScriptsHead ?? "",
+      trackingScriptsBody: settings?.trackingScriptsBody ?? "",
+    };
   },
 });
 
 export const updateTrackingScripts = mutation({
-  args: { trackingScriptsHead: v.string() },
+  args: {
+    trackingScriptsHead: v.string(),
+    trackingScriptsBody: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
     const existing = await ctx.db
       .query("siteSettings")
       .withIndex("by_key", (q) => q.eq("key", "global"))
       .first();
+    const patch = {
+      trackingScriptsHead: args.trackingScriptsHead,
+      trackingScriptsBody: args.trackingScriptsBody ?? "",
+    };
     if (existing) {
-      await ctx.db.patch(existing._id, args);
+      await ctx.db.patch(existing._id, patch);
     } else {
-      await ctx.db.insert("siteSettings", { key: "global", ...args });
+      await ctx.db.insert("siteSettings", { key: "global", ...patch });
     }
   },
 });
