@@ -12,7 +12,29 @@ import { BookPopup } from "@/components/ui/BookPopup";
 import { getLocale } from "@/lib/i18n/server";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "../../convex/_generated/api";
+import { parseTrackingScripts, type TrackingBlock } from "@/lib/tracking-scripts-parser";
 import "./globals.css";
+
+function renderTrackingBlocks(blocks: TrackingBlock[], prefix: string) {
+  return blocks.map((block, i) => {
+    const key = `${prefix}-${i}`;
+    if (block.kind === "script-inline") {
+      return (
+        <script
+          key={key}
+          {...block.attrs}
+          dangerouslySetInnerHTML={{ __html: block.body }}
+        />
+      );
+    }
+    if (block.kind === "script-src") {
+      // Parser preserves the admin-pasted async/defer attrs; no need to force a strategy here.
+      // eslint-disable-next-line @next/next/no-sync-scripts
+      return <script key={key} src={block.src} {...block.attrs} />;
+    }
+    return <noscript key={key} dangerouslySetInnerHTML={{ __html: block.html }} />;
+  });
+}
 
 export const viewport: Viewport = {
   themeColor: "#0E0C0A",
@@ -55,17 +77,18 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const lang = await getLocale();
-  const tracking = await fetchQuery(api.settings.getTrackingScripts, {}).catch(() => ({ trackingScriptsHead: "" }));
+  const tracking = await fetchQuery(api.settings.getTrackingScripts, {}).catch(
+    () => ({ trackingScriptsHead: "", trackingScriptsBody: "" }),
+  );
+  const headBlocks = parseTrackingScripts(tracking.trackingScriptsHead);
+  const bodyBlocks = parseTrackingScripts(tracking.trackingScriptsBody);
 
   return (
     <ConvexAuthNextjsServerProvider>
       <html lang={lang} className={`${playfair.variable} ${dmSans.variable}`}>
-        <head>
-          {tracking.trackingScriptsHead ? (
-            <script dangerouslySetInnerHTML={{ __html: tracking.trackingScriptsHead.replace(/<\/?script[^>]*>/gi, "") }} />
-          ) : null}
-        </head>
+        <head>{renderTrackingBlocks(headBlocks, "head")}</head>
         <body className="flex flex-col min-h-screen">
+          {renderTrackingBlocks(bodyBlocks, "body")}
           <ConvexProvider>
             <JsonLd data={organizationJsonLd} />
             <a href="#main-content" className="skip-link">

@@ -679,13 +679,15 @@ function TrackingScriptsSettings() {
   const data = useQuery(api.settings.getTrackingScriptsSettings);
   const update = useMutation(api.settings.updateTrackingScripts);
 
-  const [value, setValue] = useState("");
+  const [headValue, setHeadValue] = useState("");
+  const [bodyValue, setBodyValue] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
   if (data && !initialized) {
-    setValue(data.trackingScriptsHead);
+    setHeadValue(data.trackingScriptsHead);
+    setBodyValue(data.trackingScriptsBody ?? "");
     setInitialized(true);
   }
   if (!data) return <Loading />;
@@ -694,7 +696,10 @@ function TrackingScriptsSettings() {
     setSaving(true);
     setSaved(false);
     try {
-      await update({ trackingScriptsHead: value });
+      await update({
+        trackingScriptsHead: headValue,
+        trackingScriptsBody: bodyValue,
+      });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } finally {
@@ -709,20 +714,27 @@ function TrackingScriptsSettings() {
     <div>
       <p className="text-[10px] font-medium tracking-[0.2em] uppercase text-copper mb-1">Tracking scripts</p>
       <p className="text-[13px] text-ink/50 mb-4">
-        Plak hier de JavaScript-code (zonder &lt;script&gt; tags) die je in de &lt;head&gt; van elke pagina wil. Bijvoorbeeld Leadinfo, Google Analytics of Hotjar.
+        Plak hier de snippets (incl. &lt;script&gt; en &lt;noscript&gt; tags) van bijvoorbeeld Leadinfo, GTM, Meta Pixel of LinkedIn Insight. Meerdere snippets achter elkaar plakken kan; ze worden automatisch herkend en als losse elementen geïnjecteerd.
       </p>
-      <div>
-        <label className={labelClass}>Inline JS (gaat in &lt;head&gt;)</label>
+      <div className="mb-5">
+        <label className={labelClass}>Head — gaat in &lt;head&gt;</label>
         <textarea
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          rows={10}
+          value={headValue}
+          onChange={(e) => setHeadValue(e.target.value)}
+          rows={12}
           className={ta}
-          placeholder={`(function(l,e,a,d,i,n,f,o){...}(window,document,'script','https://cdn.leadinfo.net/ping.js','leadinfo','LI-XXXXXXXX'));`}
+          placeholder={`<!-- Leadinfo -->\n<script>(function(l,e,a,d,i,n,f,o){...}(window,document,'script','https://cdn.leadinfo.net/ping.js','leadinfo','LI-XXXXXXXX'));</script>`}
         />
-        <p className="text-[11px] text-ink/40 mt-2">
-          Tip: als je een snippet plakt met &lt;script&gt;...&lt;/script&gt; tags worden die er automatisch uitgehaald.
-        </p>
+      </div>
+      <div>
+        <label className={labelClass}>Body — direct na &lt;body&gt; (bv. GTM noscript iframe)</label>
+        <textarea
+          value={bodyValue}
+          onChange={(e) => setBodyValue(e.target.value)}
+          rows={6}
+          className={ta}
+          placeholder={`<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXX" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>`}
+        />
       </div>
       <button
         onClick={handleSave}
